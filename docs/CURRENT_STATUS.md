@@ -74,8 +74,10 @@ GitHub Organization은 필수 요소로 사용하지 않으며 개발지침과 �
 
 - `personal-ai-janggi-trainer` — Web Service / Python / `main` / Singapore / Free / auto deploy
   - Repository: `hjang12/personal-ai-janggi-trainer`
+  - Latest cleanup deployment: live
 - `time-dashboard` — Web Service / Python / `main` / Oregon / Free / auto deploy
   - Repository: `hjang12/time-dashboard`
+  - Latest cleanup deployment: live
 
 Yeosamo 관련 Render Service는 모두 삭제되었다.
 
@@ -100,21 +102,33 @@ Render Workspace
 
 ## Automation Baseline
 
-각 활성 Project Repository는 AI Agent가 읽을 수 있는 표준 진입점을 가진다.
+각 Project Repository는 가능한 한 다음 표준 Context 진입 구조를 가진다.
 
+- `AGENT_START.md` — 새 Agent 세션에서 공통 Governance와 프로젝트 Context를 읽는 시작점
 - `AGENTS.md` — 도구에 독립적인 Agent 작업 규칙
-- `.github/copilot-instructions.md` — GitHub Copilot Repository 지침
-- `AGENT_START.md`가 있는 프로젝트는 기존 최소 시작 프롬프트를 유지
-- GitHub Actions는 push/PR에서 자동 검증
-- Render Service는 `main` push에 자동 배포
+- `docs/CURRENT_STATUS.md` — 현재 프로젝트 상태 및 다음 작업 복구용 Context
+- GitHub Actions — push/PR에서 자동 검증
+- Render — 배포 대상 서비스의 `main` push 자동 배포
 
 현재 적용 상태:
 
-- `personal-ai-janggi-trainer`: `AGENTS.md` + Copilot instructions + 기존 Python validation
-- `time-dashboard`: `AGENTS.md` + Copilot instructions + 기존 Python CI
-- `personal-mcp-server`: `AGENTS.md` + Copilot instructions + Python compile CI 추가
+- `personal-ai-janggi-trainer`: `AGENT_START.md` + `AGENTS.md` + `docs/CURRENT_STATUS.md` + Python validation + Render auto deploy
+- `time-dashboard`: `AGENTS.md` + existing Python CI + Render auto deploy; `AGENT_START.md`/`docs/CURRENT_STATUS.md` 보완 필요
+- `personal-mcp-server`: `AGENTS.md` + Python compile CI; `AGENT_START.md`/`docs/CURRENT_STATUS.md` 보완 필요
+
+Copilot 전용 Repository 지침은 현재 운영 구조에 포함하지 않는다.
 
 AI Agent 자체를 GitHub Actions에서 추론 실행하는 Agentic Workflow는 AI 엔진 계정/인증이 필요한 별도 선택 사항이며 무료 GitHub Actions만으로 강제하지 않는다.
+
+## Context Continuity Rule
+
+채팅 기록은 일시적인 작업 인터페이스이고, 프로젝트의 장기 기억은 GitHub Repository에 남긴다.
+
+중요한 요구사항, 설계 결정, 운영 변경, 실패 원인, 검증 결과, 미완료 작업이 다음 Agent 세션에 필요하다면 가능한 범위에서 Repository 문서 또는 Commit/PR 이력으로 기록한다.
+
+새 채팅 또는 다른 AI Agent로 전환할 때는 이전 채팅을 완전하게 복원하려고 하지 않고, 공통 Governance와 프로젝트 Repository의 현재 Context를 읽어 현재 상태를 재구성한다.
+
+`CURRENT_STATUS.md`는 현재 상태에 집중하고, `DEVELOPMENT_HISTORY.md`/ADR/Commit/PR은 장기적인 결정과 변경 이력을 보존하는 역할로 구분한다.
 
 ## Cleanup Execution Status
 
@@ -124,12 +138,13 @@ AI Agent 자체를 GitHub Actions에서 추론 실행하는 Agentic Workflow는 
 - Repository 기반 개발지침 구조로 단순화: 완료
 - 초기 Organization / Repository 이전 계획 폐기: 완료
 - Yeosamo GitHub Repository 삭제: 확인 완료
-- Yeosamo Render Service 2개 삭제: 확인 완료
+- Yeosamo Render Service 삭제: 확인 완료
 - 활성 Render 서비스와 GitHub Repository 매핑 재확인: 완료
 - Agent 표준 지침을 활성 프로젝트에 적용: 진행 완료
 - `personal-mcp-server` 자동 CI 추가: 완료
-- `personal-ai-janggi-trainer` Render 배포 상태: live
-- `time-dashboard` Render 배포 상태: live
+- Copilot 전용 Repository 지침 제거: 완료
+- `personal-ai-janggi-trainer` Copilot 제거 후 Render auto deploy: live 확인
+- `time-dashboard` Copilot 제거 후 Render auto deploy: live 확인
 
 ## Known Limitations
 
@@ -139,7 +154,8 @@ AI Agent 자체를 GitHub Actions에서 추론 실행하는 Agentic Workflow는 
 
 ## Next Development Target
 
-1. 새 Agent 세션에서 각 Repository의 `AGENTS.md` / Context를 실제로 읽고 작업 품질 검증
-2. 각 프로젝트의 GitHub Actions 결과와 Render auto deploy 결과 확인
-3. 반복되는 작업 중 AI Agent 자동화를 더 적용할 영역을 선별
-4. 필요할 때만 유료/외부 AI Agent 실행 환경을 추가
+1. `time-dashboard`와 `personal-mcp-server`에 표준 Agent 시작점과 Current Status Context 적용
+2. 새 Agent 세션에서 각 Repository의 Context를 실제로 읽고 작업 품질 검증
+3. 각 프로젝트의 GitHub Actions 결과와 Render auto deploy 결과 확인
+4. 반복되는 작업 중 AI Agent 자동화를 더 적용할 영역을 선별
+5. 필요할 때만 유료/외부 AI Agent 실행 환경을 추가
