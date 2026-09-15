@@ -77,3 +77,5 @@ External Dependencies Checked
 Verification Result
 Evidence / Links
 ```
+
+항목은 실제 플랫폼 상태를 확인한 뒤에만 완료한다. 계획·UI 의도·코드 변경만으로 삭제/이전 완료로 표시하지 않는다.
