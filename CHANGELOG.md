@@ -30,6 +30,13 @@
 - 새 Agent 시작 시 긴 Governance 전문을 복사하지 않는 최소 시작 프롬프트 원칙 정의
 - `AGENT_START.md` 추가
 - `CURRENT_STATUS.md`를 빠른 Context 복구 문서로 명확히 정의
+- GitHub Organization / Repository topology 원칙 정립
+- Render Workspace / Project / Environment / Service topology 원칙 정립
+- Project lifecycle의 Active / Maintenance / Retiring / Archived / Deleted 상태 정의
+- Retiring 프로젝트 삭제 전 보존 대상과 외부 연결 확인 절차 정의
+- `docs/PLATFORM_TOPOLOGY.md` 추가
+- `docs/PROJECT_INVENTORY.md` 추가
+- `docs/ADR/0002-platform-topology-and-lifecycle.md` 추가
 
 ### Clarified
 
@@ -38,3 +45,7 @@
 - 배포 성공과 서비스 정상 동작을 구분하도록 명시
 - 기존 프로젝트 구조를 먼저 이해한 후 최소 변경하도록 명시
 - Governance의 개선은 실제 프로젝트 경험을 근거로 수행하도록 명시
+- Governance Repository는 Product Repository의 부모가 아니라 공통 정책 Repository이며, 상위 묶음이 필요할 경우 GitHub Organization을 사용한다.
+- Render는 Source of Truth가 아니라 실행/배포 환경이며 GitHub → CI/Verification → Render → Post-deployment Verification 관계를 유지한다.
+- 동일 Repository를 가리키는 중복 Render Service는 명확한 역할이 없으면 유지하지 않는다.
+- 현재 여사모 자산은 삭제 완료가 아니라 `Retiring` 상태로 기록하며, 실제 삭제 여부는 플랫폼에서 확인한 뒤 기록한다.
