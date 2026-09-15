@@ -118,8 +118,8 @@ GitHub 연결 계정에서는 Organization membership이 확인되지 않았다.
 
 ### Known Issues
 
-- Governance v1.0.0 PR은 아직 `main`에 merge되지 않았다.
-- GitHub Organization target은 아직 생성되지 않았다.
+- Governance v1.0.0 PR은 `main`에 merge되지 않은 상태였다.
+- GitHub Organization target은 아직 생성되지 않은 상태였다.
 - 여사모 Render 서비스는 아직 삭제되지 않았다.
 - `project-yeosamo` Repository도 아직 삭제/Archive되지 않았다.
 
@@ -132,3 +132,33 @@ GitHub 연결 계정에서는 Organization membership이 확인되지 않았다.
 5. 각 Project Repository의 Context 문서 최신화
 6. Render Project/Environment/Service 구성 검증
 7. GitHub ↔ CI/CD ↔ Render 연결 및 Post-deployment Verification
+
+## 2026-09-15 — Governance v1.0.0 main 반영 및 Organization target 생성
+
+### Verification
+
+PR #1 `Establish AI Agent CI/CD governance v1.0.0`이 2026-09-15에 `main`으로 병합된 것을 직접 확인했다. Merge Commit은 `3090d0e84a9182a66d8eeeac285824543471ccf1`이다.
+
+### User Action
+
+사용자가 GitHub Organization `ai-ci-cd`를 생성했다.
+
+### Decision
+
+Organization은 생성했지만, 현재 연결된 GitHub 도구에서 해당 Organization membership이 조회되지 않으므로 Repository 이전은 보류한다. 기존 `hjang12/*` Repository에서 계속 개발하며, 연결 도구가 Organization을 실제로 접근할 수 있는지 확인된 후 이전 여부를 다시 결정한다.
+
+### Current Result
+
+- Governance v1.0.0: active on `main`
+- PR #1: merged
+- GitHub Organization `ai-ci-cd`: created by user
+- Active Repository transfers: deferred
+- Yeosamo retirement: still pending
+
+### Next Step
+
+1. 기존 Project Repository에 Governance Context 표준 적용
+2. 각 Project의 현재 상태와 CI/CD/Render 연결을 점검
+3. 여사모 retirement를 플랫폼에서 수행하고 실제 결과를 재검증
+4. Organization 접근 가능 여부가 확인되면 active Repository 이전 검토
+5. 실제 프로젝트 경험을 기반으로 Governance v1.1.0 후보 수집
