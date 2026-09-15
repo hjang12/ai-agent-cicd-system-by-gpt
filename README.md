@@ -33,7 +33,7 @@ Requirement
 5. 대상 프로젝트의 `ARCHITECTURE.md`
 6. 대상 프로젝트의 `DEVELOPMENT_HISTORY.md`
 7. 대상 프로젝트의 `ADR/`
-8. 필요하면 `docs/PLATFORM_TOPOLOGY.md`와 `docs/PROJECT_INVENTORY.md`
+8. 필요하면 `docs/PLATFORM_TOPOLOGY.md`, `docs/PROJECT_INVENTORY.md`, `docs/RETIREMENT_CHECKLIST.md`
 
 `AGENT_START.md`는 새 Agent에게 전달할 **최소 시작 프롬프트**를 정의합니다.
 
@@ -50,6 +50,7 @@ CHANGELOG.md
 ├── DEVELOPMENT_HISTORY.md
 ├── PLATFORM_TOPOLOGY.md
 ├── PROJECT_INVENTORY.md
+├── RETIREMENT_CHECKLIST.md
 ├── AGENT_HARNESS.md
 ├── VERIFICATION.md
 ├── EVIDENCE.md
@@ -63,7 +64,7 @@ CHANGELOG.md
 └── CHANGE_RECORD.md
 ```
 
-`docs/PLATFORM_TOPOLOGY.md`는 Repository와 Deployment Platform의 계층 및 lifecycle을 정의하는 Governance의 상세 운영 문서이고, `docs/PROJECT_INVENTORY.md`는 실제 자산 상태를 기록하는 inventory입니다.
+`docs/PLATFORM_TOPOLOGY.md`는 Repository와 Deployment Platform의 계층 및 lifecycle을 정의하는 Governance의 상세 운영 문서이고, `docs/PROJECT_INVENTORY.md`는 실제 자산 상태를 기록하는 inventory입니다. `docs/RETIREMENT_CHECKLIST.md`는 프로젝트/서비스 종료 시 필요한 보존·삭제·검증 절차를 표준화합니다.
 
 ## Governance의 적용
 
