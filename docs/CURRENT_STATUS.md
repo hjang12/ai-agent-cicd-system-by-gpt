@@ -98,10 +98,23 @@ Render Workspace
 └── personal-mcp-server Project (when deployed)
 ```
 
+## Cleanup Execution Status
+
+2026-09-15 기준 정리 작업을 실행했다.
+
+- Governance에 Repository/Deployment topology와 project lifecycle 규칙 반영: 완료
+- 실제 플랫폼 상태 inventory 기록: 완료
+- 정리 추적 Issue #2 생성: 완료
+- 여사모 Render Service 2개를 Retiring 대상으로 기록: 완료
+- 여사모 Render Service 실제 삭제: 미완료 — 현재 연결된 Render 도구에 삭제 명령이 없음
+- 여사모 GitHub Repository 실제 Archive/Delete: 미완료 — 현재 연결된 GitHub 도구에 Repository 삭제/Archive 명령이 없음
+- GitHub Organization 생성: 미완료 — 현재 연결된 GitHub 도구에 Organization 생성 명령이 없음
+- 활성 Repository의 Organization 이전: 미완료 — Organization 생성 및 이전 기능이 현재 도구 범위 밖임
+
 ## Cleanup Plan
 
 1. 여사모 데이터/외부 연동/Domain/Secret 보존 여부 확인
-2. 여사모 Render Project/Service 종료
+2. 여사모 Render Service 종료/삭제
 3. 필요한 경우 여사모 GitHub Repository 보존 후 Archive 또는 삭제 결정
 4. GitHub Organization target 생성/이전 가능 여부 확인
 5. 활성 프로젝트를 Organization 체계로 정리
@@ -114,15 +127,15 @@ Render Workspace
 - Governance 자체를 자동으로 검사하는 CI 규칙은 아직 없음
 - Evidence 표준 및 자동 수집 도구는 초기 원칙만 정의됨
 - Context 문서의 최신 상태를 자동으로 강제하는 장치는 아직 없음
-- 현재 연결된 GitHub 도구에서는 Organization 생성 및 기존 Repository의 Organization 이전을 수행할 수 없음
-- 현재 연결된 Render 도구에서는 Service 삭제/Workspace 간 이동 작업을 직접 수행할 수 없음
+- 현재 연결된 GitHub 도구에서는 Organization 생성, Repository Organization 이전, Repository Archive/Delete를 수행할 수 없음
+- 현재 연결된 Render 도구에서는 Service 삭제와 Workspace/Project 구조 변경을 직접 수행할 수 없음
 
 ## Next Development Target
 
-1. Repository/Deployment topology 정리 완료
-2. 실제 프로젝트에 Governance Context 문서 표준 적용
-3. Agent Context 복구 문제 관찰
-4. Evidence / Traceability 운영 문제 관찰
-5. Git / CI / Deployment 승인 흐름 검증
-6. 반복되는 문제를 Governance 개선안으로 전환
-7. 필요 시 템플릿·검증 도구·자동화 추가
+1. 플랫폼 콘솔에서 Issue #2의 Retiring 절차 수행
+2. 실제 삭제/이전 결과를 inventory와 development history에 기록
+3. Repository/Deployment topology 정리 완료
+4. 실제 프로젝트에 Governance Context 문서 표준 적용
+5. Evidence / Traceability 운영 문제 관찰
+6. Git / CI / Deployment 승인 흐름 검증
+7. 반복되는 문제를 다음 Governance Version 개선안으로 전환
