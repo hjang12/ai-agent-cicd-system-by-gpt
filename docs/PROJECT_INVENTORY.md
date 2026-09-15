@@ -1,6 +1,6 @@
 # Project Inventory
 
-정리 작업의 기준이 되는 현재 프로젝트 및 배포 자산 목록이다. 이 문서는 2026-09-15 실제 GitHub/Render 상태를 기준으로 작성했으며, 변경 시 확인 결과를 갱신한다.
+정리 작업의 기준이 되는 현재 프로젝트 및 배포 자산 목록이다. 이 문서는 2026-09-15 실제 GitHub/Render 상태를 기준으로 작성하며, 변경 시 확인 결과를 갱신한다.
 
 ## Active projects
 
@@ -17,6 +17,7 @@
 | `hjang12/ai-agent-cicd-system` | Common AI Coding Agent Governance | Review candidate v1.0.0 |
 | `governance-v1.0.0` | Governance working branch | Active |
 | PR #1 | Governance v1.0.0 proposal | Open |
+| Issue #2 | Platform cleanup / Yeosamo retirement | Open |
 
 ## Retiring project
 
@@ -51,11 +52,26 @@ Render Workspace
 └── personal-mcp-server Project (when deployment is required)
 ```
 
-## Cleanup state
+## Cleanup execution state — 2026-09-15
 
-GitHub currently has no organization memberships confirmed for the connected account, so an Organization target has not yet been created through the available tooling.
+### Completed
 
-Render deletion/reorganization operations are not exposed by the current connected tool set. Therefore the inventory records the intended target and the exact retiring resources rather than claiming that deletion has already occurred.
+- Actual GitHub Repository list verified.
+- Actual Render Workspace/Service list verified.
+- Yeosamo resources identified as retiring targets.
+- Governance topology/lifecycle rules documented.
+- Cleanup tracking recorded in Issue #2.
+
+### Not completed
+
+- `project-yeosamo` Render Service deletion.
+- `project-yeosamo-app` Render Service deletion.
+- `hjang12/project-yeosamo` Archive/Delete.
+- GitHub Organization creation.
+- Active Repository transfer to an Organization.
+- Render Project/Environment restructuring.
+
+The connected tool set does not expose these destructive/migration operations directly. Do not mark them complete until the actual platform resource state is rechecked.
 
 ## Verification rule
 
