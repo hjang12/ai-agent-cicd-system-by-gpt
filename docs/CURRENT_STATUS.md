@@ -3,10 +3,11 @@
 ## Governance
 
 - Governance Version: `1.0.0`
-- Status: Initial baseline / review candidate
-- Working Branch: `governance-v1.0.0`
+- Status: Active baseline
+- Working Branch: `main`
 - Target Branch: `main`
-- PR: `#1`
+- PR #1: Merged
+- Merge Commit: `3090d0e84a9182a66d8eeeac285824543471ccf1`
 
 ## Repository
 
@@ -66,7 +67,7 @@
 - `hjang12/time-dashboard`
 - `hjang12/personal-mcp-server`
 
-현재 연결된 계정의 GitHub Organization membership은 확인되지 않았다. 따라서 Organization 이전은 아직 수행되지 않았다.
+사용자 보고 기준 GitHub Organization `ai-ci-cd`가 생성되었다. 다만 현재 연결된 GitHub 도구에서는 해당 Organization membership이 조회되지 않아, Organization 내부 Repository 이전 여부는 미검증 상태로 유지한다.
 
 ### Render
 
@@ -85,10 +86,11 @@
 
 ```text
 GitHub Organization / Account Namespace
-├── ai-agent-cicd-system
-├── personal-ai-janggi-trainer
-├── time-dashboard
-└── personal-mcp-server
+└── ai-ci-cd (created; repository transfer pending verification)
+    ├── ai-agent-cicd-system
+    ├── personal-ai-janggi-trainer
+    ├── time-dashboard
+    └── personal-mcp-server
 
 Render Workspace
 ├── personal-ai-janggi-trainer Project
@@ -105,19 +107,21 @@ Render Workspace
 - Governance에 Repository/Deployment topology와 project lifecycle 규칙 반영: 완료
 - 실제 플랫폼 상태 inventory 기록: 완료
 - 정리 추적 Issue #2 생성: 완료
+- Governance PR #1 병합: 완료
+- GitHub Organization `ai-ci-cd` 생성: 사용자 작업으로 완료 보고됨, 연결 도구에서 membership 미검증
+- 활성 Repository의 Organization 이전: 미완료
 - 여사모 Render Service 2개를 Retiring 대상으로 기록: 완료
 - 여사모 Render Service 실제 삭제: 미완료 — 현재 연결된 Render 도구에 삭제 명령이 없음
 - 여사모 GitHub Repository 실제 Archive/Delete: 미완료 — 현재 연결된 GitHub 도구에 Repository 삭제/Archive 명령이 없음
-- GitHub Organization 생성: 미완료 — 현재 연결된 GitHub 도구에 Organization 생성 명령이 없음
-- 활성 Repository의 Organization 이전: 미완료 — Organization 생성 및 이전 기능이 현재 도구 범위 밖임
+- Render Project/Environment restructuring: 미완료
 
 ## Cleanup Plan
 
 1. 여사모 데이터/외부 연동/Domain/Secret 보존 여부 확인
 2. 여사모 Render Service 종료/삭제
 3. 필요한 경우 여사모 GitHub Repository 보존 후 Archive 또는 삭제 결정
-4. GitHub Organization target 생성/이전 가능 여부 확인
-5. 활성 프로젝트를 Organization 체계로 정리
+4. Organization `ai-ci-cd` 접근 가능 여부를 연결 도구에서 확인
+5. 활성 프로젝트를 Organization 체계로 이전할지 최종 결정하고, 가능해진 경우 이전 후 검증
 6. 각 Project Repository의 CURRENT_STATUS/README/DEVELOPMENT_HISTORY를 실제 상태와 일치시킴
 7. Render Project/Environment/Service naming을 표준화
 8. 최종 GitHub ↔ Render 연결 및 배포 검증
@@ -129,13 +133,13 @@ Render Workspace
 - Context 문서의 최신 상태를 자동으로 강제하는 장치는 아직 없음
 - 현재 연결된 GitHub 도구에서는 Organization 생성, Repository Organization 이전, Repository Archive/Delete를 수행할 수 없음
 - 현재 연결된 Render 도구에서는 Service 삭제와 Workspace/Project 구조 변경을 직접 수행할 수 없음
+- 현재 연결된 GitHub 도구에서는 새 Organization `ai-ci-cd` membership이 아직 조회되지 않음
 
 ## Next Development Target
 
-1. 플랫폼 콘솔에서 Issue #2의 Retiring 절차 수행
-2. 실제 삭제/이전 결과를 inventory와 development history에 기록
-3. Repository/Deployment topology 정리 완료
-4. 실제 프로젝트에 Governance Context 문서 표준 적용
+1. GitHub Organization `ai-ci-cd`와 연결 도구의 접근 가능 상태 재검증
+2. 여사모 retirement 수행 및 실제 삭제 결과 검증
+3. 활성 프로젝트의 Context 문서 표준 적용
+4. Git / CI / Deployment 승인 흐름 검증
 5. Evidence / Traceability 운영 문제 관찰
-6. Git / CI / Deployment 승인 흐름 검증
-7. 반복되는 문제를 다음 Governance Version 개선안으로 전환
+6. 반복되는 문제를 다음 Governance Version 개선안으로 전환
