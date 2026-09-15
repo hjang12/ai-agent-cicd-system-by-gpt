@@ -33,6 +33,7 @@ Requirement
 5. 대상 프로젝트의 `ARCHITECTURE.md`
 6. 대상 프로젝트의 `DEVELOPMENT_HISTORY.md`
 7. 대상 프로젝트의 `ADR/`
+8. 필요하면 `docs/PLATFORM_TOPOLOGY.md`와 `docs/PROJECT_INVENTORY.md`
 
 `AGENT_START.md`는 새 Agent에게 전달할 **최소 시작 프롬프트**를 정의합니다.
 
@@ -47,6 +48,8 @@ CHANGELOG.md
 ... / docs
 ├── CURRENT_STATUS.md
 ├── DEVELOPMENT_HISTORY.md
+├── PLATFORM_TOPOLOGY.md
+├── PROJECT_INVENTORY.md
 ├── AGENT_HARNESS.md
 ├── VERIFICATION.md
 ├── EVIDENCE.md
@@ -60,7 +63,7 @@ CHANGELOG.md
 └── CHANGE_RECORD.md
 ```
 
-`docs/`와 `templates/`의 추가 문서는 Governance가 성장함에 따라 확장합니다.
+`docs/PLATFORM_TOPOLOGY.md`는 Repository와 Deployment Platform의 계층 및 lifecycle을 정의하는 Governance의 상세 운영 문서이고, `docs/PROJECT_INVENTORY.md`는 실제 자산 상태를 기록하는 inventory입니다.
 
 ## Governance의 적용
 
@@ -69,15 +72,65 @@ CHANGELOG.md
 프로젝트별 문서는 프로젝트 Repository에 둡니다.
 
 ```text
-AI Agent CI/CD System
+GitHub Organization / Account Namespace
         ↓
-공통 운영 규칙
+Governance Repository + Project Repositories
         ↓
-각 프로젝트의
-CURRENT_STATUS / ARCHITECTURE / DEVELOPMENT_HISTORY / ADR / Evidence
+Project-specific Context / Architecture / History
+        ↓
+CI / Verification
+        ↓
+Render Workspace
+        ↓
+Render Project
+        ↓
+Environment
+        ↓
+Service
 ```
 
+GitHub는 Repository의 공식 Source of Truth이고, Render는 실행 및 배포 환경입니다. Governance는 각 Project Repository에 공통 적용되며, 특정 Repository를 다른 Repository의 하위 저장소로 만들지 않습니다.
+
 공통 규칙과 프로젝트별 예외가 충돌하는 경우 그 사실과 예외 사유를 문서화합니다.
+
+## Platform topology
+
+권장 GitHub 구조:
+
+```text
+GitHub Organization
+├── ai-agent-cicd-system
+├── personal-ai-janggi-trainer
+├── time-dashboard
+└── personal-mcp-server
+```
+
+권장 Render 구조:
+
+```text
+Render Workspace
+├── personal-ai-janggi-trainer Project
+│   └── Production → personal-ai-janggi-trainer Service
+├── time-dashboard Project
+│   └── Production → time-dashboard Service
+└── personal-mcp-server Project (when deployed)
+```
+
+같은 Repository를 가리키는 중복 Service는 명확한 역할이 없으면 만들지 않습니다.
+
+## Project lifecycle
+
+프로젝트는 다음 lifecycle을 사용합니다.
+
+```text
+Planned
+→ Active
+→ Maintenance
+→ Retiring
+→ Archived / Deleted
+```
+
+삭제 전에는 데이터, Domain/DNS, Secret, 외부 API/OAuth/Webhook, CI/CD, 다른 서비스의 참조, 보존할 Git history와 문서를 확인합니다.
 
 ## 버전 관리
 
@@ -113,5 +166,7 @@ Problem / Context
 - 중요한 결과는 가능한 범위에서 재현 가능하고 추적 가능해야 합니다.
 - 실패와 복구도 프로젝트 지식으로 기록합니다.
 - 프로젝트의 개발 경험을 Governance 개선으로 다시 연결합니다.
+- 플랫폼 자산의 이름과 연결 관계는 문서로 확인 가능해야 합니다.
+- 사용하지 않는 Project/Service/Repository는 Retirement 절차를 거친 후 정리합니다.
 
-자세한 규칙은 `GOVERNANCE.md`가 공식 기준입니다.
+자세한 규칙은 `GOVERNANCE.md`, 플랫폼 구조는 `docs/PLATFORM_TOPOLOGY.md`를 공식 기준으로 봅니다.
