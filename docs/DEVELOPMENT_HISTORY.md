@@ -56,7 +56,7 @@ AI Coding Agent를 활용하는 프로젝트의 개발·검증·배포·운영 �
 
 실제 프로젝트에 Governance를 적용하고, 적용 과정에서 발생하는 Context 복구, Evidence, 승인, CI/CD 및 문서 동기화 문제를 다음 Governance 개선의 근거로 축적한다.
 
-## 2026-09-15 — Repository / Deployment Topology 정리 기준 추가
+## 2026-09-15 — Repository / Deployment Topology 정리 기준 추가 및 실제 정리 착수
 
 ### Requirement
 
@@ -83,27 +83,38 @@ Render에서는 Workspace를 전체 개발 자산의 상위 경계로 유지하�
 
 ### Implementation
 
-다음 문서를 추가했다.
+다음 문서를 추가/갱신했다.
 
 - `docs/PLATFORM_TOPOLOGY.md`
 - `docs/PROJECT_INVENTORY.md`
 - `docs/ADR/0002-platform-topology-and-lifecycle.md`
-
-README와 CURRENT_STATUS에도 topology와 정리 상태를 반영했다.
+- `docs/CURRENT_STATUS.md`
+- `README.md`
+- `Issue #2`: 플랫폼 정리 추적
 
 ### Verification
 
-2026-09-15 GitHub Repository 목록 및 Render Workspace/Service 목록을 직접 확인했다.
+2026-09-15 GitHub Repository 목록 및 Render Workspace/Service 목록을 직접 재확인했다.
 
 현재 확인된 GitHub Repository는 `ai-agent-cicd-system`, `personal-ai-janggi-trainer`, `project-yeosamo`, `time-dashboard`, `personal-mcp-server`이다.
 
 현재 Render Workspace는 `My Workspace`이며 확인된 서비스는 `personal-ai-janggi-trainer`, `time-dashboard`, `project-yeosamo`, `project-yeosamo-app`이다.
 
-GitHub 연결 계정에서는 Organization membership이 확인되지 않았고, 현재 연결된 도구에서는 Organization 생성/Repository 이전 및 Render Service 삭제를 직접 수행할 수 없었다.
+GitHub 연결 계정에서는 Organization membership이 확인되지 않았다.
 
-### Result
+### Execution Result
 
-플랫폼 구조와 프로젝트 lifecycle을 Governance 기준으로 문서화했으며, 여사모 자산을 `Retiring` 상태로 분류했다. 실제 삭제나 이전은 해당 플랫폼에서 직접 확인 가능한 절차를 통해 수행해야 한다.
+- Governance topology/lifecycle 규칙: 완료
+- 실제 플랫폼 inventory: 완료
+- 여사모 Retiring 분류: 완료
+- 정리 Issue #2: 완료
+- GitHub Organization 생성/Repository 이전: 미완료
+- 여사모 Render Service 삭제: 미완료
+- 여사모 GitHub Repository Archive/Delete: 미완료
+
+현재 연결된 GitHub 도구에는 Organization 생성, Repository Archive/Delete 기능이 없고, Render 연결 도구에도 Service 삭제와 Workspace/Project 구조 변경 기능이 없어 플랫폼 리소스 자체를 직접 제거할 수 없다.
+
+따라서 삭제/이전을 수행한 것으로 기록하지 않으며, 실제 플랫폼 콘솔에서 수행한 뒤 결과를 다시 검증하는 것을 완료 조건으로 유지한다.
 
 ### Known Issues
 
@@ -115,8 +126,9 @@ GitHub 연결 계정에서는 Organization membership이 확인되지 않았고,
 ### Next Step
 
 1. 여사모 데이터 및 외부 연동 보존 여부 최종 확인
-2. Render의 여사모 Project/Service 삭제
-3. GitHub Organization 생성 및 Repository 이전 검토/수행
-4. 각 Project Repository의 Context 문서 최신화
-5. Render Project/Environment/Service 구성 검증
-6. GitHub ↔ CI/CD ↔ Render 연결 및 Post-deployment Verification
+2. Render의 여사모 Service 삭제
+3. GitHub Organization 생성 및 Repository 이전
+4. 실제 이전/삭제 결과 검증
+5. 각 Project Repository의 Context 문서 최신화
+6. Render Project/Environment/Service 구성 검증
+7. GitHub ↔ CI/CD ↔ Render 연결 및 Post-deployment Verification
