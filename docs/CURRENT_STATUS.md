@@ -49,43 +49,82 @@
 - Governance 자체의 지속적 개선 원칙
 - Governance 변경 이력 관리 원칙
 - 최소 시작 프롬프트 원칙
-- 프로젝트 lifecycle 원칙
-- 자동화 우선 원칙
+- Repository 기반 개발지침 원칙
+- Project Retirement / Delete lifecycle 원칙
 
-## Current Direction
+## Platform state confirmed on 2026-09-15
 
-이 저장소의 역할은 **AI Coding Agent가 프로젝트를 일관된 규칙으로 개발하도록 하는 Repository 기반 개발지침의 Source of Truth**입니다.
+### GitHub
 
-별도의 GitHub Organization 생성, Repository 이전, 전체 플랫폼 inventory 유지 등은 Governance의 필수 범위에서 제외합니다.
+현재 연결된 계정에서 확인된 Repository:
 
-실제 프로젝트의 현재 상태와 배포 구성은 각 프로젝트 Repository 및 해당 배포 플랫폼에서 직접 확인합니다.
+- `hjang12/ai-agent-cicd-system`
+- `hjang12/personal-ai-janggi-trainer`
+- `hjang12/project-yeosamo`
+- `hjang12/time-dashboard`
+- `hjang12/personal-mcp-server`
 
-## Automation Direction
+GitHub Organization은 현재 운영 구조의 필수 요소로 사용하지 않는다. 개발지침과 프로젝트 Context의 Source of Truth는 각 GitHub Repository에 둔다.
 
-목표 운영 흐름은 다음과 같습니다.
+`hjang12/project-yeosamo`는 종료 대상으로 분류되어 있으며 실제 Repository 삭제/Archive 여부는 별도로 관리할 수 있다.
+
+### Render
+
+현재 Workspace: `My Workspace`
+
+2026-09-15 재확인 결과 활성 Service는 다음 2개다.
+
+- `personal-ai-janggi-trainer` — Web Service / Python / `main` / Singapore / Free / auto deploy
+  - Repository: `hjang12/personal-ai-janggi-trainer`
+- `time-dashboard` — Web Service / Python / `main` / Oregon / Free / auto deploy
+  - Repository: `hjang12/time-dashboard`
+
+Yeosamo 관련 Render Service는 모두 삭제되었다.
+
+## Target Operating Topology
 
 ```text
-Repository Context
-→ AI Coding Agent
-→ Code Change
-→ Commit / PR
-→ Automated CI / Verification
-→ Deployment
-→ Post-deployment Verification
+GitHub Repository
+├── ai-agent-cicd-system
+├── personal-ai-janggi-trainer
+├── time-dashboard
+├── personal-mcp-server
+└── project-yeosamo (retired / pending repository cleanup as applicable)
+
+Render Workspace
+├── personal-ai-janggi-trainer Service
+│   └── → hjang12/personal-ai-janggi-trainer
+├── time-dashboard Service
+│   └── → hjang12/time-dashboard
+└── personal-mcp-server Service (when deployment is required)
 ```
 
-사람의 반복적인 수동 작업을 최소화하고, 계정 권한·결제·파괴적 변경처럼 명시적인 승인이 필요한 작업만 사람의 개입 대상으로 둡니다.
+기본 naming rule은 GitHub Repository와 Render Service의 이름을 동일하게 유지한다. 같은 Repository에 연결된 중복 Service는 명확한 운영 목적이 없으면 만들지 않는다.
+
+## Cleanup Execution Status
+
+2026-09-15 기준 정리 작업:
+
+- Governance PR #1 병합: 완료
+- Repository 기반 개발지침 구조로 단순화: 완료
+- 초기 Organization / Repository 이전 계획 폐기: 완료
+- Yeosamo Render Service 2개 삭제: 완료
+- Render 활성 서비스와 GitHub Repository 매핑 재확인: 완료
+- `personal-ai-janggi-trainer` Render 배포 상태: live
+- `time-dashboard` Render 배포 상태: live
+- 두 활성 서비스 최근 error 로그: 확인된 오류 없음
+- `personal-mcp-server` Render 배포: 아직 없음
 
 ## Known Limitations
 
-- Governance 자체를 자동으로 검사하는 별도 validator는 아직 없음
+- Governance 자체를 자동으로 검사하는 CI 규칙은 아직 없음
 - Context 문서의 최신 상태를 자동으로 강제하는 장치는 아직 없음
-- 일부 계정 수준의 GitHub/Render 관리 작업은 현재 연결된 도구의 권한 및 기능 범위를 벗어날 수 있음
+- 현재 연결된 GitHub 도구에서는 Repository 자체의 Archive/Delete와 Organization 생성/이전을 수행할 수 없음
+- 현재 연결된 Render 도구에서는 기존 Service 삭제 및 일부 Dashboard 구조 변경을 직접 수행할 수 없음
 
 ## Next Development Target
 
-1. Repository 기반 개발지침을 실제 프로젝트에 일관되게 적용
-2. GitHub Actions를 이용한 자동 검증 강화
-3. Agent가 Context를 읽고 개발·검증·PR까지 수행하는 흐름 검증
-4. 실제 프로젝트 운영에서 반복되는 수동 작업을 자동화 대상으로 전환
-5. 관찰된 문제를 다음 Governance Version 개선안으로 반영
+1. 각 프로젝트 Repository에 공통 Agent 시작 구조를 적용
+2. GitHub Actions 기반 자동 검증과 Agent 작업 흐름을 실제 프로젝트에서 검증
+3. Render auto deploy 및 post-deployment verification을 프로젝트별로 점검
+4. 반복되는 운영 문제를 다음 Governance Version 개선안으로 전환
