@@ -37,6 +37,7 @@
 - `docs/PLATFORM_TOPOLOGY.md` 추가
 - `docs/PROJECT_INVENTORY.md` 추가
 - `docs/ADR/0002-platform-topology-and-lifecycle.md` 추가
+- 플랫폼 정리 추적 Issue `#2` 기록
 
 ### Clarified
 
@@ -49,3 +50,4 @@
 - Render는 Source of Truth가 아니라 실행/배포 환경이며 GitHub → CI/Verification → Render → Post-deployment Verification 관계를 유지한다.
 - 동일 Repository를 가리키는 중복 Render Service는 명확한 역할이 없으면 유지하지 않는다.
 - 현재 여사모 자산은 삭제 완료가 아니라 `Retiring` 상태로 기록하며, 실제 삭제 여부는 플랫폼에서 확인한 뒤 기록한다.
+- 현재 연결된 도구에서 직접 수행할 수 없는 Organization 생성/Repository 이전/Service 삭제 등의 작업은 실제 실행 없이 완료로 기록하지 않는다.
