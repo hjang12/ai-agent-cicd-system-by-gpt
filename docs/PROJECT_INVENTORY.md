@@ -14,10 +14,17 @@
 
 | Asset | Purpose | Status |
 |---|---|---|
-| `hjang12/ai-agent-cicd-system` | Common AI Coding Agent Governance | Review candidate v1.0.0 |
-| `governance-v1.0.0` | Governance working branch | Active |
-| PR #1 | Governance v1.0.0 proposal | Open |
+| `hjang12/ai-agent-cicd-system` | Common AI Coding Agent Governance | Active v1.0.0 |
+| `main` | Governance baseline branch | Active |
+| PR #1 | Governance v1.0.0 proposal | Merged |
 | Issue #2 | Platform cleanup / Yeosamo retirement | Open |
+
+## GitHub Organization
+
+- Organization name: `ai-ci-cd`
+- Creation status: user-created on 2026-09-15
+- Repository transfer status: pending
+- Current connected GitHub tool does not expose the Organization membership, so Organization-side repository placement remains unverified.
 
 ## Retiring project
 
@@ -39,10 +46,11 @@ Both Yeosamo Render services point to the same GitHub Repository. The duplicatio
 
 ```text
 GitHub Organization / Account Namespace
-├── ai-agent-cicd-system
-├── personal-ai-janggi-trainer
-├── time-dashboard
-└── personal-mcp-server
+└── ai-ci-cd
+    ├── ai-agent-cicd-system
+    ├── personal-ai-janggi-trainer
+    ├── time-dashboard
+    └── personal-mcp-server
 
 Render Workspace
 ├── personal-ai-janggi-trainer Project
@@ -61,17 +69,19 @@ Render Workspace
 - Yeosamo resources identified as retiring targets.
 - Governance topology/lifecycle rules documented.
 - Cleanup tracking recorded in Issue #2.
+- Governance PR #1 merged to `main`.
+- GitHub Organization `ai-ci-cd` created by the user.
 
 ### Not completed
 
 - `project-yeosamo` Render Service deletion.
 - `project-yeosamo-app` Render Service deletion.
 - `hjang12/project-yeosamo` Archive/Delete.
-- GitHub Organization creation.
-- Active Repository transfer to an Organization.
+- Active Repository transfer to `ai-ci-cd`.
 - Render Project/Environment restructuring.
+- Verification that the connected GitHub tooling can access the new Organization.
 
-The connected tool set does not expose these destructive/migration operations directly. Do not mark them complete until the actual platform resource state is rechecked.
+The connected tool set does not expose the destructive/migration operations directly. Do not mark them complete until the actual platform resource state is rechecked.
 
 ## Verification rule
 
