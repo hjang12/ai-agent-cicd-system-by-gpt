@@ -339,3 +339,32 @@ These are explicit operational limitations, not assumed-complete features.
 사용자는 일반적인 기술 작업에 대해 사전 승인을 요구하지 않고 AI가 자율적으로 분석, 수정, 검증, 문서화, CI 실행 및 안전한 복구까지 수행하는 운영 방식을 채택했다. Human Approval은 삭제, 비가역적 데이터 변경, 중대한 보안/권한 변경, 실질적 비용 증가, 법률/라이선스 판단, 대규모 Architecture·제품 방향 변경 등 높은 위험의 결정에만 둔다.
 
 향후 일반적인 기술 이슈는 `발견 → 수정 → 검증 → 보고`를 기본 흐름으로 처리하며, AI는 문제를 숨기지 않고 해결되지 않은 기술적 한계를 결과와 함께 보고한다.
+
+## 2026-09-18 — 자율 실행 판단 기준 및 정책·기획 충돌 Escalation 명확화
+
+### Requirement
+
+Automation First 운영에서는 AI가 일반적인 기술 작업을 스스로 처리하는 것만으로 충분하지 않다. AI가 기술적으로 해결할 수 없는 경우뿐 아니라, 해결은 가능하지만 Governance / 개발지침 / Project Plan / Requirement / Architecture Constraint와 충돌하는 경우에도 자동화가 진행되지 않도록 명확한 판단 기준이 필요하다.
+
+### Implementation
+
+GOVERNANCE/GOVERNANCE.md에 다음 원칙을 명문화했다.
+
+- 자율 실행 전 Execution Capability → Policy / Project Compatibility → Authority / Risk를 독립적으로 확인
+- 세 조건을 모두 충족할 때만 자율 실행
+- Tool/권한/플랫폼 한계로 완료할 수 없는 경우 중단 후 보고
+- 기술적으로 구현 가능하더라도 Governance, 개발지침, Project Plan, Requirement, Architecture Constraint와 충돌하면 임의 실행·우회 금지
+- 상충하는 문서/요구사항을 AI가 임의 해석하여 진행하지 않고 보고
+- 개선 제안도 지침·기획 변경이 필요한 순간에는 실행이 아니라 제안·보고로 전환
+- 문제 상태를 임의로 완료/정상/검증됨으로 표시하지 않음
+- 최종 원칙에 위 판단 기준을 추가
+
+### Review
+
+기존 Automation First 원칙인 발견 → 수정 → 검증 → 보고를 유지하면서, 자율 실행이 불가능하거나 허용되지 않는 경우의 별도 흐름을 발견 → 중단 → 원인/영향 정리 → 보고로 명확히 분리했다.
+
+Governance Version은 1.0.0을 유지했다. Version 변경 자체는 사용자 합의가 필요한 별도 결정이므로 이번 변경에서는 Version 값을 임의로 증가시키지 않는다.
+
+### Result
+
+AI가 기술적으로 할 수 있다는 이유만으로 시스템의 지침이나 프로젝트 방향을 우회하는 것을 방지하면서, 일반적인 기술 작업에 대한 사전 승인 요구는 추가하지 않는다.
