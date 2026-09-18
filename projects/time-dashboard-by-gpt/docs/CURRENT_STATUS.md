@@ -35,13 +35,23 @@ GitHub Actions workflow: `../../.github/workflows/time-dashboard-ci.yml` (reposi
 - Compile: `python -m py_compile timefolio_server.py`
 - Test: `python -m unittest discover -s tests -p 'test_*.py'`
 
-Render deployment target:
+Render target Blueprint:
 
 - Root Blueprint: `../../render.yaml`
-- Root Directory: `projects/time-dashboard-by-gpt`
+- Desired Root Directory: `projects/time-dashboard-by-gpt`
 - Build: `pip install -r requirements.txt`
 - Start: `python timefolio_server.py`
-- Live Render service/repository mapping and latest deployment status are pending verification in the current Render workspace session.
+
+Verified live Render state on 2026-09-18:
+- Service: `time-dashboard-by-gpt`
+- Repository: `hjang12/time-dashboard-by-gpt`
+- Root Directory: empty
+- Branch: `main`
+- Auto Deploy: enabled
+- Latest live deployment: `fb8e98baa7a81a610c2ccbf767f2995fb9af0a3f`
+- URL: `https://time-dashboard.onrender.com`
+
+The live service has not yet been switched to the monorepo. The Blueprint is the desired configuration, not proof of an applied Render setting.
 
 ## Monorepo Operation
 
