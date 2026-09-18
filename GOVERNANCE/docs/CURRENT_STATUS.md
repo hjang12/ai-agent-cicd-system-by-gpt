@@ -81,25 +81,26 @@ Current root workflows:
 
 The first monorepo Janggi validation/benchmark runs failed because the migrated test/benchmark files still reflected pre-monorepo assumptions. The subsequent fixes are now green. The actual current GitHub Actions result, not the historical failure, is the operative state.
 
-## Render State
+## Render State — Verified 2026-09-18
 
-Render verification is intentionally not marked complete yet.
+Render workspace: `My Workspace` (`tea-da7sjdgu01pc73bsno6g`).
 
-The current Render MCP session requires an explicit workspace selection before service inspection. The available workspace is:
+The current live services are still connected to the historical project repositories, not the monorepo:
 
-- `My Workspace` — workspace ID `tea-da7sjdgu01pc73bsno6g`
+| Service | Repository | Root Directory | Branch | Auto Deploy | Latest Live Deploy |
+| --- | --- | --- | --- | --- | --- |
+| `personal-ai-janggi-trainer-by-gpt` | `hjang12/personal-ai-janggi-trainer-by-gpt` | empty | `main` | yes | `83932421217f149de46e6e23b89aff9d92467a11` |
+| `time-dashboard-by-gpt` | `hjang12/time-dashboard-by-gpt` | empty | `main` | yes | `fb8e98baa7a81a610c2ccbf767f2995fb9af0a3f` |
 
-After workspace confirmation, verify:
+Both services are active and their latest listed deployment has status `live`.
 
-1. Current services
-2. Service repository mapping
-3. Root directory
-4. Branch / auto deploy
-5. Latest deployment status
-6. Recent error logs
-7. Health endpoint / smoke test where available
+The repository `render.yaml` already defines the desired monorepo Root Directories, but **Render has not been switched to that configuration yet**.
 
-Until this verification is complete, the repository migration is considered **GitHub-complete but Render-pending**.
+Current migration state is therefore **GitHub-complete / Render-cutover-pending**.
+
+The available Render toolset can inspect and deploy existing services but does not expose an update operation for changing an existing service's Git Repository or Root Directory. Do not create duplicate services merely to simulate the cutover.
+
+After the service settings are changed in Render, re-run verification for repository mapping, Root Directory, latest deployment, logs, and health/smoke behavior.
 
 ## Canonical Operating Model
 
