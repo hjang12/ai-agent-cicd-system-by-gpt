@@ -32,7 +32,7 @@ See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module 
 
 - `index.html` — dependency-free browser trainer shell
 - `app.py` — dependency-free HTTP application boundary
-- `render.yaml` — Render web-service configuration
+- `../../render.yaml` — monorepo root Render service configuration
 - `janggi/core.py` — authoritative board and move-legality domain model
 - `janggi/match.py` — match lifecycle and configurable game-end policy
 - `janggi/record.py` — game/state serialization and replay
@@ -59,7 +59,12 @@ See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module 
 - `docs/COACHING.md` — coaching severity and explanation contract
 - `docs/SEARCH.md` — current search architecture and benchmark interpretation
 - `docs/SEARCH_BENCHMARK_HISTORY.md` — persistent search benchmark decision history
-- `.github/workflows/python-validation.yml` — Python 3.12 compile/test validation
+- `../../.github/workflows/janggi-validation.yml` — Python 3.12 compile/test validation
+- `../../.github/workflows/janggi-search-benchmark.yml` — deterministic search benchmark
+
+## Monorepo operation
+
+This project is developed inside the canonical workspace repository `hjang12/ai-agent-cicd-system-by-gpt` under `projects/personal-ai-janggi-trainer-by-gpt/`. The project-local source, tests, and Context remain isolated from sibling projects. Shared CI and Render configuration live at the workspace root.
 
 ## Working principles
 
