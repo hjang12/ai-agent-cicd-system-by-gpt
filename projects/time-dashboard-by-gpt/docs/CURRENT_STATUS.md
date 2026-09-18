@@ -60,7 +60,7 @@ Verified live Render state on 2026-09-18:
 - Smoke: Render logs show `HEAD /` and `GET /` returning HTTP 200
 - URL: `https://time-dashboard.onrender.com`
 
-The service is now running from the canonical monorepo. Render `healthCheckPath` remains empty; root endpoint smoke verification is available from Render request logs.
+The service is now running from the canonical monorepo. The Render Blueprint now declares `/api/health` as the health check path. The live Service setting should be verified after the next deployment because the connected Render service settings are independently managed.
 
 ## Monorepo Operation
 
