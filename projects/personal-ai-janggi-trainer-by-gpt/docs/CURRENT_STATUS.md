@@ -100,7 +100,11 @@ Latest automated validation has also covered the structured coaching action, bro
 Render target Blueprint:
 
 - Root Blueprint: `../../render.yaml`
+- Service name: `personal-ai-janggi-trainer-by-gpt`
+- Desired Repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Desired Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
+- Branch: `main`
+- Region: Singapore
 - Build: `python -m compileall janggi tests`
 - Start: `python app.py`
 - Desired health check: `/api/health`
@@ -114,7 +118,7 @@ Verified live Render state on 2026-09-18:
 - Latest live deployment: `83932421217f149de46e6e23b89aff9d92467a11`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`
 
-The live service has not yet been switched to the monorepo. The Blueprint is the desired configuration, not proof of an applied Render setting.
+The Blueprint configuration is prepared for the existing service, but the live service has not yet been switched to the monorepo. Post-cutover health/smoke verification remains pending.
 
 ## Explicitly Deferred
 
