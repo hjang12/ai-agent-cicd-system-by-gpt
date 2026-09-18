@@ -48,14 +48,19 @@ Render target Blueprint:
 
 Verified live Render state on 2026-09-18:
 - Service: `time-dashboard-by-gpt`
-- Repository: `hjang12/time-dashboard-by-gpt`
-- Root Directory: empty
+- Repository: `hjang12/ai-agent-cicd-system-by-gpt`
+- Root Directory: `projects/time-dashboard-by-gpt`
 - Branch: `main`
 - Auto Deploy: enabled
-- Latest live deployment: `fb8e98baa7a81a610c2ccbf767f2995fb9af0a3f`
+- Latest live deployment commit: `51fc3322121167f1c48eb339bbe91bf69858c551`
+- Deployment: `dep-damckue7bikc73b4p7ng`
+- Deployment status: `live`
+- Build: succeeded (`pip install -r requirements.txt`)
+- Start: `python timefolio_server.py`
+- Smoke: Render logs show `HEAD /` and `GET /` returning HTTP 200
 - URL: `https://time-dashboard.onrender.com`
 
-The Blueprint configuration is prepared for the existing service, but the live service has not yet been switched to the monorepo. Post-cutover smoke verification remains pending.
+The service is now running from the canonical monorepo. Render `healthCheckPath` remains empty; root endpoint smoke verification is available from Render request logs.
 
 ## Monorepo Operation
 
