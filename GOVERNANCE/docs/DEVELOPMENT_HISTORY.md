@@ -332,3 +332,10 @@ Canonical monorepo, GitHub Actions, Render Service mapping, live deployment stat
 - Render autoDeploy remains commit-triggered. A strict CI-success-before-deploy gate is not currently enforced because the available Render interface does not expose the required existing-Service deployment policy mutation, and GitHub branch-protection/ruleset administration is unavailable through the connected integration for this private repository.
 
 These are explicit operational limitations, not assumed-complete features.
+
+
+## 2026-09-18 — Automation-First Agent 운영 원칙 확정
+
+사용자는 일반적인 기술 작업에 대해 사전 승인을 요구하지 않고 AI가 자율적으로 분석, 수정, 검증, 문서화, CI 실행 및 안전한 복구까지 수행하는 운영 방식을 채택했다. Human Approval은 삭제, 비가역적 데이터 변경, 중대한 보안/권한 변경, 실질적 비용 증가, 법률/라이선스 판단, 대규모 Architecture·제품 방향 변경 등 높은 위험의 결정에만 둔다.
+
+향후 일반적인 기술 이슈는 `발견 → 수정 → 검증 → 보고`를 기본 흐름으로 처리하며, AI는 문제를 숨기지 않고 해결되지 않은 기술적 한계를 결과와 함께 보고한다.
