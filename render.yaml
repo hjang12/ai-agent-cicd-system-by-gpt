@@ -1,7 +1,10 @@
 services:
   - type: web
-    name: personal-ai-janggi-trainer
+    name: personal-ai-janggi-trainer-by-gpt
     runtime: python
+    plan: free
+    region: singapore
+    branch: main
     rootDir: projects/personal-ai-janggi-trainer-by-gpt
     buildCommand: python -m compileall janggi tests
     startCommand: python app.py
@@ -10,6 +13,9 @@ services:
   - type: web
     name: time-dashboard-by-gpt
     runtime: python
+    plan: free
+    region: oregon
+    branch: main
     rootDir: projects/time-dashboard-by-gpt
     buildCommand: pip install -r requirements.txt
     startCommand: python timefolio_server.py
