@@ -256,3 +256,56 @@ Render: multiple deployment services
 Render `healthCheckPath`는 두 서비스 모두 현재 비어 있다. 애플리케이션 자체의 기동/HTTP 응답은 확인했으며, 명시적 platform health check path 설정은 후속 운영 개선사항으로 남긴다.
 
 기존 GitHub 프로젝트 Repository는 현재 Render가 더 이상 참조하지 않으므로 historical snapshot으로 유지할 수 있다. Archive/Delete는 별도의 destructive action으로 취급한다.
+
+
+## 2026-09-18 — Monorepo 운영 검증 및 Render 배포 범위 고정
+
+### Requirement
+
+Monorepo 전환 이후 프로젝트 경계가 문서에만 존재하지 않고 CI에서 지속적으로 검증되며, Render에서도 한 프로젝트의 변경이 다른 프로젝트 Service의 불필요한 자동 배포를 유발하지 않도록 운영 규칙을 명시적으로 고정한다.
+
+### Implementation
+
+- `tools/validate_workspace.py` 추가
+  - 공통 Governance / Project entrypoint / Context / CI / Render Blueprint의 필수 경로 검증
+  - Render 서비스별 `rootDir`, `healthCheckPath`, `buildFilter` 핵심 값 검증
+  - 프로젝트 내부 nested `.git` 디렉터리 검증
+- `.github/workflows/workspace-validation.yml` 추가
+  - workspace 구조/배포 설정을 Python 3.12에서 자동 검증
+  - validator 자체 변경도 workflow를 재실행하도록 trigger 포함
+- root `render.yaml`에 서비스별 `buildFilter.paths` 추가
+  - Janggi: `projects/personal-ai-janggi-trainer-by-gpt/**`
+  - Time Dashboard: `projects/time-dashboard-by-gpt/**`
+  - Blueprint 변경 자체는 Render의 규칙에 따라 별도로 처리됨
+
+### Verification
+
+- 초기 validator 실행에서 `.gitignore`를 nested Git metadata로 잘못 판정하는 검사 오류가 발견됨.
+- 검사 조건을 실제 `.git` 디렉터리만 차단하도록 수정.
+- 최종 workspace validation run #3 (`15fc705`) 성공.
+- Janggi validation, Janggi search benchmark, Time Dashboard CI도 최신 완료 run에서 성공.
+- 두 Render Service는 canonical monorepo와 project-specific Root Directory를 유지하며 정상 `live`.
+- Time Dashboard health endpoint 추가 후 CI와 Render 배포 성공.
+
+### Operational Note
+
+현재 연결된 Render tool interface는 기존 Service의 `healthCheckPath` 또는 `buildFilter` mutation을 노출하지 않는다. 따라서 repository-side Blueprint에는 해당 운영 정책을 고정했으며, 실제 Service 설정 변경이 필요한 경우 Dashboard/API/CLI의 설정 동기화가 필요하다.
+
+### Result
+
+운영 기준은 다음으로 정리했다.
+
+```text
+one GitHub monorepo
+  ├── project A
+  └── project B
+
+one Render workspace
+  ├── Service A → project A root/filter
+  └── Service B → project B root/filter
+
+CI
+  └── workspace invariant validation
+```
+
+향후 신규 프로젝트가 추가되면 동일한 패턴으로 project directory, CI, Render service, build filter, Context 문서를 함께 등록한다.
