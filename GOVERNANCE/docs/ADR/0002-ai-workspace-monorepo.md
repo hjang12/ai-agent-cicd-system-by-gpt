@@ -90,8 +90,12 @@ The source repositories remain available as historical snapshots. Future develop
 - Time Dashboard migrated CI workflow: successful during the migration commit sequence.
 - Render monorepo configuration is represented in root `render.yaml` with one service per project and project-specific `rootDir`.
 
-## Pending
+## Post-Decision Status — 2026-09-18
 
-- Existing Render services still need their backing Repository / Root Directory switched to the canonical monorepo and deployed.
-- Post-cutover health/smoke verification must be recorded against the live services.
-- Old source repositories have not been archived/deleted.
+The migration and Render cutover described above are complete. Both existing Render services use the canonical monorepo with project-specific Root Directories, and the post-cutover CI/deployment verification was completed.
+
+The former `personal-ai-janggi-trainer-by-gpt` and `time-dashboard-by-gpt` source repositories were deleted after the pre-deletion verification gate. The canonical monorepo is now the only development source.
+
+The repository Blueprint declares `/api/health` for both services, but the live Render Service settings still report an empty `healthCheckPath`. This remains a platform-setting hardening item rather than a migration blocker.
+
+The current deployment policy also remains commit-triggered auto deploy; a strict CI-success-before-deploy gate is not yet enforced by the available platform/integration controls.
