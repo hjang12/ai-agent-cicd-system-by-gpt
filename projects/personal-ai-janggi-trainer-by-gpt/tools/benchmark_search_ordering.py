@@ -210,11 +210,8 @@ def main() -> None:
                 )
             if current.score_cp != reference.score_cp:
                 raise AssertionError(f"current ordering changed minimax score for {fixture.name} depth {depth}")
-            if current.best_move != reference.best_move:
-                raise AssertionError(
-                    f"current ordering changed best move for {fixture.name} depth {depth}: "
-                    f"expected {reference.best_move}, got {current.best_move}"
-                )
+            # Equal-scored moves can legitimately differ between orderings because
+            # alpha-beta pruning preserves score correctness, not a unique tie-break.
             if check_first.score_cp != reference.score_cp:
                 raise AssertionError(f"check-first ordering changed minimax score for {fixture.name} depth {depth}")
             if capture_check.score_cp != reference.score_cp:

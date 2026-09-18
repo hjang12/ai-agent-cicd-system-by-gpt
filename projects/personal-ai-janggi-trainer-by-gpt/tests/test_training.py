@@ -2,7 +2,7 @@ import unittest
 
 from janggi import GameRecord, GameState, Move, RecordValidator, RuleSet, Side
 from janggi.match import GameStatus
-from janggi.training import Outcome, TrainingDataset, TrainingDatasetBuilder, _outcome_for_cho, _outcome_for_side
+from janggi.training import Outcome, TrainingDataset, TrainingDatasetBuilder, TrainingExample, _outcome_for_cho, _outcome_for_side
 
 
 class TrainingDatasetTests(unittest.TestCase):
