@@ -162,3 +162,43 @@ Organization은 생성했지만, 현재 연결된 GitHub 도구에서 해당 Org
 3. 여사모 retirement를 플랫폼에서 수행하고 실제 결과를 재검증
 4. Organization 접근 가능 여부가 확인되면 active Repository 이전 검토
 5. 실제 프로젝트 경험을 기반으로 Governance v1.1.0 후보 수집
+
+
+## 2026-09-18 — GPT 개발 Workspace Monorepo 통합
+
+### Requirement
+
+프로젝트를 새로 시작할 때마다 별도 GitHub Repository 생성, Agent 접근 권한 연결, 공통 Governance 연결을 반복하는 운영 비용을 줄인다.
+
+### User Decision
+
+하나의 private GitHub Repository를 GPT 개발 Workspace로 사용하고, 공통 Governance는 `GOVERNANCE/`, 개별 제품은 `projects/<project>/` 아래에 둔다.
+
+### Implementation
+
+- `hjang12/ai-agent-cicd-system-by-gpt`를 canonical Workspace Repository로 사용
+- Janggi를 `projects/personal-ai-janggi-trainer-by-gpt/`로 통합
+- Time Dashboard를 `projects/time-dashboard-by-gpt/`로 통합
+- 프로젝트별 GitHub Actions를 root `.github/workflows/`로 이동하고 path filter 적용
+- root `render.yaml`에 서비스별 Root Directory를 선언
+- 프로젝트별 Agent entrypoint와 Context 경로를 monorepo 기준으로 조정
+- Time Dashboard binary icon 전달 제약으로 `assets/icon.png`를 self-contained `assets/icon.svg`로 대체하고 참조를 갱신
+- 장기 의사결정을 `GOVERNANCE/docs/ADR/0002-ai-workspace-monorepo.md`에 기록
+
+### Verification
+
+- 중앙 `main`에 통합 구조가 존재함을 확인
+- Janggi / Time Dashboard 원본 HEAD와 중앙 프로젝트 subtree를 비교
+- Janggi 최신 중앙 validation: success
+- Janggi 최신 중앙 search benchmark: success
+- Time Dashboard migration CI: success
+
+### Current Execution State
+
+GitHub 통합은 완료되었다. 기존 `-by-gpt` 프로젝트 Repository는 역사적 snapshot으로 남아 있으며 canonical 개발 위치는 중앙 monorepo로 전환했다.
+
+Render repository/root-directory 전환은 현재 workspace에서 live service mapping을 재확인한 뒤 완료 처리한다. 기존 Repository의 Archive/Delete도 별도 destructive action으로 남긴다.
+
+### Lessons
+
+Monorepo 통합 자체보다 중요한 것은 다음 Agent가 잘못된 이전 Repository에서 개발하지 않도록 canonical path를 명확히 문서화하는 것이다. 따라서 root `AGENT_START.md`, workspace `AGENTS.md`, 프로젝트별 entrypoint, CURRENT_STATUS, migration record를 함께 유지한다.
