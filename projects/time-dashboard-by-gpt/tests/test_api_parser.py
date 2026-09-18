@@ -27,6 +27,28 @@ class TimeETFTableParserTests(unittest.TestCase):
         self.assertEqual(items[0]["qty"], 1200.0)
         self.assertEqual(items[0]["weight"], 3.42)
 
+
+
+    def test_health_endpoint_returns_ok(self):
+        from http.server import ThreadingHTTPServer
+        from threading import Thread
+        from urllib.request import urlopen
+
+        from timefolio_server import Handler
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with urlopen(f"http://127.0.0.1:{server.server_port}/api/health", timeout=2) as response:
+                self.assertEqual(response.status, 200)
+                self.assertEqual(response.headers.get_content_type(), "application/json")
+                self.assertEqual(response.read().decode("utf-8"), '{"status": "ok"}')
+        finally:
+            server.shutdown()
+            thread.join(timeout=2)
+            server.server_close()
+
     def test_returns_empty_for_non_constituent_table(self):
         parser = TimeETFTableParser()
         parser.feed('<table><tr><th>foo</th><th>bar</th></tr><tr><td>1</td><td>2</td></tr></table>')
