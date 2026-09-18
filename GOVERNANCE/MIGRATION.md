@@ -6,7 +6,16 @@
 
 GPT 개발 프로젝트를 하나의 저장소에서 관리해 공통 Governance와 프로젝트별 Context/CI를 함께 사용할 수 있도록 통합했습니다.
 
-## 원본
+이 문서 이후의 신규 개발은 canonical Workspace Repository만 대상으로 합니다.
+
+## Canonical Workspace
+
+- Repository: `hjang12/ai-agent-cicd-system-by-gpt`
+- Default branch: `main`
+- Common Governance: `GOVERNANCE/`
+- Projects: `projects/<project>/`
+
+## 원본 Snapshot
 
 - Governance: `hjang12/ai-agent-cicd-system-by-gpt` @ `a3fd6fe90f8fe9be3a84436e7a66894d9628b5d8`
 - Janggi: `hjang12/personal-ai-janggi-trainer-by-gpt` @ `83932421217f149de46e6e23b89aff9d92467a11`
@@ -18,18 +27,44 @@ GPT 개발 프로젝트를 하나의 저장소에서 관리해 공통 Governance
 - Janggi → `projects/personal-ai-janggi-trainer-by-gpt/`
 - Time Dashboard → `projects/time-dashboard-by-gpt/`
 - GitHub Actions → 저장소 루트 `.github/workflows/`
+- Render Blueprint → 저장소 루트 `render.yaml`
 
 기존 프로젝트 저장소의 전체 Git history는 원본 저장소에 보존되어 있으며, 이 저장소에는 최신 상태를 스냅샷으로 가져왔습니다.
 
+Janggi와 Time Dashboard의 원본 HEAD 트리와 중앙 monorepo subtree를 비교한 결과, 의도된 migration 변경 외의 project file 누락은 확인되지 않았습니다.
+
+## GitHub CI 변경
+
+프로젝트별 기존 workflow는 monorepo root로 이동했습니다.
+
+- Janggi validation → `.github/workflows/janggi-validation.yml`
+- Janggi search benchmark → `.github/workflows/janggi-search-benchmark.yml`
+- Time Dashboard CI → `.github/workflows/time-dashboard-ci.yml`
+
+각 workflow는 해당 프로젝트와 공통 Governance 경로를 기준으로 path filter를 사용합니다.
+
+초기 monorepo Janggi validation/benchmark 실패는 migration 과정에서 발생한 test/benchmark 의미 불일치를 후속 commit에서 수정했고, 현재 `main`의 두 workflow는 성공 상태입니다.
+
 ## Render 전환
 
-Render 서비스 자체는 기존 서비스와 URL을 유지해야 하므로, 저장소 통합 후 각 서비스의 Repository를 이 저장소로 바꾸고 다음 Root Directory를 설정해야 합니다.
+Root `render.yaml`은 두 서비스를 같은 Git Repository에서 운영하되 프로젝트별 Root Directory로 경계를 유지하도록 정의합니다.
 
-- Janggi: `projects/personal-ai-janggi-trainer-by-gpt`
-- Time Dashboard: `projects/time-dashboard-by-gpt`
+- Janggi Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
+- Time Dashboard Root Directory: `projects/time-dashboard-by-gpt`
 
-이 저장소의 루트 `render.yaml`은 위 구성을 코드로 표현한 기준안입니다.
+서비스 URL과 live configuration은 Render에서 실제 확인한 결과를 기준으로 기록합니다.
+
+현재 문서 기준으로는 Render repository/root-directory 전환을 **pending verification**으로 둡니다. Render workspace의 실제 서비스 mapping, 최신 deployment, error logs, health/smoke 결과를 확인한 뒤 완료 상태로 갱신합니다.
 
 ## 파일 차이
 
-GitHub 연결 인터페이스가 바이너리 PNG를 직접 전달하지 못해 Time Dashboard의 `assets/icon.png`는 동일한 경로를 사용하는 셀프컨테인드 SVG `assets/icon.svg`로 대체했고, manifest/HTML의 참조를 함께 갱신했습니다.
+GitHub 연결 인터페이스가 바이너리 PNG를 직접 전달하지 못해 Time Dashboard의 `assets/icon.png`는 self-contained SVG `assets/icon.svg`로 대체했고, `manifest.json` 및 관련 HTML 참조를 함께 갱신했습니다.
+
+## 원본 Repository 운영
+
+기존 `-by-gpt` 프로젝트 Repository는 historical snapshot으로 취급합니다.
+
+- 신규 개발은 canonical monorepo에서 수행
+- 기존 원본 Repository에는 신규 기능을 추가하지 않음
+- Archive/Delete는 별도의 destructive lifecycle action으로 수행
+- Archive/Delete 전에 필요한 history/evidence/운영 기록을 보존하고 실제 플랫폼 결과를 재확인
