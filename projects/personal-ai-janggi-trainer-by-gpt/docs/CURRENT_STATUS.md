@@ -10,7 +10,8 @@
 ## Product
 
 - Project: Personal AI Janggi Trainer
-- Repository: `hjang12/personal-ai-janggi-trainer-by-gpt`
+- Canonical Repository: `hjang12/ai-agent-cicd-system-by-gpt`
+- Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
 - Current priority: improve coaching quality and preserve clean boundaries for future stronger search/learned evaluation
@@ -69,14 +70,14 @@
 
 ## CI/CD
 
-GitHub Actions workflow: `.github/workflows/python-validation.yml`
+GitHub Actions workflow: `../../.github/workflows/janggi-validation.yml` (repository-root path `.github/workflows/janggi-validation.yml`)
 
 - Trigger: push to `main` and pull requests
 - Python: `3.12`
 - Compile: `python -m compileall janggi tests tools`
 - Test: `python -m unittest discover -s tests -v`
 
-Search benchmark workflow: `.github/workflows/search-benchmark.yml`
+Search benchmark workflow: `../../.github/workflows/janggi-search-benchmark.yml` (repository-root path `.github/workflows/janggi-search-benchmark.yml`)
 
 - Trigger: `workflow_dispatch` and pushes that change `janggi/search.py`, `tools/benchmark_search_ordering.py`, or the workflow itself
 - Script: `tools/benchmark_search_ordering.py`
@@ -96,16 +97,14 @@ The completed benchmark preserved the same minimax score across ordering variant
 
 Latest automated validation has also covered the structured coaching action, browser presentation, history-independent checkmate scoring, match undo behavior, and engine-analysis validation.
 
-Render production service:
+Render deployment target:
 
-- Service: `personal-ai-janggi-trainer-by-gpt`
-- Runtime: Python
-- Region: Singapore
-- Plan: Free
-- Auto deploy: enabled from `main`
+- Root Blueprint: `../../render.yaml`
+- Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
 - Build: `python -m compileall janggi tests`
 - Start: `python app.py`
-- Render URL remains `https://personal-ai-janggi-trainer.onrender.com` after the service rename.
+- Health check: `/api/health`
+- Live Render service/repository mapping is pending verification in the current Render workspace session.
 
 ## Explicitly Deferred
 
