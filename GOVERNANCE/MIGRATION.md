@@ -43,14 +43,41 @@ Janggi와 Time Dashboard의 원본 HEAD 트리와 중앙 monorepo subtree를 비
 
 각 workflow는 해당 프로젝트와 공통 Governance 경로를 기준으로 path filter를 사용합니다.
 
-초기 monorepo Janggi validation/benchmark 실패는 migration 과정에서 발생한 test/benchmark 의미 불일치를 후속 commit에서 수정했고, 현재 `main`의 두 workflow는 성공 상태입니다.
+초기 monorepo Janggi validation/benchmark 실패는 migration 과정에서 발생한 test/benchmark 의미 불일치를 후속 commit에서 수정했고, migration sequence 동안 검증을 통과했습니다.
+
+## Render 운영 원칙
+
+GitHub Repository 통합과 Render Service 통합은 동일한 작업이 아닙니다.
+
+- GitHub Source of Truth: `hjang12/ai-agent-cicd-system-by-gpt` 하나
+- Render deploy units: 프로젝트별 Web Service를 유지
+- Janggi Service Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
+- Time Dashboard Service Root Directory: `projects/time-dashboard-by-gpt`
+
+Render는 동일 Git Repository에 여러 Service를 연결하고 Service별 Root Directory를 지정하는 monorepo 배포 방식을 지원합니다. 따라서 프로젝트별 서비스 격리를 유지하면서 Repository 수를 줄이는 구조를 사용합니다.
 
 ## Render 전환
 
-Root `render.yaml`은 두 서비스를 같은 Git Repository에서 운영하되 프로젝트별 Root Directory로 경계를 유지하도록 정의합니다.
+Root `render.yaml`은 현재 운영 중인 Service 이름을 그대로 사용하여 기존 Service를 Blueprint 대상과 일치시키도록 구성했습니다.
 
-- Janggi Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
-- Time Dashboard Root Directory: `projects/time-dashboard-by-gpt`
+- Janggi
+  - Service name: `personal-ai-janggi-trainer-by-gpt`
+  - Repository target: canonical monorepo
+  - Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
+  - Branch: `main`
+  - Region: Singapore
+  - Build: `python -m compileall janggi tests`
+  - Start: `python app.py`
+  - Desired health check: `/api/health`
+
+- Time Dashboard
+  - Service name: `time-dashboard-by-gpt`
+  - Repository target: canonical monorepo
+  - Root Directory: `projects/time-dashboard-by-gpt`
+  - Branch: `main`
+  - Region: Oregon
+  - Build: `pip install -r requirements.txt`
+  - Start: `python timefolio_server.py`
 
 ### 실제 상태 확인 — 2026-09-18
 
@@ -72,9 +99,7 @@ Render `My Workspace`에서 확인한 현재 Service 설정:
   - Latest live deploy: `fb8e98baa7a81a610c2ccbf767f2995fb9af0a3f`
   - URL: `https://time-dashboard.onrender.com`
 
-따라서 현재 Render는 **아직 monorepo로 전환되지 않았습니다**. `render.yaml`은 목표 상태를 정의하지만 기존 Service의 Repository / Root Directory를 자동으로 변경하지 않습니다.
-
-기존 서비스 설정을 Render에서 위 목표 상태로 변경한 뒤, 최신 `main` commit을 배포하고 post-deployment verification을 수행해야 합니다.
+따라서 현재 Render는 **아직 monorepo로 전환되지 않았습니다**. 다만 root `render.yaml`은 기존 Service 이름과 일치하도록 정렬되어 있어, Blueprint를 동기화하면 기존 Service를 대상으로 설정을 적용하는 형태로 준비되어 있습니다.
 
 ## 파일 차이
 
@@ -82,13 +107,12 @@ GitHub 연결 인터페이스가 바이너리 PNG를 직접 전달하지 못해 
 
 ## 원본 Repository 운영
 
-기존 `-by-gpt` 프로젝트 Repository는 historical snapshot으로 취급합니다.
+기존 프로젝트 `-by-gpt` Repository는 historical snapshot으로 취급합니다.
 
 - 신규 개발은 canonical monorepo에서 수행
 - 기존 원본 Repository에는 신규 기능을 추가하지 않음
 - Archive/Delete는 별도의 destructive lifecycle action으로 수행
 - Archive/Delete 전에 필요한 history/evidence/운영 기록을 보존하고 실제 플랫폼 결과를 재확인
-
 
 ## Safe cleanup order
 
@@ -97,7 +121,7 @@ GitHub 연결 인터페이스가 바이너리 PNG를 직접 전달하지 못해 
 권장 순서는 다음과 같다.
 
 ```text
-Render Repository 변경
+Render Service Source Repository 변경
 → Root Directory 변경
 → monorepo commit 배포
 → Deployment live 확인
@@ -106,4 +130,6 @@ Render Repository 변경
 → 기존 -by-gpt Repository Archive/Delete
 ```
 
-현재 연결된 Render 도구에는 기존 Service의 Repository / Root Directory를 수정하는 작업이 노출되어 있지 않다. 따라서 해당 변경은 Render Dashboard에서 수행해야 하며, 실제 변경 전까지 기존 Repository를 유지한다.
+현재 연결된 Render MCP 도구에는 기존 Service의 backing Repository / Root Directory를 수정하는 작업이 노출되어 있지 않습니다. Render 공식 문서상 이 설정은 Dashboard/API/Blueprint로 변경할 수 있습니다. 따라서 현재 연결된 도구만으로는 기존 Service 자체의 source 전환을 직접 실행할 수 없으며, Dashboard에서 Source와 Root Directory를 변경하거나 Blueprint를 연결/동기화해야 합니다.
+
+중요: 기존 Service를 삭제하고 새 Service를 만드는 방식으로 대체하지 않습니다. 기존 Service를 유지한 채 source를 monorepo로 전환하여 서비스 URL과 운영 리소스를 유지하는 것을 원칙으로 합니다.
