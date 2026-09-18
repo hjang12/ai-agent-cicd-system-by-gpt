@@ -28,6 +28,7 @@ hjang12/ai-agent-cicd-system-by-gpt/
 - `AGENTS.md` — workspace-level agent rules
 - `GOVERNANCE/GOVERNANCE.md` — common operating rules
 - `GOVERNANCE/docs/CURRENT_STATUS.md` — this workspace status
+- `GOVERNANCE/docs/ACTIVE_ISSUES.md` — AI-managed current unresolved issue index
 - `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md` — long-term governance/workspace history
 - `GOVERNANCE/docs/ADR/` — architecture and operating decisions
 - `projects/<project>/AGENT_START.md` — project session entrypoint
@@ -35,6 +36,17 @@ hjang12/ai-agent-cicd-system-by-gpt/
 - `projects/<project>/docs/CURRENT_STATUS.md` — project context
 - `.github/workflows/` — monorepo CI and benchmark workflows
 - `render.yaml` — monorepo Render Blueprint
+
+## Active Issues
+
+Current Active Issue Index: `GOVERNANCE/docs/ACTIVE_ISSUES.md`
+
+Current active items verified on 2026-09-18:
+
+- `ISSUE-001` — CI-success-before-deploy strict gate is not enforced; blocked by current GitHub/Render platform controls.
+- `ISSUE-002` — Render live `healthCheckPath` is empty while repository Blueprint declares an explicit health endpoint; blocked by current Render service mutation availability.
+
+This section is only a navigation summary. The authoritative current status, priority, next action, blocker, and verification date are maintained in `ACTIVE_ISSUES.md`.
 
 ## Project Status
 
