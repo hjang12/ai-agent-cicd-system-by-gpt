@@ -5,7 +5,7 @@ import re
 import sys
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_PATHS = (
     Path("AGENT_START.md"),
