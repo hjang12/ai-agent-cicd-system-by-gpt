@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `GOVERNANCE/docs/ACTIVE_ISSUES.md` as the AI-managed current unresolved issue index
+- explicit autonomous execution gates for capability, policy/project compatibility, and authority/risk
+- explicit escalation rules for technical capability limits and policy/project conflicts
+- proactive AI responsibility for Governance, Version, Branch, and CI/CD operating reviews
+- Branch lifecycle management guidance
+- Active Issue lifecycle and separation of current state from long-term history
+
+### Clarified
+
+- Technically possible changes must not bypass Governance or project direction.
+- Current unresolved issues are maintained separately from historical development records.
+- Governance Version remains `1.0.0` until the version change is explicitly decided; the current changes are candidates for `1.1.0`.
 이 문서는 AI Agent CI/CD System 운영 규칙의 버전별 변경 이력을 기록합니다.
 
 ## [1.0.0] - 2026-09-15
