@@ -19,3 +19,4 @@ services:
     rootDir: projects/time-dashboard-by-gpt
     buildCommand: pip install -r requirements.txt
     startCommand: python timefolio_server.py
+    healthCheckPath: /api/health
