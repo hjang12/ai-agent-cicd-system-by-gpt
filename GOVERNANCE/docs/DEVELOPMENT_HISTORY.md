@@ -368,3 +368,25 @@ Governance Version은 1.0.0을 유지했다. Version 변경 자체는 사용자 
 ### Result
 
 AI가 기술적으로 할 수 있다는 이유만으로 시스템의 지침이나 프로젝트 방향을 우회하는 것을 방지하면서, 일반적인 기술 작업에 대한 사전 승인 요구는 추가하지 않는다.
+
+## 2026-09-18 — Governance / Version / Branch 운영의 선제적 제안 책임 명확화
+
+### Requirement
+
+사용자가 모든 Governance, Version, Branch 및 CI/CD 운영 개선사항을 먼저 제안하는 방식은 Automation First의 목적과 맞지 않다. AI가 현재 운영 상태를 지속적으로 관찰하고, 구조적 개선이 필요하면 먼저 제안해야 한다.
+
+### Implementation
+
+`GOVERNANCE/GOVERNANCE.md`에 다음 책임을 명문화했다.
+
+- Governance 구조와 규칙의 누락·충돌·중복을 선제적으로 검토
+- Project Version 및 Governance Version 변경 필요성을 먼저 검토하고 제안
+- Branch 전략, Branch 수명, 불필요한 Branch를 선제적으로 점검
+- CI/CD Quality Gate, Trigger, 검증 범위, 배포 경계를 선제적으로 점검
+- Repository / Render / CI 구성의 구조적 Drift를 선제적으로 점검
+- Governance 변경은 사용자 요청을 기다리지 않고 Proposal 단계까지 AI가 준비
+- Version 값 확정은 기존 사용자 합의 원칙을 유지
+
+### Result
+
+향후 사용자가 먼저 제안하지 않아도 AI가 운영 구조를 지속적으로 검토하고 필요한 변경안을 먼저 제시한다. 단, 정책적 결정이나 Version 확정 등 사람의 결정이 필요한 부분은 제안과 실행 권한을 구분하여 처리한다.
