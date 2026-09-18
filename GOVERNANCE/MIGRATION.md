@@ -88,3 +88,22 @@ GitHub 연결 인터페이스가 바이너리 PNG를 직접 전달하지 못해 
 - 기존 원본 Repository에는 신규 기능을 추가하지 않음
 - Archive/Delete는 별도의 destructive lifecycle action으로 수행
 - Archive/Delete 전에 필요한 history/evidence/운영 기록을 보존하고 실제 플랫폼 결과를 재확인
+
+
+## Safe cleanup order
+
+기존 프로젝트 Repository는 현재 Render Service가 직접 참조하고 있으므로 Render cutover 이전에 삭제하지 않는다.
+
+권장 순서는 다음과 같다.
+
+```text
+Render Repository 변경
+→ Root Directory 변경
+→ monorepo commit 배포
+→ Deployment live 확인
+→ health / smoke 확인
+→ post-deployment 결과 문서화
+→ 기존 -by-gpt Repository Archive/Delete
+```
+
+현재 연결된 Render 도구에는 기존 Service의 Repository / Root Directory를 수정하는 작업이 노출되어 있지 않다. 따라서 해당 변경은 Render Dashboard에서 수행해야 하며, 실제 변경 전까지 기존 Repository를 유지한다.
