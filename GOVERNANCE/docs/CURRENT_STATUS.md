@@ -123,6 +123,7 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 
 - The old `-by-gpt` source repositories have not been archived or deleted; they remain historical snapshots until an explicit cleanup action is performed.
 - No destructive repository deletion is performed as part of this migration record.
+- Pre-deletion gate verification completed on 2026-09-18: both legacy repositories retain only their historical migration snapshot heads; both Render services point to the canonical monorepo; latest relevant CI runs are green; no duplicate Render services were created.
 - The connected GitHub repository list currently exposes the GPT monorepo and the two historical project repositories; no active `personal-mcp-server` repository was present in that current list, so older documentation referring to it is treated as stale.
 
 ## Current Priority
