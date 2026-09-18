@@ -309,3 +309,26 @@ CI
 ```
 
 향후 신규 프로젝트가 추가되면 동일한 패턴으로 project directory, CI, Render service, build filter, Context 문서를 함께 등록한다.
+
+
+## 2026-09-18 — CI/CD 파이프라인 엄밀 검토 및 운영 Hardening
+
+### Review Result
+
+Canonical monorepo, GitHub Actions, Render Service mapping, live deployment state, and repository cleanup state were cross-checked against the current platform state.
+
+### Implemented
+
+- Project CI workflows now use `actions/checkout@v7` and `actions/setup-python@v7`.
+- CI workflows explicitly request `contents: read` permissions.
+- All four validation workflows have a bounded 5-minute job timeout.
+- Janggi search benchmark now runs on pull requests and also triggers when the authoritative Janggi core changes.
+- Time Dashboard CI installs the same `requirements.txt` used by Render before compilation/tests.
+- Workspace validation now requires the workspace-validation workflow itself and validates project-specific Render build/start commands in addition to rootDir, healthCheckPath, and buildFilter.
+
+### Remaining Platform-Level Limitations
+
+- Render Services still report an empty live `healthCheckPath`; the repository Blueprint declares `/api/health`, but the current connected Render interface does not expose a mutation for this existing Service setting.
+- Render autoDeploy remains commit-triggered. A strict CI-success-before-deploy gate is not currently enforced because the available Render interface does not expose the required existing-Service deployment policy mutation, and GitHub branch-protection/ruleset administration is unavailable through the connected integration for this private repository.
+
+These are explicit operational limitations, not assumed-complete features.
