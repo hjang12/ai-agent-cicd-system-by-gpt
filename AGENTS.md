@@ -1,6 +1,7 @@
 # Workspace Agent Instructions
 
 - 공통 Governance는 `GOVERNANCE/GOVERNANCE.md`를 기준으로 한다.
+- 현재 미해결 이슈와 다음 조치는 `GOVERNANCE/docs/ACTIVE_ISSUES.md`에서 먼저 확인한다.
 - 실제 작업은 해당 `projects/<project>/` 하위에서 수행한다.
 - 프로젝트 간 경계를 유지한다.
 - 변경 후 해당 프로젝트의 기존 검증 명령을 실행한다.
