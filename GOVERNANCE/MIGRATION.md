@@ -84,22 +84,29 @@ Root `render.yaml`은 현재 운영 중인 Service 이름을 그대로 사용하
 Render `My Workspace`에서 확인한 현재 Service 설정:
 
 - `personal-ai-janggi-trainer-by-gpt`
-  - Repository: `hjang12/personal-ai-janggi-trainer-by-gpt`
-  - Root Directory: empty
+  - Repository: `hjang12/ai-agent-cicd-system-by-gpt`
+  - Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
   - Branch: `main`
   - Auto Deploy: enabled
-  - Latest live deploy: `83932421217f149de46e6e23b89aff9d92467a11`
+  - Latest live deploy: `51fc3322121167f1c48eb339bbe91bf69858c551`
+  - Deploy: `dep-damckfad0e5s73eu325g`
   - URL: `https://personal-ai-janggi-trainer.onrender.com`
 
 - `time-dashboard-by-gpt`
-  - Repository: `hjang12/time-dashboard-by-gpt`
-  - Root Directory: empty
+  - Repository: `hjang12/ai-agent-cicd-system-by-gpt`
+  - Root Directory: `projects/time-dashboard-by-gpt`
   - Branch: `main`
   - Auto Deploy: enabled
-  - Latest live deploy: `fb8e98baa7a81a610c2ccbf767f2995fb9af0a3f`
+  - Latest live deploy: `51fc3322121167f1c48eb339bbe91bf69858c551`
+  - Deploy: `dep-damckue7bikc73b4p7ng`
   - URL: `https://time-dashboard.onrender.com`
 
-따라서 현재 Render는 **아직 monorepo로 전환되지 않았습니다**. 다만 root `render.yaml`은 기존 Service 이름과 일치하도록 정렬되어 있어, Blueprint를 동기화하면 기존 Service를 대상으로 설정을 적용하는 형태로 준비되어 있습니다.
+따라서 **Render monorepo 전환은 완료되었습니다**. 두 기존 Service가 동일한 canonical GitHub Repository를 사용하고, 각 프로젝트의 Root Directory로 배포 경계를 유지합니다.
+
+배포 검증:
+- Janggi: build 성공, `python app.py` 시작, Render `live`.
+- Time Dashboard: 첫 전환 빌드는 `requirements.txt`를 찾지 못해 실패했으나, 설정이 적용된 재배포에서 build 성공, `python timefolio_server.py` 시작, `HEAD /` 및 `GET /`가 HTTP 200으로 확인되었고 Render `live`.
+- 두 Service 모두 현재 Render `healthCheckPath`는 비어 있습니다. Janggi 애플리케이션에는 `/api/health`가 존재하며, Time Dashboard는 root 응답으로 기동 여부를 확인할 수 있습니다. 명시적 Render health-check 설정은 후속 운영 개선사항으로 남깁니다.
 
 ## 파일 차이
 
