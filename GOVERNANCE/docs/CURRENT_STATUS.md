@@ -122,12 +122,11 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 
 - The old `-by-gpt` source repositories have not been archived or deleted; they remain historical snapshots until an explicit cleanup action is performed.
 - No destructive repository deletion is performed as part of this migration record.
-- Render service cutover has not yet been verified in the current workspace session.
 - The connected GitHub repository list currently exposes the GPT monorepo and the two historical project repositories; no active `personal-mcp-server` repository was present in that current list, so older documentation referring to it is treated as stale.
 
 ## Current Priority
 
-1. Verify and complete Render repository/root-directory cutover for both services.
+1. Keep Render repository/root-directory mapping synchronized with the canonical monorepo.
 2. Keep post-deployment health/smoke verification synchronized with live services.
 3. Synchronize project Context documents with the final live deployment state.
 4. Freeze the old project repositories as historical sources; archive/delete only through an explicit destructive-action step.
