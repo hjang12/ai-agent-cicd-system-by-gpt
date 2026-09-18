@@ -115,14 +115,14 @@ Verified live Render state on 2026-09-18:
 - Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
 - Branch: `main`
 - Auto Deploy: enabled
-- Latest live deployment commit: `51fc3322121167f1c48eb339bbe91bf69858c551`
+- Latest live deployment commit: `f07095ca8f86d7376e925b22e8801f8dfc7522f4`
 - Deployment: `dep-damckfad0e5s73eu325g`
 - Deployment status: `live`
 - Build: succeeded (`python -m compileall janggi tests`)
 - Start: `python app.py`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`
 
-The service is now running from the canonical monorepo. Render `healthCheckPath` remains empty; application `/api/health` exists and explicit platform health-check configuration is a follow-up operational improvement.
+The service is now running from the canonical monorepo. Live Render `healthCheckPath` remains empty; application `/api/health` exists and explicit platform health-check configuration is a follow-up operational improvement.
 
 ## Explicitly Deferred
 
