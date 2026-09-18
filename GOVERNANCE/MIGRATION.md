@@ -140,3 +140,17 @@ Render Service Source Repository 변경
 현재 연결된 Render MCP 도구에는 기존 Service의 backing Repository / Root Directory를 수정하는 작업이 노출되어 있지 않습니다. Render 공식 문서상 이 설정은 Dashboard/API/Blueprint로 변경할 수 있습니다. 따라서 현재 연결된 도구만으로는 기존 Service 자체의 source 전환을 직접 실행할 수 없으며, Dashboard에서 Source와 Root Directory를 변경하거나 Blueprint를 연결/동기화해야 합니다.
 
 중요: 기존 Service를 삭제하고 새 Service를 만드는 방식으로 대체하지 않습니다. 기존 Service를 유지한 채 source를 monorepo로 전환하여 서비스 URL과 운영 리소스를 유지하는 것을 원칙으로 합니다.
+
+
+## Cleanup Closure — 2026-09-18
+
+Pre-deletion verification passed after confirming:
+
+- canonical monorepo `main` CI/benchmark/workspace checks were green;
+- both Render Services pointed to the canonical monorepo with project-specific Root Directories;
+- latest live deployments were live;
+- no duplicate Render services existed.
+
+The former project repositories were then deleted. The canonical monorepo is now the sole development source.
+
+Known platform follow-ups remain explicit: live Render `healthCheckPath` is not yet configured even though the Blueprint declares `/api/health`, and CI success is not yet enforced as a precondition for Render auto-deploy.
