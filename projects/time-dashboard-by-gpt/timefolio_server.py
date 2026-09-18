@@ -296,6 +296,9 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
+        if parsed.path == "/api/health":
+            self.handle_health()
+            return
         if parsed.path == "/api/timefolio":
             self.handle_timefolio(parsed.query, response_format="html")
             return
@@ -309,6 +312,14 @@ class Handler(SimpleHTTPRequestHandler):
             self.serve_html(INSTALL_FILE)
             return
         return super().do_GET()
+
+    def handle_health(self) -> None:
+        payload = json.dumps({"status": "ok"}, ensure_ascii=False).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
 
     def serve_html(self, html_file: Path, inject: str = "") -> None:
         try:
