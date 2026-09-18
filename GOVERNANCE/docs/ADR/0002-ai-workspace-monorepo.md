@@ -37,7 +37,9 @@ hjang12/ai-agent-cicd-system-by-gpt/
 
 프로젝트별 CI workflow는 root `.github/workflows/`에 두고 해당 프로젝트 경로를 대상으로 한다.
 
-Render는 monorepo를 하나의 Git source로 사용하되 서비스별 Root Directory를 프로젝트 디렉터리로 분리한다.
+Render도 하나의 Git Repository를 source로 사용하되, **배포 단위는 기존 서비스별로 계속 분리**한다. 각 Render Web Service는 monorepo의 프로젝트별 `Root Directory`를 사용한다. 따라서 GitHub Repository 통합과 Render Service 통합은 별개의 결정이며, 여러 Render 서비스가 하나의 Git Repository를 공유하는 구조를 사용한다.
+
+현재 운영 중인 Render 서비스 이름과 Blueprint의 `name`을 동일하게 유지해 Blueprint 동기화 시 기존 서비스를 갱신하도록 한다. 서비스의 Repository와 Root Directory 전환은 기존 Service를 유지한 채 수행하며, 중복 Service 생성은 하지 않는다.
 
 ## Consequences
 
@@ -48,12 +50,15 @@ Render는 monorepo를 하나의 Git source로 사용하되 서비스별 Root Dir
 - 공통 Governance와 프로젝트 Context를 같은 Repository에서 함께 추적할 수 있다.
 - 프로젝트별 CI가 path filter를 사용하므로 무관한 프로젝트 변경으로 검증 범위를 불필요하게 넓히지 않는다.
 - Render 서비스는 각 프로젝트 Root Directory를 통해 배포 경계를 유지할 수 있다.
+- 하나의 GitHub Repository를 여러 Render Service가 공유하므로 Repository와 배포 단위를 독립적으로 관리할 수 있다.
+- 기존 Render service URL/서비스 리소스를 유지하면서 source repository만 monorepo로 전환할 수 있다.
 
 ### Negative / Trade-offs
 
 - 하나의 Repository에 여러 프로젝트가 존재하므로 root 수준의 문서·CI 변경 영향 범위를 명확히 관리해야 한다.
 - Repository 전체 history가 각 원본 Project Repository의 Git history를 그대로 보존하지는 않는다.
 - Binary 파일 이동/변환 시 source snapshot과 byte-for-byte 동일성이 깨질 수 있다. Time Dashboard icon이 이에 해당한다.
+- Render Service 전환은 기존 service 설정 변경과 배포 검증이 필요한 별도 운영 단계다.
 - Destructive cleanup of old repositories remains a separate lifecycle step.
 
 ## Migration
@@ -80,11 +85,13 @@ The source repositories remain available as historical snapshots. Future develop
 - Central directory structure exists on `main`.
 - Janggi and Time Dashboard source trees were compared against their source HEAD trees.
 - Janggi migration-specific test/benchmark adjustments were verified by GitHub Actions.
-- Current monorepo Janggi validation: success.
-- Current monorepo Janggi search benchmark: success.
+- Current monorepo Janggi validation: success during migration verification.
+- Current monorepo Janggi search benchmark: success during migration verification.
 - Time Dashboard migrated CI workflow: successful during the migration commit sequence.
+- Render monorepo configuration is represented in root `render.yaml` with one service per project and project-specific `rootDir`.
 
 ## Pending
 
-- Render workspace/service repository mapping must be verified in the live workspace.
+- Existing Render services still need their backing Repository / Root Directory switched to the canonical monorepo and deployed.
+- Post-cutover health/smoke verification must be recorded against the live services.
 - Old source repositories have not been archived/deleted.
