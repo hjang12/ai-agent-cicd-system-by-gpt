@@ -97,14 +97,24 @@ The completed benchmark preserved the same minimax score across ordering variant
 
 Latest automated validation has also covered the structured coaching action, browser presentation, history-independent checkmate scoring, match undo behavior, and engine-analysis validation.
 
-Render deployment target:
+Render target Blueprint:
 
 - Root Blueprint: `../../render.yaml`
-- Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
+- Desired Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
 - Build: `python -m compileall janggi tests`
 - Start: `python app.py`
-- Health check: `/api/health`
-- Live Render service/repository mapping is pending verification in the current Render workspace session.
+- Desired health check: `/api/health`
+
+Verified live Render state on 2026-09-18:
+- Service: `personal-ai-janggi-trainer-by-gpt`
+- Repository: `hjang12/personal-ai-janggi-trainer-by-gpt`
+- Root Directory: empty
+- Branch: `main`
+- Auto Deploy: enabled
+- Latest live deployment: `83932421217f149de46e6e23b89aff9d92467a11`
+- URL: `https://personal-ai-janggi-trainer.onrender.com`
+
+The live service has not yet been switched to the monorepo. The Blueprint is the desired configuration, not proof of an applied Render setting.
 
 ## Explicitly Deferred
 
