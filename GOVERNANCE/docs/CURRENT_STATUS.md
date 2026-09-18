@@ -47,7 +47,7 @@ hjang12/ai-agent-cicd-system-by-gpt/
 - Current CI: `.github/workflows/janggi-validation.yml`
 - Search benchmark: `.github/workflows/janggi-search-benchmark.yml`
 - Workspace validation: `.github/workflows/workspace-validation.yml`
-- Latest Janggi validation during this maintenance sequence: success on `91c7ef5`.
+- Latest Janggi validation: success on `44c67cc` (run #27).
 - Render cutover is complete: the existing service now points to the canonical monorepo and the project Root Directory.
 
 ### Time Dashboard
@@ -57,7 +57,7 @@ hjang12/ai-agent-cicd-system-by-gpt/
 - Primary server: `timefolio_server.py`
 - Backend regression test suite is preserved under `tests/`.
 - Current CI: `.github/workflows/time-dashboard-ci.yml`
-- The source repository's latest CI before migration was successful on `fb8e98...`.
+- Latest Time Dashboard CI: success on `44c67cc` (run #27).
 - Render cutover is complete: the existing service now points to the canonical monorepo and the project Root Directory.
 
 ## Migration Record
@@ -77,8 +77,9 @@ The original project repositories remain available as historical source snapshot
 Current root workflows:
 
 - Janggi validation — success on current `main`
-- Janggi search benchmark — success on current `main`
-- Time Dashboard CI — last executed successfully on the migration commit sequence
+- Janggi search benchmark — success on current `main` (run #20)
+- Time Dashboard CI — success on current `main` (run #27)
+- Workspace structure validation — success on current `main` (run #6)
 
 The first monorepo Janggi validation/benchmark runs failed because the migrated test/benchmark files still reflected pre-monorepo assumptions. The subsequent fixes are now green. The actual current GitHub Actions result, not the historical failure, is the operative state.
 
@@ -90,8 +91,8 @@ Render service cutover is complete. Both existing services now use the canonical
 
 | Service | Repository | Root Directory | Branch | Auto Deploy | Latest Live Deploy |
 | --- | --- | --- | --- | --- | --- |
-| `personal-ai-janggi-trainer-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/personal-ai-janggi-trainer-by-gpt` | `main` | yes | `51fc3322121167f1c48eb339bbe91bf69858c551` |
-| `time-dashboard-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/time-dashboard-by-gpt` | `main` | yes | `51fc3322121167f1c48eb339bbe91bf69858c551` |
+| `personal-ai-janggi-trainer-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/personal-ai-janggi-trainer-by-gpt` | `main` | yes | `f07095ca8f86d7376e925b22e8801f8dfc7522f4` |
+| `time-dashboard-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/time-dashboard-by-gpt` | `main` | yes | `7a7cd7636e50f69deccb4928db1dd20dd4344c77` |
 
 Both services are active and their latest cutover deployments are `live`.
 
@@ -121,9 +122,9 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 
 ## Known Limitations / Pending Cleanup
 
-- The old `-by-gpt` source repositories have not been archived or deleted; they remain historical snapshots until an explicit cleanup action is performed.
-- No destructive repository deletion is performed as part of this migration record.
-- Pre-deletion gate verification completed on 2026-09-18: both legacy repositories retain only their historical migration snapshot heads; both Render services point to the canonical monorepo; latest relevant CI runs are green; no duplicate Render services were created.
+- The former `personal-ai-janggi-trainer-by-gpt` and `time-dashboard-by-gpt` source repositories were deleted after the pre-deletion verification gate on 2026-09-18.
+- Destructive cleanup is complete; future development must target the canonical monorepo only.
+- Pre-deletion gate verification completed on 2026-09-18: both Render services pointed to the canonical monorepo, latest relevant CI runs were green, and no duplicate Render services existed.
 - The connected GitHub repository list currently exposes the GPT monorepo and the two historical project repositories; no active `personal-mcp-server` repository was present in that current list, so older documentation referring to it is treated as stale.
 
 ## Current Priority
