@@ -46,7 +46,8 @@ hjang12/ai-agent-cicd-system-by-gpt/
 - Domain, engine, search, coaching, training/evaluation, and browser/API layers are present as documented in the project Context.
 - Current CI: `.github/workflows/janggi-validation.yml`
 - Search benchmark: `.github/workflows/janggi-search-benchmark.yml`
-- Latest central validation and benchmark runs for `dbd6b52432a628a4b92e4fd586be0fae26672325`: both `success`.
+- Workspace validation: `.github/workflows/workspace-validation.yml`
+- Latest Janggi validation during this maintenance sequence: success on `91c7ef5`.
 - Render cutover is complete: the existing service now points to the canonical monorepo and the project Root Directory.
 
 ### Time Dashboard
@@ -134,7 +135,7 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 
 ## Next Development Candidates
 
-- Strengthen monorepo-wide validation of required project boundaries and deployment configuration.
+- Expand monorepo-wide validation only when a new shared boundary or deployment invariant is introduced.
 - Add higher-value service smoke/browser checks where justified.
 - Continue Janggi coaching/search work only from documented fixtures and regression evidence.
 - Continue Time Dashboard parser/reliability improvements without crossing the UI/backend boundary.
