@@ -9,6 +9,10 @@ services:
     buildCommand: python -m compileall janggi tests
     startCommand: python app.py
     healthCheckPath: /api/health
+    buildFilter:
+      paths:
+        - projects/personal-ai-janggi-trainer-by-gpt/**
+        - render.yaml
 
   - type: web
     name: time-dashboard-by-gpt
@@ -20,3 +24,7 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python timefolio_server.py
     healthCheckPath: /api/health
+    buildFilter:
+      paths:
+        - projects/time-dashboard-by-gpt/**
+        - render.yaml
