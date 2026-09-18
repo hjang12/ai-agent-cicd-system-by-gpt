@@ -47,7 +47,7 @@ hjang12/ai-agent-cicd-system-by-gpt/
 - Current CI: `.github/workflows/janggi-validation.yml`
 - Search benchmark: `.github/workflows/janggi-search-benchmark.yml`
 - Latest central validation and benchmark runs for `dbd6b52432a628a4b92e4fd586be0fae26672325`: both `success`.
-- Render cutover to the monorepo repository/root directory is pending final live-service verification.
+- Render cutover is complete: the existing service now points to the canonical monorepo and the project Root Directory.
 
 ### Time Dashboard
 
@@ -57,7 +57,7 @@ hjang12/ai-agent-cicd-system-by-gpt/
 - Backend regression test suite is preserved under `tests/`.
 - Current CI: `.github/workflows/time-dashboard-ci.yml`
 - The source repository's latest CI before migration was successful on `fb8e98...`.
-- Render cutover to the monorepo repository/root directory is pending final live-service verification.
+- Render cutover is complete: the existing service now points to the canonical monorepo and the project Root Directory.
 
 ## Migration Record
 
@@ -85,22 +85,24 @@ The first monorepo Janggi validation/benchmark runs failed because the migrated 
 
 Render workspace: `My Workspace` (`tea-da7sjdgu01pc73bsno6g`).
 
-The current live services are still connected to the historical project repositories, not the monorepo:
+Render service cutover is complete. Both existing services now use the canonical monorepo with project-specific Root Directories:
 
 | Service | Repository | Root Directory | Branch | Auto Deploy | Latest Live Deploy |
 | --- | --- | --- | --- | --- | --- |
-| `personal-ai-janggi-trainer-by-gpt` | `hjang12/personal-ai-janggi-trainer-by-gpt` | empty | `main` | yes | `83932421217f149de46e6e23b89aff9d92467a11` |
-| `time-dashboard-by-gpt` | `hjang12/time-dashboard-by-gpt` | empty | `main` | yes | `fb8e98baa7a81a610c2ccbf767f2995fb9af0a3f` |
+| `personal-ai-janggi-trainer-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/personal-ai-janggi-trainer-by-gpt` | `main` | yes | `51fc3322121167f1c48eb339bbe91bf69858c551` |
+| `time-dashboard-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/time-dashboard-by-gpt` | `main` | yes | `51fc3322121167f1c48eb339bbe91bf69858c551` |
 
-Both services are active and their latest listed deployment has status `live`.
+Both services are active and their latest cutover deployments are `live`.
 
-The repository `render.yaml` already defines the desired monorepo Root Directories, but **Render has not been switched to that configuration yet**.
+Deployment verification:
+- Janggi deploy `dep-damckfad0e5s73eu325g`: `live`; build succeeded; `python app.py` started; Render reported the service live at its primary URL.
+- Time Dashboard deploy `dep-damckue7bikc73b4p7ng`: `live`; build succeeded; `python timefolio_server.py` started; a `HEAD /` request returned HTTP 200; Render reported the service live at its primary URL.
+- Time Dashboard had one immediate cutover build failure because `requirements.txt` was not found, followed by a successful retry after the service Root Directory was correctly applied.
+- Current Render service `healthCheckPath` remains empty for both services. The applications expose Janggi `/api/health`; Time Dashboard has a root endpoint returning HTTP 200. Explicit Render health-check configuration is therefore still a platform-setting improvement, not a deployment blocker.
 
-Current migration state is therefore **GitHub-complete / Render-cutover-pending**.
+The available Render toolset still does not expose an update operation for existing service Git Repository / Root Directory settings; the actual cutover was performed in the Render Dashboard and then verified through the connected Render API/tooling. No duplicate services were created.
 
-The available Render toolset can inspect and deploy existing services but does not expose an update operation for changing an existing service's Git Repository or Root Directory. Do not create duplicate services merely to simulate the cutover.
-
-After the service settings are changed in Render, re-run verification for repository mapping, Root Directory, latest deployment, logs, and health/smoke behavior.
+Current migration state is **GitHub-complete / Render-cutover-complete / legacy-repository-cleanup-pending**.
 
 ## Canonical Operating Model
 
@@ -126,7 +128,7 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 ## Current Priority
 
 1. Verify and complete Render repository/root-directory cutover for both services.
-2. Run post-deployment health/smoke checks and record the result.
+2. Keep post-deployment health/smoke verification synchronized with live services.
 3. Synchronize project Context documents with the final live deployment state.
 4. Freeze the old project repositories as historical sources; archive/delete only through an explicit destructive-action step.
 5. Continue future development only under `projects/<project>/`.
