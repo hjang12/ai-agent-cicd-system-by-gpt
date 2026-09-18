@@ -703,7 +703,7 @@ Automated Verification
         ↓
 Evidence
         ↓
-Human Approval
+Conditional Human Approval
         ↓
 GitHub
         ↓
@@ -719,11 +719,11 @@ Feedback / Improvement
         ↺
 ```
 
+여기서 Human Approval은 모든 변경에 적용하지 않는다. 일반적인 기술 변경은 AI가 자율적으로 실행하고 검증하며, 위험도가 높은 결정에 대해서만 실제 영향 발생 직전에 승인 단계를 둔다.
+
 프로젝트 규모가 커지더라도 동일한 원칙을 확장할 수 있도록 설계한다.
 
 **현재의 빠른 구현보다 장기적인 유지보수성, 재사용성, 확장성, 검증 가능성, 재현성 및 안정성을 우선한다.**
-
----
 
 ## 23. 프로젝트 지식 및 개발 이력 관리
 
