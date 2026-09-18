@@ -33,10 +33,12 @@ REQUIRED_RENDER_SERVICES = {
     "personal-ai-janggi-trainer-by-gpt": {
         "rootDir": "projects/personal-ai-janggi-trainer-by-gpt",
         "healthCheckPath": "/api/health",
+        "buildFilterPath": "projects/personal-ai-janggi-trainer-by-gpt/**",
     },
     "time-dashboard-by-gpt": {
         "rootDir": "projects/time-dashboard-by-gpt",
         "healthCheckPath": "/api/health",
+        "buildFilterPath": "projects/time-dashboard-by-gpt/**",
     },
 }
 
@@ -71,6 +73,12 @@ def validate_render_blueprint() -> list[str]:
         block = text[start:next_service if next_service >= 0 else len(text)]
 
         for key, value in expected.items():
+            if key == "buildFilterPath":
+                if f"- {value}" not in block:
+                    errors.append(
+                        f"render.yaml service {service_name} missing buildFilter path: {value}"
+                    )
+                continue
             if f"{key}: {value}" not in block:
                 errors.append(
                     f"render.yaml service {service_name} missing {key}: {value}"
@@ -89,7 +97,7 @@ def validate_project_boundaries() -> list[str]:
         if not project_root.is_dir():
             continue
         for child in project_root.iterdir():
-            if child.name.startswith(".git"):
+            if child.is_dir() and child.name == ".git":
                 errors.append(f"nested Git metadata is not allowed: {child}")
     return errors
 
