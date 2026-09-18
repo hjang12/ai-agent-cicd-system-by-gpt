@@ -202,3 +202,57 @@ Render repository/root-directory 전환은 현재 workspace에서 live service m
 ### Lessons
 
 Monorepo 통합 자체보다 중요한 것은 다음 Agent가 잘못된 이전 Repository에서 개발하지 않도록 canonical path를 명확히 문서화하는 것이다. 따라서 root `AGENT_START.md`, workspace `AGENTS.md`, 프로젝트별 entrypoint, CURRENT_STATUS, migration record를 함께 유지한다.
+
+
+## 2026-09-18 — Render Monorepo Cutover 완료
+
+### Requirement
+
+GitHub monorepo 통합 이후에도 기존 Render Web Service를 유지하면서 각 서비스가 canonical monorepo의 해당 프로젝트 디렉터리를 배포하도록 전환한다.
+
+### Execution
+
+사용자가 Render Dashboard에서 기존 두 Service의 Git source와 Root Directory를 다음과 같이 변경했다.
+
+- Janggi Service `personal-ai-janggi-trainer-by-gpt`
+  - Repository: `hjang12/ai-agent-cicd-system-by-gpt`
+  - Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
+- Time Dashboard Service `time-dashboard-by-gpt`
+  - Repository: `hjang12/ai-agent-cicd-system-by-gpt`
+  - Root Directory: `projects/time-dashboard-by-gpt`
+
+기존 Service 리소스와 URL은 유지했으며 중복 Service는 생성하지 않았다.
+
+### Verification
+
+- Janggi deployment `dep-damckfad0e5s73eu325g`: `live`
+- Janggi build: `python -m compileall janggi tests` 성공
+- Janggi start: `python app.py` 정상 기동
+- Time Dashboard deployment `dep-damckue7bikc73b4p7ng`: `live`
+- Time Dashboard build: `pip install -r requirements.txt` 성공
+- Time Dashboard start: `python timefolio_server.py` 정상 기동
+- Time Dashboard Render request logs: `HEAD /` HTTP 200 및 `GET /` HTTP 200 확인
+- 두 서비스 모두 canonical monorepo와 project-specific Root Directory가 실제 Service 설정에 반영됨
+
+Time Dashboard는 cutover 직후 첫 build에서 root directory 적용 시점의 `requirements.txt` 탐색 실패가 1회 발생했으나, 재배포에서 정상 완료되었다.
+
+### Result
+
+GitHub/Render topology는 다음 상태로 확정했다.
+
+```text
+GitHub: one canonical monorepo
+  └── project-specific directories
+
+Render: multiple deployment services
+  ├── Janggi → Janggi Root Directory
+  └── Time Dashboard → Time Dashboard Root Directory
+```
+
+### Operational Note
+
+현재 연결된 Render tool interface는 기존 Service의 Repository / Root Directory 변경 작업을 노출하지 않으므로, 이번 source cutover는 Render Dashboard에서 실행하고 연결된 Render 조회 도구로 실제 설정과 deployment 결과를 검증했다.
+
+Render `healthCheckPath`는 두 서비스 모두 현재 비어 있다. 애플리케이션 자체의 기동/HTTP 응답은 확인했으며, 명시적 platform health check path 설정은 후속 운영 개선사항으로 남긴다.
+
+기존 GitHub 프로젝트 Repository는 현재 Render가 더 이상 참조하지 않으므로 historical snapshot으로 유지할 수 있다. Archive/Delete는 별도의 destructive action으로 취급한다.
