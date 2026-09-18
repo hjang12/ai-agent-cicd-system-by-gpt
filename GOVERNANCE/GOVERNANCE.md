@@ -823,6 +823,7 @@ GitHub Repository는 단순한 Source Code 저장소가 아니라 **프로젝트
 ```text
 README.md
 CURRENT_STATUS.md
+ACTIVE_ISSUES.md
 DEVELOPMENT_HISTORY.md
 ARCHITECTURE.md
 ADR/
@@ -856,6 +857,16 @@ Current Development Target
 ```
 
 `CURRENT_STATUS.md`는 장문의 역사 문서가 아니라 **빠른 Context 복구 문서**다.
+
+### ACTIVE_ISSUES.md
+
+현재 해결되지 않았거나 추적이 필요한 이슈만 관리하는 **AI 운영용 Active Issue Index**다.
+
+새로운 Agent는 `CURRENT_STATUS.md`를 확인한 직후 `ACTIVE_ISSUES.md`를 확인하여 현재 미해결 항목과 다음 조치를 빠르게 복구한다.
+
+`ACTIVE_ISSUES.md`는 상세 논의의 원본이 아니다. 개별 이슈의 상세 원인, 결정, 검증 Evidence는 관련 GitHub Issue, ADR, 프로젝트 문서 또는 `DEVELOPMENT_HISTORY.md`를 참조한다.
+
+현재 active issue 상태와 우선순위에 대해서는 `ACTIVE_ISSUES.md`를 authoritative source로 사용한다. 이슈가 해결되면 실제 검증 후 목록에서 제거하고 중요한 해결 사실은 개발 이력에 기록한다.
 
 ### DEVELOPMENT_HISTORY.md
 
@@ -901,6 +912,48 @@ Revisit Condition
 
 ---
 
+## 24. Active Issue 관리
+
+Active Issue는 현재 해결되지 않았거나 지속적인 추적이 필요한 문제를 빠르게 식별하기 위한 운영 상태다.
+
+`GOVERNANCE/docs/ACTIVE_ISSUES.md`를 Workspace의 현재 Active Issue 상태에 대한 authoritative source로 사용한다.
+
+### Active Issue로 등록하는 경우
+
+- 여러 작업에 걸쳐 추적이 필요한 미해결 문제
+- 외부 권한/플랫폼 제약으로 즉시 해결할 수 없는 문제
+- CI/CD, 보안, 배포, Architecture 등 운영 신뢰성에 영향을 주는 구조적 문제
+- 해결 작업의 다음 단계와 상태를 지속적으로 관리할 필요가 있는 문제
+- 반복되는 문제가 구조적 개선 대상으로 승격된 경우
+
+### Active Issue로 등록하지 않는 경우
+
+- 일회성 오류를 즉시 해결한 경우
+- 단순 작업 메모
+- 이미 해결되고 추가 추적이 필요하지 않은 문제
+- 단순한 아이디어나 미래의 가능성만 있는 개선 후보
+
+### Issue Lifecycle
+
+```text
+Detect
+→ Classify
+→ Add / Update ACTIVE_ISSUES
+→ Work / Escalate
+→ Verify
+→ Resolve
+→ Remove from Active Index
+→ Record important outcome in DEVELOPMENT_HISTORY
+```
+
+`BLOCKED`는 AI가 현재 권한·Tool·외부 조건 때문에 진행할 수 없는 경우에 사용한다.
+
+AI는 Active Issue를 장기간 방치하지 않는다. 작업을 수행할 때 관련 Active Issue의 상태, `Next Action`, `Last Verified` 및 `Blocker`를 실제 상태에 맞게 갱신한다.
+
+상세 이력과 현재 상태를 동일 문서에 누적하지 않는다. Active Issue는 현재 운영 상태에 집중하고, 과거의 상세 과정은 History / ADR / GitHub Issue에 남긴다.
+
+---
+
 ## 24. 실패 및 복구 기록
 
 중요한 실패도 프로젝트 지식으로 취급한다.
@@ -943,6 +996,7 @@ Prevention
 ```text
 Governance
 → CURRENT_STATUS
+→ ACTIVE_ISSUES
 → README
 → ARCHITECTURE
 → DEVELOPMENT_HISTORY
@@ -1150,4 +1204,6 @@ Review Condition
 11. **자율 실행은 실행 가능성, 지침·기획과의 합치, 권한·위험 범위를 모두 충족할 때만 수행한다.**
 12. **기술적으로 구현 가능하더라도 개발지침·Project Plan·Requirement·Architecture Constraint와 충돌하면 임의 실행하거나 우회하지 않는다.**
 13. **AI가 자율적으로 완료할 수 없는 기술적 한계 또는 중요한 규정·기획 충돌은 숨기지 않고 근거와 영향과 함께 보고한다.**
+14. **Governance, Version, Branch, CI/CD 및 프로젝트 운영 구조의 개선 필요성을 AI가 선제적으로 점검하고 먼저 제안한다.**
+15. **현재 미해결 이슈는 Active Issue로 별도 관리하고, 해결 여부를 Development History 전체를 다시 읽어 판단하게 만들지 않는다.**
 
