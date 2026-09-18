@@ -25,6 +25,7 @@ REQUIRED_PATHS = (
     Path(".github/workflows/janggi-validation.yml"),
     Path(".github/workflows/janggi-search-benchmark.yml"),
     Path(".github/workflows/time-dashboard-ci.yml"),
+    Path(".github/workflows/workspace-validation.yml"),
     Path("render.yaml"),
 )
 
@@ -33,11 +34,15 @@ REQUIRED_RENDER_SERVICES = {
     "personal-ai-janggi-trainer-by-gpt": {
         "rootDir": "projects/personal-ai-janggi-trainer-by-gpt",
         "healthCheckPath": "/api/health",
+        "buildCommand": "python -m compileall janggi tests",
+        "startCommand": "python app.py",
         "buildFilterPath": "projects/personal-ai-janggi-trainer-by-gpt/**",
     },
     "time-dashboard-by-gpt": {
         "rootDir": "projects/time-dashboard-by-gpt",
         "healthCheckPath": "/api/health",
+        "buildCommand": "pip install -r requirements.txt",
+        "startCommand": "python timefolio_server.py",
         "buildFilterPath": "projects/time-dashboard-by-gpt/**",
     },
 }
