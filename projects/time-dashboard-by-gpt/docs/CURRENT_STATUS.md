@@ -38,7 +38,11 @@ GitHub Actions workflow: `../../.github/workflows/time-dashboard-ci.yml` (reposi
 Render target Blueprint:
 
 - Root Blueprint: `../../render.yaml`
+- Service name: `time-dashboard-by-gpt`
+- Desired Repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Desired Root Directory: `projects/time-dashboard-by-gpt`
+- Branch: `main`
+- Region: Oregon
 - Build: `pip install -r requirements.txt`
 - Start: `python timefolio_server.py`
 
@@ -51,7 +55,7 @@ Verified live Render state on 2026-09-18:
 - Latest live deployment: `fb8e98baa7a81a610c2ccbf767f2995fb9af0a3f`
 - URL: `https://time-dashboard.onrender.com`
 
-The live service has not yet been switched to the monorepo. The Blueprint is the desired configuration, not proof of an applied Render setting.
+The Blueprint configuration is prepared for the existing service, but the live service has not yet been switched to the monorepo. Post-cutover smoke verification remains pending.
 
 ## Monorepo Operation
 
