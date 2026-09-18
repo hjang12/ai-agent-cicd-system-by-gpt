@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fcfcfc">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Timefolio">
+  <link rel="apple-touch-icon" href="/assets/icon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <title>Timefolio 앱 설치</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;padding:max(24px,env(safe-area-inset-top)) 20px max(24px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f8fafc;color:#1e293b}
+    .install-card{width:min(560px,100%);padding:28px 24px;border:1px solid #d9dee7;border-radius:18px;background:#fff;box-shadow:0 8px 30px rgba(15,23,42,.08);text-align:center}
+    .icon{width:72px;height:72px;border-radius:16px;object-fit:cover;margin-bottom:14px}
+    h1{margin:0 0 8px;font-size:24px}.lead{margin:0 0 20px;color:#64748b;line-height:1.55}
+    .install-button{width:100%;min-height:48px;border:0;border-radius:12px;background:#1e293b;color:#fff;font-size:16px;font-weight:800;cursor:pointer}.install-button[hidden]{display:none}
+    .status{margin:14px 0 0;padding:12px;border-radius:10px;background:#f8fafc;color:#475569;font-size:14px;line-height:1.55}
+    .steps{margin:20px 0 0;padding:18px;border-top:1px solid #e2e8f0;text-align:left}.steps strong{display:block;margin-bottom:8px}.steps p{margin:6px 0;color:#475569;line-height:1.55}
+    .back{display:inline-block;margin-top:18px;color:#475569;text-decoration:none;font-size:14px}
+  </style>
+</head>
+<body>
+  <main class="install-card">
+    <img class="icon" src="/assets/icon.svg" alt="Timefolio">
+    <h1>Timefolio 앱 설치</h1>
+    <p class="lead">이 웹앱을 휴대폰 홈 화면에 추가해서 앱처럼 사용할 수 있습니다.</p>
+    <button id="installButton" class="install-button" type="button" hidden>앱 설치</button>
+    <div id="status" class="status">설치 방법을 확인하는 중입니다.</div>
+    <section id="iosSteps" class="steps" hidden>
+      <strong>iPhone / iPad</strong>
+      <p>1. Safari에서 이 페이지를 엽니다.</p>
+      <p>2. 공유 버튼을 누릅니다.</p>
+      <p>3. <b>홈 화면에 추가</b>를 선택합니다.</p>
+      <p>4. 추가를 누르면 Timefolio가 홈 화면에 생성됩니다.</p>
+    </section>
+    <section id="androidSteps" class="steps" hidden>
+      <strong>Android / Chrome</strong>
+      <p>아래 <b>앱 설치</b> 버튼을 누르면 Chrome의 설치 화면이 표시됩니다.</p>
+    </section>
+    <a class="back" href="/">대시보드로 돌아가기</a>
+  </main>
+  <script>
+    let deferredPrompt=null;
+    const installButton=document.getElementById('installButton');
+    const status=document.getElementById('status');
+    const iosSteps=document.getElementById('iosSteps');
+    const androidSteps=document.getElementById('androidSteps');
+    const ua=navigator.userAgent||'';
+    const isIos=/iPhone|iPad|iPod/i.test(ua);
+    const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+    if(isStandalone){status.textContent='Timefolio가 이미 홈 화면에 설치되어 있습니다.';}
+    else if(isIos){status.textContent='iPhone / iPad에서는 Safari의 공유 메뉴에서 홈 화면에 추가할 수 있습니다.';iosSteps.hidden=false;}
+    else{status.textContent='이 브라우저에서 설치 가능한 경우 아래 버튼이 활성화됩니다.';androidSteps.hidden=false;}
+    window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredPrompt=event;installButton.hidden=false;status.textContent='바로 앱 설치가 가능합니다.';});
+    installButton.addEventListener('click',async()=>{
+      if(!deferredPrompt){status.textContent='현재 브라우저에서는 자동 설치 창을 열 수 없습니다. 브라우저 메뉴의 설치/홈 화면 추가 기능을 사용해 주세요.';return;}
+      deferredPrompt.prompt();const {outcome}=await deferredPrompt.userChoice;deferredPrompt=null;installButton.hidden=true;status.textContent=outcome==='accepted'?'설치가 진행되었습니다.':'설치가 취소되었습니다.';
+    });
+    window.addEventListener('appinstalled',()=>{deferredPrompt=null;installButton.hidden=true;status.textContent='Timefolio가 설치되었습니다.';});
+  </script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+# Search Benchmark History
+
+이 문서는 검색 최적화 실험의 재현 가능한 기준점과 의사결정을 별도로 기록합니다. `docs/SEARCH.md`는 현재 구조와 원칙을 설명하고, 이 문서는 실험 결과의 시간순 기록을 담당합니다.
+
+## 2026-09-15 — Forcing-move ordering baseline
+
+### Method
+
+- Reference: coordinate-only move ordering
+- Production candidate: capture-first, then checking moves, then stable coordinates
+- Same `NegamaxEngine` search, evaluation, caches, and search configuration
+- Python 3.12 on GitHub Actions
+- Node count is used instead of wall-clock timing because it is deterministic for these fixtures
+
+### Production baseline
+
+| Fixture | Depth | Reference nodes | Production nodes | Reduction |
+| --- | ---: | ---: | ---: | ---: |
+| initial | 2 | 131 | 131 | 0.00% |
+| capture | 2 | 50 | 43 | 14.00% |
+| capture | 3 | 490 | 378 | 22.86% |
+| check | 2 | 50 | 41 | 18.00% |
+| check | 3 | 619 | 487 | 21.32% |
+| double_attack | 2 | 133 | 81 | 39.10% |
+| double_attack | 3 | 1032 | 896 | 13.18% |
+
+All measured positions preserved the reference minimax score. A best-move difference in the `check` fixture was a deterministic tie-ordering difference because the scores were equal.
+
+### Decision
+
+Keep production ordering as capture-value-first, then checks. The measurements show useful alpha-beta node reduction without changing the measured minimax score.
+
+## 2026-09-15 — Alternative ordering experiments
+
+### Check-first
+
+The experimental ordering places every checking move ahead of every capture. It matched the current ordering on the initial, capture, and check fixtures. It reduced `double_attack` depth 3 from 896 to 859 nodes, but did not provide a consistent benefit across the representative fixture set.
+
+### Capture-check-first
+
+The experimental ordering groups checking captures ahead of other captures/quiet moves.
+
+| Fixture | Depth | Current nodes | Capture-check-first nodes |
+| --- | ---: | ---: | ---: |
+| initial | 2 | 131 | 131 |
+| capture | 2 | 43 | 43 |
+| capture | 3 | 378 | 370 |
+| check | 2 | 41 | 50 |
+| check | 3 | 487 | 619 |
+| double_attack | 2 | 81 | 81 |
+| double_attack | 3 | 896 | 917 |
+
+All measured alternative-ordering scores matched the coordinate-only reference score. Because the capture-check-first variant regressed the check fixtures and the double-attack depth-3 fixture, it was not promoted to production.
+
+## 2026-09-15 — Legal-move generation cache
+
+### Method
+
+Compare a cache-disabled engine with the production engine while counting underlying `GameState.legal_moves()` generations. The cache key is `(position_key, include_pass)` and is cleared for every top-level analysis.
+
+### Result
+
+| Fixture | Depth | No-cache generations | Cached generations | Reduction |
+| --- | ---: | ---: | ---: | ---: |
+| initial | 2 | 342 | 237 | 30.70% |
+| capture | 2 | 92 | 68 | 26.09% |
+| capture | 3 | 812 | 547 | 32.64% |
+| check | 2 | 88 | 65 | 26.14% |
+| check | 3 | 790 | 525 | 33.54% |
+| double_attack | 2 | 164 | 123 | 25.00% |
+| double_attack | 3 | 1768 | 1191 | 32.64% |
+
+Every comparison preserved the same minimax score.
+
+### Decision
+
+Keep the per-analysis legal-move cache. The measured reduction in underlying legality generation is substantial enough to preserve the optimization, while elapsed-time speedup remains an explicitly unmeasured runtime property.
+
+## 2026-09-15 — Midgame/endgame fixture expansion
+
+### Method
+
+Add two representative non-initial positions to the deterministic benchmark:
+
+- `midgame`: mixed material and mobility, run at depth 2 to keep CI bounded.
+- `endgame`: reduced material, run at depths 2 and 3.
+
+The same four ordering variants and the same cached/uncached legal-move comparison are measured. Existing fixtures remain unchanged and their historical baselines are preserved.
+
+### Search ordering result
+
+| Fixture | Depth | Reference nodes | Production nodes | Reduction |
+| --- | ---: | ---: | ---: | ---: |
+| midgame | 2 | 262 | 108 | 58.78% |
+| endgame | 2 | 144 | 72 | 50.00% |
+| endgame | 3 | 2053 | 645 | 68.58% |
+
+Production, check-first, and capture-check-first all preserved the reference minimax score on these new positions. The production ordering also preserved the reference best move on all three measurements.
+
+### Legal-move generation result
+
+| Fixture | Depth | No-cache generations | Cached generations | Reduction |
+| --- | ---: | ---: | ---: | ---: |
+| midgame | 2 | 251 | 180 | 28.29% |
+| endgame | 2 | 165 | 119 | 27.88% |
+| endgame | 3 | 1030 | 691 | 32.91% |
+
+Every new comparison preserved the same minimax score.
+
+### Decision
+
+Promote the measured production node counts for `midgame` and `endgame` to deterministic regression baselines. Keep the current production move ordering unchanged. The fixture expansion provides a broader pre-change reference set before considering changes to move ordering or evaluation.
+
+The measured node reduction is evidence for this fixture set only, not a universal runtime or playing-strength claim.
+
+## 2026-09-15 — Midgame depth-3 runtime-bound experiment
+
+A follow-up run temporarily expanded the midgame fixture to depth 3 so that it would be covered symmetrically with the compact tactical and endgame fixtures. The benchmark remained in the `Run search ordering benchmark` step substantially longer than the established bounded runs, without producing a completed result during the review window.
+
+### Decision
+
+Do not promote midgame depth 3 to the regular benchmark matrix. Keep the midgame fixture at depth 2 to preserve a bounded CI job. A future depth-3 midgame study should be run as an explicitly targeted/manual profiling experiment rather than as a mandatory regression gate.
+
+## 2026-09-16 — History-independent checkmate scoring
+
+The search position key intentionally contains only board contents and side-to-move, while checkmate scoring previously added `len(state.history)`. That made two identical positions with different historical move counts produce different cached checkmate values.
+
+The checkmate score now derives mate distance from the configured search depth instead of the historical move count. A regression test constructs identical terminal positions with different history lengths and asserts equal search scores.
+
+### Decision
+
+Keep history out of the search position key and keep terminal scoring independent of `GameState.history`. Search values for a position are now consistent with the cache key's semantic identity.
+
+## CI policy
+
+`.github/workflows/search-benchmark.yml` runs automatically when `janggi/search.py`, `tools/benchmark_search_ordering.py`, or the benchmark workflow changes, and can also be run manually. The production node counts are treated as a deterministic regression baseline. Future changes to production search ordering must update the baseline only when a deliberate algorithmic change is made and the resulting minimax behavior has been reviewed.
+
+Wall-clock timing is not currently used as a mandatory CI gate because hosted-runner timing is noisy. Add timing profiling only when a concrete latency target exists.

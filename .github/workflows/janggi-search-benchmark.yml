@@ -1,0 +1,24 @@
+name: Janggi search benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_search_ordering.py'
+      - 'GOVERNANCE/**'
+      - '.github/workflows/janggi-search-benchmark.yml'
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/personal-ai-janggi-trainer-by-gpt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run search ordering benchmark
+        run: PYTHONPATH=. python tools/benchmark_search_ordering.py

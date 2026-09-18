@@ -1,0 +1,183 @@
+import unittest
+from pathlib import Path
+
+from app import TrainerApplication
+from janggi import EngineAnalysis, Move, Side
+
+
+INDEX_HTML = Path(__file__).resolve().parents[1] / "index.html"
+
+
+class NonAnalysisEngine:
+    def analyze(self, state):
+        return None
+
+    def choose_move(self, state):
+        raise AssertionError("choose_move should not be called")
+
+    @property
+    def info(self):
+        raise AssertionError("info should not be read")
+
+class InvalidAnalysisEngine:
+    def analyze(self, state):
+        return EngineAnalysis(
+            best_move=Move((0, 0), (8, 9)),
+            principal_variation=(Move((0, 0), (8, 9)),),
+            perspective=Side.CHO,
+        )
+
+    def choose_move(self, state):
+        raise AssertionError("choose_move should not be called")
+
+    @property
+    def info(self):
+        raise AssertionError("info should not be read")
+
+
+class TrainerApplicationTests(unittest.TestCase):
+    def test_initial_snapshot_is_playing(self):
+        app = TrainerApplication()
+        snapshot = app.snapshot()
+        self.assertEqual(snapshot["status"], "playing")
+        self.assertEqual(snapshot["setup"], "classic")
+        self.assertEqual(len(snapshot["state"]["board"]), 90)
+        self.assertTrue(snapshot["legal_moves"])
+
+    def test_reset_accepts_setup_variant(self):
+        app = TrainerApplication()
+        snapshot = app.reset("left")
+        self.assertEqual(snapshot["setup"], "left")
+        self.assertEqual(snapshot["state"]["setup"], "left")
+
+    def test_play_rejects_missing_coordinates(self):
+        app = TrainerApplication()
+        with self.assertRaises(ValueError):
+            app.play({"src": [0, 3]})
+
+    def test_analyze_move_does_not_change_state(self):
+        app = TrainerApplication()
+        before = app.snapshot()
+        response = app.analyze_move({"src": [0, 3], "dst": [0, 4]})
+        self.assertIn("analysis", response)
+        self.assertEqual(response["analysis"]["move"]["src"], [0, 3])
+        self.assertEqual(response["analysis"]["move"]["dst"], [0, 4])
+        self.assertEqual(response["snapshot"]["state"], before["state"])
+
+    def test_analyze_move_reports_recommendation_coaching_tactical_risk_and_pv(self):
+        app = TrainerApplication()
+        response = app.analyze_move({"src": [0, 3], "dst": [0, 4]})
+        self.assertIn("recommended_move", response["analysis"])
+        self.assertIn("score_delta_cp", response["analysis"])
+        self.assertIn("is_best_move", response["analysis"])
+        self.assertIn("tactical_risk", response["analysis"])
+        self.assertIn("tactical_motifs", response["analysis"])
+        self.assertIn("principal_variation", response["analysis"])
+        self.assertIsInstance(response["analysis"]["principal_variation"], list)
+        self.assertIn("severity", response["coaching"])
+        self.assertIn("message", response["coaching"])
+        self.assertIn("next_action", response["coaching"])
+        self.assertTrue(response["coaching"]["next_action"])
+
+    def test_engine_move_returns_analysis_and_updates_state(self):
+        app = TrainerApplication()
+        before = app.snapshot()["state"]["turn"]
+        response = app.engine_move()
+        self.assertIn("analysis", response)
+        self.assertIn("principal_variation", response["analysis"])
+        self.assertIsInstance(response["analysis"]["principal_variation"], list)
+        self.assertIn("snapshot", response)
+        self.assertNotEqual(response["snapshot"]["state"]["turn"], before)
+        self.assertEqual(len(response["snapshot"]["state"]["history"]), 1)
+
+    def test_engine_move_degrades_non_analysis_engine_output(self):
+        app = TrainerApplication()
+        app.engine = NonAnalysisEngine()
+        before = app.snapshot()
+
+        response = app.engine_move()
+
+        self.assertIsNone(response["analysis"]["best_move"])
+        self.assertEqual(response["analysis"]["principal_variation"], [])
+        self.assertEqual(response["snapshot"]["state"], before["state"])
+    def test_engine_move_suppresses_malformed_engine_analysis(self):
+        app = TrainerApplication()
+        app.engine = InvalidAnalysisEngine()
+        before = app.snapshot()
+
+        response = app.engine_move()
+
+        self.assertIsNone(response["analysis"]["best_move"])
+        self.assertEqual(response["analysis"]["principal_variation"], [])
+        self.assertEqual(response["snapshot"]["state"], before["state"])
+
+    def test_record_exports_current_history(self):
+        app = TrainerApplication()
+        record = app.record()
+        self.assertEqual(record["format"], "janggi-record-v1")
+        self.assertEqual(record["setup"], "classic")
+        self.assertEqual(record["source"], "personal")
+        self.assertIsNone(record["result"])
+        self.assertEqual(record["moves"], [])
+
+    def test_record_exports_played_moves(self):
+        app = TrainerApplication()
+        app.play({"src": [0, 3], "dst": [0, 4]})
+        record = app.record()
+        self.assertEqual(len(record["moves"]), 1)
+        self.assertEqual(record["moves"][0]["src"], [0, 3])
+        self.assertEqual(record["moves"][0]["dst"], [0, 4])
+
+    def test_undo_restores_previous_state(self):
+        app = TrainerApplication()
+        initial = app.snapshot()
+        move = initial["legal_moves"][0]
+        app.play({"src": move["src"], "dst": move["dst"]})
+        undone = app.undo()
+        self.assertEqual(undone["state"], initial["state"])
+        self.assertEqual(undone["status"], "playing")
+
+    def test_undo_without_history_is_rejected(self):
+        app = TrainerApplication()
+        with self.assertRaises(ValueError):
+            app.undo()
+
+    def test_browser_makes_turn_handoff_explicit_in_heading(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("좋은 수입니다 · 상대 차례", html)
+        self.assertIn("착수 분석 완료 · 상대 차례", html)
+        self.assertIn("엔진이 수를 두었습니다 · 내 차례", html)
+        self.assertIn("엔진 수가 없습니다 · 내 차례", html)
+    def test_browser_localizes_terminal_status_and_engine_heading(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("'cho_win':'초 승'", html)
+        self.assertIn("'draw_consecutive_pass':'연속 한수쉼 무승부'", html)
+        self.assertIn("statusLabels[snapshot.status] || snapshot.status", html)
+        self.assertIn("로 대국이 종료되었습니다", html)
+
+    def test_browser_engine_result_surfaces_evaluation_and_search_details(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("result.score_cp === null || result.score_cp === undefined", html)
+        self.assertIn("cp (${sideLabels[result.perspective] || result.perspective || '기준'} 기준)", html)
+        self.assertIn("탐색 깊이 ${result.depth}.", html)
+        self.assertIn("확인한 노드 ${result.nodes.toLocaleString()}개.", html)
+    def test_browser_move_presentation_uses_board_notation(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("function formatPosition(position)", html)
+        self.assertIn("String.fromCharCode(97 + x)", html)
+        self.assertIn("(index + 1) + '. ' + label + ' ' + formatMove(move)", html)
+        self.assertIn("formatPrincipalVariation(result.principal_variation, result.perspective)", html)
+        self.assertNotIn("move.src.join(',')", html)
+
+    def test_browser_undo_contract_is_present(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn('id="undo"', html)
+        self.assertIn('class="analysis-row analysis-pv"', html)
+        self.assertIn("undo.disabled = busy || !hasHistory", html)
+        self.assertIn("engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== 'han'", html)
+        self.assertIn("post('/api/undo', {})", html)
+        self.assertIn("한 수 되돌리기 완료", html)
+
+
+if __name__ == "__main__":
+    unittest.main()

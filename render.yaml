@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: personal-ai-janggi-trainer
+    runtime: python
+    rootDir: projects/personal-ai-janggi-trainer-by-gpt
+    buildCommand: python -m compileall janggi tests
+    startCommand: python app.py
+    healthCheckPath: /api/health
+
+  - type: web
+    name: time-dashboard-by-gpt
+    runtime: python
+    rootDir: projects/time-dashboard-by-gpt
+    buildCommand: pip install -r requirements.txt
+    startCommand: python timefolio_server.py

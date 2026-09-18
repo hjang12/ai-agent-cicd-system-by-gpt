@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>개인용 AI 장기 훈련기</title>
+  <style>
+    :root { color-scheme: dark; --ink:#f7f0df; --paper:#15201d; --accent:#e7af3c; --line:#8a6736; --board:#dfbd78; --frame:#805b2b; --panel:#21312b; --muted:#b9c4bd; }
+    * { box-sizing:border-box; } body { margin:0; min-height:100vh; font:16px/1.5 system-ui,sans-serif; color:var(--ink); background:radial-gradient(circle at 15% 10%,#30453d,var(--paper) 55%); }
+    main { max-width:1080px; margin:auto; padding:clamp(24px,5vw,72px) 24px; } .eyebrow { color:var(--accent); font-weight:700; letter-spacing:.08em; } h1 { font-size:clamp(2.5rem,7vw,5rem); line-height:.95; max-width:750px; margin:.25em 0; } .lead { max-width:700px; color:#d8d3c8; }
+    .workspace { display:grid; grid-template-columns:minmax(300px,1fr) 340px; gap:28px; margin-top:42px; }
+    .board { aspect-ratio:9/10; padding:10px; display:grid; grid-template-columns:repeat(9,1fr); grid-template-rows:repeat(10,1fr); background:var(--board); border:8px solid var(--frame); box-shadow:0 18px 50px #0007; }
+    .cell { border:1px solid var(--line); display:grid; place-items:center; cursor:pointer; color:#211605; font-size:clamp(18px,3.1vw,34px); font-weight:800; user-select:none; background:transparent; }
+    .cell.selected { outline:3px solid var(--accent); outline-offset:-3px; } .cell.legal { box-shadow:inset 0 0 0 3px #fff8; }
+    .piece-cho { color:#9f1f16; } .piece-han { color:#171717; }
+    .panel { padding:24px; background:var(--panel); border:1px solid #52685e; border-radius:16px; }
+    button, select { width:100%; border:0; border-radius:8px; padding:13px 16px; cursor:pointer; font-weight:700; margin-top:10px; }
+    button.primary { background:var(--accent); color:#211605; } button.secondary { background:#d8d3c8; color:#21312b; } button:disabled { opacity:.6; cursor:wait; }
+    select { background:#14211d; color:var(--ink); border:1px solid #52685e; }
+    .status { color:#d8d3c8; min-height:3em; } .meta { color:var(--muted); font-size:.9rem; }
+    .analysis { margin-top:18px; padding:16px; border:1px solid #52685e; border-radius:12px; background:#182722; }
+    .analysis h3 { margin:0 0 8px; } .analysis-row { display:flex; justify-content:space-between; gap:16px; padding:4px 0; color:#d8d3c8; } .analysis-row strong { text-align:right; overflow-wrap:anywhere; } .analysis-pv { display:block; } .analysis-pv strong { display:block; margin-top:4px; text-align:left; line-height:1.65; } .analysis-note { margin:10px 0 0; color:var(--muted); }
+    .action { margin-top:14px; padding:13px 14px; border:1px solid #8a6736; border-radius:10px; background:#21352e; } .action-title { display:block; margin-bottom:4px; color:var(--accent); }
+    .severity { display:inline-block; border-radius:999px; padding:2px 9px; font-size:.78rem; letter-spacing:.04em; background:#30453d; }
+    .step { padding:12px 0; border-bottom:1px solid #42554c; } .step:last-child { border-bottom:0; }
+    @media(max-width:760px){.workspace{grid-template-columns:1fr}.board{max-width:520px}}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">프로토타입 · 장기 학습 시스템</div>
+    <h1>한 수씩 제대로 연습하세요.</h1>
+    <p class="lead">파이썬 장기 규칙 엔진을 기반으로 동작하는 장기 훈련기입니다. 현재 대국 상태와 합법적인 수를 서버가 관리하고, 착수 후에는 현재 기준 엔진으로 수의 품질과 전술 위험을 함께 분석할 수 있습니다.</p>
+    <section class="workspace" aria-label="장기 연습 공간">
+      <div class="board" id="board" aria-label="9열 10행 장기판"></div>
+      <aside class="panel">
+        <h2 id="heading">대국 준비</h2>
+        <p class="status" id="status">현재 대국 상태를 불러오는 중입니다…</p>
+        <div class="meta" id="turn"></div>
+        <select id="setup" aria-label="장기판 배치">
+          <option value="classic">기본 배치</option><option value="left">왼쪽 마상 교환</option><option value="right">오른쪽 마상 교환</option><option value="both">양쪽 마상 교환</option>
+        </select>
+        <button class="secondary" id="reset">대국 초기화</button>
+        <button class="secondary" id="undo" disabled>한 수 되돌리기</button>
+        <button class="primary" id="engine">기준 엔진으로 수 두기</button>
+        <div class="analysis" id="analysis" hidden>
+          <h3>착수 분석</h3>
+          <div class="analysis-row"><span>수의 평가</span><strong id="severity" class="severity"></strong></div>
+          <div class="analysis-row"><span>둔 수</span><strong id="played"></strong></div>
+          <div class="analysis-row"><span>추천 수</span><strong id="recommended"></strong></div>
+          <div class="analysis-row"><span>점수 변화</span><strong id="delta"></strong></div>
+          <div class="analysis-row"><span>전술 위험</span><strong id="tactical-risk"></strong></div>
+          <div class="analysis-row"><span>전술 경고</span><strong id="tactical-motif"></strong></div>
+          <div class="analysis-row analysis-pv"><span>추천 진행</span><strong id="pv"></strong></div>
+<p class="analysis-note">추천 진행은 장기판 파일 a~i와 번호 1~10을 사용하는 표기입니다.</p>
+          <p class="analysis-note" id="analysis-note"></p>
+          <div class="action" id="next-action" hidden><strong class="action-title">다음 행동</strong><span id="action-text"></span></div>
+        </div>
+        <div class="step"><strong>1. 장기판</strong><br>내 차례가 되면 말을 하나 선택한 뒤, 밝게 표시된 칸으로 이동하세요.</div>
+        <div class="step"><strong>2. 착수 분석</strong><br>수를 두면 현재 기준 엔진 평가와 전술 위험, 제한적인 다음 수 전술 경고를 함께 확인합니다.</div>
+        <div class="step"><strong>3. 엔진 수</strong><br>상대 차례에서 버튼을 누르면 기준 엔진이 다음 수를 둡니다.</div>
+      </aside>
+    </section>
+  </main>
+  <script>
+    const pieceLabels = {
+      'general':'將', 'guard':'士', 'elephant':'象', 'horse':'馬', 'chariot':'車', 'cannon':'包', 'soldier':'卒'
+    };
+    const severityLabels = {
+      'recommended':'추천 수',
+      'acceptable':'괜찮은 대안',
+      'inaccuracy':'부정확한 수',
+      'major_mistake':'큰 실수',
+      'unavailable':'분석 불가'
+    };
+    const tacticalRiskLabels = {
+      'none':'없음',
+      'immediate_capture':'즉시 잡힐 수 있음(되잡기 가능)',
+      'hanging_piece':'기물이 걸려 있음'
+    };
+    const tacticalMotifLabels = {
+      'double_attack':'다음 수에 두 기물 동시 공격 가능'
+    };
+    const sideLabels = { 'cho':'초', 'han':'한' };
+    const statusLabels = {
+      'playing':'진행 중',
+      'cho_win':'초 승',
+      'han_win':'한 승',
+      'draw_bikjang':'빅장 무승부',
+      'draw_repetition':'반복 무승부',
+      'draw_consecutive_pass':'연속 한수쉼 무승부',
+      'draw_stalemate':'스테일메이트 무승부'
+    };
+    const board = document.querySelector('#board');
+    const status = document.querySelector('#status');
+    const turn = document.querySelector('#turn');
+    const heading = document.querySelector('#heading');
+    const setup = document.querySelector('#setup');
+    const reset = document.querySelector('#reset');
+    const undo = document.querySelector('#undo');
+    const engine = document.querySelector('#engine');
+    const analysisPanel = document.querySelector('#analysis');
+    const severity = document.querySelector('#severity');
+    const played = document.querySelector('#played');
+    const recommended = document.querySelector('#recommended');
+    const delta = document.querySelector('#delta');
+    const tacticalRisk = document.querySelector('#tactical-risk');
+    const tacticalMotif = document.querySelector('#tactical-motif');
+    const pv = document.querySelector('#pv');
+    const analysisNote = document.querySelector('#analysis-note');
+    const nextAction = document.querySelector('#next-action');
+    const actionText = document.querySelector('#action-text');
+    let snapshot = null;
+    let selected = null;
+    let busy = false;
+
+    function pieceAt(index) {
+      const code = snapshot.state.board[index];
+      if (!code) return null;
+      const [side, kind] = code.split(':');
+      return {side, kind};
+    }
+
+    function samePosition(a, b) {
+      return JSON.stringify(a) === JSON.stringify(b);
+    }
+
+    function legalDestination(src, dst) {
+      return snapshot.legal_moves.some(move => !move.pass && samePosition(move.src, src) && samePosition(move.dst, dst));
+    }
+
+    function legalDestinations(src) {
+      return new Set(snapshot.legal_moves.filter(move => !move.pass && samePosition(move.src, src)).map(move => JSON.stringify(move.dst)));
+    }
+
+    function formatPosition(position) {
+      if (!Array.isArray(position) || position.length !== 2) return '?';
+      const [x, y] = position;
+      if (!Number.isInteger(x) || !Number.isInteger(y) || x < 0 || x >= 9 || y < 0 || y >= 10) return '?';
+      return String.fromCharCode(97 + x) + String(y + 1);
+    }
+
+    function formatMove(move) {
+      if (!move || move.pass) return '패스';
+      return formatPosition(move.src) + ' → ' + formatPosition(move.dst);
+    }
+
+    function formatPrincipalVariation(moves, startingSide) {
+      if (!Array.isArray(moves) || moves.length === 0) return '없음';
+      return moves.map((move, index) => {
+        const side = index % 2 === 0 ? startingSide : (startingSide === 'cho' ? 'han' : 'cho');
+        const label = sideLabels[side] || side || '?';
+        return (index + 1) + '. ' + label + ' ' + formatMove(move);
+      }).join('  ·  ');
+    }
+    function formatDelta(value) {
+      if (value === null || value === undefined) return '없음';
+      return value > 0 ? `+${value}` : String(value);
+    }
+
+    function formatTacticalMotifs(motifs) {
+      if (!Array.isArray(motifs) || motifs.length === 0) return '없음';
+      return motifs.map(motif => tacticalMotifLabels[motif] || motif).join(', ');
+    }
+
+    function updateControls() {
+      const hasHistory = Boolean(snapshot?.state?.history?.length);
+      reset.disabled = busy;
+      undo.disabled = busy || !hasHistory;
+      engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== 'han';
+      setup.disabled = busy;
+    }
+
+    function renderAnalysis(result, coaching) {
+      if (!result || !coaching) { analysisPanel.hidden = true; nextAction.hidden = true; return; }
+      analysisPanel.hidden = false;
+      played.textContent = formatMove(result.move);
+      recommended.textContent = formatMove(result.recommended_move);
+      delta.textContent = formatDelta(result.score_delta_cp);
+      tacticalRisk.textContent = tacticalRiskLabels[result.tactical_risk] || result.tactical_risk || '없음';
+      tacticalMotif.textContent = formatTacticalMotifs(result.tactical_motifs);
+      pv.textContent = formatPrincipalVariation(result.principal_variation, result.perspective);
+      severity.textContent = severityLabels[coaching.severity] || coaching.severity || '분석 불가';
+      analysisNote.textContent = coaching.message || '착수 설명이 없습니다.';
+      actionText.textContent = coaching.next_action || '다음 행동이 없습니다.';
+      nextAction.hidden = !coaching.next_action;
+    }
+
+    function renderEngineResult(result) {
+      if (!result) { analysisPanel.hidden = true; nextAction.hidden = true; return; }
+      analysisPanel.hidden = false;
+      nextAction.hidden = true;
+      severity.textContent = '엔진 수';
+      played.textContent = formatMove(result.best_move);
+      recommended.textContent = formatMove(result.best_move);
+      delta.textContent = result.score_cp === null || result.score_cp === undefined
+        ? '평가 없음'
+        : `${formatDelta(result.score_cp)} cp (${sideLabels[result.perspective] || result.perspective || '기준'} 기준)`;
+      tacticalRisk.textContent = '엔진 착수 자체는 일반 전술 경고를 표시하지 않음';
+      tacticalMotif.textContent = '없음';
+      pv.textContent = formatPrincipalVariation(result.principal_variation);
+      analysisNote.textContent = result.best_move
+        ? '기준 엔진이 선택한 수입니다.'
+          + (result.depth ? ` 탐색 깊이 ${result.depth}.` : '')
+          + (result.nodes ? ` 확인한 노드 ${result.nodes.toLocaleString()}개.` : '')
+        : '현재 위치에서 엔진이 둘 수 있는 수가 없습니다.';
+    }
+
+    function render() {
+      board.innerHTML = '';
+      const destinations = selected ? legalDestinations(selected) : new Set();
+      for (let y = 0; y < 10; y += 1) {
+        for (let x = 0; x < 9; x += 1) {
+          const index = y * 9 + x;
+          const cell = document.createElement('button');
+          cell.className = 'cell';
+          cell.type = 'button';
+          const piece = pieceAt(index);
+          if (piece) {
+            cell.textContent = pieceLabels[piece.kind] || '?';
+            cell.classList.add(`piece-${piece.side}`);
+          }
+          if (selected && selected[0] === x && selected[1] === y) cell.classList.add('selected');
+          if (destinations.has(JSON.stringify([x, y]))) cell.classList.add('legal');
+          cell.addEventListener('click', () => clickCell(x, y));
+          board.append(cell);
+        }
+      }
+      turn.textContent = `현재 차례: ${sideLabels[snapshot.state.turn] || snapshot.state.turn}`;
+      status.textContent = `대국 상태: ${statusLabels[snapshot.status] || snapshot.status}`;
+      updateControls();
+    }
+
+    async function getState() {
+      const response = await fetch('/api/state', {cache:'no-store'});
+      if (!response.ok) throw new Error(`대국 상태 요청 실패 (${response.status})`);
+      snapshot = await response.json();
+      selected = null;
+      render();
+    }
+
+    async function post(path, body) {
+      const response = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || `요청 실패 (${response.status})`);
+      return payload;
+    }
+
+    async function clickCell(x, y) {
+      if (busy || snapshot.status !== 'playing') return;
+      const current = pieceAt(y * 9 + x);
+      if (!selected) {
+        if (current && current.side === snapshot.state.turn) {
+          selected = [x, y];
+          status.textContent = '이동할 수 있는 칸을 선택하세요.';
+          render();
+        }
+        return;
+      }
+      if (selected[0] === x && selected[1] === y) {
+        selected = null; render(); return;
+      }
+      if (!legalDestination(selected, [x, y])) {
+        status.textContent = '그 칸으로는 이동할 수 없습니다.';
+        return;
+      }
+      busy = true;
+      updateControls();
+      try {
+        const move = {src:selected, dst:[x, y]};
+        status.textContent = '착수를 분석하는 중입니다…';
+        const result = await post('/api/analyze/move', move);
+        renderAnalysis(result.analysis, result.coaching);
+        snapshot = await post('/api/move', move);
+        heading.textContent = snapshot.status === 'playing'
+          ? (result.coaching.severity === 'recommended' ? '좋은 수입니다 · 상대 차례' : '착수 분석 완료 · 상대 차례')
+          : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
+        selected = null;
+        render();
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        busy = false;
+        updateControls();
+      }
+    }
+
+    reset.addEventListener('click', async () => {
+      busy = true;
+      updateControls();
+      try { snapshot = await post('/api/reset', {setup:setup.value}); heading.textContent = '대국이 초기화되었습니다'; selected = null; renderAnalysis(null, null); render(); }
+      catch (error) { status.textContent = error.message; }
+      finally { busy = false; updateControls(); }
+    });
+
+    undo.addEventListener('click', async () => {
+      if (busy || !snapshot?.state?.history?.length) return;
+      busy = true;
+      updateControls();
+      try {
+        status.textContent = '마지막 수를 되돌리는 중입니다…';
+        snapshot = await post('/api/undo', {});
+        heading.textContent = '한 수 되돌리기 완료';
+        selected = null;
+        renderAnalysis(null, null);
+        render();
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        busy = false;
+        updateControls();
+      }
+    });
+
+    engine.addEventListener('click', async () => {
+      busy = true;
+      updateControls();
+      try {
+        status.textContent = '엔진이 수를 계산하는 중입니다…';
+        const response = await post('/api/engine/move', {});
+        snapshot = response.snapshot;
+        heading.textContent = snapshot.status === 'playing'
+          ? (response.analysis.best_move ? '엔진이 수를 두었습니다 · 내 차례' : '엔진 수가 없습니다 · 내 차례')
+          : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
+        selected = null;
+        render();
+        renderEngineResult(response.analysis);
+      } catch (error) { status.textContent = error.message; }
+      finally { busy = false; updateControls(); }
+    });
+
+    getState().catch(error => { status.textContent = error.message; });
+  </script>
+</body>
+</html>

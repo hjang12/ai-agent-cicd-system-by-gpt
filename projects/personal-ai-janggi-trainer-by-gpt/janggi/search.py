@@ -1,0 +1,241 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+import random
+from typing import Optional
+
+from .core import GameState, Move, PieceType, Side
+from .engine import EngineAnalysis, EngineInfo, validate_engine_move
+
+
+PIECE_VALUES = {
+    PieceType.GENERAL: 10_000,
+    PieceType.CHARIOT: 1_000,
+    PieceType.CANNON: 700,
+    PieceType.ELEPHANT: 500,
+    PieceType.HORSE: 500,
+    PieceType.GUARD: 300,
+    PieceType.SOLDIER: 100,
+}
+MATE_SCORE = 100_000
+
+
+@dataclass(frozen=True)
+class SearchConfig:
+    depth: int = 2
+    mobility_weight: int = 2
+    random_ties: bool = False
+    seed: Optional[int] = None
+
+    def __post_init__(self) -> None:
+        if self.depth < 1:
+            raise ValueError("depth must be at least 1")
+        if self.mobility_weight < 0:
+            raise ValueError("mobility_weight must be non-negative")
+
+
+class NegamaxEngine:
+    """Dependency-free depth-limited Janggi search backend.
+
+    Authoritative move legality remains in GameState. This engine supplies a
+    deterministic material/mobility evaluation and alpha-beta negamax search.
+    Optional root-level random tie breaking can add self-play diversity without
+    changing the default deterministic behavior.
+    """
+
+    def __init__(self, config: Optional[SearchConfig] = None) -> None:
+        self.config = config or SearchConfig()
+        self._nodes = 0
+        self._rng = random.Random(self.config.seed)
+        self._transposition: dict[tuple[tuple[object, ...], int], tuple[int, tuple[Move, ...]]] = {}
+        self._evaluation_cache: dict[tuple[object, ...], int] = {}
+        self._check_cache: dict[tuple[tuple[object, ...], Move], bool] = {}
+        self._legal_moves_cache: dict[tuple[tuple[object, ...], bool], tuple[Move, ...]] = {}
+
+    @property
+    def info(self) -> EngineInfo:
+        return EngineInfo(name="negamax", version="1")
+
+    def choose_move(self, state: GameState) -> Move:
+        analysis = self.analyze(state)
+        if analysis.best_move is None:
+            raise ValueError("position has no legal move")
+        return validate_engine_move(self, state, analysis.best_move)
+
+    def analyze(self, state: GameState) -> EngineAnalysis:
+        self._nodes = 0
+        self._transposition.clear()
+        self._evaluation_cache.clear()
+        self._check_cache.clear()
+        self._legal_moves_cache.clear()
+        moves = self._ordered_moves(state, self._legal_moves(state, include_pass=False))
+        if not moves:
+            if self._legal_moves(state, include_pass=True):
+                move = Move.pass_move()
+                return EngineAnalysis(
+                    best_move=move,
+                    score_cp=self._evaluate(state),
+                    depth=self.config.depth,
+                    nodes=self._nodes,
+                    principal_variation=(move,),
+                    perspective=state.turn,
+                )
+            return EngineAnalysis(
+                best_move=None,
+                score_cp=-MATE_SCORE if state.is_in_check(state.turn) else 0,
+                depth=self.config.depth,
+                nodes=self._nodes,
+                principal_variation=(),
+                perspective=state.turn,
+            )
+
+        best_score = -MATE_SCORE * 2
+        best_results: list[tuple[Move, tuple[Move, ...]]] = []
+        alpha = -MATE_SCORE * 2
+        beta = MATE_SCORE * 2
+
+        for move in moves:
+            child = state.apply(move)
+            child_score, child_pv = self._search(child, self.config.depth - 1, -beta, -alpha)
+            score = -child_score
+            if score > best_score:
+                best_score = score
+                best_results = [(move, (move,) + child_pv)]
+            elif score == best_score:
+                best_results.append((move, (move,) + child_pv))
+            alpha = max(alpha, score)
+
+        if self.config.random_ties and len(best_results) > 1:
+            best_move, best_pv = self._rng.choice(best_results)
+        else:
+            best_move, best_pv = best_results[0]
+
+        return EngineAnalysis(
+            best_move=best_move,
+            score_cp=best_score,
+            depth=self.config.depth,
+            nodes=self._nodes,
+            principal_variation=best_pv,
+            perspective=state.turn,
+        )
+
+    def _search(
+        self,
+        state: GameState,
+        depth: int,
+        alpha: int,
+        beta: int,
+    ) -> tuple[int, tuple[Move, ...]]:
+        self._nodes += 1
+        cache_key = (state.position_key(), depth)
+        cached = self._transposition.get(cache_key)
+        if cached is not None:
+            return cached
+
+        moves = self._ordered_moves(state, self._legal_moves(state, include_pass=False))
+        if not moves:
+            if state.is_in_check(state.turn):
+                # Mate distance must depend only on search depth, not the
+                # historical move count. The latter is intentionally excluded
+                # from position_key(), so it cannot safely affect a cached value.
+                mate_distance = self.config.depth - max(depth, 0)
+                result = (-MATE_SCORE + mate_distance, ())
+            else:
+                result = (self._evaluate(state), ())
+            self._transposition[cache_key] = result
+            return result
+
+        if depth <= 0:
+            result = (self._evaluate(state), ())
+            self._transposition[cache_key] = result
+            return result
+
+        best_score = -MATE_SCORE * 2
+        best_pv: tuple[Move, ...] = ()
+        cutoff = False
+        for move in moves:
+            child = state.apply(move)
+            child_score, child_pv = self._search(child, depth - 1, -beta, -alpha)
+            score = -child_score
+            if not best_pv or score > best_score:
+                best_score = score
+                best_pv = (move,) + child_pv
+            if score > alpha:
+                alpha = score
+            if alpha >= beta:
+                cutoff = True
+                break
+
+        # Only cache fully searched nodes. A cutoff value is a bound, not an
+        # exact minimax result, and therefore must not be reused as one.
+        result = (best_score, best_pv)
+        if not cutoff:
+            self._transposition[cache_key] = result
+        return result
+
+    def _ordered_moves(self, state: GameState, moves: tuple[Move, ...]) -> tuple[Move, ...]:
+        """Prioritize captures, then checks, then stable source/destination order."""
+        return tuple(
+            sorted(
+                moves,
+                key=lambda move: (
+                    -self._captured_value(state, move),
+                    -int(self._gives_check(state, move)),
+                    move.src or (-1, -1),
+                    move.dst or (-1, -1),
+                ),
+            )
+        )
+
+    @staticmethod
+    def _captured_value(state: GameState, move: Move) -> int:
+        if move.is_pass or move.dst is None:
+            return 0
+        target = state.piece_at(move.dst)
+        return PIECE_VALUES[target.kind] if target is not None else 0
+
+    def _gives_check(self, state: GameState, move: Move) -> bool:
+        if move.is_pass:
+            return False
+        cache_key = (state.position_key(), move)
+        cached = self._check_cache.get(cache_key)
+        if cached is not None:
+            return cached
+        result = state.apply(move).is_in_check(state.turn.opponent)
+        self._check_cache[cache_key] = result
+        return result
+
+    def _legal_moves(self, state: GameState, include_pass: bool) -> tuple[Move, ...]:
+        cache_key = (state.position_key(), include_pass)
+        cached = self._legal_moves_cache.get(cache_key)
+        if cached is not None:
+            return cached
+        moves = state.legal_moves(include_pass=include_pass)
+        self._legal_moves_cache[cache_key] = moves
+        return moves
+
+    def _evaluate(self, state: GameState) -> int:
+        position_key = state.position_key()
+        cached = self._evaluation_cache.get(position_key)
+        if cached is not None:
+            return cached
+
+        own_material = 0
+        opp_material = 0
+        for piece in state.board:
+            if piece is None:
+                continue
+            value = PIECE_VALUES[piece.kind]
+            if piece.side is state.turn:
+                own_material += value
+            else:
+                opp_material += value
+
+        own_mobility = len(self._legal_moves(state, include_pass=False))
+        opponent_state = GameState(board=state.board, turn=state.turn.opponent, history=state.history)
+        opponent_mobility = len(self._legal_moves(opponent_state, include_pass=False))
+        score = (own_material - opp_material) + self.config.mobility_weight * (
+            own_mobility - opponent_mobility
+        )
+        self._evaluation_cache[position_key] = score
+        return score

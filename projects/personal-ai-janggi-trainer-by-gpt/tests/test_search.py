@@ -1,0 +1,174 @@
+import unittest
+
+from janggi import GameState, Move, Piece, PieceType, Side
+from janggi.search import MATE_SCORE, NegamaxEngine, PIECE_VALUES, SearchConfig
+
+
+class SearchEngineTests(unittest.TestCase):
+    def test_search_config_validates_depth(self):
+        with self.assertRaises(ValueError):
+            SearchConfig(depth=0)
+        with self.assertRaises(ValueError):
+            SearchConfig(mobility_weight=-1)
+
+    def test_negamax_exposes_metadata_and_returns_legal_move(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(SearchConfig(depth=1))
+
+        analysis = engine.analyze(state)
+
+        self.assertEqual(analysis.perspective, Side.CHO)
+        self.assertEqual(analysis.depth, 1)
+        self.assertGreater(analysis.nodes, 0)
+        self.assertIsNotNone(analysis.best_move)
+        self.assertTrue(state.is_legal(analysis.best_move))
+        self.assertEqual(engine.choose_move(state), analysis.best_move)
+
+    def test_negamax_is_deterministic(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(SearchConfig(depth=2))
+
+        first = engine.analyze(state)
+        second = engine.analyze(state)
+
+        self.assertEqual(first.best_move, second.best_move)
+        self.assertEqual(first.score_cp, second.score_cp)
+        self.assertEqual(first.principal_variation, second.principal_variation)
+
+    def test_principal_variation_starts_with_best_move(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(SearchConfig(depth=2))
+
+        analysis = engine.analyze(state)
+
+        self.assertIsNotNone(analysis.best_move)
+        self.assertTrue(analysis.principal_variation)
+        self.assertEqual(analysis.principal_variation[0], analysis.best_move)
+        self.assertLessEqual(len(analysis.principal_variation), analysis.depth)
+
+    def test_evaluation_cache_reuses_position_result(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(SearchConfig(depth=1))
+
+        first = engine._evaluate(state)
+        cache_size_after_first = len(engine._evaluation_cache)
+        second = engine._evaluate(state)
+
+        self.assertEqual(first, second)
+        self.assertEqual(cache_size_after_first, 1)
+        self.assertEqual(len(engine._evaluation_cache), 1)
+
+    def test_legal_move_cache_reuses_result(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(SearchConfig(depth=1))
+
+        first = engine._legal_moves(state, include_pass=False)
+        cache_size_after_first = len(engine._legal_moves_cache)
+        second = engine._legal_moves(state, include_pass=False)
+
+        self.assertEqual(first, second)
+        self.assertEqual(cache_size_after_first, 1)
+        self.assertEqual(len(engine._legal_moves_cache), 1)
+
+    def test_legal_move_cache_separates_pass_policy(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(SearchConfig(depth=1))
+
+        without_pass = engine._legal_moves(state, include_pass=False)
+        with_pass = engine._legal_moves(state, include_pass=True)
+
+        self.assertFalse(without_pass[-1].is_pass)
+        self.assertTrue(with_pass[-1].is_pass)
+        self.assertEqual(len(engine._legal_moves_cache), 2)
+
+    def test_analysis_returns_no_move_for_truly_terminal_position(self):
+        board = [None] * 90
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        state = GameState(tuple(board), turn=Side.CHO)
+        engine = NegamaxEngine(SearchConfig(depth=1))
+
+        analysis = engine.analyze(state)
+
+        self.assertIsNone(analysis.best_move)
+        self.assertLess(analysis.score_cp, 0)
+
+    def test_checkmate_score_does_not_depend_on_history_length(self):
+        board = [None] * 90
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        empty_history_state = GameState(tuple(board), turn=Side.CHO)
+        history_state = GameState(
+            tuple(board),
+            turn=Side.CHO,
+            history=(Move.pass_move(), Move.pass_move(), Move.pass_move()),
+        )
+        engine = NegamaxEngine(SearchConfig(depth=3))
+
+        empty_history_score, _ = engine._search(
+            empty_history_state, 1, -MATE_SCORE * 2, MATE_SCORE * 2
+        )
+        history_score, _ = engine._search(
+            history_state, 1, -MATE_SCORE * 2, MATE_SCORE * 2
+        )
+
+        self.assertEqual(empty_history_score, history_score)
+
+    def test_search_can_prefer_a_free_capture(self):
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[0 + 4 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
+        state = GameState(tuple(board), turn=Side.CHO)
+        engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0))
+
+        analysis = engine.analyze(state)
+
+        self.assertEqual(analysis.best_move, Move((0, 3), (0, 4)))
+
+    def test_ordered_moves_put_captures_first(self):
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[0 + 4 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
+        board[2 + 3 * 9] = Piece(Side.CHO, PieceType.HORSE)
+        state = GameState(tuple(board), turn=Side.CHO)
+        moves = state.legal_moves(include_pass=False)
+
+        engine = NegamaxEngine(SearchConfig(depth=1))
+        ordered = engine._ordered_moves(state, moves)
+
+        capture_values = [
+            PIECE_VALUES[state.piece_at(move.dst).kind] if move.dst is not None and state.piece_at(move.dst) else 0
+            for move in ordered
+        ]
+        self.assertEqual(capture_values[0], PIECE_VALUES[PieceType.SOLDIER])
+        self.assertTrue(all(
+            capture_values[index] >= capture_values[index + 1]
+            for index in range(len(capture_values) - 1)
+        ))
+
+    def test_ordered_moves_prioritize_check_after_equal_capture_value(self):
+        board = [None] * 90
+        board[0] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 9 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[8] = Piece(Side.CHO, PieceType.HORSE)
+        state = GameState(tuple(board), turn=Side.CHO)
+
+        check_move = Move((0, 3), (4, 3))
+        quiet_move = Move((8, 0), (7, 2))
+        self.assertTrue(state.is_legal(check_move))
+        self.assertTrue(state.is_legal(quiet_move))
+        self.assertFalse(state.apply(check_move).is_in_check(Side.CHO))
+        self.assertTrue(state.apply(check_move).is_in_check(Side.HAN))
+        self.assertFalse(state.apply(quiet_move).is_in_check(Side.HAN))
+
+        engine = NegamaxEngine(SearchConfig(depth=1))
+        ordered = engine._ordered_moves(state, (quiet_move, check_move))
+
+        self.assertEqual(ordered[0], check_move)
+
+
+if __name__ == "__main__":
+    unittest.main()
