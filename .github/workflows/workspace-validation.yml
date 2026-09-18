@@ -10,6 +10,7 @@ on:
       - 'projects/**'
       - '.github/workflows/**'
       - 'render.yaml'
+      - 'tools/**'
       - '.github/workflows/workspace-validation.yml'
   pull_request:
     paths:
