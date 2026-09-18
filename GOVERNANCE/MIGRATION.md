@@ -52,9 +52,29 @@ Root `render.yaml`은 두 서비스를 같은 Git Repository에서 운영하되 
 - Janggi Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
 - Time Dashboard Root Directory: `projects/time-dashboard-by-gpt`
 
-서비스 URL과 live configuration은 Render에서 실제 확인한 결과를 기준으로 기록합니다.
+### 실제 상태 확인 — 2026-09-18
 
-현재 문서 기준으로는 Render repository/root-directory 전환을 **pending verification**으로 둡니다. Render workspace의 실제 서비스 mapping, 최신 deployment, error logs, health/smoke 결과를 확인한 뒤 완료 상태로 갱신합니다.
+Render `My Workspace`에서 확인한 현재 Service 설정:
+
+- `personal-ai-janggi-trainer-by-gpt`
+  - Repository: `hjang12/personal-ai-janggi-trainer-by-gpt`
+  - Root Directory: empty
+  - Branch: `main`
+  - Auto Deploy: enabled
+  - Latest live deploy: `83932421217f149de46e6e23b89aff9d92467a11`
+  - URL: `https://personal-ai-janggi-trainer.onrender.com`
+
+- `time-dashboard-by-gpt`
+  - Repository: `hjang12/time-dashboard-by-gpt`
+  - Root Directory: empty
+  - Branch: `main`
+  - Auto Deploy: enabled
+  - Latest live deploy: `fb8e98baa7a81a610c2ccbf767f2995fb9af0a3f`
+  - URL: `https://time-dashboard.onrender.com`
+
+따라서 현재 Render는 **아직 monorepo로 전환되지 않았습니다**. `render.yaml`은 목표 상태를 정의하지만 기존 Service의 Repository / Root Directory를 자동으로 변경하지 않습니다.
+
+기존 서비스 설정을 Render에서 위 목표 상태로 변경한 뒤, 최신 `main` commit을 배포하고 post-deployment verification을 수행해야 합니다.
 
 ## 파일 차이
 
