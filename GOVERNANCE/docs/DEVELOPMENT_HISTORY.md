@@ -368,3 +368,30 @@ Governance Version은 1.0.0을 유지했다. Version 변경 자체는 사용자 
 ### Result
 
 AI가 기술적으로 할 수 있다는 이유만으로 시스템의 지침이나 프로젝트 방향을 우회하는 것을 방지하면서, 일반적인 기술 작업에 대한 사전 승인 요구는 추가하지 않는다.
+
+## 2026-09-18 — Active Issue 운영 인덱스 도입
+
+### Requirement
+
+장기 개발 이력에 문제를 계속 누적하는 방식은 과거 기록을 보존하는 데는 적합하지만, 현재 미해결 항목을 빠르게 파악하고 AI가 다음 작업을 복구하기에는 비효율적이다.
+
+### Decision
+
+현재 미해결 이슈와 장기 이력을 분리한다.
+
+- `GOVERNANCE/docs/ACTIVE_ISSUES.md`: 현재 active issue와 상태의 authoritative source
+- `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md`: 중요한 개발 과정과 해결 이력
+- GitHub Issue: 필요할 때 개별 이슈의 상세 논의/추적
+- ADR: 구조적 의사결정
+
+### Implementation
+
+- `ACTIVE_ISSUES.md` 추가
+- 현재 검증된 미해결 플랫폼/CI 문제 2건을 등록
+- Governance의 Context 복구 순서에 Active Issues 추가
+- Active Issue lifecycle과 등록 기준을 Governance에 명문화
+- Current Status에서 Active Issue Index로 연결
+
+### Version Note
+
+Governance 변경은 의미상 Minor 변경 후보에 해당한다. 그러나 현재 Governance 규칙상 Version 값 변경은 사용자 합의가 필요한 별도 결정이므로 이번 작업에서는 `VERSION` 값을 변경하지 않고, `1.1.0` 변경 필요성을 별도 판단 항목으로 유지한다.
