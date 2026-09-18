@@ -1,0 +1,35 @@
+name: Workspace structure validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'AGENT_START.md'
+      - 'AGENTS.md'
+      - 'GOVERNANCE/**'
+      - 'projects/**'
+      - '.github/workflows/**'
+      - 'render.yaml'
+      - '.github/workflows/workspace-validation.yml'
+  pull_request:
+    paths:
+      - 'AGENT_START.md'
+      - 'AGENTS.md'
+      - 'GOVERNANCE/**'
+      - 'projects/**'
+      - '.github/workflows/**'
+      - 'render.yaml'
+      - '.github/workflows/workspace-validation.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate workspace structure and Render blueprint
+        run: python tools/validate_workspace.py
