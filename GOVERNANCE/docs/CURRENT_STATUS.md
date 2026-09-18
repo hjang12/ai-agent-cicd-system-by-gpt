@@ -82,7 +82,7 @@ Key commits:
 - `92cf6a38532886a6cb92afacc3d3e817c65b3571` — fix monorepo agent metadata and PWA icon type
 - `dbd6b52432a628a4b92e4fd586be0fae26672325` — fix validation/benchmark semantics
 
-The original project repositories remain available as historical source snapshots. They are not the canonical development locations after migration.
+The former project repositories were deleted after the pre-deletion verification gate on 2026-09-18. Their commit references remain in the governance history as historical source metadata. The canonical development location is the monorepo.
 
 ## CI/CD State
 
