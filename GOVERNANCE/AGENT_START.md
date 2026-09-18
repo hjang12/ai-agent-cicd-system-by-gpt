@@ -1,9 +1,10 @@
-# AI Agent 시작 프롬프트
+# AI Agent 시작
 
-아래 Governance를 기준으로 이 프로젝트를 개발하세요.
+이 디렉터리는 GPT 개발 Workspace의 공통 Governance입니다.
 
-`https://github.com/hjang12/ai-agent-cicd-system`
+현재 공식 Governance:
+`GOVERNANCE/GOVERNANCE.md`
 
-먼저 `GOVERNANCE.md`와 현재 프로젝트의 Context 문서를 확인한 후, 현재 상태·기존 결정사항·개발 계획을 파악하고 작업을 시작하세요.
+새 Agent는 먼저 Repository root의 `AGENT_START.md`를 확인하고, 이어서 이 Governance와 작업 대상 프로젝트의 `AGENT_START.md`, `AGENTS.md`, `docs/CURRENT_STATUS.md`를 확인하세요.
 
-프로젝트의 실제 코드, 문서, CI/CD 상태가 채팅 내용과 다르면 추측하지 말고 실제 Repository 상태를 우선 확인하세요.
+실제 Repository 코드·문서·CI/CD·Render 상태가 기존 대화 내용과 다르면 현재 Repository와 실행 결과를 Source of Truth로 사용하세요.
