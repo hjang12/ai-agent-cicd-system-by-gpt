@@ -10,7 +10,8 @@
 ## Product
 
 - Project: Time Dashboard
-- Repository: `hjang12/time-dashboard-by-gpt`
+- Canonical Repository: `hjang12/ai-agent-cicd-system-by-gpt`
+- Project Path: `projects/time-dashboard-by-gpt/`
 - Default branch: `main`
 - Current runtime: Python
 - Production service: Render Web Service `time-dashboard-by-gpt`
@@ -27,25 +28,24 @@
 
 ## CI/CD
 
-GitHub Actions workflow: `.github/workflows/ci.yml`
+GitHub Actions workflow: `../../.github/workflows/time-dashboard-ci.yml` (repository-root path `.github/workflows/time-dashboard-ci.yml`)
 
 - Trigger: push to `main` and pull requests
 - Python: `3.12`
 - Compile: `python -m py_compile timefolio_server.py`
 - Test: `python -m unittest discover -s tests -p 'test_*.py'`
 
-Render production service:
+Render deployment target:
 
-- Service: `time-dashboard-by-gpt`
-- Runtime: Python
-- Region: Oregon
-- Plan: Free
-- Auto deploy: enabled from `main`
+- Root Blueprint: `../../render.yaml`
+- Root Directory: `projects/time-dashboard-by-gpt`
 - Build: `pip install -r requirements.txt`
 - Start: `python timefolio_server.py`
-- Render URL remains `https://time-dashboard.onrender.com` after the service rename.
+- Live Render service/repository mapping and latest deployment status are pending verification in the current Render workspace session.
 
-The latest deployment after removal of the obsolete Copilot-specific repository instructions was verified as `live` on 2026-09-15.
+## Monorepo Operation
+
+This project is developed under the canonical workspace repository `hjang12/ai-agent-cicd-system-by-gpt`. The sibling project boundaries are maintained by project-local paths and root-level CI path filters.
 
 ## Development Rules
 
