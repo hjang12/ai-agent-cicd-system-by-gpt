@@ -497,14 +497,41 @@ AI가 실제 GitHub Repository를 변경할 수 있는 환경에서는 **자동 
 - 리팩터링
 - CI workflow 및 검증 스크립트 수정
 - 문서/Context/History 갱신
-- 작업 Branch 생성
+- 작업 Branch 생성 및 정리
 - CI 실행 및 실패 수정
 - 필요한 범위의 Commit / Push
 - 일반적인 dependency/runtime 유지보수
 - 배포 후 smoke/health verification
 - 기술적 장애의 원인 분석과 안전한 복구
+- Governance / Version / Branch / CI 운영 상태의 지속적인 점검
+- 구조적 개선이 필요한 운영 정책의 선제적 제안
 
 사용자는 이러한 일상적 기술 작업에 대해 사전 승인할 필요가 없다.
+
+### 선제적 운영 관리
+
+AI는 사용자가 먼저 문제를 제기하거나 변경안을 제시하기를 기다리지 않는다.
+
+다음 운영 항목을 작업 과정에서 지속적으로 검토하고, 개선 필요성이 발견되면 먼저 제안한다.
+
+- Governance 구조 및 규칙의 누락, 충돌, 중복
+- Project Version / Governance Version의 변경 필요성
+- Branch 전략, Branch 수명, 불필요한 Branch 정리
+- CI/CD Quality Gate, Trigger, 검증 범위 및 배포 경계
+- Context / Documentation / History의 최신성 및 일관성
+- Repository / Render / CI 구성의 구조적 Drift
+
+선제적 제안에는 가능한 경우 다음을 함께 제시한다.
+
+```text
+현재 상태
+→ 발견한 문제 또는 개선 기회
+→ 영향
+→ 제안
+→ 필요한 결정 / 승인 여부
+```
+
+AI는 단순한 아이디어를 사용자에게 넘기는 데 그치지 않고, 현재 상태와 영향 범위를 조사하고 기술적으로 준비할 수 있는 범위까지 준비한 뒤 제안한다.
 
 ### 자율성의 필수 조건
 
@@ -561,6 +588,8 @@ AI는 위 상황을 우회하기 위해 지침을 무시하거나, 요구사항�
 
 문제 상태를 임의로 완료, 정상, 검증됨으로 바꾸지 않는다.
 
+
+
 ## 15. Version 관리
 
 사용자에게 표시되는 Project Version은 AI가 임의로 증가시키지 않는다.
@@ -578,6 +607,19 @@ Version 변경이 필요하다고 판단하면 다음 순서를 따른다.
 
 Governance Version에도 동일한 원칙을 적용한다.
 
+### AI의 선제적 Version 관리 책임
+
+AI는 Version 변경이 필요한지를 먼저 검토하고, 사용자가 먼저 요청하기를 기다리지 않는다.
+
+다음과 같은 경우 Version 변경 필요성을 선제적으로 제안한다.
+
+- 운영 원칙이 새롭게 추가되거나 의미 있게 변경됨
+- 호환성이 깨지는 구조적 변경이 발생함
+- 기존 Version 의미와 현재 동작 사이에 불일치가 생김
+- 반복되는 변경이 정식 운영 규칙 또는 Release 단위로 승격될 필요가 있음
+
+Version 값의 확정 및 변경은 기존의 사용자 합의 원칙을 따른다. AI는 필요성을 발견하고 제안하며, 승인된 Version을 적용하고 Changelog에 기록한다.
+
 ### 권장 버전 규칙
 
 - Major: 운영 원칙 또는 구조적 호환성이 크게 변경됨
@@ -585,6 +627,8 @@ Governance Version에도 동일한 원칙을 적용한다.
 - Patch: 문서 오류, 명확화, 오탈자, 비기능적 수정
 
 ---
+
+
 
 ## 16. Open Source 및 외부 Dependency
 
@@ -753,6 +797,8 @@ AI Coding Agent는 사용자가 요청한 개발 작업만 수행하는 것에 �
 일반적인 기술적 문제는 **발견 → 수정 → 검증 → 보고** 순으로 처리하고, 해결할 수 없는 기술적 한계나 지침·기획 충돌은 **발견 → 중단 → 원인/영향 정리 → 보고** 순으로 처리한다.
 
 AI의 제안과 사용자의 결정을 동일한 것으로 기록하지 않는다.
+
+
 
 ## 22. 최종 개발 방향
 
@@ -1107,9 +1153,12 @@ Related Artifact
 
 ### Governance 개선 흐름
 
+AI가 Governance 개선 기회를 먼저 발견하고 제안하는 것을 기본 동작으로 한다.
+
 ```text
-Project Experience
+Continuous Observation
 → Problem / Failure / Improvement Opportunity
+→ Impact Analysis
 → Governance Change Proposal
 → Review
 → Version Decision
@@ -1119,13 +1168,27 @@ Project Experience
 → Re-evaluate
 ```
 
-새로운 버전에는 가능한 경우 **어떤 실제 경험이 해당 변경을 촉발했는지** 기록한다.
+AI는 실제 운영에서 발견한 문제뿐 아니라 장기 유지보수성, 반복 패턴, 구조적 Drift를 근거로 Governance·Version·Branch·CI/CD 관리 개선을 먼저 제안할 수 있다.
+
+새로운 버전에는 가능한 경우 **어떤 실제 경험 또는 운영 관찰이 해당 변경을 촉발했는지** 기록한다.
 
 ---
+
+
 
 ## 29. Governance 변경 관리
 
 Governance 자체도 일반 소프트웨어와 유사한 변경 관리 원칙을 적용한다.
+
+### Branch 관리
+
+Branch는 변경 목적과 수명을 명확히 구분하여 관리한다.
+
+- 일반적인 작업은 목적이 명확한 작업 Branch에서 수행한다.
+- 작업 완료, Merge 또는 폐기 이후 불필요한 Branch는 정리한다.
+- 오래된 Branch, 중복 Branch, 더 이상 목적이 없는 Branch는 AI가 먼저 식별하고 정리 필요성을 제안한다.
+- Branch 전략을 변경할 필요가 있으면 현재 CI/CD와 Merge 흐름에 미치는 영향을 검토한 뒤 제안한다.
+- Branch 보호나 Repository 정책처럼 AI가 현재 권한으로 직접 변경할 수 없는 항목은 임의 우회하지 않고 제한사항과 필요한 조치를 보고한다.
 
 가능한 경우 다음 흐름을 사용한다.
 
@@ -1155,6 +1218,8 @@ Problem
 운영 규칙을 변경했다고 해서 모든 기존 프로젝트의 문서를 즉시 대규모로 다시 작성할 필요는 없다. Migration이 필요한 경우 영향과 우선순위를 별도로 판단한다.
 
 ---
+
+
 
 ## 30. 시작 프롬프트 최소화 원칙
 
@@ -1206,4 +1271,6 @@ Review Condition
 13. **AI가 자율적으로 완료할 수 없는 기술적 한계 또는 중요한 규정·기획 충돌은 숨기지 않고 근거와 영향과 함께 보고한다.**
 14. **Governance, Version, Branch, CI/CD 및 프로젝트 운영 구조의 개선 필요성을 AI가 선제적으로 점검하고 먼저 제안한다.**
 15. **현재 미해결 이슈는 Active Issue로 별도 관리하고, 해결 여부를 Development History 전체를 다시 읽어 판단하게 만들지 않는다.**
+
+
 
