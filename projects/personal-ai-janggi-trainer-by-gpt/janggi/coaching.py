@@ -18,12 +18,24 @@ class CoachingSeverity(str, Enum):
     UNAVAILABLE = "unavailable"
 
 
+class CoachingReason(str, Enum):
+    """Stable machine-readable coaching signals for future aggregation."""
+
+    HANGING_PIECE = "hanging_piece"
+    IMMEDIATE_CAPTURE = "immediate_capture"
+    DOUBLE_ATTACK = "double_attack"
+    SCORE_DEVIATION = "score_deviation"
+    CAPTURE = "capture"
+    CHECK = "check"
+
+
 @dataclass(frozen=True)
 class CoachingInsight:
     severity: CoachingSeverity
     message: str
     score_delta_cp: Optional[int]
     next_action: str
+    reason_codes: tuple[CoachingReason, ...] = ()
 
 
 ACCEPTABLE_DELTA_CP = -25
@@ -43,12 +55,15 @@ _PIECE_OBJECT_LABELS = {
 def coach_move(analysis: MoveAnalysis) -> CoachingInsight:
     """Translate raw move analysis into conservative learner-facing feedback."""
 
+    reason_codes = _reason_codes(analysis)
+
     if analysis.recommended_move is None or analysis.is_best_move is None:
         return CoachingInsight(
             severity=CoachingSeverity.UNAVAILABLE,
             message="현재 기준으로 비교할 엔진 추천수가 없습니다.",
             score_delta_cp=analysis.score_delta_cp,
             next_action="분석 가능한 추천수가 생긴 뒤 비교하세요.",
+            reason_codes=(),
         )
 
     if analysis.is_best_move:
@@ -58,6 +73,7 @@ def coach_move(analysis: MoveAnalysis) -> CoachingInsight:
             message=_feature_message(analysis, _recommended_base(analysis)),
             score_delta_cp=analysis.score_delta_cp,
             next_action=next_action,
+            reason_codes=reason_codes,
         )
 
     delta = analysis.score_delta_cp
@@ -67,6 +83,7 @@ def coach_move(analysis: MoveAnalysis) -> CoachingInsight:
             message="현재 기준으로 수의 평가 변화를 계산할 수 없습니다.",
             score_delta_cp=None,
             next_action="평가 변화가 계산되는 위치에서 다시 비교하세요.",
+            reason_codes=reason_codes,
         )
 
     if analysis.tactical_risk is TacticalRisk.HANGING_PIECE:
@@ -94,7 +111,27 @@ def coach_move(analysis: MoveAnalysis) -> CoachingInsight:
         message=_feature_message(analysis, base),
         score_delta_cp=delta,
         next_action=next_action,
+        reason_codes=reason_codes,
     )
+
+
+def _reason_codes(analysis: MoveAnalysis) -> tuple[CoachingReason, ...]:
+    """Expose stable, composable analysis signals without parsing message text."""
+
+    codes: list[CoachingReason] = []
+    if analysis.tactical_risk is TacticalRisk.HANGING_PIECE:
+        codes.append(CoachingReason.HANGING_PIECE)
+    elif analysis.tactical_risk is TacticalRisk.IMMEDIATE_CAPTURE:
+        codes.append(CoachingReason.IMMEDIATE_CAPTURE)
+    if TacticalMotif.DOUBLE_ATTACK in analysis.tactical_motifs:
+        codes.append(CoachingReason.DOUBLE_ATTACK)
+    if analysis.captured_piece is not None:
+        codes.append(CoachingReason.CAPTURE)
+    if analysis.gives_check:
+        codes.append(CoachingReason.CHECK)
+    if analysis.is_best_move is False and analysis.score_delta_cp is not None:
+        codes.append(CoachingReason.SCORE_DEVIATION)
+    return tuple(codes)
 
 
 def _score_severity(delta: int) -> CoachingSeverity:
