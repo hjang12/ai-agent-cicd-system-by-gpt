@@ -16,6 +16,7 @@ from .model import ModelRegistry, ModelSpec
 from .pipeline import RecordSource, RecordValidation, RecordValidator, TrainingDisposition, ValidationStatus
 from .rating import RatingUpdate, expected_score, update_ratings
 from .record import GameRecord, state_from_dict, state_to_dict
+from .review import CoachingReview, ReviewEntry, review_record
 from .search import NegamaxEngine, SearchConfig
 from .self_play import SelfPlayGenerator, SelfPlayResult, generate_self_play_game, generate_self_play_games
 from .tournament import EvaluationSummary, HeadToHeadTournament
@@ -26,6 +27,7 @@ __all__ = [
     "CoachingInsight",
     "CoachingReason",
     "CoachingSeverity",
+    "CoachingReview",
     "Engine",
     "EngineAnalysis",
     "EngineInfo",
@@ -47,6 +49,7 @@ __all__ = [
     "Piece",
     "PieceType",
     "RecordSource",
+    "ReviewEntry",
     "RecordValidation",
     "RatingUpdate",
     "RuleSet",
@@ -71,4 +74,5 @@ __all__ = [
     "update_ratings",
     "validate_engine_analysis",
     "validate_engine_move",
+    "review_record",
 ]
