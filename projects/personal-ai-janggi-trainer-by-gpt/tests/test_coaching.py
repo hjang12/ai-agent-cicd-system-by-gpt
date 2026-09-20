@@ -1,7 +1,7 @@
 import unittest
 
 from janggi.analysis import MoveAnalysis, TacticalMotif, TacticalRisk
-from janggi.coaching import CoachingSeverity, coach_move
+from janggi.coaching import CoachingReason, CoachingSeverity, coach_move
 from janggi.core import Move, PieceType, Side
 
 
@@ -45,6 +45,7 @@ class CoachingTests(unittest.TestCase):
         self.assertEqual(insight.severity, CoachingSeverity.RECOMMENDED)
         self.assertIn("추천수", insight.message)
         self.assertIn("목적과 다음 진행", insight.next_action)
+        self.assertEqual(insight.reason_codes, ())
 
     def test_recommended_capture_and_check_explain_both_features(self):
         insight = coach_move(
@@ -52,23 +53,26 @@ class CoachingTests(unittest.TestCase):
         )
         self.assertIn("잡기와 장군을 동시에", insight.message)
         self.assertIn("다음 반격", insight.next_action)
-
-    def test_recommended_capture_suggests_looking_at_counterattack(self):
-        insight = coach_move(
-            self._analysis(delta=0, best=True, captured_piece=PieceType.SOLDIER)
+        self.assertEqual(
+            insight.reason_codes,
+            (CoachingReason.CAPTURE, CoachingReason.CHECK),
         )
-        self.assertIn("다음 반격", insight.message)
-        self.assertIn("잡은 뒤", insight.next_action)
 
-    def test_recommended_check_explains_response_constraint(self):
-        insight = coach_move(self._analysis(delta=0, best=True, gives_check=True))
-        self.assertIn("대응을 제한", insight.message)
-        self.assertIn("응수", insight.next_action)
+    def test_recommended_tactical_motif_has_machine_readable_signal(self):
+        insight = coach_move(
+            self._analysis(
+                delta=0,
+                best=True,
+                tactical_motifs=(TacticalMotif.DOUBLE_ATTACK,),
+            )
+        )
+        self.assertEqual(insight.reason_codes, (CoachingReason.DOUBLE_ATTACK,))
 
     def test_acceptable_alternative(self):
         insight = coach_move(self._analysis(delta=-25))
         self.assertEqual(insight.severity, CoachingSeverity.ACCEPTABLE)
         self.assertIn("목적과 다음 진행", insight.next_action)
+        self.assertEqual(insight.reason_codes, (CoachingReason.SCORE_DEVIATION,))
 
     def test_acceptable_alternative_encourages_comparison(self):
         insight = coach_move(self._analysis(delta=-25))
@@ -78,6 +82,7 @@ class CoachingTests(unittest.TestCase):
         insight = coach_move(self._analysis(delta=-26))
         self.assertEqual(insight.severity, CoachingSeverity.INACCURACY)
         self.assertIn("반격", insight.next_action)
+        self.assertEqual(insight.reason_codes, (CoachingReason.SCORE_DEVIATION,))
 
     def test_inaccuracy_encourages_checking_counterplay(self):
         insight = coach_move(self._analysis(delta=-26))
@@ -87,6 +92,7 @@ class CoachingTests(unittest.TestCase):
         insight = coach_move(self._analysis(delta=-151))
         self.assertEqual(insight.severity, CoachingSeverity.MAJOR_MISTAKE)
         self.assertIn("즉각적인 반격", insight.next_action)
+        self.assertEqual(insight.reason_codes, (CoachingReason.SCORE_DEVIATION,))
 
     def test_hanging_piece_is_explained_as_major_mistake(self):
         insight = coach_move(
@@ -97,6 +103,10 @@ class CoachingTests(unittest.TestCase):
         self.assertIn("잡을 수 있는 수를 먼저 확인", insight.message)
         self.assertIn("기물을 보호", insight.message)
         self.assertIn("기물 보호", insight.next_action)
+        self.assertEqual(
+            insight.reason_codes,
+            (CoachingReason.HANGING_PIECE, CoachingReason.SCORE_DEVIATION),
+        )
 
     def test_immediate_capture_risk_explanation_is_not_score_blended(self):
         insight = coach_move(
@@ -106,6 +116,10 @@ class CoachingTests(unittest.TestCase):
         self.assertIn("바로 잡을 수 있습니다", insight.message)
         self.assertIn("되잡을 수 있는지", insight.message)
         self.assertIn("되잡", insight.next_action)
+        self.assertEqual(
+            insight.reason_codes,
+            (CoachingReason.IMMEDIATE_CAPTURE, CoachingReason.SCORE_DEVIATION),
+        )
 
     def test_large_score_loss_still_uses_score_classification_with_immediate_capture(self):
         insight = coach_move(
@@ -114,6 +128,10 @@ class CoachingTests(unittest.TestCase):
         self.assertEqual(insight.severity, CoachingSeverity.MAJOR_MISTAKE)
         self.assertIn("교환을 의도한 수라면", insight.message)
         self.assertIn("되잡", insight.next_action)
+        self.assertEqual(
+            insight.reason_codes,
+            (CoachingReason.IMMEDIATE_CAPTURE, CoachingReason.SCORE_DEVIATION),
+        )
 
     def test_feature_explanation_combines_move_facts(self):
         insight = coach_move(
@@ -130,6 +148,15 @@ class CoachingTests(unittest.TestCase):
         self.assertIn("상대 졸/병을 잡았습니다", insight.message)
         self.assertIn("장군을 걸었습니다", insight.message)
         self.assertIn("바로 잡을 수 있습니다", insight.message)
+        self.assertEqual(
+            insight.reason_codes,
+            (
+                CoachingReason.IMMEDIATE_CAPTURE,
+                CoachingReason.CAPTURE,
+                CoachingReason.CHECK,
+                CoachingReason.SCORE_DEVIATION,
+            ),
+        )
 
     def test_double_attack_motif_is_explained_without_changing_severity(self):
         insight = coach_move(
@@ -140,11 +167,30 @@ class CoachingTests(unittest.TestCase):
         )
         self.assertEqual(insight.severity, CoachingSeverity.ACCEPTABLE)
         self.assertIn("두 기물을 동시에 공격", insight.message)
+        self.assertEqual(
+            insight.reason_codes,
+            (CoachingReason.DOUBLE_ATTACK, CoachingReason.SCORE_DEVIATION),
+        )
 
     def test_unavailable_without_recommendation(self):
         insight = coach_move(self._analysis(delta=-300, recommendation=False))
         self.assertEqual(insight.severity, CoachingSeverity.UNAVAILABLE)
         self.assertIn("추천수가 생긴 뒤", insight.next_action)
+        self.assertEqual(insight.reason_codes, ())
+
+    def test_unavailable_without_score_keeps_feature_reason_codes(self):
+        insight = coach_move(
+            self._analysis(
+                delta=None,
+                tactical_risk=TacticalRisk.IMMEDIATE_CAPTURE,
+                captured_piece=PieceType.SOLDIER,
+            )
+        )
+        self.assertEqual(insight.severity, CoachingSeverity.UNAVAILABLE)
+        self.assertEqual(
+            insight.reason_codes,
+            (CoachingReason.IMMEDIATE_CAPTURE, CoachingReason.CAPTURE),
+        )
 
 
 if __name__ == "__main__":
