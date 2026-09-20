@@ -7,6 +7,7 @@
 - Current canonical workspace repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Default / working branch: `main`
 - Main branch protection: not enabled
+- CI/CD strict deploy gate: not enforced; Render remains commit-triggered auto deploy
 
 ## Canonical Workspace
 
@@ -28,6 +29,7 @@ hjang12/ai-agent-cicd-system-by-gpt/
 - `AGENTS.md` — workspace-level agent rules
 - `GOVERNANCE/GOVERNANCE.md` — common operating rules
 - `GOVERNANCE/docs/CURRENT_STATUS.md` — this workspace status
+- `GOVERNANCE/docs/ACTIVE_ISSUES.md` — AI-managed current unresolved issue index
 - `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md` — long-term governance/workspace history
 - `GOVERNANCE/docs/ADR/` — architecture and operating decisions
 - `projects/<project>/AGENT_START.md` — project session entrypoint
@@ -35,6 +37,17 @@ hjang12/ai-agent-cicd-system-by-gpt/
 - `projects/<project>/docs/CURRENT_STATUS.md` — project context
 - `.github/workflows/` — monorepo CI and benchmark workflows
 - `render.yaml` — monorepo Render Blueprint
+
+## Active Issues
+
+Current Active Issue Index: `GOVERNANCE/docs/ACTIVE_ISSUES.md`
+
+Current active items verified on 2026-09-18:
+
+- `ISSUE-001` — CI-success-before-deploy strict gate is not enforced; blocked by current GitHub/Render platform controls.
+- `ISSUE-002` — Render live `healthCheckPath` is empty while repository Blueprint declares an explicit health endpoint; blocked by current Render service mutation availability.
+
+This section is only a navigation summary. The authoritative current status, priority, next action, blocker, and verification date are maintained in `ACTIVE_ISSUES.md`.
 
 ## Project Status
 
@@ -70,7 +83,7 @@ Key commits:
 - `92cf6a38532886a6cb92afacc3d3e817c65b3571` — fix monorepo agent metadata and PWA icon type
 - `dbd6b52432a628a4b92e4fd586be0fae26672325` — fix validation/benchmark semantics
 
-The original project repositories remain available as historical source snapshots. They are not the canonical development locations after migration.
+The former project repositories were deleted after the pre-deletion verification gate on 2026-09-18. Their commit references remain in the governance history as historical source metadata. The canonical development location is the monorepo.
 
 ## CI/CD State
 
@@ -120,11 +133,13 @@ Requirement
 
 Chat history is temporary. The monorepo Repository is the long-term Source of Truth.
 
-## Known Limitations / Pending Cleanup
+## Known Limitations / Pending Work
 
 - The former `personal-ai-janggi-trainer-by-gpt` and `time-dashboard-by-gpt` source repositories were deleted after the pre-deletion verification gate on 2026-09-18.
 - Destructive cleanup is complete; future development must target the canonical monorepo only.
 - Pre-deletion gate verification completed on 2026-09-18: both Render services pointed to the canonical monorepo, latest relevant CI runs were green, and no duplicate Render services existed.
+- A strict CI-success-before-deploy gate is not currently enforced. Render remains commit-triggered auto deploy, so CI and deployment are independently triggered.
+- Live Render `healthCheckPath` is still empty for both services even though the repository Blueprint declares `/api/health`; this is a platform-setting hardening item.
 - The connected GitHub repository list currently exposes the GPT monorepo and the two historical project repositories; no active `personal-mcp-server` repository was present in that current list, so older documentation referring to it is treated as stale.
 
 ## Current Priority
@@ -132,7 +147,7 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 1. Keep Render repository/root-directory mapping synchronized with the canonical monorepo.
 2. Keep post-deployment health/smoke verification synchronized with live services.
 3. Synchronize project Context documents with the final live deployment state.
-4. Freeze the old project repositories as historical sources; archive/delete only through an explicit destructive-action step.
+4. Monitor and improve CI/CD gating and live health-check configuration as tracked Active Issues.
 5. Continue future development only under `projects/<project>/`.
 
 ## Next Development Candidates

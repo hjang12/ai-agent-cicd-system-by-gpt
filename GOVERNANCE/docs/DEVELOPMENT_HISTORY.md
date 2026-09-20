@@ -368,3 +368,53 @@ Governance Version은 1.0.0을 유지했다. Version 변경 자체는 사용자 
 ### Result
 
 AI가 기술적으로 할 수 있다는 이유만으로 시스템의 지침이나 프로젝트 방향을 우회하는 것을 방지하면서, 일반적인 기술 작업에 대한 사전 승인 요구는 추가하지 않는다.
+
+## 2026-09-18 — Active Issue 운영 인덱스 도입
+
+### Requirement
+
+장기 개발 이력에 문제를 계속 누적하는 방식은 과거 기록을 보존하는 데는 적합하지만, 현재 미해결 항목을 빠르게 파악하고 AI가 다음 작업을 복구하기에는 비효율적이다.
+
+### Decision
+
+현재 미해결 이슈와 장기 이력을 분리한다.
+
+- `GOVERNANCE/docs/ACTIVE_ISSUES.md`: 현재 active issue와 상태의 authoritative source
+- `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md`: 중요한 개발 과정과 해결 이력
+- GitHub Issue: 필요할 때 개별 이슈의 상세 논의/추적
+- ADR: 구조적 의사결정
+
+### Implementation
+
+- `ACTIVE_ISSUES.md` 추가
+- 현재 검증된 미해결 플랫폼/CI 문제 2건을 등록
+- Governance의 Context 복구 순서에 Active Issues 추가
+- Active Issue lifecycle과 등록 기준을 Governance에 명문화
+- Current Status에서 Active Issue Index로 연결
+
+### Version Note
+
+Governance 변경은 의미상 Minor 변경 후보에 해당한다. 그러나 현재 Governance 규칙상 Version 값 변경은 사용자 합의가 필요한 별도 결정이므로 이번 작업에서는 `VERSION` 값을 변경하지 않고, `1.1.0` 변경 필요성을 별도 판단 항목으로 유지한다.
+
+
+## 2026-09-18 — Governance / Version / Branch 운영의 선제적 제안 책임 명확화
+
+### Requirement
+
+사용자가 모든 Governance, Version, Branch 및 CI/CD 운영 개선사항을 먼저 제안하는 방식은 Automation First의 목적과 맞지 않다. AI가 현재 운영 상태를 지속적으로 관찰하고, 구조적 개선이 필요하면 먼저 제안해야 한다.
+
+### Implementation
+
+`GOVERNANCE/GOVERNANCE.md`에 다음 책임을 명문화했다.
+
+- Governance 구조와 규칙의 누락·충돌·중복을 선제적으로 검토
+- Project Version 및 Governance Version 변경 필요성을 먼저 검토하고 제안
+- Branch 전략, Branch 수명, 불필요한 Branch를 선제적으로 점검
+- CI/CD Quality Gate, Trigger, 검증 범위, 배포 경계를 선제적으로 점검
+- Repository / Render / CI 구성의 구조적 Drift를 선제적으로 점검
+- Governance 변경은 사용자 요청을 기다리지 않고 Proposal 단계까지 AI가 준비
+- Version 값 확정은 기존 사용자 합의 원칙을 유지
+
+### Result
+
+향후 사용자가 먼저 제안하지 않아도 AI가 운영 구조를 지속적으로 검토하고 필요한 변경안을 먼저 제시한다. 단, 정책적 결정이나 Version 확정 등 사람의 결정이 필요한 부분은 제안과 실행 권한을 구분하여 처리한다.
