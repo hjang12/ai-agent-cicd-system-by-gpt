@@ -40,7 +40,11 @@ def review_record(
     side: Optional[Side] = None,
 ) -> CoachingReview:
     """Review recent record moves and aggregate stable coaching signals."""
-    if not 1 <= max_moves <= MAX_REVIEW_LIMIT:
+    if (
+        not isinstance(max_moves, int)
+        or isinstance(max_moves, bool)
+        or not 1 <= max_moves <= MAX_REVIEW_LIMIT
+    ):
         raise ValueError(f"max_moves must be between 1 and {MAX_REVIEW_LIMIT}")
 
     candidates: list[tuple[int, Side, Move, GameState]] = []
