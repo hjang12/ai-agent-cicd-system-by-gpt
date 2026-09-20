@@ -101,6 +101,39 @@ The response also includes the played move, current recommendation, score before
 
 Runs the baseline `NegamaxEngine`, normalizes its analysis against the authoritative domain state, validates the selected move, and then applies it through `Match.play`. The returned principal variation therefore contains only moves that can be replayed legally from the position being analyzed.
 
+### `POST /api/review`
+
+Reviews the current in-memory session without changing the active match. The application treats Cho as the learner side and analyzes up to the requested number of the learner's most recent moves.
+
+Optional JSON body:
+
+```json
+{"limit":20}
+```
+
+The limit defaults to 20 and is bounded to 60. The response aggregates stable coaching `reason_codes` and severity counts, and includes one compact entry per reviewed learner move with the move, recommendation, score delta, explanation, next action, and reason codes.
+
+```json
+{
+  "total_moves": 12,
+  "reviewed_moves": 6,
+  "skipped_moves": 0,
+  "reason_counts": {
+    "score_deviation": 4,
+    "hanging_piece": 2
+  },
+  "severity_counts": {
+    "recommended": 2,
+    "acceptable": 1,
+    "inaccuracy": 1,
+    "major_mistake": 2
+  },
+  "entries": []
+}
+```
+
+Review is intentionally on-demand and non-persistent. It replays the authoritative `GameRecord` and therefore preserves the same legality boundary as the normal game flow.
+
 ## Session scope
 
 The current server keeps one in-memory match per process. It is intentionally an MVP application boundary, not yet a persistent multi-user service. Authentication, databases, sessions, and concurrent-user isolation remain future application-layer concerns.

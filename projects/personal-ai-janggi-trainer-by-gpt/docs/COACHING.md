@@ -102,6 +102,20 @@ GameState / search / analysis
  learner-facing explanation
 ```
 
+## Session review boundary
+
+`janggi.review` composes the existing analysis and coaching layers into a bounded on-demand review of a `GameRecord`.
+
+The review:
+
+- replays the record from its declared setup before analyzing moves;
+- analyzes only the most recent matching moves up to a configurable bound;
+- keeps the current web application focused on the learner side (Cho);
+- aggregates `reason_codes` and coaching severity without parsing learner-facing text;
+- does not persist review results or change the active `Match`.
+
+The review layer therefore prepares structured evidence for future repeated-mistake tracking and position-based training while keeping storage and model policy decisions separate.
+
 ## Non-goals
 
 The coaching layer does not:
