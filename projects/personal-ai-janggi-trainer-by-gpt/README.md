@@ -12,7 +12,7 @@ The engine boundary is defined separately from the domain model. The move-analys
 
 `index.html` is connected to the small dependency-free HTTP boundary in `app.py`. The browser can load the authoritative state, select a piece and legal destination, preview the selected move against the baseline engine, show conservative coaching feedback, reset among supported setup variants, undo the latest move, and request a baseline engine move.
 
-The browser analysis panel exposes the coaching result together with the move, recommendation, score delta, tactical-risk signal, bounded tactical motif warning, and principal variation. The UI presentation consumes backend analysis data rather than reimplementing Janggi rules or search logic.
+The browser analysis panel exposes the coaching result together with the move, recommendation, score delta, tactical-risk signal, bounded tactical motif warning, and principal variation. The application also provides a bounded on-demand session review that aggregates learner-side coaching signals for repeated-mistake analysis without persistence. The UI presentation consumes backend analysis data rather than reimplementing Janggi rules or search logic.
 
 The server exposes:
 
@@ -25,6 +25,7 @@ The server exposes:
 - `POST /api/undo` — restore the match state immediately before the latest move
 - `POST /api/analyze/move` — analyze a legal move and return coaching insight without changing the active match
 - `POST /api/engine/move` — analyze, validate, and apply a baseline engine move (browser exposes this as the opponent/Han turn)
+- `POST /api/review` — review recent learner-side moves and aggregate coaching reason/severity counts
 
 See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module boundaries, and `docs/COACHING.md` for the learner-feedback contract.
 
@@ -39,6 +40,7 @@ See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module 
 - `janggi/engine.py` — backend-neutral engine protocol and validation helpers
 - `janggi/analysis.py` — backend-neutral move/position analysis results
 - `janggi/coaching.py` — conservative learner-facing move quality classification and explanations
+- `janggi/review.py` — bounded session review and coaching-signal aggregation
 - `janggi/pipeline.py` — record validation and training-candidate classification
 - `janggi/search.py` — dependency-free negamax/alpha-beta search backend
 - `janggi/self_play.py` — engine-vs-engine game generation and pipeline validation
