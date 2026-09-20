@@ -192,6 +192,15 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("formatPrincipalVariation(result.principal_variation, result.perspective)", html)
         self.assertNotIn("move.src.join(',')", html)
 
+    def test_browser_session_review_contract_is_present(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn('id="review"', html)
+        self.assertIn('id="review-panel"', html)
+        self.assertIn("post('/api/review', {limit: 20})", html)
+        self.assertIn("최근 대국 복기 완료", html)
+        self.assertIn("reasonLabels", html)
+        self.assertIn("reviewDetails", html)
+
     def test_browser_undo_contract_is_present(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn('id="undo"', html)
