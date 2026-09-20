@@ -362,6 +362,7 @@
         const result = await post('/api/analyze/move', move);
         renderAnalysis(result.analysis, result.coaching);
         snapshot = await post('/api/move', move);
+        renderReview(null);
         heading.textContent = snapshot.status === 'playing'
           ? (result.coaching.severity === 'recommended' ? '좋은 수입니다 · 상대 차례' : '착수 분석 완료 · 상대 차례')
           : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
@@ -426,6 +427,7 @@
         status.textContent = '엔진이 수를 계산하는 중입니다…';
         const response = await post('/api/engine/move', {});
         snapshot = response.snapshot;
+        renderReview(null);
         heading.textContent = snapshot.status === 'playing'
           ? (response.analysis.best_move ? '엔진이 수를 두었습니다 · 내 차례' : '엔진 수가 없습니다 · 내 차례')
           : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
