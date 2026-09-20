@@ -1,7 +1,8 @@
 import unittest
 
+from janggi import CoachingReason
 from janggi.analysis import MoveAnalysis, TacticalMotif, TacticalRisk
-from janggi.coaching import CoachingReason, CoachingSeverity, coach_move
+from janggi.coaching import CoachingSeverity, coach_move
 from janggi.core import Move, PieceType, Side
 
 
