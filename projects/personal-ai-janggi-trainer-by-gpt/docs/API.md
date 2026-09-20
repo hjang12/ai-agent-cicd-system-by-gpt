@@ -75,7 +75,7 @@ The response contains the raw move analysis plus a conservative learner-facing `
     "message": "좋은 수입니다. 현재 기준 엔진 추천수와 같습니다.",
     "score_delta_cp": 0,
     "next_action": "상대의 다음 반격을 확인하세요.",
-    "reason_codes": ["capture"]
+    "reason_codes": []
   },
   "analysis": {
     "tactical_risk": "none"
