@@ -9,7 +9,7 @@ from threading import RLock
 from urllib.parse import urlparse
 
 from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, coach_move, review_record, state_to_dict
-from janggi.review import DEFAULT_REVIEW_LIMIT, MAX_REVIEW_LIMIT
+from janggi.review import DEFAULT_REVIEW_LIMIT
 from janggi.engine import validate_engine_analysis, validate_engine_move
 
 
