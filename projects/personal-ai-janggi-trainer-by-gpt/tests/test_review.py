@@ -29,7 +29,7 @@ class ReviewTests(unittest.TestCase):
             ),
             after_first.position_key(): MoveAnalysis(
                 move=second,
-                recommended_move=initial.legal_moves(include_pass=False)[1],
+                recommended_move=after_first.legal_moves(include_pass=False)[1],
                 score_before_cp=0,
                 score_after_cp=-200,
                 score_delta_cp=-200,
@@ -72,6 +72,10 @@ class ReviewTests(unittest.TestCase):
     def test_review_rejects_unbounded_limit(self):
         with self.assertRaises(ValueError):
             review_record(self.record, StubAnalyzer(self.analysis), max_moves=61)
+
+    def test_review_rejects_boolean_limit(self):
+        with self.assertRaises(ValueError):
+            review_record(self.record, StubAnalyzer(self.analysis), max_moves=True)
 
 if __name__ == "__main__":
     unittest.main()
