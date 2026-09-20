@@ -22,6 +22,12 @@
     .analysis h3 { margin:0 0 8px; } .analysis-row { display:flex; justify-content:space-between; gap:16px; padding:4px 0; color:#d8d3c8; } .analysis-row strong { text-align:right; overflow-wrap:anywhere; } .analysis-pv { display:block; } .analysis-pv strong { display:block; margin-top:4px; text-align:left; line-height:1.65; } .analysis-note { margin:10px 0 0; color:var(--muted); }
     .action { margin-top:14px; padding:13px 14px; border:1px solid #8a6736; border-radius:10px; background:#21352e; } .action-title { display:block; margin-bottom:4px; color:var(--accent); }
     .severity { display:inline-block; border-radius:999px; padding:2px 9px; font-size:.78rem; letter-spacing:.04em; background:#30453d; }
+    .review { margin-top:18px; padding:16px; border:1px solid #52685e; border-radius:12px; background:#182722; }
+    .review h3 { margin:0 0 8px; }
+    .review-counts { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
+    .review-list { margin:10px 0 0; padding:0; list-style:none; }
+    .review-list li { padding:9px 0; border-top:1px solid #42554c; }
+    .review-reason { color:var(--accent); font-weight:700; }
     .step { padding:12px 0; border-bottom:1px solid #42554c; } .step:last-child { border-bottom:0; }
     @media(max-width:760px){.workspace{grid-template-columns:1fr}.board{max-width:520px}}
   </style>
@@ -42,6 +48,7 @@
         </select>
         <button class="secondary" id="reset">대국 초기화</button>
         <button class="secondary" id="undo" disabled>한 수 되돌리기</button>
+        <button class="secondary" id="review" disabled>최근 대국 복기</button>
         <button class="primary" id="engine">기준 엔진으로 수 두기</button>
         <div class="analysis" id="analysis" hidden>
           <h3>착수 분석</h3>
@@ -55,6 +62,17 @@
 <p class="analysis-note">추천 진행은 장기판 파일 a~i와 번호 1~10을 사용하는 표기입니다.</p>
           <p class="analysis-note" id="analysis-note"></p>
           <div class="action" id="next-action" hidden><strong class="action-title">다음 행동</strong><span id="action-text"></span></div>
+        </div>
+        <div class="review" id="review-panel" hidden>
+          <h3>세션 복기</h3>
+          <div class="analysis-row"><span>검토한 학습자 수</span><strong id="reviewed-count"></strong></div>
+          <div class="analysis-row"><span>제외된 학습자 수</span><strong id="review-skipped"></strong></div>
+          <div class="review-counts">
+            <div><div class="meta">실수 유형</div><ul class="review-list" id="review-reasons"></ul></div>
+            <div><div class="meta">코칭 등급</div><ul class="review-list" id="review-severity"></ul></div>
+          </div>
+          <div class="meta" style="margin-top:12px">주의가 필요한 최근 착수</div>
+          <ul class="review-list" id="review-details"></ul>
         </div>
         <div class="step"><strong>1. 장기판</strong><br>내 차례가 되면 말을 하나 선택한 뒤, 밝게 표시된 칸으로 이동하세요.</div>
         <div class="step"><strong>2. 착수 분석</strong><br>수를 두면 현재 기준 엔진 평가와 전술 위험, 제한적인 다음 수 전술 경고를 함께 확인합니다.</div>
@@ -81,6 +99,14 @@
     const tacticalMotifLabels = {
       'double_attack':'다음 수에 두 기물 동시 공격 가능'
     };
+    const reasonLabels = {
+      'hanging_piece':'기물 걸림',
+      'immediate_capture':'즉시 잡힘/교환',
+      'double_attack':'두 기물 동시 공격 경고',
+      'score_deviation':'추천수 대비 평가 차이',
+      'capture':'잡기',
+      'check':'장군'
+    };
     const sideLabels = { 'cho':'초', 'han':'한' };
     const statusLabels = {
       'playing':'진행 중',
@@ -99,7 +125,9 @@
     const reset = document.querySelector('#reset');
     const undo = document.querySelector('#undo');
     const engine = document.querySelector('#engine');
+    const review = document.querySelector('#review');
     const analysisPanel = document.querySelector('#analysis');
+    const reviewPanel = document.querySelector('#review-panel');
     const severity = document.querySelector('#severity');
     const played = document.querySelector('#played');
     const recommended = document.querySelector('#recommended');
@@ -110,6 +138,11 @@
     const analysisNote = document.querySelector('#analysis-note');
     const nextAction = document.querySelector('#next-action');
     const actionText = document.querySelector('#action-text');
+    const reviewedCount = document.querySelector('#reviewed-count');
+    const reviewSkipped = document.querySelector('#review-skipped');
+    const reviewReasons = document.querySelector('#review-reasons');
+    const reviewSeverity = document.querySelector('#review-severity');
+    const reviewDetails = document.querySelector('#review-details');
     let snapshot = null;
     let selected = null;
     let busy = false;
@@ -168,6 +201,7 @@
       reset.disabled = busy;
       undo.disabled = busy || !hasHistory;
       engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== 'han';
+      review.disabled = busy || !hasHistory;
       setup.disabled = busy;
     }
 
@@ -186,6 +220,62 @@
       nextAction.hidden = !coaching.next_action;
     }
 
+    function renderReview(result) {
+      if (!result) {
+        reviewPanel.hidden = true;
+        return;
+      }
+      reviewPanel.hidden = false;
+      reviewedCount.textContent = String(result.reviewed_moves || 0);
+      reviewSkipped.textContent = String(result.skipped_moves || 0);
+
+      reviewReasons.innerHTML = '';
+      const reasonEntries = Object.entries(result.reason_counts || {});
+      if (reasonEntries.length === 0) {
+        const item = document.createElement('li');
+        item.textContent = '구조화된 반복 실수 신호가 없습니다.';
+        reviewReasons.append(item);
+      } else {
+        reasonEntries.forEach(([reason, count]) => {
+          const item = document.createElement('li');
+          item.textContent = (reasonLabels[reason] || reason) + ' · ' + count + '회';
+          item.classList.add('review-reason');
+          reviewReasons.append(item);
+        });
+      }
+
+      reviewSeverity.innerHTML = '';
+      const severityEntries = Object.entries(result.severity_counts || {});
+      if (severityEntries.length === 0) {
+        const item = document.createElement('li');
+        item.textContent = '검토된 착수가 없습니다.';
+        reviewSeverity.append(item);
+      } else {
+        severityEntries.forEach(([value, count]) => {
+          const item = document.createElement('li');
+          item.textContent = (severityLabels[value] || value) + ' · ' + count + '회';
+          reviewSeverity.append(item);
+        });
+      }
+
+      reviewDetails.innerHTML = '';
+      const concerns = (result.entries || [])
+        .filter(entry => entry.severity !== 'recommended')
+        .slice(-5)
+        .reverse();
+      if (concerns.length === 0) {
+        const item = document.createElement('li');
+        item.textContent = '최근 검토 구간에서 추천수/대안 외의 주의 착수가 없습니다.';
+        reviewDetails.append(item);
+      } else {
+        concerns.forEach(entry => {
+          const item = document.createElement('li');
+          const reasons = (entry.reason_codes || []).map(reason => reasonLabels[reason] || reason).join(', ');
+          item.textContent = entry.ply + '수 · ' + formatMove(entry.move) + ' · ' + (severityLabels[entry.severity] || entry.severity) + (reasons ? ' · ' + reasons : '');
+          reviewDetails.append(item);
+        });
+      }
+    }
     function renderEngineResult(result) {
       if (!result) { analysisPanel.hidden = true; nextAction.hidden = true; return; }
       analysisPanel.hidden = false;
@@ -285,10 +375,27 @@
       }
     }
 
+    review.addEventListener('click', async () => {
+      if (busy || !snapshot?.state?.history?.length) return;
+      busy = true;
+      updateControls();
+      try {
+        status.textContent = '최근 대국을 복기하는 중입니다…';
+        const result = await post('/api/review', {limit: 20});
+        renderReview(result);
+        heading.textContent = '최근 대국 복기 완료';
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        busy = false;
+        updateControls();
+      }
+    });
+
     reset.addEventListener('click', async () => {
       busy = true;
       updateControls();
-      try { snapshot = await post('/api/reset', {setup:setup.value}); heading.textContent = '대국이 초기화되었습니다'; selected = null; renderAnalysis(null, null); render(); }
+      try { snapshot = await post('/api/reset', {setup:setup.value}); heading.textContent = '대국이 초기화되었습니다'; selected = null; renderAnalysis(null, null); renderReview(null); render(); }
       catch (error) { status.textContent = error.message; }
       finally { busy = false; updateControls(); }
     });
