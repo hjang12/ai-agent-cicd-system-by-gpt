@@ -25,6 +25,8 @@ class ReviewTests(unittest.TestCase):
                 score_before_cp=0,
                 score_after_cp=0,
                 score_delta_cp=0,
+                depth=2,
+                nodes=10,
                 perspective=Side.CHO,
             ),
             after_first.position_key(): MoveAnalysis(
@@ -33,6 +35,8 @@ class ReviewTests(unittest.TestCase):
                 score_before_cp=0,
                 score_after_cp=-200,
                 score_delta_cp=-200,
+                depth=2,
+                nodes=10,
                 perspective=Side.HAN,
                 tactical_risk=TacticalRisk.HANGING_PIECE,
             ),
