@@ -8,7 +8,8 @@ from pathlib import Path
 from threading import RLock
 from urllib.parse import urlparse
 
-from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, coach_move, state_to_dict
+from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, coach_move, review_record, state_to_dict
+from janggi.review import DEFAULT_REVIEW_LIMIT, MAX_REVIEW_LIMIT
 from janggi.engine import validate_engine_analysis, validate_engine_move
 
 
@@ -77,6 +78,27 @@ class TrainerApplication:
                 "snapshot": self.snapshot(),
             }
 
+    def review(self, payload: dict[str, object]) -> dict[str, object]:
+        limit = payload.get("limit", DEFAULT_REVIEW_LIMIT)
+        if not isinstance(limit, int) or isinstance(limit, bool):
+            raise ValueError("limit must be an integer")
+        with self._lock:
+            status = self.match.status.value
+            result = status if status != "playing" else None
+            record = GameRecord(
+                setup=self.match.setup,
+                moves=self.match.state.history,
+                result=result,
+                source="personal",
+            )
+            review = review_record(
+                record,
+                self.analyzer,
+                max_moves=limit,
+                side=Side.CHO,
+            )
+            return _review_to_dict(review)
+
     def engine_move(self) -> dict[str, object]:
         with self._lock:
             analysis = validate_engine_analysis(self.match.state, self.engine.analyze(self.match.state))
@@ -136,6 +158,36 @@ def _coaching_to_dict(coaching: object) -> dict[str, object]:
         "next_action": getattr(coaching, "next_action", None),
         "reason_codes": [
             reason.value for reason in getattr(coaching, "reason_codes", ())
+        ],
+    }
+
+
+def _review_to_dict(review: object) -> dict[str, object]:
+    return {
+        "total_moves": getattr(review, "total_moves", 0),
+        "reviewed_moves": getattr(review, "reviewed_moves", 0),
+        "skipped_moves": getattr(review, "skipped_moves", 0),
+        "reason_counts": {
+            reason.value: count
+            for reason, count in getattr(review, "reason_counts", ())
+        },
+        "severity_counts": {
+            severity.value: count
+            for severity, count in getattr(review, "severity_counts", ())
+        },
+        "entries": [
+            {
+                "ply": entry.ply,
+                "side": entry.side.value,
+                "move": _move_to_dict(entry.move),
+                "recommended_move": _move_to_dict(entry.analysis.recommended_move),
+                "severity": entry.insight.severity.value,
+                "score_delta_cp": entry.insight.score_delta_cp,
+                "message": entry.insight.message,
+                "next_action": entry.insight.next_action,
+                "reason_codes": [reason.value for reason in entry.insight.reason_codes],
+            }
+            for entry in getattr(review, "entries", ())
         ],
     }
 
@@ -234,6 +286,9 @@ class RequestHandler(BaseHTTPRequestHandler):
                 return
             if path == "/api/engine/move":
                 self._send_json(APP.engine_move())
+                return
+            if path == "/api/review":
+                self._send_json(APP.review(self._read_json()))
                 return
             self._send_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
         except (ValueError, KeyError, TypeError) as exc:
