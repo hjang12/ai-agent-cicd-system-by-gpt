@@ -113,6 +113,27 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(response["analysis"]["principal_variation"], [])
         self.assertEqual(response["snapshot"]["state"], before["state"])
 
+    def test_review_aggregates_current_learner_moves(self):
+        app = TrainerApplication()
+        app.play({"src": [0, 3], "dst": [0, 4]})
+
+        review = app.review({"limit": 5})
+
+        self.assertEqual(review["total_moves"], 1)
+        self.assertEqual(review["reviewed_moves"], 1)
+        self.assertEqual(review["skipped_moves"], 0)
+        self.assertIsInstance(review["reason_counts"], dict)
+        self.assertIsInstance(review["severity_counts"], dict)
+        self.assertEqual(len(review["entries"]), 1)
+        self.assertEqual(review["entries"][0]["ply"], 1)
+        self.assertEqual(review["entries"][0]["side"], "cho")
+        self.assertIn("reason_codes", review["entries"][0])
+
+    def test_review_rejects_invalid_limit(self):
+        app = TrainerApplication()
+        with self.assertRaises(ValueError):
+            app.review({"limit": 61})
+
     def test_record_exports_current_history(self):
         app = TrainerApplication()
         record = app.record()
