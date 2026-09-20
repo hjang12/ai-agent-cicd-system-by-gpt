@@ -1,3 +1,39 @@
+## 25. 2026-09-21 — Bounded session review and coaching aggregation
+
+### Requirement
+
+`reason_codes`를 만든 다음 실제 대국에서 반복되는 실수 유형을 확인할 수 있는 최소한의 복기 경로가 필요했습니다. 아직 persistence를 도입하지 않은 MVP 단계이므로 세션 종료 후 현재 기록을 다시 분석하는 on-demand 방식으로 한정했습니다.
+
+### Decision
+
+새 `janggi.review` 계층을 추가해 `GameRecord → Analyzer → Coaching → aggregation` 흐름을 분리했습니다.
+
+- 기본적으로 현재 웹 훈련기의 학습자 측인 Cho 수만 리뷰
+- 최근 최대 20수, 설정상 최대 60수까지만 분석
+- 원본 기록을 setup부터 replay하여 각 수의 실제 pre-move state를 복원
+- `reason_codes`와 coaching severity를 집계
+- 현재 `Match`와 review 상태를 변경하지 않음
+- 결과를 영구 저장하지 않음
+
+### Implementation
+
+- `janggi.review.CoachingReview` 및 `ReviewEntry` 추가
+- `review_record()`로 bounded recent-move review 구현
+- `POST /api/review` 추가
+- 리뷰 응답에 move, recommendation, score delta, message, next_action, reason_codes 제공
+- review 단위 테스트 및 API boundary 테스트 추가
+- `README.md`, `docs/API.md`, `docs/COACHING.md`, `docs/CURRENT_STATUS.md` 동기화
+
+### Boundary
+
+리뷰 결과는 반복 실수 집계를 위한 현재 증거이지, 자동으로 사용자 프로필이나 학습 정답을 저장하는 persistence 정책이 아닙니다. 향후 position-based training으로 연결할 때도 현재 reason/severity 신호와 실제 포지션을 함께 검토해야 합니다.
+
+### Next Step
+
+리뷰에서 식별된 반복 문제를 실제 훈련 문제로 변환하는 position-based training 문제 생성 계층을 검토합니다. persistence 도입은 별도 요구사항으로 유지합니다.
+
+---
+
 ## 24. 2026-09-21 — Structured coaching reason codes
 
 ### Requirement
