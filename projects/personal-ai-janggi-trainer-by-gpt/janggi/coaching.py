@@ -63,7 +63,7 @@ def coach_move(analysis: MoveAnalysis) -> CoachingInsight:
             message="현재 기준으로 비교할 엔진 추천수가 없습니다.",
             score_delta_cp=analysis.score_delta_cp,
             next_action="분석 가능한 추천수가 생긴 뒤 비교하세요.",
-            reason_codes=(),
+            reason_codes=reason_codes,
         )
 
     if analysis.is_best_move:
