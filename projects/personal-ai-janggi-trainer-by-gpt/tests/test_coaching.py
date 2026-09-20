@@ -173,11 +173,21 @@ class CoachingTests(unittest.TestCase):
             (CoachingReason.DOUBLE_ATTACK, CoachingReason.SCORE_DEVIATION),
         )
 
-    def test_unavailable_without_recommendation(self):
-        insight = coach_move(self._analysis(delta=-300, recommendation=False))
+    def test_unavailable_without_recommendation_keeps_available_feature_signals(self):
+        insight = coach_move(
+            self._analysis(
+                delta=-300,
+                recommendation=False,
+                tactical_risk=TacticalRisk.HANGING_PIECE,
+                gives_check=True,
+            )
+        )
         self.assertEqual(insight.severity, CoachingSeverity.UNAVAILABLE)
         self.assertIn("추천수가 생긴 뒤", insight.next_action)
-        self.assertEqual(insight.reason_codes, ())
+        self.assertEqual(
+            insight.reason_codes,
+            (CoachingReason.HANGING_PIECE, CoachingReason.CHECK),
+        )
 
     def test_unavailable_without_score_keeps_feature_reason_codes(self):
         insight = coach_move(
