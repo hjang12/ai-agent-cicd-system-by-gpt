@@ -53,6 +53,21 @@ For immediate-capture risk, the explanation asks whether the intended exchange i
 
 The current bounded `DOUBLE_ATTACK` signal is an explanatory warning. When present, coaching may state that the opponent can attack two pieces on the next move. This wording must not be treated as proof of a forced win, and the motif does not alter score-based severity.
 
+## Machine-readable reason codes
+
+Each `CoachingInsight` also exposes `reason_codes`, a stable tuple of machine-readable signals derived from `MoveAnalysis`. These codes are intentionally composable rather than mutually exclusive, so downstream learning-data aggregation does not need to parse Korean message text.
+
+Current codes:
+
+- `hanging_piece` — the moved piece has an immediate capture with no immediate legal recapture.
+- `immediate_capture` — the moved piece can be captured immediately, with a legal recapture available.
+- `double_attack` — the bounded tactical motif detector reported a next-turn double-attack warning.
+- `score_deviation` — the move is not the current recommendation and has a computed score delta.
+- `capture` — the move captured an opposing piece.
+- `check` — the move gives check.
+
+The ordering is stable: tactical risk first, bounded tactical motifs next, then capture/check facts, followed by score deviation. `reason_codes` is an additive contract for future repeated-mistake tracking; it does not change severity classification or imply that a heuristic signal is proof of a tactical result.
+
 ## Structured learner action
 
 Each `CoachingInsight` also exposes a `next_action` field containing one concise learner action that can be rendered independently from the longer explanation message.
@@ -106,8 +121,9 @@ The coaching layer does not:
 - `message`
 - `score_delta_cp`
 - `next_action`
+- `reason_codes` — stable machine-readable coaching signals for aggregation without message parsing.
 
-`next_action` is presentation-ready guidance but remains derived exclusively from the normalized analysis facts and existing coaching rules.
+`next_action` is presentation-ready guidance but remains derived exclusively from the normalized analysis facts and existing coaching rules. `reason_codes` remains a signal layer and does not change severity.
 
 ## Test Coverage
 
@@ -123,7 +139,8 @@ The coaching layer does not:
 - combination of move facts in one explanation;
 - bounded double-attack explanation without severity changes;
 - unavailable analysis when no recommendation exists;
-- structured `next_action` guidance for the above coaching categories.
+- structured `next_action` guidance for the above coaching categories;
+- stable `reason_codes` for tactical, capture/check, and score-deviation signals.
 
 `tests/test_app.py` verifies that the HTTP-facing analysis contract exposes `next_action` as a non-empty coaching field.
 
