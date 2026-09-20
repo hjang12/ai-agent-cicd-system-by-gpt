@@ -134,6 +134,9 @@ def _coaching_to_dict(coaching: object) -> dict[str, object]:
         "message": getattr(coaching, "message", None),
         "score_delta_cp": getattr(coaching, "score_delta_cp", None),
         "next_action": getattr(coaching, "next_action", None),
+        "reason_codes": [
+            reason.value for reason in getattr(coaching, "reason_codes", ())
+        ],
     }
 
 
