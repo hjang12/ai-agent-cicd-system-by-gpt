@@ -78,6 +78,8 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("message", response["coaching"])
         self.assertIn("next_action", response["coaching"])
         self.assertTrue(response["coaching"]["next_action"])
+        self.assertIn("reason_codes", response["coaching"])
+        self.assertIsInstance(response["coaching"]["reason_codes"], list)
 
     def test_engine_move_returns_analysis_and_updates_state(self):
         app = TrainerApplication()

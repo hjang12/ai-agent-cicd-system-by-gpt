@@ -74,7 +74,8 @@ The response contains the raw move analysis plus a conservative learner-facing `
     "severity": "recommended",
     "message": "좋은 수입니다. 현재 기준 엔진 추천수와 같습니다.",
     "score_delta_cp": 0,
-    "next_action": "상대의 다음 반격을 확인하세요."
+    "next_action": "상대의 다음 반격을 확인하세요.",
+    "reason_codes": []
   },
   "analysis": {
     "tactical_risk": "none"
@@ -92,6 +93,8 @@ The move analysis also reports `tactical_risk`:
 
 This tactical signal is deliberately shallow and domain-derived. It does not claim that an engine search has proven the position globally losing. Stronger multi-ply motif detection belongs in a future analysis layer.
 
+The coaching object also includes stable machine-readable `reason_codes` for future aggregation without parsing the learner-facing message text. Current values are `hanging_piece`, `immediate_capture`, `double_attack`, `score_deviation`, `capture`, and `check`. Multiple codes may be present on one move.
+ 
 The response also includes the played move, current recommendation, score before/after, score delta, search metadata, and the unchanged current snapshot. Engine best-move recommendations and principal variations are normalized against the authoritative domain state before they are exposed through this analysis path; malformed move data is suppressed rather than surfaced as valid guidance.
 
 ### `POST /api/engine/move`

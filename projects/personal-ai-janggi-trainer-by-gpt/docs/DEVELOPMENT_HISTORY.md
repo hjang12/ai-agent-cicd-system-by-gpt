@@ -1,3 +1,51 @@
+## 24. 2026-09-21 — Structured coaching reason codes
+
+### Requirement
+
+현재 코칭 메시지는 학습자에게는 유용하지만, 향후 반복 실수 추적이나 포지션 기반 훈련을 위해서는 한글 설명 문장을 다시 파싱하지 않고도 안정적으로 집계할 수 있는 구조화된 신호가 필요했습니다.
+
+### Decision
+
+기존 `CoachingInsight`에 `reason_codes`를 추가하고, 코칭 계층이 `MoveAnalysis`에서 직접 안정적인 machine-readable 신호를 생성하도록 했습니다.
+
+현재 코드:
+
+- `hanging_piece`
+- `immediate_capture`
+- `double_attack`
+- `score_deviation`
+- `capture`
+- `check`
+
+여러 신호를 동시에 유지할 수 있도록 설계했으며, 기존 severity/message/next_action의 의미와 점수 기반 분류 규칙은 변경하지 않았습니다.
+
+### Implementation
+
+- `janggi.coaching.CoachingReason` 추가
+- `CoachingInsight.reason_codes` 추가
+- `/api/analyze/move` coaching 응답에 `reason_codes` 노출
+- 코칭 단위 테스트에 신호 조합 및 unavailable 경로 검증 추가
+- API boundary 테스트에서 machine-readable 리스트 계약 검증 추가
+- `docs/COACHING.md`, `docs/API.md`, `docs/CURRENT_STATUS.md` 동기화
+
+### Purpose
+
+이 신호는 즉시 persistence를 추가하지 않고도 향후 다음 단계에서 반복되는 실수 유형 집계, 약점 추적, 포지션 기반 훈련 문제 생성의 안정적인 입력 경계를 제공합니다.
+
+### Boundary
+
+`reason_codes`는 분석 신호이지 새로운 전술적 truth claim이 아닙니다. 기존의 conservative severity와 bounded tactical motif 정책을 그대로 유지합니다.
+
+### Verification
+
+현재 branch에서 전체 compile/test CI와 API/검색 benchmark 결과를 확인한 뒤 main 반영 여부를 결정합니다.
+
+### Next Step
+
+reason code를 실제 사용자 세션/복기 데이터에 누적하는 persistence 단계는 별도 요구사항과 저장 구조를 검토한 뒤 진행합니다.
+
+---
+
 # Personal AI Janggi Trainer — 개발 이력
 
 이 문서는 README와 역할을 분리해, 프로젝트의 **초기 기획부터 현재 구현까지의 개발 과정과 주요 의사결정, 시행착오, 문제 해결 과정**을 시간순으로 기록합니다.

@@ -1,5 +1,5 @@
 from .analysis import Analyzer, MoveAnalysis, TacticalMotif, TacticalRisk
-from .coaching import CoachingInsight, CoachingSeverity, coach_move
+from .coaching import CoachingInsight, CoachingReason, CoachingSeverity, coach_move
 from .core import GameState, Move, Piece, PieceType, Side
 from .engine import (
     Engine,
@@ -24,6 +24,7 @@ from .training import Outcome, TrainingDataset, TrainingDatasetBuilder, Training
 __all__ = [
     "Analyzer",
     "CoachingInsight",
+    "CoachingReason",
     "CoachingSeverity",
     "Engine",
     "EngineAnalysis",
