@@ -120,14 +120,14 @@ Render target Blueprint:
 - Start: `python app.py`
 - Desired health check: `/api/health`
 
-Verified live Render state on 2026-09-18:
+Verified live Render state on 2026-09-21:
 - Service: `personal-ai-janggi-trainer-by-gpt`
 - Repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
 - Branch: `main`
 - Auto Deploy: enabled
-- Latest live deployment commit: `f07095ca8f86d7376e925b22e8801f8dfc7522f4`
-- Deployment: `dep-damckfad0e5s73eu325g`
+- Latest live deployment commit: `e30ba8c10b024f0aab53c30bb97e9c237457f78f`
+- Deployment: `dep-dao8q52jnfac739fu3sg`
 - Deployment status: `live`
 - Build: succeeded (`python -m compileall janggi tests`)
 - Start: `python app.py`
