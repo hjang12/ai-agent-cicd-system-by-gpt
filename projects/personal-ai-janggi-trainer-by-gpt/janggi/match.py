@@ -40,7 +40,7 @@ class Match:
 
     @classmethod
     def new(cls, setup: str = "classic", rules: Optional[RuleSet] = None) -> "Match":
-        return cls(GameState.initial(setup, starting_side=Side.HAN), setup, rules or RuleSet())
+        return cls(GameState.initial(setup), setup, rules or RuleSet())
 
     @property
     def status(self) -> GameStatus:
@@ -76,7 +76,7 @@ class Match:
         """Return a new match with the most recent move removed."""
         if not self.state.history:
             raise ValueError("match has no moves to undo")
-        replay = GameState.initial(self.setup, starting_side=Side.HAN)
+        replay = GameState.initial(self.setup)
         for move in self.state.history[:-1]:
             replay = replay.apply(move)
         return Match(state=replay, setup=self.setup, rules=self.rules)
@@ -89,7 +89,7 @@ class Match:
     def position_repetition_count(self) -> int:
         """Count occurrences of the current position from the starting position."""
         current = self.state.position_key()
-        replay = GameState.initial(self.setup, starting_side=Side.HAN)
+        replay = GameState.initial(self.setup)
         count = 1 if replay.position_key() == current else 0
         for move in self.state.history:
             replay = replay.apply(move)
