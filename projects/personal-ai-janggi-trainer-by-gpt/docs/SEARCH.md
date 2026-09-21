@@ -13,7 +13,7 @@ move ordering
   ↓
 Negamax + Alpha-Beta
   ↓
-Material + Mobility evaluation
+Material + Mobility + positional evaluation
 ```
 
 ## Search configuration
@@ -24,6 +24,19 @@ Material + Mobility evaluation
 - `mobility_weight`
 - `random_ties`
 - `seed`
+
+The baseline engine metadata version is now `2`, reflecting the upgraded evaluation contract.
+
+## Evaluation v2
+
+The evaluation now combines material, mobility, and small domain-aware positional terms:
+
+- material values are calibrated to common Janggi point ordering: chariot 13, cannon 7, horse 5, elephant 3, guard 3, soldier 2;
+- advanced soldiers receive a modest forward-progress bonus, with a small central-file preference;
+- guards retained inside their own palace receive a small defensive bonus;
+- checking pressure receives a bounded score bonus, while being in check receives the corresponding penalty.
+
+These terms are deliberately small relative to material and mate scores. They improve leaf-position discrimination without moving legality or terminal-state decisions out of `GameState`.
 
 The default behavior remains deterministic unless root-level random tie breaking is explicitly enabled.
 
@@ -128,6 +141,7 @@ The current optimization sequence is:
 7. per-analysis legal move caching to reduce repeated mobility generation;
 8. evaluate alternative forcing-order schemes before production adoption;
 9. bounded multi-ply tactical analysis for coaching;
-10. stronger evaluation features only after representative regression positions exist.
+10. stronger evaluation features only after representative regression positions exist;
+11. evaluation v2 with calibrated material and bounded positional terms.
 
 Search optimization must not move authoritative move legality out of `GameState` or couple the domain layer to the search implementation.
