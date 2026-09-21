@@ -134,6 +134,31 @@ class TrainerApplicationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             app.review({"limit": 61})
 
+    def test_training_problems_returns_bounded_problem_collection(self):
+        app = TrainerApplication()
+        result = app.training_problems({"review_limit": 5, "problem_limit": 5})
+        self.assertIn("reviewed_moves", result)
+        self.assertIn("problem_count", result)
+        self.assertIsInstance(result["problems"], list)
+        self.assertLessEqual(result["problem_count"], 5)
+
+    def test_training_problems_do_not_expose_solution_by_default(self):
+        app = TrainerApplication()
+        result = app.training_problems({"review_limit": 5, "problem_limit": 5})
+        for problem in result["problems"]:
+            self.assertIn("state", problem)
+            self.assertIn("legal_moves", problem)
+            self.assertNotIn("target_move", problem)
+
+    def test_training_problem_answer_rejects_unknown_problem(self):
+        app = TrainerApplication()
+        with self.assertRaises(ValueError):
+            app.training_problem_answer({
+                "problem_id": "missing",
+                "src": [0, 3],
+                "dst": [0, 4],
+            })
+
     def test_record_exports_current_history(self):
         app = TrainerApplication()
         record = app.record()
@@ -191,6 +216,15 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("(index + 1) + '. ' + label + ' ' + formatMove(move)", html)
         self.assertIn("formatPrincipalVariation(result.principal_variation, result.perspective)", html)
         self.assertNotIn("move.src.join(',')", html)
+
+    def test_browser_position_training_contract_is_present(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn('id="training"', html)
+        self.assertIn('id="training-panel"', html)
+        self.assertIn("post('/api/training/problems', {review_limit: 20, problem_limit: 5})", html)
+        self.assertIn("post('/api/training/answer', {", html)
+        self.assertIn("포지션 훈련 문제 준비 완료", html)
+        self.assertIn("훈련 정답", html)
 
     def test_browser_session_review_contract_is_present(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
