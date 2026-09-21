@@ -36,6 +36,21 @@ class SearchEngineTests(unittest.TestCase):
 
         self.assertGreater(engine._evaluate(advanced), engine._evaluate(early))
 
+    def test_evaluation_penalizes_opponent_advanced_center_soldier(self):
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[4 + 6 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
+        quiet = GameState(tuple(board), turn=Side.CHO)
+
+        board[4 + 6 * 9] = None
+        board[4 + 4 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
+        advanced = GameState(tuple(board), turn=Side.CHO)
+
+        engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0, quiescence_depth=0))
+
+        self.assertGreater(engine._evaluate(quiet), engine._evaluate(advanced))
+
     def test_evaluation_rewards_check_pressure(self):
         quiet_board = [None] * 90
         quiet_board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
