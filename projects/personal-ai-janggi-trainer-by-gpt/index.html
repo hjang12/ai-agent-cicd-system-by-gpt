@@ -83,6 +83,7 @@
           <h3>포지션 훈련</h3>
           <div class="meta" id="training-summary"></div>
           <div class="analysis-row"><span>훈련 정답률</span><strong id="training-accuracy">0%</strong></div>
+          <div class="meta" id="reason-accuracy-summary"></div>
           <ul class="training-list" id="training-list"></ul>
           <div class="training-result" id="training-result" hidden></div>
         </div>
@@ -159,6 +160,7 @@
     const trainingPanel = document.querySelector('#training-panel');
     const trainingSummary = document.querySelector('#training-summary');
     const trainingAccuracy = document.querySelector('#training-accuracy');
+    const reasonAccuracySummary = document.querySelector('#reason-accuracy-summary');
     const trainingList = document.querySelector('#training-list');
     const trainingResult = document.querySelector('#training-result');
     let snapshot = null;
@@ -247,6 +249,18 @@
     function renderTrainingMetrics(metrics) {
       const accuracy = Number(metrics?.accuracy || 0);
       trainingAccuracy.textContent = Math.round(accuracy * 100) + '%';
+      const attempts = metrics?.reason_attempts || {};
+      const correct = metrics?.reason_correct || {};
+      const entries = Object.entries(attempts);
+      if (entries.length === 0) {
+        reasonAccuracySummary.textContent = '';
+        return;
+      }
+      reasonAccuracySummary.textContent = entries.map(([reason, count]) => {
+        const hits = Number(correct[reason] || 0);
+        const rate = Math.round((hits / count) * 100);
+        return (reasonLabels[reason] || reason) + ' ' + rate + '%';
+      }).join(' · ');
     }
     function renderTrainingProblems(result) {
       trainingProblems = result.problems || [];
