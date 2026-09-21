@@ -9,8 +9,8 @@
     * { box-sizing:border-box; } body { margin:0; min-height:100vh; font:16px/1.5 system-ui,sans-serif; color:var(--ink); background:radial-gradient(circle at 15% 10%,#30453d,var(--paper) 55%); }
     main { max-width:1080px; margin:auto; padding:clamp(24px,5vw,72px) 24px; } .eyebrow { color:var(--accent); font-weight:700; letter-spacing:.08em; } h1 { font-size:clamp(2.5rem,7vw,5rem); line-height:.95; max-width:750px; margin:.25em 0; } .lead { max-width:700px; color:#d8d3c8; }
     .workspace { display:grid; grid-template-columns:minmax(300px,1fr) 340px; gap:28px; margin-top:42px; }
-    .board { aspect-ratio:9/10; padding:10px; display:grid; grid-template-columns:repeat(9,1fr); grid-template-rows:repeat(10,1fr); background:var(--board); border:8px solid var(--frame); box-shadow:0 18px 50px #0007; }
-    .cell { border:1px solid var(--line); display:grid; place-items:center; cursor:pointer; color:#211605; font-size:clamp(18px,3.1vw,34px); font-weight:800; user-select:none; background:transparent; }
+    .board { aspect-ratio:9/10; width:100%; max-width:620px; margin:auto; padding:10px; display:grid; grid-template-columns:repeat(9,1fr); grid-template-rows:repeat(10,1fr); background:var(--board); border:8px solid var(--frame); box-shadow:0 18px 50px #0007; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+    .cell { border:1px solid var(--line); display:grid; place-items:center; cursor:pointer; color:#211605; font-size:clamp(18px,3.1vw,34px); font-weight:800; user-select:none; background:transparent; min-width:0; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     .cell.selected { outline:3px solid var(--accent); outline-offset:-3px; } .cell.legal { box-shadow:inset 0 0 0 3px #fff8; }
     .piece-cho { color:#9f1f16; } .piece-han { color:#171717; }
     .panel { padding:24px; background:var(--panel); border:1px solid #52685e; border-radius:16px; }
@@ -33,7 +33,18 @@
     .training-list li { border-top:1px solid #42554c; padding:9px 0; }
     .training-result { margin-top:10px; padding:10px; border-radius:8px; background:#243b32; }
     .step { padding:12px 0; border-bottom:1px solid #42554c; } .step:last-child { border-bottom:0; }
-    @media(max-width:760px){.workspace{grid-template-columns:1fr}.board{max-width:520px}}
+    @media(max-width:760px){
+      main { padding:16px 12px 28px; }
+      .workspace { grid-template-columns:1fr; gap:14px; margin-top:18px; }
+      .panel { order:-1; padding:14px; border-radius:12px; }
+      .board { max-width:560px; padding:5px; border-width:5px; }
+      .cell { font-size:clamp(18px,8vw,30px); }
+      button, select { min-height:46px; }
+      h1 { font-size:clamp(2rem,12vw,3.4rem); }
+      .lead { font-size:.95rem; }
+      .step { font-size:.9rem; }
+      .analysis, .review, .training { padding:13px; }
+    }
   </style>
 </head>
 <body>
@@ -47,9 +58,15 @@
         <h2 id="heading">대국 준비</h2>
         <p class="status" id="status">현재 대국 상태를 불러오는 중입니다…</p>
         <div class="meta" id="turn"></div>
+        <label for="player-side">내 진영 · 새 대국 시작 시 적용</label>
+        <select id="player-side" aria-label="내 진영">
+          <option value="cho">초</option><option value="han">한</option>
+        </select>
+        <label for="setup">장기판 배치</label>
         <select id="setup" aria-label="장기판 배치">
           <option value="classic">기본 배치</option><option value="left">왼쪽 마상 교환</option><option value="right">오른쪽 마상 교환</option><option value="both">양쪽 마상 교환</option>
         </select>
+        <div class="meta" id="orientation-note">내 진영은 항상 화면 아래쪽에 표시됩니다.</div>
         <button class="secondary" id="reset">대국 초기화</button>
         <button class="secondary" id="undo" disabled>내 한 턴 되돌리기</button>
         <button class="secondary" id="review" disabled>최근 대국 복기</button>
@@ -135,6 +152,8 @@
     const turn = document.querySelector('#turn');
     const heading = document.querySelector('#heading');
     const setup = document.querySelector('#setup');
+    const playerSide = document.querySelector('#player-side');
+    const orientationNote = document.querySelector('#orientation-note');
     const reset = document.querySelector('#reset');
     const undo = document.querySelector('#undo');
     const engine = document.querySelector('#engine');
@@ -180,6 +199,14 @@
       if (!code) return null;
       const [side, kind] = code.split(':');
       return {side, kind};
+    }
+
+    function boardSide() {
+      return snapshot?.player_side || 'cho';
+    }
+
+    function displayToState(x, y) {
+      return boardSide() === 'han' ? [8 - x, 9 - y] : [x, y];
     }
 
     function samePosition(a, b) {
@@ -234,6 +261,7 @@
       review.disabled = busy || !hasHistory;
       training.disabled = busy || !hasHistory;
       setup.disabled = busy;
+      playerSide.disabled = busy;
     }
 
     function clearTrainingMode() {
@@ -444,7 +472,8 @@
       const destinations = selected ? legalDestinations(selected) : new Set();
       for (let y = 0; y < 10; y += 1) {
         for (let x = 0; x < 9; x += 1) {
-          const index = y * 9 + x;
+          const [stateX, stateY] = displayToState(x, y);
+          const index = stateY * 9 + stateX;
           const cell = document.createElement('button');
           cell.className = 'cell';
           cell.type = 'button';
@@ -453,8 +482,8 @@
             cell.textContent = pieceLabels[piece.kind] || '?';
             cell.classList.add(`piece-${piece.side}`);
           }
-          if (selected && selected[0] === x && selected[1] === y) cell.classList.add('selected');
-          if (destinations.has(JSON.stringify([x, y]))) cell.classList.add('legal');
+          if (selected && selected[0] === stateX && selected[1] === stateY) cell.classList.add('selected');
+          if (destinations.has(JSON.stringify([stateX, stateY]))) cell.classList.add('legal');
           cell.addEventListener('click', () => clickCell(x, y));
           board.append(cell);
         }
@@ -466,6 +495,9 @@
       status.textContent = trainingPosition
         ? '포지션 훈련 중'
         : '대국 상태: ' + (statusLabels[view.status] || view.status);
+      orientationNote.textContent = boardSide() === 'han'
+        ? '한이 화면 아래쪽입니다.'
+        : '초가 화면 아래쪽입니다.';
       updateControls();
     }
 
@@ -473,6 +505,10 @@
       const response = await fetch('/api/state', {cache:'no-store'});
       if (!response.ok) throw new Error(`대국 상태 요청 실패 (${response.status})`);
       snapshot = await response.json();
+      playerSide.value = snapshot.player_side || 'cho';
+      orientationNote.textContent = boardSide() === 'han'
+        ? '한이 화면 아래쪽입니다. 초가 위에서 먼저 응수합니다.'
+        : '초가 화면 아래쪽입니다. 한이 위에서 응수합니다.';
       clearTrainingMode();
       selected = null;
       render();
@@ -488,10 +524,11 @@
     async function clickCell(x, y) {
       const view = currentPosition();
       if (busy || view.status !== 'playing') return;
-      const current = pieceAt(y * 9 + x);
+      const [stateX, stateY] = displayToState(x, y);
+      const current = pieceAt(stateY * 9 + stateX);
       if (!selected) {
         if (current && current.side === snapshot.state.turn) {
-          selected = [x, y];
+          selected = [stateX, stateY];
           status.textContent = '이동할 수 있는 칸을 선택하세요.';
           render();
         }
@@ -569,10 +606,26 @@
       }
     });
 
+    playerSide.addEventListener('change', () => {
+      orientationNote.textContent = playerSide.value === 'han'
+        ? '한이 화면 아래쪽입니다. 초기화하면 초가 먼저 둡니다.'
+        : '초가 화면 아래쪽입니다. 초기화하면 한이 먼저 응수합니다.';
+    });
+
     reset.addEventListener('click', async () => {
       busy = true;
       updateControls();
-      try { snapshot = await post('/api/reset', {setup:setup.value}); heading.textContent = '대국이 초기화되었습니다'; clearTrainingMode(); selected = null; renderAnalysis(null, null); renderReview(null); render(); }
+      try {
+        snapshot = await post('/api/reset', {setup:setup.value, player_side:playerSide.value});
+        heading.textContent = snapshot.player_side === 'han'
+          ? '한 진영으로 대국이 초기화되었습니다'
+          : '초 진영으로 대국이 초기화되었습니다';
+        clearTrainingMode();
+        selected = null;
+        renderAnalysis(null, null);
+        renderReview(null);
+        render();
+      }
       catch (error) { status.textContent = error.message; }
       finally { busy = false; updateControls(); }
     });
