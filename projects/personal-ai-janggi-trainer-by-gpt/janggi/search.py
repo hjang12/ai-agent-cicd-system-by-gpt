@@ -33,6 +33,7 @@ class SearchConfig:
     depth: int = 2
     mobility_weight: int = 2
     quiescence_depth: int = 1
+    root_refinement_count: int = 0
     random_ties: bool = False
     seed: Optional[int] = None
 
@@ -43,6 +44,8 @@ class SearchConfig:
             raise ValueError("mobility_weight must be non-negative")
         if self.quiescence_depth < 0:
             raise ValueError("quiescence_depth must be non-negative")
+        if self.root_refinement_count < 0:
+            raise ValueError("root_refinement_count must be non-negative")
 
 
 class NegamaxEngine:
@@ -65,10 +68,11 @@ class NegamaxEngine:
         self._evaluation_cache: dict[tuple[object, ...], int] = {}
         self._check_cache: dict[tuple[tuple[object, ...], Move], bool] = {}
         self._legal_moves_cache: dict[tuple[tuple[object, ...], bool], tuple[Move, ...]] = {}
+        self._active_search_depth = self.config.depth
 
     @property
     def info(self) -> EngineInfo:
-        return EngineInfo(name="negamax", version="3")
+        return EngineInfo(name="negamax", version="4")
 
     def choose_move(self, state: GameState) -> Move:
         analysis = self.analyze(state)
@@ -106,9 +110,12 @@ class NegamaxEngine:
         best_score = -MATE_SCORE * 2
         best_results: list[tuple[Move, tuple[Move, ...]]] = []
         alpha = -MATE_SCORE * 2
+        self._shallow_node_count = 0
         beta = MATE_SCORE * 2
 
-        for move in moves:
+        shallow_results: list[tuple[int, int, Move, tuple[Move, ...]]] = []
+        self._active_search_depth = self.config.depth
+        for index, move in enumerate(moves):
             child = state.apply(move)
             child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
             child_score, child_pv = self._search(
@@ -119,6 +126,7 @@ class NegamaxEngine:
                 child_noisy,
             )
             score = -child_score
+            shallow_results.append((score, index, move, (move,) + child_pv))
             if score > best_score:
                 best_score = score
                 best_results = [(move, (move,) + child_pv)]
@@ -126,11 +134,63 @@ class NegamaxEngine:
                 best_results.append((move, (move,) + child_pv))
             alpha = max(alpha, score)
 
+        self._shallow_node_count = self._nodes
+        if self.config.root_refinement_count > 0:
+            finalists = sorted(
+                shallow_results,
+                key=lambda item: (-item[0], item[1]),
+            )[: self.config.root_refinement_count]
+            refined_results: list[tuple[int, int, Move, tuple[Move, ...]]] = []
+            refinement_nodes = 0
+            for _, shallow_rank, move, _ in finalists:
+                self._transposition.clear()
+                self._evaluation_cache.clear()
+                self._check_cache.clear()
+                self._legal_moves_cache.clear()
+                self._nodes = 0
+                self._active_search_depth = self.config.depth + 1
+                child = state.apply(move)
+                child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+                child_score, child_pv = self._search(
+                    child,
+                    self.config.depth,
+                    -MATE_SCORE * 2,
+                    MATE_SCORE * 2,
+                    child_noisy,
+                )
+                refinement_nodes += self._nodes
+                refined_results.append((-child_score, shallow_rank, move, (move,) + child_pv))
+
+            self._nodes = self._nodes + 0
+            shallow_nodes = sum(
+                1 for _ in ()
+            )
+            total_refinement_results = sorted(
+                refined_results,
+                key=lambda item: (-item[0], item[1]),
+            )
+            if total_refinement_results:
+                best_score, _, best_move, best_pv = total_refinement_results[0]
+                if len(total_refinement_results) > 1:
+                    tied = [item for item in total_refinement_results if item[0] == best_score]
+                    if self.config.random_ties and len(tied) > 1:
+                        best_score, _, best_move, best_pv = self._rng.choice(tied)
+                self._nodes = self._shallow_node_count + refinement_nodes
+                return EngineAnalysis(
+                    best_move=best_move,
+                    score_cp=best_score,
+                    depth=self.config.depth,
+                    nodes=self._nodes,
+                    principal_variation=best_pv,
+                    perspective=state.turn,
+                )
+
         if self.config.random_ties and len(best_results) > 1:
             best_move, best_pv = self._rng.choice(best_results)
         else:
             best_move, best_pv = best_results[0]
 
+        self._active_search_depth = self.config.depth
         return EngineAnalysis(
             best_move=best_move,
             score_cp=best_score,
@@ -160,7 +220,7 @@ class NegamaxEngine:
                 # Mate distance must depend only on search depth, not the
                 # historical move count. The latter is intentionally excluded
                 # from position_key(), so it cannot safely affect a cached value.
-                mate_distance = self.config.depth - max(depth, 0)
+                mate_distance = self._active_search_depth - max(depth, 0)
                 result = (-MATE_SCORE + mate_distance, ())
             else:
                 result = (self._evaluate(state), ())
