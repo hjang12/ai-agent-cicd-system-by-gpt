@@ -298,6 +298,10 @@ def _training_metrics_to_dict(metrics: object) -> dict[str, object]:
             reason.value: count
             for reason, count in getattr(metrics, "reason_attempts", ())
         },
+        "reason_correct": {
+            reason.value: count
+            for reason, count in getattr(metrics, "reason_correct", ())
+        },
     }
 
 
