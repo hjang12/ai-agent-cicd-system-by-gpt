@@ -172,3 +172,36 @@ The legal-move-generation cache also remained score-equivalent after the evaluat
 Treat these node counts as the deterministic regression baseline for evaluation v2. The changed counts are expected because the evaluation now produces different alpha-beta cutoffs; the benchmark remains responsible for detecting unintended future search changes.
 
 The benchmark measures deterministic search behavior, not playing strength. The evaluation upgrade therefore still requires targeted tactical/regression positions before deeper search changes are promoted.
+
+
+## 2026-09-21 — Evaluation v3 / quiescence baseline
+
+### Method
+
+- Evaluation v2 remains unchanged.
+- Leaf nodes reached through a capture/checking move receive a bounded `quiescence_depth=1` extension.
+- Quiet leaves stop at stand-pat evaluation; check positions search legal evasions; forcing continuations are extended only one additional ply.
+- The same deterministic ordering fixtures and score-equivalence checks were re-run.
+
+### Search ordering result
+
+| Fixture | Depth | Reference nodes | Production nodes | Reduction |
+| --- | ---: | ---: | ---: | ---: |
+| initial | 2 | 144 | 144 | 0.00% |
+| capture | 2 | 63 | 56 | 11.11% |
+| capture | 3 | 534 | 409 | 23.41% |
+| check | 2 | 50 | 41 | 18.00% |
+| check | 3 | 519 | 522 | -0.58% |
+| double_attack | 2 | 170 | 118 | 30.59% |
+| double_attack | 3 | 1063 | 941 | 11.48% |
+| midgame | 2 | 235 | 149 | 36.60% |
+| endgame | 2 | 186 | 108 | 41.94% |
+| endgame | 3 | 2349 | 641 | 72.71% |
+
+All measured orderings preserved the coordinate-reference minimax score. The check depth-3 production node count is slightly above the coordinate reference; this is an ordering-efficiency observation, not a correctness change.
+
+The legal-move cache continued to preserve minimax scores.
+
+### Decision
+
+Keep bounded quiescence at depth 1 as the default. The extension materially increases the tactical search horizon while remaining bounded in the deterministic benchmark. The next AI-strength step should focus on targeted tactical fixtures and, only after those are stable, consider a larger principal search depth.
