@@ -179,7 +179,7 @@ class NegamaxEngine:
                 return EngineAnalysis(
                     best_move=best_move,
                     score_cp=best_score,
-                    depth=self.config.depth,
+                    depth=self.config.depth + 1,
                     nodes=self._nodes,
                     principal_variation=best_pv,
                     perspective=state.turn,
