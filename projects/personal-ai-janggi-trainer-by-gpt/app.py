@@ -134,6 +134,7 @@ class TrainerApplication:
                 "reviewed_moves": review.reviewed_moves,
                 "problem_count": len(problems),
                 "problems": [_training_problem_to_dict(problem, include_solution=include_solution) for problem in problems],
+                "metrics": _training_metrics_to_dict(self.training_metrics.snapshot()),
             }
 
     def training_problem_answer(self, payload: dict[str, object]) -> dict[str, object]:
