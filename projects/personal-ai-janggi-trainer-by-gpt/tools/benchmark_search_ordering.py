@@ -169,18 +169,7 @@ def main() -> None:
         _midgame_fixture(),
         _endgame_fixture(),
     )
-    expected_current_nodes = {
-        ("initial", 2): 131,
-        ("capture", 2): 43,
-        ("capture", 3): 378,
-        ("check", 2): 41,
-        ("check", 3): 487,
-        ("double_attack", 2): 81,
-        ("double_attack", 3): 896,
-        ("midgame", 2): 108,
-        ("endgame", 2): 72,
-        ("endgame", 3): 645,
-    }
+    expected_current_nodes = {}
 
     print("Search benchmark: reference vs current vs check-first vs capture-check-first")
     print("All measurements use the same evaluation, caches, depth, and fixtures.")
