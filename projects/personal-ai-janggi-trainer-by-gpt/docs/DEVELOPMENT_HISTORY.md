@@ -1,3 +1,36 @@
+## 31. 2026-09-21 — Adaptive selection diversity bound
+
+### Requirement
+
+반복 오답 문제를 우선하는 정책은 유용하지만, bounded 후보 집합에서 반복 오답 후보가 많을 경우 다른 실수 유형을 거의 보여주지 못하는 고착 문제가 생길 수 있습니다.
+
+### Decision
+
+반복 오답 후보의 우선순위는 유지하되, 요청된 문제 수가 2개 이상이고 다른 후보가 존재하는 경우 반복 오답 후보를 대략 절반까지로 제한합니다. 남은 슬롯은 아직 선택되지 않은 reason을 우선하는 후보를 채운 뒤 기존 순서를 사용합니다.
+
+- `max_problems=5`이면 반복 오답 후보는 최대 3개
+- 다른 후보가 없으면 반복 오답 후보를 제한하지 않음
+- 반복 오답 우선 자체는 유지
+- 선택은 여전히 현재 세션의 ephemeral metrics만 사용
+- persistence/mastery/difficulty model 미도입
+
+### Implementation
+
+- adaptive selector에 repeated-mistake quota 추가
+- 남은 슬롯에서 선택되지 않은 reason을 우선하는 diversity 정렬 추가
+- 반복 오답 고착 및 reason 다양성 회귀 테스트 추가
+- 브라우저에 문제 다양성 정책이 적용되었음을 표시
+- `TRAINING_PROBLEMS.md`, `CURRENT_STATUS.md` 동기화
+
+### Boundary
+
+이 정책은 문제 목록의 노출 순서와 구성만 조정합니다. 반복 오답을 해결했다고 판단하거나 사용자의 장기 숙련도를 추정하지 않습니다.
+
+### Next Step
+
+실제 사용에서 이 bounded diversity가 반복 실수 재학습과 문제 유형 폭 사이의 균형을 유지하는지 확인하고, 필요성이 있을 때만 더 정교한 spacing policy를 검토합니다.
+
+---
 ## 30. 2026-09-21 — Repeated training-mistake prioritization
 
 ### Requirement
