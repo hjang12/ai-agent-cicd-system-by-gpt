@@ -167,13 +167,16 @@ class NegamaxEngine:
             self._transposition[cache_key] = result
             return result
 
-        if depth <= 0 and noisy and self.config.quiescence_depth > 0:
-            result = self._quiescence(
-                state,
-                self.config.quiescence_depth,
-                alpha,
-                beta,
-            )
+        if depth <= 0:
+            if noisy and self.config.quiescence_depth > 0:
+                result = self._quiescence(
+                    state,
+                    self.config.quiescence_depth,
+                    alpha,
+                    beta,
+                )
+            else:
+                result = (self._evaluate(state), ())
             self._transposition[cache_key] = result
             return result
 
