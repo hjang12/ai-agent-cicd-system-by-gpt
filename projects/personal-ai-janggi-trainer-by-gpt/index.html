@@ -82,6 +82,7 @@
         <div class="training" id="training-panel" hidden>
           <h3>포지션 훈련</h3>
           <div class="meta" id="training-summary"></div>
+          <div class="analysis-row"><span>훈련 정답률</span><strong id="training-accuracy">0%</strong></div>
           <ul class="training-list" id="training-list"></ul>
           <div class="training-result" id="training-result" hidden></div>
         </div>
@@ -157,6 +158,7 @@
     const reviewDetails = document.querySelector('#review-details');
     const trainingPanel = document.querySelector('#training-panel');
     const trainingSummary = document.querySelector('#training-summary');
+    const trainingAccuracy = document.querySelector('#training-accuracy');
     const trainingList = document.querySelector('#training-list');
     const trainingResult = document.querySelector('#training-result');
     let snapshot = null;
@@ -242,12 +244,17 @@
       trainingResult.textContent = '';
     }
 
+    function renderTrainingMetrics(metrics) {
+      const accuracy = Number(metrics?.accuracy || 0);
+      trainingAccuracy.textContent = Math.round(accuracy * 100) + '%';
+    }
     function renderTrainingProblems(result) {
       trainingProblems = result.problems || [];
       activeTrainingProblem = null;
       trainingPosition = null;
       selected = null;
       trainingPanel.hidden = false;
+      renderTrainingMetrics(result.metrics);
       trainingSummary.textContent = result.problem_count
         ? '복기에서 다시 풀어볼 수 있는 문제 ' + result.problem_count + '개가 생성되었습니다.'
         : '현재 복기 구간에서 생성할 훈련 문제가 없습니다.';
@@ -285,6 +292,7 @@
 
     function renderTrainingAnswer(result) {
       trainingResult.hidden = false;
+      if (result.metrics) renderTrainingMetrics(result.metrics);
       trainingResult.textContent = result.correct
         ? '정답입니다. ' + result.message
         : (result.legal ? '아쉽습니다. 추천수는 ' + formatMove(result.target_move) + ' 입니다.' : result.message);
