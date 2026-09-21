@@ -8,16 +8,24 @@ from .core import GameState, Move, PieceType, Side
 from .engine import EngineAnalysis, EngineInfo, validate_engine_move
 
 
+# Reference material ordering is calibrated to common Janggi point systems:
+# chariot 13, cannon 7, horse 5, elephant 3, guard 3, soldier 2.
+# The absolute scale remains compatible with the existing mate score.
 PIECE_VALUES = {
     PieceType.GENERAL: 10_000,
-    PieceType.CHARIOT: 1_000,
+    PieceType.CHARIOT: 1_300,
     PieceType.CANNON: 700,
-    PieceType.ELEPHANT: 500,
+    PieceType.ELEPHANT: 300,
     PieceType.HORSE: 500,
     PieceType.GUARD: 300,
-    PieceType.SOLDIER: 100,
+    PieceType.SOLDIER: 200,
 }
 MATE_SCORE = 100_000
+
+CHECK_BONUS = 120
+GUARD_PALACE_BONUS = 18
+SOLDIER_ADVANCE_BONUS = 12
+SOLDIER_CENTER_BONUS = 8
 
 
 @dataclass(frozen=True)
@@ -54,7 +62,7 @@ class NegamaxEngine:
 
     @property
     def info(self) -> EngineInfo:
-        return EngineInfo(name="negamax", version="1")
+        return EngineInfo(name="negamax", version="2")
 
     def choose_move(self, state: GameState) -> Move:
         analysis = self.analyze(state)
@@ -237,5 +245,40 @@ class NegamaxEngine:
         score = (own_material - opp_material) + self.config.mobility_weight * (
             own_mobility - opponent_mobility
         )
+        score += self._positional_score(state, state.turn)
+        if state.is_in_check(state.turn):
+            score -= CHECK_BONUS
+        if state.is_in_check(state.turn.opponent):
+            score += CHECK_BONUS
+
         self._evaluation_cache[position_key] = score
+        return score
+
+    @staticmethod
+    def _positional_score(state: GameState, side: Side) -> int:
+        """Evaluate small, domain-aware shape bonuses from one side's perspective."""
+        score = 0
+
+        for y in range(10):
+            for x in range(9):
+                piece = state.board[y * 9 + x]
+                if piece is None or piece.side is not side:
+                    continue
+
+                if piece.kind is PieceType.SOLDIER:
+                    progress = (y - 3) if side is Side.CHO else (6 - y)
+                    score += max(progress, 0) * SOLDIER_ADVANCE_BONUS
+                    distance_from_center = abs(x - 4)
+                    if distance_from_center == 0:
+                        score += SOLDIER_CENTER_BONUS
+                    elif distance_from_center == 1:
+                        score += SOLDIER_CENTER_BONUS // 2
+
+                elif piece.kind is PieceType.GUARD:
+                    if (3 <= x <= 5) and (
+                        (side is Side.CHO and 0 <= y <= 2)
+                        or (side is Side.HAN and 7 <= y <= 9)
+                    ):
+                        score += GUARD_PALACE_BONUS
+
         return score
