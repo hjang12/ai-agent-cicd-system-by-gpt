@@ -33,7 +33,8 @@ class TrainerApplication:
                 root_refinement_count=ENGINE_ROOT_REFINEMENT_COUNT,
             )
         )
-        self.analyzer = Analyzer(self.engine)
+        self.analysis_engine = NegamaxEngine(SearchConfig(depth=ENGINE_SEARCH_DEPTH))
+        self.analyzer = Analyzer(self.analysis_engine)
         self.training_metrics = TrainingSessionMetrics()
 
     def snapshot(self) -> dict[str, object]:
