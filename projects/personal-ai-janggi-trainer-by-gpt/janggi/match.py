@@ -76,7 +76,7 @@ class Match:
         """Return a new match with the most recent move removed."""
         if not self.state.history:
             raise ValueError("match has no moves to undo")
-        replay = GameState.initial(self.setup)
+        replay = GameState.initial(self.setup, starting_side=Side.HAN)
         for move in self.state.history[:-1]:
             replay = replay.apply(move)
         return Match(state=replay, setup=self.setup, rules=self.rules)
