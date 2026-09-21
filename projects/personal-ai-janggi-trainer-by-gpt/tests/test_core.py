@@ -154,12 +154,12 @@ class JanggiCoreTests(unittest.TestCase):
 
 class JanggiRecordTests(unittest.TestCase):
     def test_record_json_round_trip_and_replay(self):
-        moves = (Move((0, 3), (0, 4)), Move((0, 6), (0, 5)), Move((2, 3), (2, 4)))
+        moves = (Move((0, 6), (0, 5)), Move((0, 3), (0, 4)), Move((2, 6), (2, 5)))
         record = GameRecord(setup="classic", moves=moves, result="CHO_WIN", source="self-play")
         restored = GameRecord.from_json(record.to_json())
         self.assertEqual(restored, record)
         self.assertEqual(restored.replay().history, moves)
-        self.assertEqual(restored.replay().turn, Side.HAN)
+        self.assertEqual(restored.replay().turn, Side.CHO)
 
     def test_pass_round_trip(self):
         record = GameRecord(moves=(Move.pass_move(),), source="manual")
