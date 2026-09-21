@@ -41,7 +41,7 @@
 - Representative tactical regression fixtures for clean captures, protected exchanges, hanging pieces, non-immediate threats, and bounded double-attack threats
 - Bounded `double_attack` tactical motif signal kept separate from score-based severity
 - Human-record validation and training-data eligibility pipeline
-- Dependency-free negamax/alpha-beta search baseline
+- Dependency-free negamax/alpha-beta search baseline with evaluation v2 (calibrated material, soldier progress/centrality, palace-guard stability, bounded check pressure)
 - Capture-first and checking-move ordering, exact-result transposition caching, per-analysis evaluation caching, per-analysis check caching, and per-analysis legal-move caching in baseline search
 - History-independent checkmate scoring consistent with the search position-key semantics
 - Deterministic search-ordering benchmark comparing production forcing-move ordering with a coordinate-only reference
