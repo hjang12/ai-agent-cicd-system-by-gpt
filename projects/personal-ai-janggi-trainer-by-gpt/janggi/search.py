@@ -32,6 +32,7 @@ SOLDIER_CENTER_BONUS = 8
 class SearchConfig:
     depth: int = 2
     mobility_weight: int = 2
+    quiescence_depth: int = 1
     random_ties: bool = False
     seed: Optional[int] = None
 
@@ -40,6 +41,8 @@ class SearchConfig:
             raise ValueError("depth must be at least 1")
         if self.mobility_weight < 0:
             raise ValueError("mobility_weight must be non-negative")
+        if self.quiescence_depth < 0:
+            raise ValueError("quiescence_depth must be non-negative")
 
 
 class NegamaxEngine:
@@ -62,7 +65,7 @@ class NegamaxEngine:
 
     @property
     def info(self) -> EngineInfo:
-        return EngineInfo(name="negamax", version="2")
+        return EngineInfo(name="negamax", version="3")
 
     def choose_move(self, state: GameState) -> Move:
         analysis = self.analyze(state)
@@ -154,7 +157,12 @@ class NegamaxEngine:
             return result
 
         if depth <= 0:
-            result = (self._evaluate(state), ())
+            result = self._quiescence(
+                state,
+                self.config.quiescence_depth,
+                alpha,
+                beta,
+            )
             self._transposition[cache_key] = result
             return result
 
@@ -180,6 +188,69 @@ class NegamaxEngine:
         if not cutoff:
             self._transposition[cache_key] = result
         return result
+
+    def _quiescence(
+        self,
+        state: GameState,
+        depth: int,
+        alpha: int,
+        beta: int,
+    ) -> tuple[int, tuple[Move, ...]]:
+        """Extend leaf search through short forcing sequences only.
+
+        Quiet positions use stand-pat evaluation. Positions in check must search
+        all legal evasions; otherwise only captures and checks are extended.
+        """
+        self._nodes += 1
+        stand_pat = self._evaluate(state)
+
+        if depth <= 0:
+            return stand_pat, ()
+
+        if state.is_in_check(state.turn):
+            moves = self._ordered_moves(
+                state,
+                self._legal_moves(state, include_pass=False),
+            )
+        else:
+            moves = tuple(
+                move
+                for move in self._ordered_moves(
+                    state,
+                    self._legal_moves(state, include_pass=False),
+                )
+                if self._captured_value(state, move) > 0 or self._gives_check(state, move)
+            )
+
+        if not moves:
+            if state.is_in_check(state.turn):
+                return -MATE_SCORE, ()
+            return stand_pat, ()
+
+        best_score = stand_pat
+        best_pv: tuple[Move, ...] = ()
+        if stand_pat >= beta:
+            return stand_pat, ()
+        alpha = max(alpha, stand_pat)
+
+        for move in moves:
+            child = state.apply(move)
+            child_score, child_pv = self._quiescence(
+                child,
+                depth - 1,
+                -beta,
+                -alpha,
+            )
+            score = -child_score
+            if score > best_score:
+                best_score = score
+                best_pv = (move,) + child_pv
+            if score > alpha:
+                alpha = score
+            if alpha >= beta:
+                break
+
+        return best_score, best_pv
 
     def _ordered_moves(self, state: GameState, moves: tuple[Move, ...]) -> tuple[Move, ...]:
         """Prioritize captures, then checks, then stable source/destination order."""
