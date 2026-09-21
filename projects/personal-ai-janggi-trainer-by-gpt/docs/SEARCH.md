@@ -62,16 +62,16 @@ Baseline measurements on GitHub Actions (Python 3.12) for the production orderin
 
 | Fixture | Depth | Reference nodes | Production nodes | Node reduction |
 | --- | ---: | ---: | ---: | ---: |
-| initial | 2 | 131 | 131 | 0.00% |
+| initial | 2 | 144 | 144 | 0.00% |
 | capture | 2 | 50 | 43 | 14.00% |
-| capture | 3 | 490 | 378 | 22.86% |
+| capture | 3 | 536 | 393 | 26.68% |
 | check | 2 | 50 | 41 | 18.00% |
-| check | 3 | 619 | 487 | 21.32% |
+| check | 3 | 605 | 587 | 2.98% |
 | double_attack | 2 | 133 | 81 | 39.10% |
-| double_attack | 3 | 1032 | 896 | 13.18% |
+| double_attack | 3 | 1047 | 885 | 15.47% |
 | midgame | 2 | 262 | 108 | 58.78% |
-| endgame | 2 | 144 | 72 | 50.00% |
-| endgame | 3 | 2053 | 645 | 68.58% |
+| endgame | 2 | 140 | 72 | 48.57% |
+| endgame | 3 | 2073 | 635 | 69.37% |
 
 All measured positions preserved the reference minimax score. The `check` fixture still has deterministic best-move differences caused by equal-score tie ordering rather than a score change. The new midgame/endgame fixtures matched the reference best move at the measured depths.
 
