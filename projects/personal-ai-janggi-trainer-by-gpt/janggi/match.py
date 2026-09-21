@@ -89,7 +89,7 @@ class Match:
     def position_repetition_count(self) -> int:
         """Count occurrences of the current position from the starting position."""
         current = self.state.position_key()
-        replay = GameState.initial(self.setup)
+        replay = GameState.initial(self.setup, starting_side=Side.HAN)
         count = 1 if replay.position_key() == current else 0
         for move in self.state.history:
             replay = replay.apply(move)
