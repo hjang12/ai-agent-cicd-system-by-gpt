@@ -17,6 +17,7 @@ MAX_REVIEW_LIMIT = 60
 class ReviewEntry:
     ply: int
     side: Side
+    state: GameState
     move: Move
     analysis: MoveAnalysis
     insight: CoachingInsight
@@ -67,6 +68,7 @@ def review_record(
         entries.append(ReviewEntry(
             ply=ply,
             side=move_side,
+            state=move_state,
             move=move,
             analysis=analysis,
             insight=insight,

@@ -1,3 +1,42 @@
+## 26. 2026-09-21 — Position-based training problem generation
+
+### Requirement
+
+세션 복기에서 반복 실수 신호를 찾은 뒤, 이를 실제로 다시 풀 수 있는 학습 문제로 연결할 필요가 있었습니다. 다만 아직 persistence와 계정 모델이 없으므로 현재 세션에서만 재생 가능한 bounded interaction으로 제한했습니다.
+
+### Decision
+
+`ReviewEntry`가 각 착수의 pre-move `GameState`를 직접 보존하도록 확장하고, 별도 `janggi.training_problems` 계층이 비추천 착수를 포지션 문제로 변환하도록 했습니다.
+
+- `acceptable`, `inaccuracy`, `major_mistake`만 후보
+- 유효한 normalized engine recommendation이 있어야 함
+- 기본 5개, 최대 20개
+- 문제 생성은 Match 상태를 변경하지 않음
+- 정답은 기본 API 응답에서 숨김
+- 브라우저 제출은 `/api/training/answer`에서 다시 검증
+- persistence, mastery, streak, user profile은 도입하지 않음
+
+### Implementation
+
+- `ReviewEntry.state` 추가
+- `PositionTrainingProblem` 및 `generate_training_problems()` 추가
+- `POST /api/training/problems` 추가
+- `POST /api/training/answer` 추가
+- 브라우저에 `훈련 문제 만들기`와 실제 포지션 답안 입력 흐름 추가
+- 문제 생성 및 API/browser boundary 테스트 추가
+- `docs/TRAINING_PROBLEMS.md` 추가
+- Architecture, API, README, Current Status 동기화
+
+### Boundary
+
+훈련 문제는 개인 학습 interaction이지 모델 ground-truth dataset이 아닙니다. 사용자가 둔 수가 문제로 재사용되더라도 해당 수나 추천수가 persistence되거나 자동으로 training label로 승격되지는 않습니다.
+
+### Next Step
+
+실제 반복 문제를 여러 번 풀었을 때 학습 효과를 측정할 수 있는 최소한의 non-persistent session metric과, 그 결과를 저장할지 여부를 별도 요구사항으로 검토합니다.
+
+---
+
 ## 25. 2026-09-21 — Bounded session review and coaching aggregation
 
 ### Requirement

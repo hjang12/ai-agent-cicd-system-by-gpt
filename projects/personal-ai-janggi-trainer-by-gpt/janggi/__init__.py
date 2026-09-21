@@ -17,6 +17,7 @@ from .pipeline import RecordSource, RecordValidation, RecordValidator, TrainingD
 from .rating import RatingUpdate, expected_score, update_ratings
 from .record import GameRecord, state_from_dict, state_to_dict
 from .review import CoachingReview, ReviewEntry, review_record
+from .training_problems import PositionTrainingProblem, generate_training_problems
 from .search import NegamaxEngine, SearchConfig
 from .self_play import SelfPlayGenerator, SelfPlayResult, generate_self_play_game, generate_self_play_games
 from .tournament import EvaluationSummary, HeadToHeadTournament
@@ -28,6 +29,7 @@ __all__ = [
     "CoachingReason",
     "CoachingSeverity",
     "CoachingReview",
+    "PositionTrainingProblem",
     "Engine",
     "EngineAnalysis",
     "EngineInfo",
@@ -75,4 +77,5 @@ __all__ = [
     "validate_engine_analysis",
     "validate_engine_move",
     "review_record",
+    "generate_training_problems",
 ]
