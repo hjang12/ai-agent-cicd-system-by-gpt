@@ -58,7 +58,7 @@ class TrainingProblemTests(unittest.TestCase):
         )
 
     def test_generates_problem_from_non_recommended_move(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         move = state.legal_moves(include_pass=False)[0]
         recommended = state.legal_moves(include_pass=False)[1]
         review = self._review((
@@ -76,7 +76,7 @@ class TrainingProblemTests(unittest.TestCase):
         self.assertEqual(problems[0].side, Side.CHO)
 
     def test_skips_recommended_and_unavailable_entries(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         first = state.legal_moves(include_pass=False)[0]
         second = state.legal_moves(include_pass=False)[1]
         recommended_entry = self._entry(1, state, first, first, CoachingSeverity.RECOMMENDED)
@@ -93,7 +93,7 @@ class TrainingProblemTests(unittest.TestCase):
             generate_training_problems(review, max_problems=True)
 
     def test_problem_target_must_be_legal(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         illegal = Move((0, 0), (8, 9))
         with self.assertRaises(ValueError):
             PositionTrainingProblem(
@@ -111,7 +111,7 @@ class TrainingProblemTests(unittest.TestCase):
             )
 
     def test_adaptive_selection_prioritizes_low_accuracy_reasons(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         legal = state.legal_moves(include_pass=False)
         entries = (
             self._entry(1, state, legal[0], legal[1], CoachingSeverity.INACCURACY, CoachingReason.SCORE_DEVIATION),
@@ -146,7 +146,7 @@ class TrainingProblemTests(unittest.TestCase):
         )
 
     def test_adaptive_selection_prioritizes_repeated_problem_mistakes(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         legal = state.legal_moves(include_pass=False)
         entries = (
             self._entry(1, state, legal[0], legal[1], CoachingSeverity.INACCURACY, CoachingReason.SCORE_DEVIATION),
@@ -180,7 +180,7 @@ class TrainingProblemTests(unittest.TestCase):
         self.assertEqual([problem.problem_id for problem in selected], ["ply-3", "ply-2"])
 
     def test_adaptive_selection_bounds_repeated_mistake_share(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         legal = state.legal_moves(include_pass=False)
         entries = tuple(
             self._entry(
@@ -212,7 +212,7 @@ class TrainingProblemTests(unittest.TestCase):
         self.assertEqual(len(selected), 5)
 
     def test_adaptive_selection_mixes_unrepeated_reason_when_available(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         legal = state.legal_moves(include_pass=False)
         entries = (
             self._entry(1, state, legal[0], legal[1], CoachingSeverity.INACCURACY, CoachingReason.HANGING_PIECE),
@@ -248,7 +248,7 @@ class TrainingProblemTests(unittest.TestCase):
         self.assertEqual(len(selected), 3)
 
     def test_adaptive_selection_falls_back_to_recent_order_without_mistakes(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         legal = state.legal_moves(include_pass=False)
         entries = (
             self._entry(1, state, legal[0], legal[1], CoachingSeverity.INACCURACY),
