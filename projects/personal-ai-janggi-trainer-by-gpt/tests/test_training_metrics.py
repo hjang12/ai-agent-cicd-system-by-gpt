@@ -12,6 +12,8 @@ class TrainingMetricsTests(unittest.TestCase):
         self.assertEqual(metrics.unique_problems, 0)
         self.assertEqual(metrics.accuracy, 0.0)
         self.assertEqual(metrics.reason_attempts, ())
+        self.assertEqual(metrics.problem_attempts, ())
+        self.assertEqual(metrics.problem_incorrect, ())
 
     def test_records_attempts_and_reason_counts(self):
         session = TrainingSessionMetrics()
@@ -30,6 +32,8 @@ class TrainingMetricsTests(unittest.TestCase):
         self.assertEqual(snapshot.correct, 1)
         self.assertEqual(snapshot.incorrect, 1)
         self.assertEqual(snapshot.unique_problems, 1)
+        self.assertEqual(snapshot.problem_attempts, (("ply-3", 2),))
+        self.assertEqual(snapshot.problem_incorrect, (("ply-3", 1),))
         self.assertEqual(snapshot.accuracy, 0.5)
         self.assertEqual(
             snapshot.reason_attempts,
@@ -39,6 +43,18 @@ class TrainingMetricsTests(unittest.TestCase):
             snapshot.reason_correct,
             ((CoachingReason.HANGING_PIECE, 1),),
         )
+
+    def test_records_repeated_incorrect_problem_attempts(self):
+        session = TrainingSessionMetrics()
+        for correct in (False, False, True):
+            session.record_attempt(
+                problem_id="ply-7",
+                correct=correct,
+                reason_codes=(CoachingReason.HANGING_PIECE,),
+            )
+        snapshot = session.snapshot()
+        self.assertEqual(snapshot.problem_attempts, (("ply-7", 3),))
+        self.assertEqual(snapshot.problem_incorrect, (("ply-7", 2),))
 
     def test_reset_clears_session_metrics(self):
         session = TrainingSessionMetrics()

@@ -1,3 +1,39 @@
+## 30. 2026-09-21 — Repeated training-mistake prioritization
+
+### Requirement
+
+reason별 정확도만으로는 같은 포지션을 계속 틀리는 상황을 직접 표현하지 못합니다. 이미 legal training answer 결과가 세션에 존재하므로, 반복 오답 문제를 별도 영속 데이터 없이 바로 다음 문제 선택에 활용할 수 있습니다.
+
+### Decision
+
+세션 지표에 problem id별 시도 횟수와 오답 횟수를 추가하고, adaptive selector가 **반복 오답이 확인된 문제 → 오답이 있는 낮은 reason별 정확도** 순으로 기존 문제를 재정렬하도록 확장했습니다.
+
+- `problem_attempts` / `problem_incorrect`는 현재 세션에만 존재
+- 같은 문제를 여러 번 틀릴수록 해당 문제를 다음 문제 목록 앞쪽으로 이동
+- 반복 오답 문제가 없으면 기존 reason 기반 우선순위 사용
+- adaptive selection은 여전히 최대 20개 후보/기본 5개 문제 범위 내에서만 동작
+- persistence/mastery/학습 난이도 모델은 추가하지 않음
+
+### Implementation
+
+- `TrainingMetricsSnapshot`에 problem-level counts 추가
+- `adaptive_problem_priority()` 추가
+- `select_adaptive_training_problems()`에서 repeated mistake 우선 처리
+- `/api/training/problems`에 `priority_problem_ids` 추가
+- metrics 응답에 problem-level counts 노출
+- 브라우저 훈련 패널에 반복 오답 우선 메시지 표시
+- unit/API/browser contract 테스트 추가
+- `TRAINING_METRICS.md`, `TRAINING_PROBLEMS.md`, `API.md`, `CURRENT_STATUS.md` 동기화
+
+### Boundary
+
+반복 오답은 동일한 세션 내 legal answer 결과만으로 판정합니다. 이것을 장기적인 사용자 능력, 문제의 절대 난이도, 또는 model-training label로 해석하지 않습니다.
+
+### Next Step
+
+반복 오답 재출제 흐름이 실제 사용에서 지나치게 같은 문제에 고착되는지 확인하고, 필요할 때만 재노출 상한이나 다양성 정책을 설계합니다.
+
+---
 ## 29. 2026-09-21 — Session-local adaptive training problem selection
 
 ### Requirement

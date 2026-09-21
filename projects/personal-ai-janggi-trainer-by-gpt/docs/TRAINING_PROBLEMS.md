@@ -27,7 +27,7 @@ The problem object validates that the target move is legal from the stored posit
 
 ## API behavior
 
-`POST /api/training/problems` creates a bounded problem set from the current in-memory session. The endpoint considers up to 20 recent eligible problems, then selects at most the requested limit (default 5) by prioritizing reason codes with observed session mistakes and lower reason-specific accuracy. When no reason-specific mistake has been observed, the existing recent-first order is preserved. The target move is omitted by default so the browser can present an actual problem. Trusted/internal callers may request `include_solution=true`.
+`POST /api/training/problems` creates a bounded problem set from the current in-memory session. The endpoint considers up to 20 recent eligible problems, then selects at most the requested limit (default 5) by prioritizing repeatedly missed problem ids first, followed by reason codes with observed mistakes and lower reason-specific accuracy. When no reason-specific mistake has been observed, the existing recent-first order is preserved. The target move is omitted by default so the browser can present an actual problem. Trusted/internal callers may request `include_solution=true`.
 
 `POST /api/training/answer` checks an attempted move against the regenerated current problem definition. It does not mutate `Match` or create persistent training state.
 
@@ -35,4 +35,4 @@ The problem object validates that the target move is legal from the stored posit
 
 These problems are learning interactions, not ground-truth training labels. The recommended move comes from the existing normalized analysis contract, and a personal mistake does not become a model-training target merely because it generated a practice problem.
 
-Adaptive selection is session-local and reorders existing review-derived problems only. It does not create new evidence, infer mastery, or persist difficulty. Persistence, per-user problem history, streaks, mastery tracking, and learned difficulty remain separate future concerns.
+Adaptive selection is session-local and reorders existing review-derived problems only. Repeated-mistake priority comes directly from legal training-answer outcomes for the current problem id. It does not create new evidence, infer mastery, or persist difficulty. Persistence, per-user problem history, streaks, mastery tracking, and learned difficulty remain separate future concerns.

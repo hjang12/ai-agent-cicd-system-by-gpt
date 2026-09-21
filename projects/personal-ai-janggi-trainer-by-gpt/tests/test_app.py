@@ -225,6 +225,8 @@ class TrainerApplicationTests(unittest.TestCase):
 
         metrics = app.training_metrics_snapshot()
         self.assertEqual(metrics["reason_attempts"], {})
+        self.assertEqual(metrics["problem_attempts"], {})
+        self.assertEqual(metrics["problem_incorrect"], {})
 
         app.reset("classic")
         self.assertEqual(app.training_metrics_snapshot()["attempts"], 0)
@@ -242,8 +244,12 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("accuracy", html)
         self.assertIn("reasonAccuracySummary", html)
         self.assertIn("reason_correct", html)
+        self.assertIn("problem_incorrect", html)
         self.assertIn("priority_reason_codes", html)
-        self.assertIn("낮은 정답률로 관찰된", html)
+        self.assertIn("priority_problem_ids", html)
+        self.assertIn("반복 오답 문제", html)
+        self.assertIn("problem_incorrect", html)
+        self.assertIn("낮은 정답률 reason", html)
 
     def test_browser_session_review_contract_is_present(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
