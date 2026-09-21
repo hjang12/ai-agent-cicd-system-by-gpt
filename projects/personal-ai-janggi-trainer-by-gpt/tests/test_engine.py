@@ -17,7 +17,7 @@ class JanggiEngineTests(unittest.TestCase):
         self.assertEqual(engine.info, EngineInfo(name="first-legal", version="1"))
 
     def test_first_legal_engine_returns_legal_non_pass_move(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         engine = FirstLegalEngine()
         move = engine.choose_move(state)
         self.assertFalse(move.is_pass)
@@ -25,20 +25,20 @@ class JanggiEngineTests(unittest.TestCase):
         self.assertEqual(move, state.legal_moves(include_pass=False)[0])
 
     def test_validate_engine_move_rejects_illegal_result(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         illegal = Move((0, 3), (0, 2))
         with self.assertRaises(ValueError):
             validate_engine_move(FirstLegalEngine(), state, illegal)
 
     def test_analysis_uses_current_turn_as_perspective(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         analysis = FirstLegalEngine().analyze(state)
         self.assertIsInstance(analysis, EngineAnalysis)
         self.assertEqual(analysis.perspective, Side.CHO)
         self.assertEqual(analysis.best_move, state.legal_moves(include_pass=True)[0])
 
     def test_principal_variation_legality_is_checked_step_by_step(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         first = state.legal_moves(include_pass=False)[0]
         next_state = state.apply(first)
         second = next_state.legal_moves(include_pass=False)[0]
@@ -46,7 +46,7 @@ class JanggiEngineTests(unittest.TestCase):
         self.assertFalse(principal_variation_is_legal(state, (first, Move((0, 3), (0, 2)))))
 
     def test_validate_engine_analysis_suppresses_bad_perspective_and_metadata(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         move = state.legal_moves(include_pass=False)[0]
         analysis = EngineAnalysis(
             best_move=move,
@@ -66,7 +66,7 @@ class JanggiEngineTests(unittest.TestCase):
         self.assertIsNone(normalized.nodes)
         self.assertEqual(normalized.perspective, Side.CHO)
     def test_validate_engine_analysis_degrades_non_analysis_output(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
 
         normalized = validate_engine_analysis(state, None)
 
@@ -75,7 +75,7 @@ class JanggiEngineTests(unittest.TestCase):
         self.assertEqual(normalized.principal_variation, ())
         self.assertEqual(normalized.perspective, Side.CHO)
     def test_validate_engine_analysis_suppresses_illegal_best_move_and_pv(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         invalid_move = Move((0, 3), (0, 2))
         analysis = EngineAnalysis(
             best_move=invalid_move,
@@ -96,7 +96,7 @@ class JanggiEngineTests(unittest.TestCase):
         self.assertEqual(normalized.perspective, Side.CHO)
 
     def test_validate_engine_analysis_suppresses_pv_when_first_move_disagrees(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         best = state.legal_moves(include_pass=False)[0]
         alternative = state.legal_moves(include_pass=False)[1]
         analysis = EngineAnalysis(
@@ -112,7 +112,7 @@ class JanggiEngineTests(unittest.TestCase):
         self.assertEqual(normalized.principal_variation, ())
 
     def test_validate_engine_analysis_tolerates_null_principal_variation(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         move = state.legal_moves(include_pass=False)[0]
         analysis = EngineAnalysis(
             best_move=move,
@@ -125,7 +125,7 @@ class JanggiEngineTests(unittest.TestCase):
         self.assertEqual(normalized.best_move, move)
         self.assertEqual(normalized.principal_variation, ())
     def test_validate_engine_analysis_suppresses_pv_without_best_move(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         first = state.legal_moves(include_pass=False)[0]
         analysis = EngineAnalysis(
             best_move=None,
@@ -138,7 +138,7 @@ class JanggiEngineTests(unittest.TestCase):
         self.assertIsNone(normalized.best_move)
         self.assertEqual(normalized.principal_variation, ())
     def test_validate_engine_analysis_preserves_valid_analysis(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         first = state.legal_moves(include_pass=False)[0]
         next_state = state.apply(first)
         second = next_state.legal_moves(include_pass=False)[0]
