@@ -40,7 +40,7 @@ class Match:
 
     @classmethod
     def new(cls, setup: str = "classic", rules: Optional[RuleSet] = None) -> "Match":
-        return cls(GameState.initial(setup), setup, rules or RuleSet())
+        return cls(GameState.initial(setup, starting_side=Side.HAN), setup, rules or RuleSet())
 
     @property
     def status(self) -> GameStatus:
