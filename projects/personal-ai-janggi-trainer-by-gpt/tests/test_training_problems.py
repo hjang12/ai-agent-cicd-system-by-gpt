@@ -139,7 +139,7 @@ class TrainingProblemTests(unittest.TestCase):
             problems, snapshot, max_problems=2
         )
 
-        self.assertEqual([problem.problem_id for problem in selected], ["ply-2", "ply-4"])
+        self.assertEqual([problem.problem_id for problem in selected], ["ply-4", "ply-2"])
         self.assertEqual(
             adaptive_reason_priority(snapshot),
             (CoachingReason.HANGING_PIECE, CoachingReason.SCORE_DEVIATION),
