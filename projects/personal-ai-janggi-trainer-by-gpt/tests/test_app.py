@@ -217,6 +217,18 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("formatPrincipalVariation(result.principal_variation, result.perspective)", html)
         self.assertNotIn("move.src.join(',')", html)
 
+    def test_training_metrics_are_available_and_reset_with_match(self):
+        app = TrainerApplication()
+        initial = app.training_metrics_snapshot()
+        self.assertEqual(initial["attempts"], 0)
+        self.assertEqual(initial["accuracy"], 0.0)
+
+        metrics = app.training_metrics_snapshot()
+        self.assertEqual(metrics["reason_attempts"], {})
+
+        app.reset("classic")
+        self.assertEqual(app.training_metrics_snapshot()["attempts"], 0)
+
     def test_browser_position_training_contract_is_present(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn('id="training"', html)
@@ -225,6 +237,9 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("post('/api/training/answer', {", html)
         self.assertIn("포지션 훈련 문제 준비 완료", html)
         self.assertIn("훈련 정답", html)
+        self.assertIn("정답률", html)
+        self.assertIn("training_metrics", html)
+        self.assertIn("accuracy", html)
 
     def test_browser_session_review_contract_is_present(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
