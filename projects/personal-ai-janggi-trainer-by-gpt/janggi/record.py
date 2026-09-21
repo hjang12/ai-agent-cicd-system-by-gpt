@@ -18,7 +18,10 @@ class GameRecord:
     source: str = "unknown"
 
     def replay(self) -> GameState:
-        return _replay_moves(self.setup, self.moves)
+        state = GameState.initial(self.setup)
+        for move in self.moves:
+            state = state.apply(move)
+        return state
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -111,34 +114,14 @@ def state_from_dict(data: dict[str, Any], *, setup: Optional[str] = None) -> Gam
 
 
 def _validate_state_history(state: GameState, setup: str) -> None:
-    if not state.history:
-        if any(
-            GameState.initial(setup, starting_side=side).board == state.board
-            for side in (Side.HAN, Side.CHO)
-        ):
-            return
-        raise ValueError("serialized board does not match setup")
-
     try:
-        replayed = _replay_moves(setup, state.history)
+        replayed = GameState.initial(setup)
+        for move in state.history:
+            replayed = replayed.apply(move)
     except ValueError as exc:
         raise ValueError("serialized history cannot be replayed from setup") from exc
     if replayed.board != state.board or replayed.turn is not state.turn:
         raise ValueError("serialized board/turn does not match history")
-
-def _replay_moves(setup: str, moves: tuple[Move, ...]) -> GameState:
-    last_error: Optional[ValueError] = None
-    for starting_side in (Side.HAN, Side.CHO):
-        try:
-            state = GameState.initial(setup, starting_side=starting_side)
-            for move in moves:
-                state = state.apply(move)
-            return state
-        except ValueError as exc:
-            last_error = exc
-    if last_error is not None:
-        raise last_error
-    raise ValueError("moves cannot be replayed from setup")
 
 
 def _move_to_dict(move: Move) -> dict[str, Any]:
