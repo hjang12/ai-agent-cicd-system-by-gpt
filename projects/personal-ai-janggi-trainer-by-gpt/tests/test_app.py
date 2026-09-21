@@ -50,6 +50,33 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(snapshot["setup"], "left")
         self.assertEqual(snapshot["state"]["setup"], "left")
 
+    def test_snapshot_exposes_player_and_ai_sides(self):
+        app = TrainerApplication()
+        snapshot = app.snapshot()
+        self.assertEqual(snapshot["player_side"], "cho")
+        self.assertEqual(snapshot["ai_side"], "han")
+
+    def test_reset_can_select_han_and_ai_opens(self):
+        app = TrainerApplication()
+        snapshot = app.reset(player_side="han")
+        self.assertEqual(snapshot["player_side"], "han")
+        self.assertEqual(snapshot["ai_side"], "cho")
+        self.assertEqual(snapshot["state"]["turn"], "han")
+        self.assertEqual(len(snapshot["state"]["history"]), 1)
+
+    def test_han_player_turn_after_ai_opening(self):
+        app = TrainerApplication()
+        snapshot = app.reset(player_side="han")
+        move = snapshot["legal_moves"][0]
+        response = app.play_player_turn({"src": move["src"], "dst": move["dst"]})
+        self.assertEqual(response["snapshot"]["state"]["turn"], "han")
+        self.assertEqual(len(response["snapshot"]["state"]["history"]), 3)
+
+    def test_reset_rejects_unknown_player_side(self):
+        app = TrainerApplication()
+        with self.assertRaises(ValueError):
+            app.reset(player_side="unknown")
+
     def test_play_rejects_missing_coordinates(self):
         app = TrainerApplication()
         with self.assertRaises(ValueError):
