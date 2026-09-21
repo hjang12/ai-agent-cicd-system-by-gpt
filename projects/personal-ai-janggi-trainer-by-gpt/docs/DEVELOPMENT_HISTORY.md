@@ -1,3 +1,40 @@
+## 27. 2026-09-21 — Ephemeral training session metrics
+
+### Requirement
+
+포지션 훈련 기능이 실제 학습 interaction으로 이어지는지 최소한 측정할 수 있는 지표가 필요했습니다. 다만 persistence 요구사항이 아직 확정되지 않았기 때문에 현재 프로세스와 match 세션에만 한정했습니다.
+
+### Decision
+
+`janggi.training_metrics`를 별도 계층으로 두고 legal training answer 제출만 집계합니다.
+
+- attempts / correct / incorrect
+- unique problem count
+- accuracy
+- problem reason-code별 시도 수
+- `POST /api/reset`에서 metrics 초기화
+- filesystem/database/user profile에는 저장하지 않음
+
+### Implementation
+
+- `TrainingSessionMetrics`와 immutable `TrainingMetricsSnapshot` 추가
+- `/api/training/problems` 응답에 현재 metrics 포함
+- `/api/training/answer` 성공적인 legal attempt 후 metrics 갱신
+- `GET /api/training/metrics` 추가
+- 브라우저 훈련 패널에 현재 세션 정답률 표시
+- unit/API/browser contract 테스트 추가
+- `docs/TRAINING_METRICS.md` 추가
+
+### Boundary
+
+이 지표는 mastery나 learning gain을 의미하지 않으며, 모델 학습용 데이터나 사용자 프로필로 자동 승격되지 않습니다.
+
+### Next Step
+
+반복 문제를 여러 세션에서 비교할 필요가 실제로 확인될 때 persistence/계정 모델을 별도 요구사항으로 설계합니다.
+
+---
+
 ## 26. 2026-09-21 — Position-based training problem generation
 
 ### Requirement
