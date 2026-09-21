@@ -13,7 +13,7 @@ class StubAnalyzer:
 
 class ReviewTests(unittest.TestCase):
     def setUp(self):
-        initial = GameState.initial()
+        initial = GameState.initial(starting_side=Side.HAN)
         first = initial.legal_moves(include_pass=False)[0]
         after_first = initial.apply(first)
         second = after_first.legal_moves(include_pass=False)[0]
@@ -27,7 +27,7 @@ class ReviewTests(unittest.TestCase):
                 score_delta_cp=0,
                 depth=2,
                 nodes=10,
-                perspective=Side.CHO,
+                perspective=Side.HAN,
             ),
             after_first.position_key(): MoveAnalysis(
                 move=second,
@@ -64,7 +64,7 @@ class ReviewTests(unittest.TestCase):
         self.assertEqual(result.total_moves, 2)
         self.assertEqual(result.reviewed_moves, 1)
         self.assertEqual(result.skipped_moves, 0)
-        self.assertEqual(result.entries[0].ply, 1)
+        self.assertEqual(result.entries[0].ply, 2)
         self.assertEqual(result.entries[0].side, Side.CHO)
 
     def test_review_reports_skipped_matching_moves(self):

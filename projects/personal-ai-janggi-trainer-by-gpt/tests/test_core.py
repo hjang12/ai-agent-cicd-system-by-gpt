@@ -5,18 +5,20 @@ from janggi import GameRecord, GameState, Move, Piece, PieceType, Side, state_fr
 
 class JanggiCoreTests(unittest.TestCase):
     def test_initial_classic_setup_has_32_pieces(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         self.assertEqual(sum(piece is not None for piece in state.board), 32)
         self.assertEqual(state.turn, Side.CHO)
+        han_first = GameState.initial(starting_side=Side.HAN)
+        self.assertEqual(han_first.turn, Side.HAN)
         self.assertEqual(state.piece_at((4, 0)), Piece(Side.CHO, PieceType.GENERAL))
         self.assertEqual(state.piece_at((3, 0)), Piece(Side.CHO, PieceType.GUARD))
         self.assertEqual(state.piece_at((4, 9)), Piece(Side.HAN, PieceType.GENERAL))
 
     def test_setup_variants_move_elephant_and_horse(self):
-        classic = GameState.initial("classic")
-        left = GameState.initial("left")
-        right = GameState.initial("right")
-        both = GameState.initial("both")
+        classic = GameState.initial("classic", starting_side=Side.CHO)
+        left = GameState.initial("left", starting_side=Side.CHO)
+        right = GameState.initial("right", starting_side=Side.CHO)
+        both = GameState.initial("both", starting_side=Side.CHO)
         self.assertEqual(classic.piece_at((1, 0)).kind, PieceType.ELEPHANT)
         self.assertEqual(left.piece_at((1, 0)).kind, PieceType.HORSE)
         self.assertEqual(right.piece_at((7, 0)).kind, PieceType.HORSE)
@@ -94,14 +96,14 @@ class JanggiCoreTests(unittest.TestCase):
         self.assertNotIn(Move((4, 8), (3, 7)), state.pseudo_moves((4, 8)))
 
     def test_soldier_moves_forward_and_sideways(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         moves = state.pseudo_moves((0, 3))
         self.assertIn(Move((0, 3), (0, 4)), moves)
         self.assertIn(Move((0, 3), (1, 3)), moves)
         self.assertNotIn(Move((0, 3), (0, 2)), moves)
 
     def test_apply_changes_turn_and_history(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         move = Move((0, 3), (0, 4))
         next_state = state.apply(move)
         self.assertIsNone(next_state.piece_at((0, 3)))
@@ -110,7 +112,7 @@ class JanggiCoreTests(unittest.TestCase):
         self.assertEqual(next_state.history, (move,))
 
     def test_pass_changes_turn_without_board_change(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         next_state = state.apply(Move.pass_move())
         self.assertEqual(next_state.turn, Side.HAN)
         self.assertEqual(next_state.board, state.board)
@@ -145,45 +147,45 @@ class JanggiCoreTests(unittest.TestCase):
         self.assertFalse(state.is_in_check(Side.HAN))
 
     def test_position_key_changes_with_turn(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         same_board_opposite_turn = GameState(state.board, Side.HAN)
         self.assertNotEqual(state.position_key(), same_board_opposite_turn.position_key())
 
 
 class JanggiRecordTests(unittest.TestCase):
     def test_record_json_round_trip_and_replay(self):
-        moves = (Move((0, 3), (0, 4)), Move((0, 6), (0, 5)), Move((2, 3), (2, 4)))
+        moves = (Move((0, 6), (0, 5)), Move((0, 3), (0, 4)), Move((2, 6), (2, 5)))
         record = GameRecord(setup="classic", moves=moves, result="CHO_WIN", source="self-play")
         restored = GameRecord.from_json(record.to_json())
         self.assertEqual(restored, record)
         self.assertEqual(restored.replay().history, moves)
-        self.assertEqual(restored.replay().turn, Side.HAN)
+        self.assertEqual(restored.replay().turn, Side.CHO)
 
     def test_pass_round_trip(self):
         record = GameRecord(moves=(Move.pass_move(),), source="manual")
         restored = GameRecord.from_dict(record.to_dict())
         self.assertEqual(restored.moves, (Move.pass_move(),))
-        self.assertEqual(restored.replay().turn, Side.HAN)
+        self.assertEqual(restored.replay().turn, Side.CHO)
 
     def test_state_json_round_trip(self):
-        state = GameState.initial().apply(Move((0, 3), (0, 4)))
+        state = GameState.initial(starting_side=Side.CHO).apply(Move((0, 3), (0, 4)))
         restored = state_from_dict(state_to_dict(state))
         self.assertEqual(restored, state)
 
     def test_state_round_trip_preserves_setup_when_requested(self):
-        state = GameState.initial("left")
+        state = GameState.initial("left", starting_side=Side.CHO)
         restored = state_from_dict(state_to_dict(state, setup="left"))
         self.assertEqual(restored, state)
 
     def test_state_history_integrity_is_validated_with_setup(self):
-        state = GameState.initial().apply(Move((0, 3), (0, 4)))
+        state = GameState.initial(starting_side=Side.CHO).apply(Move((0, 3), (0, 4)))
         data = state_to_dict(state, setup="classic")
         data["board"][36] = "cho:chariot"
         with self.assertRaises(ValueError):
             state_from_dict(data)
 
     def test_state_setup_mismatch_is_rejected(self):
-        data = state_to_dict(GameState.initial("left"), setup="left")
+        data = state_to_dict(GameState.initial("left", starting_side=Side.CHO), setup="left")
         with self.assertRaises(ValueError):
             state_from_dict(data, setup="classic")
 

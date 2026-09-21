@@ -23,7 +23,7 @@ class ScriptedEngine:
 
 class AnalysisTests(unittest.TestCase):
     def test_analysis_marks_recommended_move(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         move = state.legal_moves(include_pass=False)[0]
         before = EngineAnalysis(best_move=move, score_cp=35, depth=7, nodes=1000, perspective=Side.CHO)
         after_state = state.apply(move)
@@ -47,7 +47,7 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(result.tactical_risk, TacticalRisk.NONE)
 
     def test_analysis_normalizes_score_to_mover_perspective(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         move = state.legal_moves(include_pass=False)[0]
         before = EngineAnalysis(best_move=move, score_cp=-10, perspective=Side.HAN)
         after_state = state.apply(move)
@@ -117,13 +117,13 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(result.tactical_risk, TacticalRisk.IMMEDIATE_CAPTURE)
 
     def test_analysis_rejects_illegal_move(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         illegal = Move((0, 3), (0, 2))
         with self.assertRaises(ValueError):
             Analyzer(ScriptedEngine({})).analyze_move(state, illegal)
 
     def test_invalid_engine_pv_is_suppressed(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         move = state.legal_moves(include_pass=False)[0]
         invalid_pv = (move, Move((0, 3), (0, 2)))
         before = EngineAnalysis(best_move=move, score_cp=12, principal_variation=invalid_pv, perspective=Side.CHO)
@@ -136,7 +136,7 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(result.principal_variation, ())
 
     def test_position_analysis_validates_principal_variation(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         move = state.legal_moves(include_pass=False)[0]
         expected = EngineAnalysis(best_move=move, score_cp=12, principal_variation=(move,), perspective=Side.CHO)
         engine = ScriptedEngine({state.position_key(): expected})

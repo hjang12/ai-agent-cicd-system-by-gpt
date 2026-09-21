@@ -134,7 +134,7 @@ class TrainingDatasetBuilder:
 
         final_outcome = _outcome_for_cho(validation.terminal_status)
         examples: list[TrainingExample] = []
-        state = GameState.initial(record.setup)
+        state = GameState.initial(record.setup, starting_side=Side.HAN)
         for move in record.moves:
             examples.append(
                 TrainingExample(

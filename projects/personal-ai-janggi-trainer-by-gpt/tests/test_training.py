@@ -31,8 +31,8 @@ class TrainingDatasetTests(unittest.TestCase):
 
         self.assertEqual(len(dataset), 2)
         self.assertTrue(all(example.outcome is Outcome.DRAW for example in dataset.examples))
-        self.assertEqual(dataset.examples[0].side_to_move, Side.CHO)
-        self.assertEqual(dataset.examples[1].side_to_move, Side.HAN)
+        self.assertEqual(dataset.examples[0].side_to_move, Side.HAN)
+        self.assertEqual(dataset.examples[1].side_to_move, Side.CHO)
 
     def test_outcome_conversion_covers_win_loss_and_draw(self):
         self.assertIs(_outcome_for_cho(GameStatus.CHO_WIN), Outcome.WIN)
@@ -88,7 +88,7 @@ class TrainingDatasetTests(unittest.TestCase):
 
         self.assertEqual(len(dataset), 2)
         self.assertTrue(all(example.setup == "left" for example in dataset.examples))
-        self.assertEqual(dataset.examples[0].state, GameState.initial("left"))
+        self.assertEqual(dataset.examples[0].state, GameState.initial("left", starting_side=Side.HAN))
 
         restored = TrainingDataset.from_dict(dataset.to_dict())
         self.assertEqual(restored, dataset)

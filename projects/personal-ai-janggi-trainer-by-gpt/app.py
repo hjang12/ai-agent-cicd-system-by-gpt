@@ -19,8 +19,8 @@ ROOT = Path(__file__).resolve().parent
 INDEX_HTML = ROOT / "index.html"
 ENGINE_SEARCH_DEPTH = 2
 ENGINE_ROOT_REFINEMENT_COUNT = 3
-DEFAULT_PLAYER_SIDE = Side.CHO
-DEFAULT_AI_SIDE = Side.HAN
+DEFAULT_PLAYER_SIDE = Side.HAN
+DEFAULT_AI_SIDE = Side.CHO
 
 
 class TrainerApplication:
@@ -68,7 +68,7 @@ class TrainerApplication:
             )
             return record.to_dict()
 
-    def reset(self, setup: str = "classic", player_side: str = "cho") -> dict[str, object]:
+    def reset(self, setup: str = "classic", player_side: str = "han") -> dict[str, object]:
         selected_side = self._side_from_value(player_side)
         with self._lock:
             self.player_side = selected_side
@@ -504,7 +504,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             if path == "/api/reset":
                 payload = self._read_json()
                 setup = payload.get("setup", "classic")
-                player_side = payload.get("player_side", "cho")
+                player_side = payload.get("player_side", "han")
                 if not isinstance(setup, str):
                     raise ValueError("setup must be a string")
                 if not isinstance(player_side, str):

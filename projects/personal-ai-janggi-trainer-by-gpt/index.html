@@ -34,17 +34,22 @@
     .training-result { margin-top:10px; padding:10px; border-radius:8px; background:#243b32; }
     .step { padding:12px 0; border-bottom:1px solid #42554c; } .step:last-child { border-bottom:0; }
     @media(max-width:760px){
-      main { padding:16px 12px 28px; }
-      .workspace { grid-template-columns:1fr; gap:14px; margin-top:18px; }
-      .board { order:-1; }
-      .panel { padding:14px; border-radius:12px; }
-      .board { max-width:560px; padding:5px; border-width:5px; }
-      .cell { font-size:clamp(18px,8vw,30px); }
-      button, select { min-height:46px; }
-      h1 { font-size:clamp(2rem,12vw,3.4rem); }
-      .lead { font-size:.95rem; }
-      .step { font-size:.9rem; }
-      .analysis, .review, .training { padding:13px; }
+      :root { color-scheme:dark; }
+      body { overflow-x:hidden; overscroll-behavior-y:none; }
+      main { max-width:none; padding:12px 10px 24px; }
+      .eyebrow, .lead { display:none; }
+      h1 { font-size:clamp(1.6rem,8vw,2.2rem); margin:.1em 0 .35em; }
+      .workspace { display:flex; flex-direction:column; gap:12px; margin-top:8px; }
+      .board { order:0; width:min(94vw,560px); max-width:none; margin:0 auto; padding:4px; border-width:4px; }
+      .cell { font-size:clamp(19px,8vw,31px); line-height:1; padding:0; }
+      .panel { order:1; padding:12px; border-radius:12px; }
+      .panel > label, .panel > select, .panel > button { width:100%; }
+      .panel > select { min-height:44px; }
+      .panel > button { min-height:48px; margin-top:7px; }
+      .analysis, .review, .training { padding:11px; }
+      .analysis-row { gap:8px; }
+      .analysis-pv strong { word-break:break-word; }
+      .step { padding:9px 0; font-size:.88rem; }
     }
   </style>
 </head>
@@ -59,9 +64,9 @@
         <h2 id="heading">대국 준비</h2>
         <p class="status" id="status">현재 대국 상태를 불러오는 중입니다…</p>
         <div class="meta" id="turn"></div>
-        <label for="player-side">내 진영 · 새 대국 시작 시 적용</label>
+        <label for="player-side">내 진영 · 선택한 진영이 화면 아래쪽</label>
         <select id="player-side" aria-label="내 진영">
-          <option value="cho">초</option><option value="han">한</option>
+          <option value="han">한</option><option value="cho">초</option>
         </select>
         <label for="setup">장기판 배치</label>
         <select id="setup" aria-label="장기판 배치">
@@ -207,7 +212,7 @@
     }
 
     function displayToState(x, y) {
-      return boardSide() === 'han' ? [8 - x, 9 - y] : [x, y];
+      return boardSide() === 'cho' ? [8 - x, 9 - y] : [x, y];
     }
 
     function samePosition(a, b) {
@@ -478,6 +483,9 @@
           const cell = document.createElement('button');
           cell.className = 'cell';
           cell.type = 'button';
+          cell.setAttribute('aria-label', piece
+            ? `${sideLabels[piece.side] || piece.side} ${pieceLabels[piece.kind] || piece.kind} ${formatPosition([stateX, stateY])}`
+            : `빈 칸 ${formatPosition([stateX, stateY])}`);
           const piece = pieceAt(index);
           if (piece) {
             cell.textContent = pieceLabels[piece.kind] || '?';
@@ -495,7 +503,9 @@
         : '현재 차례: ' + (sideLabels[turnSide] || turnSide);
       status.textContent = trainingPosition
         ? '포지션 훈련 중'
-        : '대국 상태: ' + (statusLabels[view.status] || view.status);
+        : (view.state.turn === snapshot.player_side
+          ? '내 차례 · 말을 선택하세요'
+          : 'AI 차례 · 응수를 기다리는 중입니다');
       orientationNote.textContent = boardSide() === 'han'
         ? '한이 화면 아래쪽입니다.'
         : '초가 화면 아래쪽입니다.';
@@ -508,8 +518,8 @@
       snapshot = await response.json();
       playerSide.value = snapshot.player_side || 'cho';
       orientationNote.textContent = boardSide() === 'han'
-        ? '한이 화면 아래쪽입니다. 초가 위에서 먼저 응수합니다.'
-        : '초가 화면 아래쪽입니다. 한이 위에서 응수합니다.';
+        ? '한이 화면 아래쪽입니다. 한이 먼저 둡니다.'
+        : '초가 화면 아래쪽입니다. 한이 위에서 먼저 둡니다.';
       clearTrainingMode();
       selected = null;
       render();
@@ -609,8 +619,8 @@
 
     playerSide.addEventListener('change', () => {
       orientationNote.textContent = playerSide.value === 'han'
-        ? '한이 화면 아래쪽입니다. 초기화하면 초가 먼저 둡니다.'
-        : '초가 화면 아래쪽입니다. 초기화하면 한이 먼저 응수합니다.';
+        ? '한이 화면 아래쪽입니다. 한이 먼저 둡니다.'
+        : '초가 화면 아래쪽입니다. 한이 먼저 응수합니다.';
     });
 
     reset.addEventListener('click', async () => {
