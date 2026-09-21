@@ -28,6 +28,10 @@
     .review-list { margin:10px 0 0; padding:0; list-style:none; }
     .review-list li { padding:9px 0; border-top:1px solid #42554c; }
     .review-reason { color:var(--accent); font-weight:700; }
+    .training { margin-top:18px; padding:16px; border:1px solid #8a6736; border-radius:12px; background:#1b2c26; }
+    .training-list { margin:10px 0 0; padding:0; list-style:none; }
+    .training-list li { border-top:1px solid #42554c; padding:9px 0; }
+    .training-result { margin-top:10px; padding:10px; border-radius:8px; background:#243b32; }
     .step { padding:12px 0; border-bottom:1px solid #42554c; } .step:last-child { border-bottom:0; }
     @media(max-width:760px){.workspace{grid-template-columns:1fr}.board{max-width:520px}}
   </style>
@@ -49,6 +53,7 @@
         <button class="secondary" id="reset">대국 초기화</button>
         <button class="secondary" id="undo" disabled>한 수 되돌리기</button>
         <button class="secondary" id="review" disabled>최근 대국 복기</button>
+        <button class="secondary" id="training" disabled>훈련 문제 만들기</button>
         <button class="primary" id="engine">기준 엔진으로 수 두기</button>
         <div class="analysis" id="analysis" hidden>
           <h3>착수 분석</h3>
@@ -73,6 +78,12 @@
           </div>
           <div class="meta" style="margin-top:12px">주의가 필요한 최근 착수</div>
           <ul class="review-list" id="review-details"></ul>
+        </div>
+        <div class="training" id="training-panel" hidden>
+          <h3>포지션 훈련</h3>
+          <div class="meta" id="training-summary"></div>
+          <ul class="training-list" id="training-list"></ul>
+          <div class="training-result" id="training-result" hidden></div>
         </div>
         <div class="step"><strong>1. 장기판</strong><br>내 차례가 되면 말을 하나 선택한 뒤, 밝게 표시된 칸으로 이동하세요.</div>
         <div class="step"><strong>2. 착수 분석</strong><br>수를 두면 현재 기준 엔진 평가와 전술 위험, 제한적인 다음 수 전술 경고를 함께 확인합니다.</div>
@@ -126,6 +137,7 @@
     const undo = document.querySelector('#undo');
     const engine = document.querySelector('#engine');
     const review = document.querySelector('#review');
+    const training = document.querySelector('#training');
     const analysisPanel = document.querySelector('#analysis');
     const reviewPanel = document.querySelector('#review-panel');
     const severity = document.querySelector('#severity');
@@ -143,12 +155,24 @@
     const reviewReasons = document.querySelector('#review-reasons');
     const reviewSeverity = document.querySelector('#review-severity');
     const reviewDetails = document.querySelector('#review-details');
+    const trainingPanel = document.querySelector('#training-panel');
+    const trainingSummary = document.querySelector('#training-summary');
+    const trainingList = document.querySelector('#training-list');
+    const trainingResult = document.querySelector('#training-result');
     let snapshot = null;
     let selected = null;
     let busy = false;
+    let trainingProblems = [];
+    let activeTrainingProblem = null;
+    let trainingPosition = null;
+
+    function currentPosition() {
+      return trainingPosition || snapshot;
+    }
 
     function pieceAt(index) {
-      const code = snapshot.state.board[index];
+      const view = currentPosition();
+      const code = view.state.board[index];
       if (!code) return null;
       const [side, kind] = code.split(':');
       return {side, kind};
@@ -159,11 +183,13 @@
     }
 
     function legalDestination(src, dst) {
-      return snapshot.legal_moves.some(move => !move.pass && samePosition(move.src, src) && samePosition(move.dst, dst));
+      const view = currentPosition();
+      return view.legal_moves.some(move => !move.pass && samePosition(move.src, src) && samePosition(move.dst, dst));
     }
 
     function legalDestinations(src) {
-      return new Set(snapshot.legal_moves.filter(move => !move.pass && samePosition(move.src, src)).map(move => JSON.stringify(move.dst)));
+      const view = currentPosition();
+      return new Set(view.legal_moves.filter(move => !move.pass && samePosition(move.src, src)).map(move => JSON.stringify(move.dst)));
     }
 
     function formatPosition(position) {
@@ -202,9 +228,84 @@
       undo.disabled = busy || !hasHistory;
       engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== 'han';
       review.disabled = busy || !hasHistory;
+      training.disabled = busy || !hasHistory;
       setup.disabled = busy;
     }
 
+    function clearTrainingMode() {
+      trainingProblems = [];
+      activeTrainingProblem = null;
+      trainingPosition = null;
+      selected = null;
+      trainingPanel.hidden = true;
+      trainingResult.hidden = true;
+      trainingResult.textContent = '';
+    }
+
+    function renderTrainingProblems(result) {
+      trainingProblems = result.problems || [];
+      activeTrainingProblem = null;
+      trainingPosition = null;
+      selected = null;
+      trainingPanel.hidden = false;
+      trainingSummary.textContent = result.problem_count
+        ? '복기에서 다시 풀어볼 수 있는 문제 ' + result.problem_count + '개가 생성되었습니다.'
+        : '현재 복기 구간에서 생성할 훈련 문제가 없습니다.';
+      trainingResult.hidden = true;
+      trainingResult.textContent = '';
+      trainingList.innerHTML = '';
+      if (!trainingProblems.length) return;
+      trainingProblems.forEach((problem, index) => {
+        const item = document.createElement('li');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'secondary';
+        button.textContent = (index + 1) + '. ' + (severityLabels[problem.severity] || problem.severity) + ' · ' + problem.prompt;
+        button.addEventListener('click', () => selectTrainingProblem(index));
+        item.append(button);
+        trainingList.append(item);
+      });
+    }
+
+    function selectTrainingProblem(index) {
+      activeTrainingProblem = trainingProblems[index];
+      if (!activeTrainingProblem) return;
+      trainingPosition = {
+        status: 'playing',
+        state: activeTrainingProblem.state,
+        legal_moves: activeTrainingProblem.legal_moves
+      };
+      selected = null;
+      trainingResult.hidden = true;
+      trainingResult.textContent = '';
+      heading.textContent = '포지션 훈련 · ' + activeTrainingProblem.prompt;
+      status.textContent = '이 포지션에서 더 나은 수를 찾아보세요.';
+      render();
+    }
+
+    function renderTrainingAnswer(result) {
+      trainingResult.hidden = false;
+      trainingResult.textContent = result.correct
+        ? '정답입니다. ' + result.message
+        : (result.legal ? '아쉽습니다. 추천수는 ' + formatMove(result.target_move) + ' 입니다.' : result.message);
+    }
+
+    async function startTrainingProblems() {
+      if (busy || !snapshot?.state?.history?.length) return;
+      busy = true;
+      updateControls();
+      try {
+        status.textContent = '복기에서 훈련 문제를 만드는 중입니다…';
+        const result = await post('/api/training/problems', {review_limit: 20, problem_limit: 5});
+        renderTrainingProblems(result);
+        heading.textContent = '포지션 훈련 문제 준비 완료';
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        busy = false;
+        updateControls();
+      }
+    }
     function renderAnalysis(result, coaching) {
       if (!result || !coaching) { analysisPanel.hidden = true; nextAction.hidden = true; return; }
       analysisPanel.hidden = false;
@@ -297,6 +398,7 @@
     }
 
     function render() {
+      const view = currentPosition();
       board.innerHTML = '';
       const destinations = selected ? legalDestinations(selected) : new Set();
       for (let y = 0; y < 10; y += 1) {
@@ -316,8 +418,13 @@
           board.append(cell);
         }
       }
-      turn.textContent = `현재 차례: ${sideLabels[snapshot.state.turn] || snapshot.state.turn}`;
-      status.textContent = `대국 상태: ${statusLabels[snapshot.status] || snapshot.status}`;
+      const turnSide = view.state.turn;
+      turn.textContent = trainingPosition
+        ? '훈련 문제 차례: ' + (sideLabels[turnSide] || turnSide)
+        : '현재 차례: ' + (sideLabels[turnSide] || turnSide);
+      status.textContent = trainingPosition
+        ? '포지션 훈련 중'
+        : '대국 상태: ' + (statusLabels[view.status] || view.status);
       updateControls();
     }
 
@@ -325,6 +432,7 @@
       const response = await fetch('/api/state', {cache:'no-store'});
       if (!response.ok) throw new Error(`대국 상태 요청 실패 (${response.status})`);
       snapshot = await response.json();
+      clearTrainingMode();
       selected = null;
       render();
     }
@@ -337,7 +445,8 @@
     }
 
     async function clickCell(x, y) {
-      if (busy || snapshot.status !== 'playing') return;
+      const view = currentPosition();
+      if (busy || view.status !== 'playing') return;
       const current = pieceAt(y * 9 + x);
       if (!selected) {
         if (current && current.side === snapshot.state.turn) {
@@ -358,10 +467,24 @@
       updateControls();
       try {
         const move = {src:selected, dst:[x, y]};
+        if (trainingPosition && activeTrainingProblem) {
+          status.textContent = '훈련 답안을 확인하는 중입니다…';
+          const result = await post('/api/training/answer', {
+            problem_id: activeTrainingProblem.problem_id,
+            src: move.src,
+            dst: move.dst
+          });
+          renderTrainingAnswer(result);
+          selected = null;
+          render();
+          heading.textContent = result.correct ? '훈련 정답' : '훈련 다시 보기';
+          return;
+        }
         status.textContent = '착수를 분석하는 중입니다…';
         const result = await post('/api/analyze/move', move);
         renderAnalysis(result.analysis, result.coaching);
         snapshot = await post('/api/move', move);
+        clearTrainingMode();
         renderReview(null);
         heading.textContent = snapshot.status === 'playing'
           ? (result.coaching.severity === 'recommended' ? '좋은 수입니다 · 상대 차례' : '착수 분석 완료 · 상대 차례')
@@ -375,6 +498,8 @@
         updateControls();
       }
     }
+
+    training.addEventListener('click', startTrainingProblems);
 
     review.addEventListener('click', async () => {
       if (busy || !snapshot?.state?.history?.length) return;
@@ -396,7 +521,7 @@
     reset.addEventListener('click', async () => {
       busy = true;
       updateControls();
-      try { snapshot = await post('/api/reset', {setup:setup.value}); heading.textContent = '대국이 초기화되었습니다'; selected = null; renderAnalysis(null, null); renderReview(null); render(); }
+      try { snapshot = await post('/api/reset', {setup:setup.value}); heading.textContent = '대국이 초기화되었습니다'; clearTrainingMode(); selected = null; renderAnalysis(null, null); renderReview(null); render(); }
       catch (error) { status.textContent = error.message; }
       finally { busy = false; updateControls(); }
     });
@@ -408,6 +533,7 @@
       try {
         status.textContent = '마지막 수를 되돌리는 중입니다…';
         snapshot = await post('/api/undo', {});
+        clearTrainingMode();
         heading.textContent = '한 수 되돌리기 완료';
         selected = null;
         renderAnalysis(null, null);
@@ -427,6 +553,7 @@
         status.textContent = '엔진이 수를 계산하는 중입니다…';
         const response = await post('/api/engine/move', {});
         snapshot = response.snapshot;
+        clearTrainingMode();
         renderReview(null);
         heading.textContent = snapshot.status === 'playing'
           ? (response.analysis.best_move ? '엔진이 수를 두었습니다 · 내 차례' : '엔진 수가 없습니다 · 내 차례')
