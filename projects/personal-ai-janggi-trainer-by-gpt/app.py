@@ -46,6 +46,7 @@ class TrainerApplication:
                 "setup": self.match.setup,
                 "player_side": self.player_side.value,
                 "ai_side": self.ai_side.value,
+                "can_undo": self.can_undo(),
                 "state": state_to_dict(self.match.state, setup=self.match.setup),
                 "legal_moves": [
                     {"src": list(move.src) if move.src is not None else None,
@@ -113,13 +114,24 @@ class TrainerApplication:
 
     def undo(self) -> dict[str, object]:
         with self._lock:
-            if not self.match.state.history:
-                raise ValueError("cannot undo without move history")
+            if not self.can_undo():
+                raise ValueError("cannot undo before the player's first move")
             last_move_was_ai = self.match.state.turn is self.player_side
             self.match = self.match.undo()
             if last_move_was_ai and self.match.state.history:
                 self.match = self.match.undo()
             return self.snapshot()
+
+    def can_undo(self) -> bool:
+        if not self.match.state.history:
+            return False
+        if (
+            self.player_side is Side.HAN
+            and len(self.match.state.history) == 1
+            and self.match.state.turn is self.player_side
+        ):
+            return False
+        return True
 
     def analyze_move(self, payload: dict[str, object]) -> dict[str, object]:
         move = self._move_from_payload(payload)

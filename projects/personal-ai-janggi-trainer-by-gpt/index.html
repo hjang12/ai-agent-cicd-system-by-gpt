@@ -36,7 +36,8 @@
     @media(max-width:760px){
       main { padding:16px 12px 28px; }
       .workspace { grid-template-columns:1fr; gap:14px; margin-top:18px; }
-      .panel { order:-1; padding:14px; border-radius:12px; }
+      .board { order:-1; }
+      .panel { padding:14px; border-radius:12px; }
       .board { max-width:560px; padding:5px; border-width:5px; }
       .cell { font-size:clamp(18px,8vw,30px); }
       button, select { min-height:46px; }
@@ -254,10 +255,10 @@
     }
 
     function updateControls() {
-      const hasHistory = Boolean(snapshot?.state?.history?.length);
+      const canUndo = Boolean(snapshot?.can_undo);
       reset.disabled = busy;
-      undo.disabled = busy || !hasHistory;
-      engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== 'han';
+      undo.disabled = busy || !canUndo;
+      engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== snapshot?.ai_side;
       review.disabled = busy || !hasHistory;
       training.disabled = busy || !hasHistory;
       setup.disabled = busy;
@@ -458,7 +459,7 @@
         : `${formatDelta(result.score_cp)} cp (${sideLabels[result.perspective] || result.perspective || '기준'} 기준)`;
       tacticalRisk.textContent = '엔진 착수 자체는 일반 전술 경고를 표시하지 않음';
       tacticalMotif.textContent = '없음';
-      pv.textContent = formatPrincipalVariation(result.principal_variation);
+      pv.textContent = formatPrincipalVariation(result.principal_variation, result.perspective);
       analysisNote.textContent = result.best_move
         ? '기준 엔진이 선택한 수입니다.'
           + (result.depth ? ` 탐색 깊이 ${result.depth}.` : '')
@@ -534,17 +535,17 @@
         }
         return;
       }
-      if (selected[0] === x && selected[1] === y) {
+      if (selected[0] === stateX && selected[1] === stateY) {
         selected = null; render(); return;
       }
-      if (!legalDestination(selected, [x, y])) {
+      if (!legalDestination(selected, [stateX, stateY])) {
         status.textContent = '그 칸으로는 이동할 수 없습니다.';
         return;
       }
       busy = true;
       updateControls();
       try {
-        const move = {src:selected, dst:[x, y]};
+        const move = {src:selected, dst:[stateX, stateY]};
         if (trainingPosition && activeTrainingProblem) {
           status.textContent = '훈련 답안을 확인하는 중입니다…';
           const result = await post('/api/training/answer', {
