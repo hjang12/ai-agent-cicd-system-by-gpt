@@ -34,3 +34,5 @@ jobs:
           python-version: '3.12'
       - name: Run search ordering benchmark
         run: PYTHONPATH=. python tools/benchmark_search_ordering.py
+      - name: Run selective deepening probe
+        run: PYTHONPATH=. python tools/benchmark_selective_deepening.py
