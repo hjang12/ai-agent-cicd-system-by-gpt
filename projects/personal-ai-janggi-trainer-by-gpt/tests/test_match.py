@@ -4,6 +4,10 @@ from janggi import GameState, GameStatus, Match, Move, Piece, PieceType, RuleSet
 
 
 class JanggiMatchTests(unittest.TestCase):
+    def test_new_match_starts_with_han(self):
+        match = Match.new()
+        self.assertEqual(match.state.turn, Side.HAN)
+
     def test_new_match_is_playing(self):
         match = Match.new()
         self.assertEqual(match.status, GameStatus.PLAYING)
