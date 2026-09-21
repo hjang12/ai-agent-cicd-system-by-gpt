@@ -162,6 +162,10 @@ Returns the current in-memory training-session metrics without changing the acti
   "reason_attempts": {
     "hanging_piece": 2,
     "score_deviation": 4
+  },
+  "reason_correct": {
+    "hanging_piece": 1,
+    "score_deviation": 2
   }
 }
 ```
