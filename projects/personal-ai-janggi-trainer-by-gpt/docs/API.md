@@ -134,6 +134,38 @@ The limit defaults to 20 and is bounded to 60. The response aggregates stable co
 
 Review is intentionally on-demand and non-persistent. It replays the authoritative `GameRecord` and therefore preserves the same legality boundary as the normal game flow.
 
+### `POST /api/training/problems`
+
+Builds bounded, non-persistent position-training problems from the current learner-side review.
+
+Optional JSON body:
+
+```json
+{"review_limit":20,"problem_limit":5}
+```
+
+The endpoint returns each problem's complete pre-move position, legal moves, original learner move, conservative severity/reason codes, prompt, explanation, and next action. The recommended target move is intentionally omitted by default so the browser can present the position as a problem instead of immediately revealing the answer.
+
+Set `include_solution` to `true` for trusted/internal consumers that need the target move.
+
+### `POST /api/training/answer`
+
+Checks one attempted move against a generated problem without mutating the active match.
+
+Request:
+
+```json
+{
+  "problem_id":"ply-7",
+  "src":[0,3],
+  "dst":[0,4]
+}
+```
+
+The response reports whether the move was legal and matched the current recommendation, and returns the target move and coaching guidance. This is an in-memory learning interaction; no training score, account state, or persistent history is created.
+
+Training problems are generated only from reviewed moves that are `acceptable`, `inaccuracy`, or `major_mistake` and have a valid engine recommendation. `recommended` and `unavailable` review entries are not converted into problems.
+
 ## Session scope
 
 The current server keeps one in-memory match per process. It is intentionally an MVP application boundary, not yet a persistent multi-user service. Authentication, databases, sessions, and concurrent-user isolation remain future application-layer concerns.
