@@ -8,7 +8,7 @@ from pathlib import Path
 from threading import RLock
 from urllib.parse import urlparse
 
-from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, adaptive_reason_priority, coach_move, generate_training_problems, review_record, select_adaptive_training_problems, state_to_dict
+from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, adaptive_problem_priority, adaptive_reason_priority, coach_move, generate_training_problems, review_record, select_adaptive_training_problems, state_to_dict
 from janggi.review import DEFAULT_REVIEW_LIMIT
 from janggi.training_metrics import TrainingSessionMetrics
 from janggi.training_problems import DEFAULT_PROBLEM_LIMIT, MAX_PROBLEM_LIMIT
@@ -140,6 +140,7 @@ class TrainerApplication:
                 "reviewed_moves": review.reviewed_moves,
                 "problem_count": len(problems),
                 "priority_reason_codes": [reason.value for reason in adaptive_reason_priority(metrics)],
+                "priority_problem_ids": list(adaptive_problem_priority(metrics)),
                 "problems": [_training_problem_to_dict(problem, include_solution=include_solution) for problem in problems],
                 "metrics": _training_metrics_to_dict(metrics),
             }
@@ -301,6 +302,8 @@ def _training_metrics_to_dict(metrics: object) -> dict[str, object]:
         "incorrect": getattr(metrics, "incorrect", 0),
         "unique_problems": getattr(metrics, "unique_problems", 0),
         "accuracy": getattr(metrics, "accuracy", 0.0),
+        "problem_attempts": dict(getattr(metrics, "problem_attempts", ())),
+        "problem_incorrect": dict(getattr(metrics, "problem_incorrect", ())),
         "reason_attempts": {
             reason.value: count
             for reason, count in getattr(metrics, "reason_attempts", ())
