@@ -57,6 +57,10 @@ Training examples are produced only from records accepted by the validation pipe
 
 `CoachingReview` replays a current personal session and preserves each learner move's pre-move `GameState`. `training_problems.py` converts only non-recommended review entries with a valid recommendation into bounded position-training problems. The problem layer is non-persistent and does not redefine engine truth: the recommended move remains derived from the existing normalized analysis contract.
 
+### Training interaction metrics: `janggi/training_metrics.py`
+
+`TrainingSessionMetrics` is a process-local measurement boundary for legal training attempts. It records attempts, correctness, unique problem identifiers, accuracy, and reason-code attempt counts. It is deliberately separate from the persistent training-data pipeline and is reset with the active match.
+
 ### Model metadata: `janggi/model.py`
 
 `ModelSpec` and `ModelRegistry` store stable model identity and metadata only. Engine instances are not stored in the registry. This keeps model selection separate from execution and search implementation.

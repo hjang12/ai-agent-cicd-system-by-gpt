@@ -148,6 +148,26 @@ The endpoint returns each problem's complete pre-move position, legal moves, ori
 
 Set `include_solution` to `true` for trusted/internal consumers that need the target move.
 
+### `GET /api/training/metrics`
+
+Returns the current in-memory training-session metrics without changing the active match.
+
+```json
+{
+  "attempts": 4,
+  "correct": 2,
+  "incorrect": 2,
+  "unique_problems": 3,
+  "accuracy": 0.5,
+  "reason_attempts": {
+    "hanging_piece": 2,
+    "score_deviation": 4
+  }
+}
+```
+
+`attempts` counts legal training answers submitted. Metrics reset with `POST /api/reset` and are never persisted.
+
 ### `POST /api/training/answer`
 
 Checks one attempted move against a generated problem without mutating the active match.
