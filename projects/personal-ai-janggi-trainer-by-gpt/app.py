@@ -19,13 +19,15 @@ ROOT = Path(__file__).resolve().parent
 INDEX_HTML = ROOT / "index.html"
 ENGINE_SEARCH_DEPTH = 2
 ENGINE_ROOT_REFINEMENT_COUNT = 3
-PLAYER_SIDE = Side.CHO
-AI_SIDE = Side.HAN
+DEFAULT_PLAYER_SIDE = Side.CHO
+DEFAULT_AI_SIDE = Side.HAN
 
 
 class TrainerApplication:
     def __init__(self) -> None:
         self._lock = RLock()
+        self.player_side = DEFAULT_PLAYER_SIDE
+        self.ai_side = DEFAULT_AI_SIDE
         self.match = Match.new()
         self.engine = NegamaxEngine(
             SearchConfig(
@@ -42,6 +44,8 @@ class TrainerApplication:
             return {
                 "status": self.match.status.value,
                 "setup": self.match.setup,
+                "player_side": self.player_side.value,
+                "ai_side": self.ai_side.value,
                 "state": state_to_dict(self.match.state, setup=self.match.setup),
                 "legal_moves": [
                     {"src": list(move.src) if move.src is not None else None,
@@ -63,10 +67,15 @@ class TrainerApplication:
             )
             return record.to_dict()
 
-    def reset(self, setup: str = "classic") -> dict[str, object]:
+    def reset(self, setup: str = "classic", player_side: str = "cho") -> dict[str, object]:
+        selected_side = self._side_from_value(player_side)
         with self._lock:
+            self.player_side = selected_side
+            self.ai_side = selected_side.opponent
             self.match = Match.new(setup=setup)
             self.training_metrics.reset()
+            if self.match.status.value == "playing" and self.match.state.turn is self.ai_side:
+                self._apply_ai_move()
             return self.snapshot()
 
     def play(self, payload: dict[str, object]) -> dict[str, object]:
@@ -86,7 +95,7 @@ class TrainerApplication:
             self.match = self.match.play(move)
 
             engine_analysis = EngineAnalysis(perspective=self.match.state.turn)
-            if self.match.status.value == "playing" and self.match.state.turn is AI_SIDE:
+            if self.match.status.value == "playing" and self.match.state.turn is self.ai_side:
                 engine_analysis = validate_engine_analysis(
                     self.match.state,
                     self.engine.analyze(self.match.state),
@@ -106,7 +115,7 @@ class TrainerApplication:
         with self._lock:
             if not self.match.state.history:
                 raise ValueError("cannot undo without move history")
-            last_move_was_ai = self.match.state.turn is PLAYER_SIDE
+            last_move_was_ai = self.match.state.turn is self.player_side
             self.match = self.match.undo()
             if last_move_was_ai and self.match.state.history:
                 self.match = self.match.undo()
@@ -140,7 +149,7 @@ class TrainerApplication:
                 record,
                 self.analyzer,
                 max_moves=limit,
-                side=PLAYER_SIDE,
+                side=self.player_side,
             )
             return _review_to_dict(review)
 
@@ -168,7 +177,7 @@ class TrainerApplication:
                 record,
                 self.analyzer,
                 max_moves=review_limit,
-                side=PLAYER_SIDE,
+                side=self.player_side,
             )
             metrics = self.training_metrics.snapshot()
             candidates = generate_training_problems(review, max_problems=MAX_PROBLEM_LIMIT)
@@ -204,7 +213,7 @@ class TrainerApplication:
                 record,
                 self.analyzer,
                 max_moves=DEFAULT_REVIEW_LIMIT,
-                side=PLAYER_SIDE,
+                side=self.player_side,
             )
             problems = generate_training_problems(review, max_problems=MAX_PROBLEM_LIMIT)
             problem = next((item for item in problems if item.problem_id == problem_id), None)
@@ -246,23 +255,33 @@ class TrainerApplication:
     def engine_move(self) -> dict[str, object]:
         with self._lock:
             self._ensure_ai_turn()
-            analysis = validate_engine_analysis(self.match.state, self.engine.analyze(self.match.state))
-            if analysis.best_move is None:
-                return {"analysis": _analysis_to_dict(analysis), "snapshot": self.snapshot()}
+            analysis = self._apply_ai_move()
+            return {"analysis": _analysis_to_dict(analysis), "snapshot": self.snapshot()}
+
+    def _apply_ai_move(self) -> EngineAnalysis:
+        analysis = validate_engine_analysis(self.match.state, self.engine.analyze(self.match.state))
+        if analysis.best_move is not None:
             validate_engine_move(self.engine, self.match.state, analysis.best_move)
             self.match = self.match.play(analysis.best_move)
-            return {"analysis": _analysis_to_dict(analysis), "snapshot": self.snapshot()}
+        return analysis
+
+    @staticmethod
+    def _side_from_value(value: str) -> Side:
+        try:
+            return Side(value)
+        except ValueError as exc:
+            raise ValueError("player_side must be cho or han") from exc
 
     def _ensure_player_turn(self) -> None:
         if self.match.status.value != "playing":
             raise ValueError("game is not in progress")
-        if self.match.state.turn is not PLAYER_SIDE:
+        if self.match.state.turn is not self.player_side:
             raise ValueError("it is the AI's turn")
 
     def _ensure_ai_turn(self) -> None:
         if self.match.status.value != "playing":
             raise ValueError("game is not in progress")
-        if self.match.state.turn is not AI_SIDE:
+        if self.match.state.turn is not self.ai_side:
             raise ValueError("it is the player's turn")
 
     @staticmethod
@@ -473,9 +492,12 @@ class RequestHandler(BaseHTTPRequestHandler):
             if path == "/api/reset":
                 payload = self._read_json()
                 setup = payload.get("setup", "classic")
+                player_side = payload.get("player_side", "cho")
                 if not isinstance(setup, str):
                     raise ValueError("setup must be a string")
-                self._send_json(APP.reset(setup))
+                if not isinstance(player_side, str):
+                    raise ValueError("player_side must be a string")
+                self._send_json(APP.reset(setup=setup, player_side=player_side))
                 return
             if path == "/api/move":
                 self._send_json(APP.play(self._read_json()))
