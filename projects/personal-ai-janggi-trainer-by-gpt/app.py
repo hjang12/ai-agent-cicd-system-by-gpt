@@ -275,7 +275,7 @@ class TrainerApplication:
     def _ensure_player_turn(self) -> None:
         if self.match.status.value != "playing":
             raise ValueError("game is not in progress")
-        if self.match.state.turn is not PLAYER_SIDE:
+        if self.match.state.turn is not self.player_side:
             raise ValueError("it is the AI's turn")
 
     def _ensure_ai_turn(self) -> None:
