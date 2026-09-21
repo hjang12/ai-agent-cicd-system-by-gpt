@@ -99,7 +99,6 @@ def _selective_deepening(
     for shallow_rank, (_, (_, move, _)) in enumerate(finalists, start=1):
         child = state.apply(move)
         child_noisy = shallow_engine._captured_value(state, move) > 0 or shallow_engine._gives_check(state, move)
-        deep_engine._nodes += 1
         child_score, child_pv = deep_engine._search(
             child,
             refine_depth - 1,
@@ -132,7 +131,7 @@ def main() -> None:
     print("Base: depth 2. Refinement: depth 3 on top-4 shallow candidates.")
     print("This is an experiment; it is not production configuration.")
     print()
-    print("fixture,shallow_best,full_depth3_best,selective_best,selective_shallow_rank,shallow_nodes,full_depth3_nodes,selective_total_nodes,selective_score,full_depth3_score,selective_matches_depth3")
+    print("fixture,shallow_best,full_depth3_best,selective_best,selective_shallow_rank,shallow_nodes,full_depth3_nodes,selective_total_nodes,selective_score,full_depth3_score,selective_matches_depth3_move,selective_matches_depth3_score,selective_nodes_reduction_vs_full_pct")
 
     for fixture in fixtures:
         shallow_engine = NegamaxEngine(SearchConfig(depth=2, mobility_weight=2))
@@ -148,11 +147,14 @@ def main() -> None:
         if selective_best is None or deep.best_move is None:
             raise AssertionError(f"fixture did not yield a move: {fixture.name}")
 
+        selective_total_nodes = shallow_nodes + refinement_nodes
+        selective_reduction = 100.0 * (deep.nodes - selective_total_nodes) / deep.nodes
         print(
             f"{fixture.name},{shallow.best_move},{deep.best_move},{selective_best},"
             f"{_rank_of_move(fixture.state, shallow_engine, deep.best_move, top_n=4)},"
-            f"{shallow.nodes},{deep.nodes},{shallow_nodes + refinement_nodes},"
-            f"{selective_score},{deep.score_cp},{selective_best == deep.best_move}"
+            f"{shallow.nodes},{deep.nodes},{selective_total_nodes},"
+            f"{selective_score},{deep.score_cp},{selective_best == deep.best_move},"
+            f"{selective_score == deep.score_cp},{selective_reduction:.2f}"
         )
 
 
