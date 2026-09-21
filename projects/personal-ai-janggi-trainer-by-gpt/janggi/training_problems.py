@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+
 from .coaching import CoachingReason, CoachingSeverity
 from .core import GameState, Move, Side
 from .review import CoachingReview, ReviewEntry
+from .training_metrics import TrainingMetricsSnapshot
 
 
 DEFAULT_PROBLEM_LIMIT = 5
@@ -60,6 +62,68 @@ def generate_training_problems(
     ]
     selected = candidates[-max_problems:][::-1]
     return tuple(_problem_from_entry(entry) for entry in selected)
+
+
+def adaptive_reason_priority(
+    metrics: TrainingMetricsSnapshot,
+) -> tuple[CoachingReason, ...]:
+    """Return observed mistake reasons ordered from lowest session accuracy upward."""
+    attempts = dict(metrics.reason_attempts)
+    correct = dict(metrics.reason_correct)
+    ranked: list[tuple[CoachingReason, float, int, int]] = []
+
+    for reason, count in attempts.items():
+        if count <= 0:
+            continue
+        correct_count = correct.get(reason, 0)
+        incorrect = max(count - correct_count, 0)
+        if incorrect <= 0:
+            continue
+        accuracy = correct_count / count
+        ranked.append((reason, accuracy, incorrect, count))
+
+    ranked.sort(key=lambda item: (item[1], -item[2], -item[3], item[0].value))
+    return tuple(item[0] for item in ranked)
+
+
+def select_adaptive_training_problems(
+    problems: tuple[PositionTrainingProblem, ...],
+    metrics: TrainingMetricsSnapshot,
+    *,
+    max_problems: int = DEFAULT_PROBLEM_LIMIT,
+) -> tuple[PositionTrainingProblem, ...]:
+    """Prioritize existing problems carrying recently underperforming reasons.
+
+    The selector only reorders the provided problems and never creates new
+    training evidence. When there is no observed reason-specific mistake,
+    the existing recent-first order is preserved.
+    """
+    if (
+        not isinstance(max_problems, int)
+        or isinstance(max_problems, bool)
+        or not 1 <= max_problems <= MAX_PROBLEM_LIMIT
+    ):
+        raise ValueError(f"max_problems must be between 1 and {MAX_PROBLEM_LIMIT}")
+
+    priority_reasons = adaptive_reason_priority(metrics)
+    if not priority_reasons:
+        return problems[:max_problems]
+
+    priority = {reason: index for index, reason in enumerate(priority_reasons)}
+
+    def selection_key(indexed_problem: tuple[int, PositionTrainingProblem]) -> tuple[int, int, int]:
+        index, problem = indexed_problem
+        matching_ranks = [
+            priority[reason]
+            for reason in problem.reason_codes
+            if reason in priority
+        ]
+        if not matching_ranks:
+            return (1, len(priority), index)
+        return (0, min(matching_ranks), index)
+
+    ordered = sorted(enumerate(problems), key=selection_key)
+    return tuple(problem for _, problem in ordered[:max_problems])
 
 
 def _problem_from_entry(entry: ReviewEntry) -> PositionTrainingProblem:
