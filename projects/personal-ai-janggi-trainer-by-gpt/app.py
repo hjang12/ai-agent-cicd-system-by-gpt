@@ -8,8 +8,9 @@ from pathlib import Path
 from threading import RLock
 from urllib.parse import urlparse
 
-from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, coach_move, review_record, state_to_dict
+from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, coach_move, generate_training_problems, review_record, state_to_dict
 from janggi.review import DEFAULT_REVIEW_LIMIT
+from janggi.training_problems import DEFAULT_PROBLEM_LIMIT, MAX_PROBLEM_LIMIT
 from janggi.engine import validate_engine_analysis, validate_engine_move
 
 
@@ -98,6 +99,39 @@ class TrainerApplication:
                 side=Side.CHO,
             )
             return _review_to_dict(review)
+
+    def training_problems(self, payload: dict[str, object]) -> dict[str, object]:
+        review_limit = payload.get("review_limit", DEFAULT_REVIEW_LIMIT)
+        problem_limit = payload.get("problem_limit", DEFAULT_PROBLEM_LIMIT)
+        include_solution = payload.get("include_solution", False)
+        if not isinstance(review_limit, int) or isinstance(review_limit, bool):
+            raise ValueError("review_limit must be an integer")
+        if not isinstance(problem_limit, int) or isinstance(problem_limit, bool):
+            raise ValueError("problem_limit must be an integer")
+        if not isinstance(include_solution, bool):
+            raise ValueError("include_solution must be boolean")
+
+        with self._lock:
+            status = self.match.status.value
+            result = status if status != "playing" else None
+            record = GameRecord(
+                setup=self.match.setup,
+                moves=self.match.state.history,
+                result=result,
+                source="personal",
+            )
+            review = review_record(
+                record,
+                self.analyzer,
+                max_moves=review_limit,
+                side=Side.CHO,
+            )
+            problems = generate_training_problems(review, max_problems=problem_limit)
+            return {
+                "reviewed_moves": review.reviewed_moves,
+                "problem_count": len(problems),
+                "problems": [_training_problem_to_dict(problem, include_solution=include_solution) for problem in problems],
+            }
 
     def engine_move(self) -> dict[str, object]:
         with self._lock:
@@ -190,6 +224,28 @@ def _review_to_dict(review: object) -> dict[str, object]:
             for entry in getattr(review, "entries", ())
         ],
     }
+
+
+def _training_problem_to_dict(problem: object, *, include_solution: bool) -> dict[str, object]:
+    state = getattr(problem, "state")
+    payload = {
+        "problem_id": getattr(problem, "problem_id"),
+        "ply": getattr(problem, "ply"),
+        "side": getattr(getattr(problem, "side"), "value", None),
+        "state": state_to_dict(state, setup=None),
+        "legal_moves": [
+            _move_to_dict(move) for move in state.legal_moves(include_pass=True)
+        ],
+        "original_move": _move_to_dict(getattr(problem, "original_move")),
+        "severity": getattr(getattr(problem, "severity"), "value", None),
+        "reason_codes": [reason.value for reason in getattr(problem, "reason_codes", ())],
+        "prompt": getattr(problem, "prompt"),
+        "explanation": getattr(problem, "explanation"),
+        "next_action": getattr(problem, "next_action"),
+    }
+    if include_solution:
+        payload["target_move"] = _move_to_dict(getattr(problem, "target_move"))
+    return payload
 
 
 def _move_to_dict(move: object) -> object:
@@ -289,6 +345,9 @@ class RequestHandler(BaseHTTPRequestHandler):
                 return
             if path == "/api/review":
                 self._send_json(APP.review(self._read_json()))
+                return
+            if path == "/api/training/problems":
+                self._send_json(APP.training_problems(self._read_json()))
                 return
             self._send_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
         except (ValueError, KeyError, TypeError) as exc:
