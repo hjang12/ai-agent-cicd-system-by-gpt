@@ -15,7 +15,7 @@
 
 Metrics are reset together with the active match on `POST /api/reset`. They are not written to disk, a database, or a user profile.
 
-`POST /api/training/problems` returns the current metric snapshot. `POST /api/training/answer` updates the snapshot after a legal answer and returns the updated metrics. `GET /api/training/metrics` reads the current snapshot without changing state. The browser can derive a reason-specific accuracy by dividing `reason_correct` by `reason_attempts` for each signal.
+`POST /api/training/problems` returns the current metric snapshot. `POST /api/training/answer` updates the snapshot after a legal answer and returns the updated metrics. `GET /api/training/metrics` reads the current snapshot without changing state. The browser can derive a reason-specific accuracy by dividing `reason_correct` by `reason_attempts` for each signal. The training-problem selector uses the same ephemeral counts to prioritize observed mistake reasons with lower session accuracy.
 
 ## Boundary
 
