@@ -44,19 +44,25 @@ Resets the in-memory session. Optional JSON body:
 
 Supported setups are `classic`, `left`, `right`, and `both`.
 
-### `POST /api/move`
+### `POST /api/player/turn`
 
-Applies one normal move through `Match.play`. Example:
+Applies one human (Cho) move, runs the existing move-analysis/coaching pipeline, then automatically asks the baseline AI (Han) for one legal response when the game remains in progress. The endpoint returns both player analysis/coaching and the resulting AI analysis together with the post-turn snapshot.
+
+Example:
 
 ```json
 {"src":[0,3],"dst":[0,4]}
 ```
 
-The domain model remains authoritative for legality; transport validation does not duplicate Janggi rules.
+This is the primary human-vs-AI game-loop endpoint. The backend owns turn authority, so a human move is rejected when it is the AI's turn.
+
+### `POST /api/move`
+
+Applies one human (Cho) move through `Match.play`. The endpoint is retained as a low-level compatibility path; the browser uses `/api/player/turn` so the AI response is part of the same server-side turn.
 
 ### `POST /api/undo`
 
-Removes exactly the most recent move through `Match.undo` and returns the resulting match snapshot. The endpoint is rejected with HTTP 400 when the active match has no move history. Undo is one-ply and does not reconstruct match state in browser JavaScript.
+Restores the previous human decision point. In a normal human-vs-AI round, this removes the AI reply and the immediately preceding human move together. The endpoint is rejected with HTTP 400 when the active match has no move history.
 
 ### `POST /api/analyze/move`
 
@@ -99,7 +105,7 @@ The response also includes the played move, current recommendation, score before
 
 ### `POST /api/engine/move`
 
-Runs the baseline `NegamaxEngine`, normalizes its analysis against the authoritative domain state, validates the selected move, and then applies it through `Match.play`. The returned principal variation therefore contains only moves that can be replayed legally from the position being analyzed.
+Runs the baseline `NegamaxEngine`, normalizes its analysis against the authoritative domain state, validates the selected move, and then applies it through `Match.play`. It is restricted to the AI (Han) turn and is primarily a recovery/manual path because the normal browser flow already calls `/api/player/turn`.
 
 ### `POST /api/review`
 
