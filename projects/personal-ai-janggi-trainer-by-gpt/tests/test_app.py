@@ -225,6 +225,8 @@ class TrainerApplicationTests(unittest.TestCase):
 
         metrics = app.training_metrics_snapshot()
         self.assertEqual(metrics["reason_attempts"], {})
+        self.assertEqual(metrics["problem_attempts"], {})
+        self.assertEqual(metrics["problem_incorrect"], {})
 
         app.reset("classic")
         self.assertEqual(app.training_metrics_snapshot()["attempts"], 0)
