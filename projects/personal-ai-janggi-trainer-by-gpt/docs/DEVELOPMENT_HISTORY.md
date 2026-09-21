@@ -1,3 +1,31 @@
+## 28. 2026-09-21 — Reason-specific training accuracy
+
+### Requirement
+
+전체 훈련 정답률만으로는 어떤 실수 유형이 여전히 어려운지 확인하기 어렵기 때문에, 기존 `reason_codes`를 세션 지표와 직접 연결했습니다.
+
+### Decision
+
+각 legal training attempt에서 문제에 포함된 reason code별 시도 수와 정답 수를 함께 집계합니다. 하나의 문제가 여러 reason code를 가지면 동일한 정답 결과가 각 해당 signal에 기록됩니다.
+
+### Implementation
+
+- `TrainingSessionMetrics.reason_correct` 추가
+- `/api/training/metrics` 및 훈련 응답에 `reason_correct` 노출
+- 브라우저 훈련 패널에서 reason별 정확도 표시
+- focused unit/API/browser contract 테스트 추가
+- `docs/TRAINING_METRICS.md`, `docs/API.md`, `docs/CURRENT_STATUS.md` 동기화
+
+### Boundary
+
+reason-specific accuracy는 현재 세션의 interaction 분석용 지표일 뿐, 장기적인 사용자 능력 추정이나 training label이 아닙니다.
+
+### Next Step
+
+실제 사용자 세션에서 이 지표가 반복적으로 유용한지 확인한 뒤 persistence 또는 문제 난이도 조정 정책을 별도 설계합니다.
+
+---
+
 ## 27. 2026-09-21 — Ephemeral training session metrics
 
 ### Requirement
