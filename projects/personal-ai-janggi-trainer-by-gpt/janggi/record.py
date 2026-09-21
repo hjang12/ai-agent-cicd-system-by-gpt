@@ -18,7 +18,7 @@ class GameRecord:
     source: str = "unknown"
 
     def replay(self) -> GameState:
-        state = GameState.initial(self.setup)
+        state = GameState.initial(self.setup, starting_side=Side.HAN)
         for move in self.moves:
             state = state.apply(move)
         return state
