@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 
 from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, coach_move, generate_training_problems, review_record, state_to_dict
 from janggi.review import DEFAULT_REVIEW_LIMIT
+from janggi.training_metrics import TrainingSessionMetrics
 from janggi.training_problems import DEFAULT_PROBLEM_LIMIT, MAX_PROBLEM_LIMIT
 from janggi.engine import validate_engine_analysis, validate_engine_move
 
@@ -25,6 +26,7 @@ class TrainerApplication:
         self.match = Match.new()
         self.engine = NegamaxEngine(SearchConfig(depth=ENGINE_SEARCH_DEPTH))
         self.analyzer = Analyzer(self.engine)
+        self.training_metrics = TrainingSessionMetrics()
 
     def snapshot(self) -> dict[str, object]:
         with self._lock:
@@ -55,6 +57,7 @@ class TrainerApplication:
     def reset(self, setup: str = "classic") -> dict[str, object]:
         with self._lock:
             self.match = Match.new(setup=setup)
+            self.training_metrics.reset()
             return self.snapshot()
 
     def play(self, payload: dict[str, object]) -> dict[str, object]:
@@ -170,6 +173,11 @@ class TrainerApplication:
                     "next_action": problem.next_action,
                 }
             correct = move == problem.target_move
+            self.training_metrics.record_attempt(
+                problem_id=problem.problem_id,
+                correct=correct,
+                reason_codes=problem.reason_codes,
+            )
             return {
                 "correct": correct,
                 "legal": True,
@@ -178,7 +186,12 @@ class TrainerApplication:
                 "message": problem.explanation if correct else "추천수와 다른 수입니다. 같은 포지션의 핵심 문제를 다시 확인하세요.",
                 "next_action": problem.next_action,
                 "reason_codes": [reason.value for reason in problem.reason_codes],
+                "metrics": _training_metrics_to_dict(self.training_metrics.snapshot()),
             }
+
+    def training_metrics_snapshot(self) -> dict[str, object]:
+        with self._lock:
+            return _training_metrics_to_dict(self.training_metrics.snapshot())
 
     def engine_move(self) -> dict[str, object]:
         with self._lock:
@@ -273,6 +286,20 @@ def _review_to_dict(review: object) -> dict[str, object]:
     }
 
 
+def _training_metrics_to_dict(metrics: object) -> dict[str, object]:
+    return {
+        "attempts": getattr(metrics, "attempts", 0),
+        "correct": getattr(metrics, "correct", 0),
+        "incorrect": getattr(metrics, "incorrect", 0),
+        "unique_problems": getattr(metrics, "unique_problems", 0),
+        "accuracy": getattr(metrics, "accuracy", 0.0),
+        "reason_attempts": {
+            reason.value: count
+            for reason, count in getattr(metrics, "reason_attempts", ())
+        },
+    }
+
+
 def _training_problem_to_dict(problem: object, *, include_solution: bool) -> dict[str, object]:
     state = getattr(problem, "state")
     payload = {
@@ -352,6 +379,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/record":
             self._send_json(APP.record())
+            return
+        if path == "/api/training/metrics":
+            self._send_json(APP.training_metrics_snapshot())
             return
         self._send_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
 
