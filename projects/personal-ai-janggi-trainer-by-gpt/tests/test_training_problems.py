@@ -11,6 +11,7 @@ from janggi import (
     PositionTrainingProblem,
     Side,
     TrainingSessionMetrics,
+    adaptive_problem_priority,
     adaptive_reason_priority,
     generate_training_problems,
     select_adaptive_training_problems,
@@ -143,6 +144,40 @@ class TrainingProblemTests(unittest.TestCase):
             adaptive_reason_priority(snapshot),
             (CoachingReason.HANGING_PIECE, CoachingReason.SCORE_DEVIATION),
         )
+
+    def test_adaptive_selection_prioritizes_repeated_problem_mistakes(self):
+        state = GameState.initial()
+        legal = state.legal_moves(include_pass=False)
+        entries = (
+            self._entry(1, state, legal[0], legal[1], CoachingSeverity.INACCURACY, CoachingReason.SCORE_DEVIATION),
+            self._entry(2, state, legal[1], legal[2], CoachingSeverity.INACCURACY, CoachingReason.HANGING_PIECE),
+            self._entry(3, state, legal[2], legal[3], CoachingSeverity.INACCURACY, CoachingReason.DOUBLE_ATTACK),
+        )
+        problems = generate_training_problems(self._review(entries), max_problems=20)
+        metrics = TrainingSessionMetrics()
+        metrics.record_attempt(
+            problem_id="ply-3",
+            correct=False,
+            reason_codes=(CoachingReason.DOUBLE_ATTACK,),
+        )
+        metrics.record_attempt(
+            problem_id="ply-3",
+            correct=False,
+            reason_codes=(CoachingReason.DOUBLE_ATTACK,),
+        )
+        metrics.record_attempt(
+            problem_id="ply-2",
+            correct=False,
+            reason_codes=(CoachingReason.HANGING_PIECE,),
+        )
+
+        snapshot = metrics.snapshot()
+        selected = select_adaptive_training_problems(
+            problems, snapshot, max_problems=2
+        )
+
+        self.assertEqual(adaptive_problem_priority(snapshot), ("ply-3", "ply-2"))
+        self.assertEqual([problem.problem_id for problem in selected], ["ply-3", "ply-2"])
 
     def test_adaptive_selection_falls_back_to_recent_order_without_mistakes(self):
         state = GameState.initial()
