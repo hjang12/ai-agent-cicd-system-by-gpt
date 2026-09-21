@@ -943,3 +943,33 @@ depth-2 search에서 마지막 평가 지점 직전에 잡기/장군 같은 forc
 - quiescence depth 입력 검증 추가
 - quiescence 활성화가 search node 수를 줄이지 않는지 regression test 추가
 - deterministic search benchmark 재실행 예정
+
+
+## 35. 2026-09-21 — Positional evaluation symmetry correction
+
+### Finding
+
+The current evaluation combined material, mobility, and positional terms, but the positional component was only computed for the side to move. This made the positional heuristic non-zero-sum: an opponent's advanced/central soldier or palace guard bonus did not reduce the evaluation from the mover's perspective.
+
+### Decision
+
+Correct the evaluation before increasing search depth. Search depth and engine protocol remain unchanged; the positional component now scores both sides symmetrically.
+
+### Implementation
+
+- `_positional_score()` now adds the side-to-move's bounded soldier/guard terms and subtracts the opponent's corresponding terms.
+- Added a regression test for an opponent advanced center soldier.
+- Added deterministic search baseline updates and improved benchmark failure reporting so all changed baselines are reported in one run.
+- Updated `docs/SEARCH.md` and `docs/SEARCH_BENCHMARK_HISTORY.md`.
+
+### Verification
+
+GitHub Actions on the PR head confirmed:
+- Python validation workflow passed on the initial code/test commit.
+- Search benchmark executed the corrected evaluation across all current fixtures.
+- New production node baselines are deterministic and were recorded from the GitHub Actions runner.
+- The benchmark preserved minimax score equivalence across ordering variants.
+
+### Boundary
+
+This is an evaluation correctness/quality correction, not a claim that the AI is already stronger overall. The next strength step remains measured search-depth/tactical quality evaluation against deterministic fixtures and self-play.
