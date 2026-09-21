@@ -133,6 +133,53 @@ class TrainerApplication:
                 "problems": [_training_problem_to_dict(problem, include_solution=include_solution) for problem in problems],
             }
 
+    def training_problem_answer(self, payload: dict[str, object]) -> dict[str, object]:
+        problem_id = payload.get("problem_id")
+        if not isinstance(problem_id, str):
+            raise ValueError("problem_id must be a string")
+        move = self._move_from_payload(payload)
+        with self._lock:
+            status = self.match.status.value
+            result = status if status != "playing" else None
+            record = GameRecord(
+                setup=self.match.setup,
+                moves=self.match.state.history,
+                result=result,
+                source="personal",
+            )
+            review = review_record(
+                record,
+                self.analyzer,
+                max_moves=DEFAULT_REVIEW_LIMIT,
+                side=Side.CHO,
+            )
+            problems = generate_training_problems(review, max_problems=MAX_PROBLEM_LIMIT)
+            problem = next((item for item in problems if item.problem_id == problem_id), None)
+            if problem is None:
+                raise ValueError("training problem not found")
+            try:
+                move_is_legal = problem.state.apply(move) is not None
+            except (TypeError, ValueError, IndexError):
+                move_is_legal = False
+            if not move_is_legal:
+                return {
+                    "correct": False,
+                    "legal": False,
+                    "target_move": _move_to_dict(problem.target_move),
+                    "message": "그 수는 이 훈련 포지션에서 둘 수 없습니다.",
+                    "next_action": problem.next_action,
+                }
+            correct = move == problem.target_move
+            return {
+                "correct": correct,
+                "legal": True,
+                "target_move": _move_to_dict(problem.target_move),
+                "original_move": _move_to_dict(problem.original_move),
+                "message": problem.explanation if correct else "추천수와 다른 수입니다. 같은 포지션의 핵심 문제를 다시 확인하세요.",
+                "next_action": problem.next_action,
+                "reason_codes": [reason.value for reason in problem.reason_codes],
+            }
+
     def engine_move(self) -> dict[str, object]:
         with self._lock:
             analysis = validate_engine_analysis(self.match.state, self.engine.analyze(self.match.state))
@@ -348,6 +395,9 @@ class RequestHandler(BaseHTTPRequestHandler):
                 return
             if path == "/api/training/problems":
                 self._send_json(APP.training_problems(self._read_json()))
+                return
+            if path == "/api/training/answer":
+                self._send_json(APP.training_problem_answer(self._read_json()))
                 return
             self._send_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
         except (ValueError, KeyError, TypeError) as exc:
