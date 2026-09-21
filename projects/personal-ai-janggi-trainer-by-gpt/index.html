@@ -573,10 +573,10 @@
       busy = true;
       updateControls();
       try {
-        status.textContent = '마지막 수를 되돌리는 중입니다…';
+        status.textContent = '내 턴을 되돌리는 중입니다…';
         snapshot = await post('/api/undo', {});
         clearTrainingMode();
-        heading.textContent = '한 수 되돌리기 완료';
+        heading.textContent = '내 한 턴 되돌리기 완료';
         selected = null;
         renderAnalysis(null, null);
         render();
