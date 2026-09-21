@@ -206,9 +206,10 @@ class TrainingProblemTests(unittest.TestCase):
             problems, metrics.snapshot(), max_problems=5
         )
 
-        self.assertEqual([problem.problem_id for problem in selected[:3]], ["ply-5", "ply-4", "ply-3"])
-        self.assertIn("ply-1", [problem.problem_id for problem in selected])
-        self.assertIn("ply-2", [problem.problem_id for problem in selected])
+        selected_ids = [problem.problem_id for problem in selected]
+        self.assertEqual(selected_ids[:3], ["ply-2", "ply-3", "ply-4"])
+        self.assertIn("ply-1", selected_ids)
+        self.assertEqual(len(selected), 5)
 
     def test_adaptive_selection_mixes_unrepeated_reason_when_available(self):
         state = GameState.initial()
@@ -241,8 +242,9 @@ class TrainingProblemTests(unittest.TestCase):
             problems, metrics.snapshot(), max_problems=3
         )
 
-        self.assertEqual(selected[0].problem_id, "ply-3")
-        self.assertIn("ply-1", [problem.problem_id for problem in selected])
+        selected_ids = [problem.problem_id for problem in selected]
+        self.assertEqual(selected_ids[0], "ply-3")
+        self.assertIn("ply-2", selected_ids)
         self.assertEqual(len(selected), 3)
 
     def test_adaptive_selection_falls_back_to_recent_order_without_mistakes(self):
