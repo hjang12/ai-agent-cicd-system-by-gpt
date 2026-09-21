@@ -76,7 +76,7 @@ class SearchEngineTests(unittest.TestCase):
         )
 
     def test_negamax_exposes_metadata_and_returns_legal_move(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         engine = NegamaxEngine(SearchConfig(depth=1))
 
         analysis = engine.analyze(state)
@@ -117,7 +117,7 @@ class SearchEngineTests(unittest.TestCase):
         self.assertLess(refined_analysis.nodes, deep_analysis.nodes)
 
     def test_root_refinement_zero_preserves_base_depth(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         base = NegamaxEngine(SearchConfig(depth=2, root_refinement_count=0))
         explicit_zero = NegamaxEngine(SearchConfig(depth=2, root_refinement_count=0))
 
@@ -128,7 +128,7 @@ class SearchEngineTests(unittest.TestCase):
         self.assertEqual(first.depth, 2)
 
     def test_negamax_is_deterministic(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         engine = NegamaxEngine(SearchConfig(depth=2))
 
         first = engine.analyze(state)
@@ -139,7 +139,7 @@ class SearchEngineTests(unittest.TestCase):
         self.assertEqual(first.principal_variation, second.principal_variation)
 
     def test_principal_variation_starts_with_best_move(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         engine = NegamaxEngine(SearchConfig(depth=2))
 
         analysis = engine.analyze(state)
@@ -153,7 +153,7 @@ class SearchEngineTests(unittest.TestCase):
         )
 
     def test_quiescence_extension_is_configurable(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
 
         without_extension = NegamaxEngine(SearchConfig(depth=1, quiescence_depth=0))
         with_extension = NegamaxEngine(SearchConfig(depth=1, quiescence_depth=1))
@@ -167,7 +167,7 @@ class SearchEngineTests(unittest.TestCase):
         self.assertLessEqual(len(second.principal_variation), 2)
 
     def test_evaluation_cache_reuses_position_result(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         engine = NegamaxEngine(SearchConfig(depth=1))
 
         first = engine._evaluate(state)
@@ -179,7 +179,7 @@ class SearchEngineTests(unittest.TestCase):
         self.assertEqual(len(engine._evaluation_cache), 1)
 
     def test_legal_move_cache_reuses_result(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         engine = NegamaxEngine(SearchConfig(depth=1))
 
         first = engine._legal_moves(state, include_pass=False)
@@ -191,7 +191,7 @@ class SearchEngineTests(unittest.TestCase):
         self.assertEqual(len(engine._legal_moves_cache), 1)
 
     def test_legal_move_cache_separates_pass_policy(self):
-        state = GameState.initial()
+        state = GameState.initial(starting_side=Side.CHO)
         engine = NegamaxEngine(SearchConfig(depth=1))
 
         without_pass = engine._legal_moves(state, include_pass=False)
