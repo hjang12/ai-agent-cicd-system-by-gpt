@@ -238,7 +238,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("포지션 훈련 문제 준비 완료", html)
         self.assertIn("훈련 정답", html)
         self.assertIn("정답률", html)
-        self.assertIn("training_metrics", html)
+        self.assertIn("renderTrainingMetrics(result.metrics)", html)
         self.assertIn("accuracy", html)
 
     def test_browser_session_review_contract_is_present(self):
