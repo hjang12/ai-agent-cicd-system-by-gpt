@@ -69,6 +69,7 @@ class NegamaxEngine:
         self._check_cache: dict[tuple[tuple[object, ...], Move], bool] = {}
         self._legal_moves_cache: dict[tuple[tuple[object, ...], bool], tuple[Move, ...]] = {}
         self._active_search_depth = self.config.depth
+        self._shallow_node_count = 0
 
     @property
     def info(self) -> EngineInfo:
@@ -161,10 +162,6 @@ class NegamaxEngine:
                 refinement_nodes += self._nodes
                 refined_results.append((-child_score, shallow_rank, move, (move,) + child_pv))
 
-            self._nodes = self._nodes + 0
-            shallow_nodes = sum(
-                1 for _ in ()
-            )
             total_refinement_results = sorted(
                 refined_results,
                 key=lambda item: (-item[0], item[1]),
