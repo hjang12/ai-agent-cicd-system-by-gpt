@@ -86,17 +86,32 @@ def adaptive_reason_priority(
     return tuple(item[0] for item in ranked)
 
 
+def adaptive_problem_priority(
+    metrics: TrainingMetricsSnapshot,
+) -> tuple[str, ...]:
+    """Return repeatedly missed problem ids ordered by observed miss count."""
+    attempts = dict(metrics.problem_attempts)
+    incorrect = dict(metrics.problem_incorrect)
+    ranked = [
+        (problem_id, incorrect_count, attempts.get(problem_id, 0))
+        for problem_id, incorrect_count in incorrect.items()
+        if incorrect_count > 0
+    ]
+    ranked.sort(key=lambda item: (-item[1], -item[2], item[0]))
+    return tuple(problem_id for problem_id, _, _ in ranked)
+
+
 def select_adaptive_training_problems(
     problems: tuple[PositionTrainingProblem, ...],
     metrics: TrainingMetricsSnapshot,
     *,
     max_problems: int = DEFAULT_PROBLEM_LIMIT,
 ) -> tuple[PositionTrainingProblem, ...]:
-    """Prioritize existing problems carrying recently underperforming reasons.
+    """Prioritize repeated mistakes, then low-accuracy reason signals.
 
     The selector only reorders the provided problems and never creates new
-    training evidence. When there is no observed reason-specific mistake,
-    the existing recent-first order is preserved.
+    training evidence. When no adaptive evidence exists, recent-first order
+    is preserved.
     """
     if (
         not isinstance(max_problems, int)
@@ -105,22 +120,30 @@ def select_adaptive_training_problems(
     ):
         raise ValueError(f"max_problems must be between 1 and {MAX_PROBLEM_LIMIT}")
 
+    priority_problems = adaptive_problem_priority(metrics)
+    priority_problem_rank = {
+        problem_id: index
+        for index, problem_id in enumerate(priority_problems)
+    }
     priority_reasons = adaptive_reason_priority(metrics)
-    if not priority_reasons:
+    priority_reason_rank = {
+        reason: index for index, reason in enumerate(priority_reasons)
+    }
+
+    if not priority_problem_rank and not priority_reason_rank:
         return problems[:max_problems]
 
-    priority = {reason: index for index, reason in enumerate(priority_reasons)}
-
-    def selection_key(indexed_problem: tuple[int, PositionTrainingProblem]) -> tuple[int, int, int]:
+    def selection_key(indexed_problem: tuple[int, PositionTrainingProblem]) -> tuple[int, int, int, int]:
         index, problem = indexed_problem
+        problem_rank = priority_problem_rank.get(problem.problem_id)
         matching_ranks = [
-            priority[reason]
+            priority_reason_rank[reason]
             for reason in problem.reason_codes
-            if reason in priority
+            if reason in priority_reason_rank
         ]
-        if not matching_ranks:
-            return (1, len(priority), index)
-        return (0, min(matching_ranks), index)
+        if problem_rank is not None:
+            return (0, problem_rank, min(matching_ranks, default=len(priority_reason_rank)), index)
+        return (1, len(priority_problem_rank), min(matching_ranks, default=len(priority_reason_rank)), index)
 
     ordered = sorted(enumerate(problems), key=selection_key)
     return tuple(problem for _, problem in ordered[:max_problems])
