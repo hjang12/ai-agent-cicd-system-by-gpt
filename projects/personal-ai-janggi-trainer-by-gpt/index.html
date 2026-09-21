@@ -64,9 +64,9 @@
         <h2 id="heading">대국 준비</h2>
         <p class="status" id="status">현재 대국 상태를 불러오는 중입니다…</p>
         <div class="meta" id="turn"></div>
-        <label for="player-side">내 진영 · 새 대국 시작 시 적용</label>
+        <label for="player-side">내 진영 · 선택한 진영이 화면 아래쪽</label>
         <select id="player-side" aria-label="내 진영">
-          <option value="cho">초</option><option value="han">한</option>
+          <option value="han">한</option><option value="cho">초</option>
         </select>
         <label for="setup">장기판 배치</label>
         <select id="setup" aria-label="장기판 배치">
@@ -483,6 +483,9 @@
           const cell = document.createElement('button');
           cell.className = 'cell';
           cell.type = 'button';
+          cell.setAttribute('aria-label', piece
+            ? `${sideLabels[piece.side] || piece.side} ${pieceLabels[piece.kind] || piece.kind} ${formatPosition([stateX, stateY])}`
+            : `빈 칸 ${formatPosition([stateX, stateY])}`);
           const piece = pieceAt(index);
           if (piece) {
             cell.textContent = pieceLabels[piece.kind] || '?';
@@ -490,11 +493,7 @@
           }
           if (selected && selected[0] === stateX && selected[1] === stateY) cell.classList.add('selected');
           if (destinations.has(JSON.stringify([stateX, stateY]))) cell.classList.add('legal');
-          cell.addEventListener('pointerup', (event) => {
-            if (event.pointerType === 'mouse' && event.button !== 0) return;
-            event.preventDefault();
-            clickCell(x, y);
-          });
+          cell.addEventListener('click', () => clickCell(x, y));
           board.append(cell);
         }
       }
