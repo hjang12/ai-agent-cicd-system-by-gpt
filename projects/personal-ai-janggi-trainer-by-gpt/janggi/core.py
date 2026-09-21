@@ -54,7 +54,7 @@ class Move:
 @dataclass(frozen=True)
 class GameState:
     board: tuple[Optional[Piece], ...]
-    turn: Side = Side.HAN
+    turn: Side = Side.CHO
     history: tuple[Move, ...] = ()
 
     def __post_init__(self) -> None:
