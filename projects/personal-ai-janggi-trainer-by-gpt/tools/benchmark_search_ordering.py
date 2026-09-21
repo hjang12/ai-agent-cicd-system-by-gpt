@@ -89,7 +89,7 @@ class CountingLegalMoveCacheEngine(NegamaxEngine):
 
 
 def _initial_fixture() -> Fixture:
-    return Fixture("initial", GameState.initial())
+    return Fixture("initial", GameState.initial(starting_side=Side.CHO))
 
 
 def _capture_fixture() -> Fixture:
