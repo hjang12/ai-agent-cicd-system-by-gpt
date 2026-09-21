@@ -72,6 +72,23 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(response["snapshot"]["state"]["turn"], "han")
         self.assertEqual(len(response["snapshot"]["state"]["history"]), 3)
 
+    def test_han_initial_ai_opening_is_not_undoable(self):
+        app = TrainerApplication()
+        snapshot = app.reset(player_side="han")
+        self.assertEqual(snapshot["can_undo"], False)
+        with self.assertRaises(ValueError):
+            app.undo()
+
+    def test_han_ai_recovery_is_available_after_player_move(self):
+        app = TrainerApplication()
+        snapshot = app.reset(player_side="han")
+        move = snapshot["legal_moves"][0]
+        app.play({"src": move["src"], "dst": move["dst"]})
+        self.assertEqual(app.snapshot()["state"]["turn"], "cho")
+        response = app.engine_move()
+        self.assertTrue(response["analysis"]["best_move"])
+        self.assertEqual(response["snapshot"]["state"]["turn"], "han")
+
     def test_reset_rejects_unknown_player_side(self):
         app = TrainerApplication()
         with self.assertRaises(ValueError):
@@ -318,8 +335,12 @@ class TrainerApplicationTests(unittest.TestCase):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn('id="undo"', html)
         self.assertIn('class="analysis-row analysis-pv"', html)
-        self.assertIn("undo.disabled = busy || !hasHistory", html)
-        self.assertIn("engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== 'han'", html)
+        self.assertIn("undo.disabled = busy || !canUndo", html)
+        self.assertIn("engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== snapshot?.ai_side", html)
+        self.assertIn("const [stateX, stateY] = displayToState(x, y)", html)
+        self.assertIn("legalDestination(selected, [stateX, stateY])", html)
+        self.assertIn("const move = {src:selected, dst:[stateX, stateY]};", html)
+        self.assertIn("if (selected[0] === stateX && selected[1] === stateY)", html)
         self.assertIn("post('/api/undo', {})", html)
         self.assertIn("내 한 턴 되돌리기 완료", html)
 
