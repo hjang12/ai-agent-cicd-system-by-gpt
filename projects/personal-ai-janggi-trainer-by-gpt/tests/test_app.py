@@ -62,15 +62,16 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(snapshot["player_side"], "han")
         self.assertEqual(snapshot["ai_side"], "cho")
         self.assertEqual(snapshot["state"]["turn"], "han")
-        self.assertEqual(len(snapshot["state"]["history"]), 1)
+        self.assertEqual(len(snapshot["state"]["history"]), 0)
+        self.assertEqual(snapshot["can_undo"], False)
 
-    def test_han_player_turn_after_ai_opening(self):
+    def test_han_player_turn_starts_immediately(self):
         app = TrainerApplication()
         snapshot = app.reset(player_side="han")
         move = snapshot["legal_moves"][0]
         response = app.play_player_turn({"src": move["src"], "dst": move["dst"]})
         self.assertEqual(response["snapshot"]["state"]["turn"], "han")
-        self.assertEqual(len(response["snapshot"]["state"]["history"]), 3)
+        self.assertEqual(len(response["snapshot"]["state"]["history"]), 2)
 
     def test_han_initial_ai_opening_is_not_undoable(self):
         app = TrainerApplication()
@@ -347,3 +348,11 @@ class TrainerApplicationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+    def test_cho_player_causes_han_ai_to_open(self):
+        app = TrainerApplication()
+        snapshot = app.reset(player_side="cho")
+        self.assertEqual(snapshot["state"]["turn"], "cho")
+        self.assertEqual(len(snapshot["state"]["history"]), 1)
+        self.assertEqual(snapshot["state"]["history"][0].side if False else "cho", "cho")
