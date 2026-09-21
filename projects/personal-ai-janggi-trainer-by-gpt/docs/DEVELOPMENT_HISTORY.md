@@ -894,3 +894,28 @@ UI / 모바일 최적화
 - AI 턴 외부의 `/api/engine/move` 호출 거부 테스트 추가
 - 브라우저의 자동 AI 응수 및 턴 복귀 contract 테스트 추가
 - 기존 validation workflow로 compile/test 검증 예정
+
+
+## 33. Baseline evaluation v2
+
+### Requirement
+현재 depth-2 baseline이 물질 차이와 기동력만으로 leaf position을 평가해, 동일한 material/mobility 범위 안에서 장기 형세 차이를 충분히 구분하지 못하는 문제가 있었다.
+
+### Decision
+탐색 깊이를 즉시 3으로 고정하지 않고 평가함수부터 강화한다. 말 가치 비율을 장기에서 일반적으로 쓰이는 순서에 맞춰 보정하고, 병의 전진/중앙성, 자기 궁성 내 사의 유지, 장군 압박을 작은 보정값으로 추가한다.
+
+### Implementation
+- 차/포/마/상/사/졸 값을 13/7/5/3/3/2 스케일로 재조정했다.
+- 초/한 관점에 맞는 병 전진 보너스와 중앙 파일 보너스를 추가했다.
+- 자기 궁성 내 사 유지 보너스를 추가했다.
+- 현재 수가 장군을 주거나 받고 있는 상태를 bounded check pressure로 평가한다.
+- 엔진 metadata version을 `2`로 올렸다.
+
+### Boundary
+법칙/합법수 생성/terminal 판정은 변경하지 않았다. 이번 단계는 search tree의 leaf 평가만 강화하며, 더 깊은 탐색과 quiescence는 별도 측정 후 진행한다.
+
+### Verification
+- 말 가치 계약 테스트 추가
+- 전진한 중앙 졸 평가 테스트 추가
+- 장군 압박 평가 테스트 추가
+- 기존 검색 테스트와 deterministic benchmark를 통한 회귀 확인 예정

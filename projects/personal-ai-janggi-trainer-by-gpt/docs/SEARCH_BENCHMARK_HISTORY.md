@@ -136,3 +136,39 @@ Keep history out of the search position key and keep terminal scoring independen
 `.github/workflows/search-benchmark.yml` runs automatically when `janggi/search.py`, `tools/benchmark_search_ordering.py`, or the benchmark workflow changes, and can also be run manually. The production node counts are treated as a deterministic regression baseline. Future changes to production search ordering must update the baseline only when a deliberate algorithmic change is made and the resulting minimax behavior has been reviewed.
 
 Wall-clock timing is not currently used as a mandatory CI gate because hosted-runner timing is noisy. Add timing profiling only when a concrete latency target exists.
+
+
+## 2026-09-21 — Evaluation v2 baseline
+
+### Method
+
+- Production evaluation changed from material + mobility to evaluation v2.
+- Material calibration: chariot 13, cannon 7, horse 5, elephant 3, guard 3, soldier 2.
+- Added bounded soldier progress/centrality, palace-guard stability, and check-pressure terms.
+- The same ordering variants and deterministic fixtures were re-run.
+- Scores were checked against the coordinate-only reference ordering for minimax consistency.
+
+### Search ordering result
+
+| Fixture | Depth | Reference nodes | Production nodes | Reduction |
+| --- | ---: | ---: | ---: |
+| initial | 2 | 144 | 144 | 0.00% |
+| capture | 2 | 50 | 43 | 14.00% |
+| capture | 3 | 536 | 393 | 26.68% |
+| check | 2 | 50 | 41 | 18.00% |
+| check | 3 | 605 | 587 | 2.98% |
+| double_attack | 2 | 133 | 81 | 39.10% |
+| double_attack | 3 | 1047 | 885 | 15.47% |
+| midgame | 2 | 262 | 108 | 58.78% |
+| endgame | 2 | 140 | 72 | 48.57% |
+| endgame | 3 | 2073 | 635 | 69.37% |
+
+All measured production, check-first, and capture-check-first variants preserved the coordinate-reference minimax score. Equal-score best-move differences remain permissible tie-order differences.
+
+The legal-move-generation cache also remained score-equivalent after the evaluation change.
+
+### Decision
+
+Treat these node counts as the deterministic regression baseline for evaluation v2. The changed counts are expected because the evaluation now produces different alpha-beta cutoffs; the benchmark remains responsible for detecting unintended future search changes.
+
+The benchmark measures deterministic search behavior, not playing strength. The evaluation upgrade therefore still requires targeted tactical/regression positions before deeper search changes are promoted.

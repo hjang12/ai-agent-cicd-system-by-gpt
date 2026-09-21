@@ -11,6 +11,51 @@ class SearchEngineTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             SearchConfig(mobility_weight=-1)
 
+    def test_piece_values_follow_janggi_material_order(self):
+        self.assertEqual(PIECE_VALUES[PieceType.CHARIOT], 1300)
+        self.assertEqual(PIECE_VALUES[PieceType.CANNON], 700)
+        self.assertEqual(PIECE_VALUES[PieceType.HORSE], 500)
+        self.assertEqual(PIECE_VALUES[PieceType.ELEPHANT], 300)
+        self.assertEqual(PIECE_VALUES[PieceType.GUARD], 300)
+        self.assertEqual(PIECE_VALUES[PieceType.SOLDIER], 200)
+
+    def test_evaluation_rewards_advanced_center_soldier(self):
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[4 + 3 * 9] = Piece(Side.CHO, PieceType.SOLDIER)
+        early = GameState(tuple(board), turn=Side.CHO)
+
+        board[4 + 3 * 9] = None
+        board[4 + 5 * 9] = Piece(Side.CHO, PieceType.SOLDIER)
+        advanced = GameState(tuple(board), turn=Side.CHO)
+
+        engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0))
+
+        self.assertGreater(engine._evaluate(advanced), engine._evaluate(early))
+
+    def test_evaluation_rewards_check_pressure(self):
+        quiet_board = [None] * 90
+        quiet_board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        quiet_board[4 + 9 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        quiet_board[3 + 7 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        quiet = GameState(tuple(quiet_board), turn=Side.CHO)
+
+        checking_board = list(quiet_board)
+        checking_board[3 + 7 * 9] = None
+        checking_board[4 + 7 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        checking = GameState(tuple(checking_board), turn=Side.CHO)
+
+        self.assertFalse(quiet.is_in_check(Side.HAN))
+        self.assertTrue(checking.is_in_check(Side.HAN))
+
+        engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0))
+
+        self.assertGreaterEqual(
+            engine._evaluate(checking) - engine._evaluate(quiet),
+            100,
+        )
+
     def test_negamax_exposes_metadata_and_returns_legal_move(self):
         state = GameState.initial()
         engine = NegamaxEngine(SearchConfig(depth=1))
