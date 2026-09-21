@@ -49,7 +49,7 @@ def review_record(
         raise ValueError(f"max_moves must be between 1 and {MAX_REVIEW_LIMIT}")
 
     candidates: list[tuple[int, Side, Move, GameState]] = []
-    state = GameState.initial(record.setup, starting_side=Side.HAN)
+    state = GameState.initial(record.setup)
 
     for index, move in enumerate(record.moves):
         move_side = state.turn

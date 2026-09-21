@@ -5,34 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>개인용 AI 장기 훈련기</title>
   <style>
-    :root { color-scheme: dark; --ink:#f7f0df; --paper:#15201d; --accent:#e7af3c; --line:#8a6736; --board:#dfbd78; --frame:#805b2b; --panel:#21312b; --muted:#b9c4bd; }
-    * { box-sizing:border-box; } body { margin:0; min-height:100vh; font:16px/1.5 system-ui,sans-serif; color:var(--ink); background:radial-gradient(circle at 15% 10%,#30453d,var(--paper) 55%); }
-    main { max-width:1080px; margin:auto; padding:clamp(24px,5vw,72px) 24px; } .eyebrow { color:var(--accent); font-weight:700; letter-spacing:.08em; } h1 { font-size:clamp(2.5rem,7vw,5rem); line-height:.95; max-width:750px; margin:.25em 0; } .lead { max-width:700px; color:#d8d3c8; }
+    :root { color-scheme: light; --ink:#2a251e; --paper:#f3eee4; --accent:#b67923; --line:#9a6f38; --board:#d7b06a; --frame:#68451f; --panel:#fffdf9; --muted:#6d665d; --piece:#f3ead7; --piece-edge:#6e5a3f; }
+    * { box-sizing:border-box; } body { margin:0; min-height:100vh; font:16px/1.5 system-ui,sans-serif; color:var(--ink); background:var(--paper); }
+    main { max-width:1080px; margin:auto; padding:clamp(24px,5vw,56px) 24px; } .eyebrow { color:var(--accent); font-weight:700; letter-spacing:.08em; } h1 { font-size:clamp(2.25rem,6vw,4rem); line-height:1; max-width:750px; margin:.25em 0; } .lead { max-width:700px; color:#625d55; }
     .workspace { display:grid; grid-template-columns:minmax(300px,1fr) 340px; gap:28px; margin-top:42px; }
-    .board { aspect-ratio:9/10; width:100%; max-width:620px; margin:auto; padding:10px; display:grid; grid-template-columns:repeat(9,1fr); grid-template-rows:repeat(10,1fr); background:var(--board); border:8px solid var(--frame); box-shadow:0 18px 50px #0007; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
-    .cell { border:1px solid var(--line); display:grid; place-items:center; cursor:pointer; color:#211605; font-size:clamp(18px,3.1vw,34px); font-weight:800; user-select:none; background:transparent; min-width:0; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
-    .cell.selected { outline:3px solid var(--accent); outline-offset:-3px; } .cell.legal { box-shadow:inset 0 0 0 3px #fff8; }
-    .piece-cho { color:#9f1f16; } .piece-han { color:#171717; }
-    .panel { padding:24px; background:var(--panel); border:1px solid #52685e; border-radius:16px; }
-    button, select { width:100%; border:0; border-radius:8px; padding:13px 16px; cursor:pointer; font-weight:700; margin-top:10px; }
-    button.primary { background:var(--accent); color:#211605; } button.secondary { background:#d8d3c8; color:#21312b; } button:disabled { opacity:.6; cursor:wait; }
-    select { background:#14211d; color:var(--ink); border:1px solid #52685e; }
-    .status { color:#d8d3c8; min-height:3em; } .meta { color:var(--muted); font-size:.9rem; }
-    .analysis { margin-top:18px; padding:16px; border:1px solid #52685e; border-radius:12px; background:#182722; }
+    .board { aspect-ratio:9/10; width:100%; max-width:620px; margin:auto; padding:10px; display:grid; grid-template-columns:repeat(9,1fr); grid-template-rows:repeat(10,1fr); background:var(--board); border:8px solid var(--frame); box-shadow:0 10px 24px #0002; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+    .cell { position:relative; border:1px solid var(--line); display:grid; place-items:center; cursor:pointer; color:#211605; font-size:clamp(18px,3.1vw,34px); font-weight:800; user-select:none; background:transparent; min-width:0; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+    .cell.selected { outline:3px solid var(--accent); outline-offset:-3px; } .cell.legal { box-shadow:inset 0 0 0 3px #fff7; } .piece { width:82%; aspect-ratio:1; border-radius:50%; display:grid; place-items:center; background:var(--piece); border:2px solid var(--piece-edge); box-shadow:0 2px 3px #0003, inset 0 0 0 1px #fff9; line-height:1; font-size:clamp(20px,3.2vw,36px); font-family:"Noto Serif CJK KR", "Noto Serif KR", serif; }
+    .piece-cho { color:#b0261b; border-color:#8c231b; } .piece-han { color:#222; border-color:#4c463d; }
+    .panel { padding:24px; background:var(--panel); border:1px solid #d6cfc3; border-radius:14px; box-shadow:0 4px 14px #0001; }
+    button, select { width:100%; border-radius:8px; padding:12px 16px; cursor:pointer; font-weight:700; margin-top:10px; }
+    button.primary { background:var(--accent); color:#fff; border:1px solid #96601b; } button.secondary { background:#f0ece4; color:#2d2924; border:1px solid #d4cdc1; } button:disabled { opacity:.6; cursor:wait; }
+    select { background:#fff; color:var(--ink); border:1px solid #cfc7ba; }
+    .status { color:#514b43; min-height:3em; } .meta { color:var(--muted); font-size:.9rem; }
+    .analysis { margin-top:18px; padding:16px; border:1px solid #d6cfc3; border-radius:12px; background:#fbf8f2; }
     .analysis h3 { margin:0 0 8px; } .analysis-row { display:flex; justify-content:space-between; gap:16px; padding:4px 0; color:#d8d3c8; } .analysis-row strong { text-align:right; overflow-wrap:anywhere; } .analysis-pv { display:block; } .analysis-pv strong { display:block; margin-top:4px; text-align:left; line-height:1.65; } .analysis-note { margin:10px 0 0; color:var(--muted); }
-    .action { margin-top:14px; padding:13px 14px; border:1px solid #8a6736; border-radius:10px; background:#21352e; } .action-title { display:block; margin-bottom:4px; color:var(--accent); }
-    .severity { display:inline-block; border-radius:999px; padding:2px 9px; font-size:.78rem; letter-spacing:.04em; background:#30453d; }
-    .review { margin-top:18px; padding:16px; border:1px solid #52685e; border-radius:12px; background:#182722; }
+    .action { margin-top:14px; padding:13px 14px; border:1px solid #8a6736; border-radius:10px; background:#f7f0e4; } .action-title { display:block; margin-bottom:4px; color:var(--accent); }
+    .severity { display:inline-block; border-radius:999px; padding:2px 9px; font-size:.78rem; letter-spacing:.04em; background:#eee6d8; }
+    .review { margin-top:18px; padding:16px; border:1px solid #d6cfc3; border-radius:12px; background:#fbf8f2; }
     .review h3 { margin:0 0 8px; }
     .review-counts { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }
     .review-list { margin:10px 0 0; padding:0; list-style:none; }
-    .review-list li { padding:9px 0; border-top:1px solid #42554c; }
+    .review-list li { padding:9px 0; border-top:1px solid #e0d8cc; }
     .review-reason { color:var(--accent); font-weight:700; }
-    .training { margin-top:18px; padding:16px; border:1px solid #8a6736; border-radius:12px; background:#1b2c26; }
+    .training { margin-top:18px; padding:16px; border:1px solid #8a6736; border-radius:12px; background:#faf3e6; }
     .training-list { margin:10px 0 0; padding:0; list-style:none; }
-    .training-list li { border-top:1px solid #42554c; padding:9px 0; }
-    .training-result { margin-top:10px; padding:10px; border-radius:8px; background:#243b32; }
-    .step { padding:12px 0; border-bottom:1px solid #42554c; } .step:last-child { border-bottom:0; }
+    .training-list li { border-top:1px solid #e0d8cc; padding:9px 0; }
+    .training-result { margin-top:10px; padding:10px; border-radius:8px; background:#f0e7d8; }
+    .step { padding:12px 0; border-bottom:1px solid #e0d8cc; } .step:last-child { border-bottom:0; }
     @media(max-width:760px){
       :root { color-scheme:dark; }
       body { overflow-x:hidden; overscroll-behavior-y:none; }
@@ -66,7 +66,7 @@
         <div class="meta" id="turn"></div>
         <label for="player-side">내 진영 · 선택한 진영이 화면 아래쪽</label>
         <select id="player-side" aria-label="내 진영">
-          <option value="han">한</option><option value="cho">초</option>
+          <option value="cho">초</option><option value="han">한</option>
         </select>
         <label for="setup">장기판 배치</label>
         <select id="setup" aria-label="장기판 배치">
@@ -118,7 +118,7 @@
   </main>
   <script>
     const pieceLabels = {
-      'general':'將', 'guard':'士', 'elephant':'象', 'horse':'馬', 'chariot':'車', 'cannon':'包', 'soldier':'卒'
+      'guard':'士', 'elephant':'象', 'horse':'馬', 'chariot':'車', 'cannon':'包'
     };
     const severityLabels = {
       'recommended':'추천 수',
@@ -144,6 +144,12 @@
       'check':'장군'
     };
     const sideLabels = { 'cho':'초', 'han':'한' };
+    function displayPieceLabel(piece) {
+      if (!piece) return '';
+      if (piece.kind === 'general') return piece.side === 'cho' ? '楚' : '將';
+      if (piece.kind === 'soldier') return piece.side === 'cho' ? '卒' : '兵';
+      return pieceLabels[piece.kind] || '?';
+    }
     const statusLabels = {
       'playing':'진행 중',
       'cho_win':'초 승',
@@ -483,13 +489,15 @@
           const cell = document.createElement('button');
           cell.className = 'cell';
           cell.type = 'button';
-          cell.setAttribute('aria-label', piece
-            ? `${sideLabels[piece.side] || piece.side} ${pieceLabels[piece.kind] || piece.kind} ${formatPosition([stateX, stateY])}`
-            : `빈 칸 ${formatPosition([stateX, stateY])}`);
           const piece = pieceAt(index);
+          cell.setAttribute('aria-label', piece
+            ? `${sideLabels[piece.side] || piece.side} ${displayPieceLabel(piece)} ${formatPosition([stateX, stateY])}`
+            : `빈 칸 ${formatPosition([stateX, stateY])}`);
           if (piece) {
-            cell.textContent = pieceLabels[piece.kind] || '?';
-            cell.classList.add(`piece-${piece.side}`);
+            const pieceNode = document.createElement('span');
+            pieceNode.className = `piece piece-${piece.side}`;
+            pieceNode.textContent = displayPieceLabel(piece);
+            cell.append(pieceNode);
           }
           if (selected && selected[0] === stateX && selected[1] === stateY) cell.classList.add('selected');
           if (destinations.has(JSON.stringify([stateX, stateY]))) cell.classList.add('legal');
@@ -517,9 +525,9 @@
       if (!response.ok) throw new Error(`대국 상태 요청 실패 (${response.status})`);
       snapshot = await response.json();
       playerSide.value = snapshot.player_side || 'cho';
-      orientationNote.textContent = boardSide() === 'han'
-        ? '한이 화면 아래쪽입니다. 한이 먼저 둡니다.'
-        : '초가 화면 아래쪽입니다. 한이 위에서 먼저 둡니다.';
+      orientationNote.textContent = boardSide() === 'cho'
+        ? '초가 화면 아래쪽입니다. 초가 먼저 둡니다.'
+        : '한이 화면 아래쪽입니다. 초가 위에서 먼저 둡니다.';
       clearTrainingMode();
       selected = null;
       render();
@@ -618,9 +626,9 @@
     });
 
     playerSide.addEventListener('change', () => {
-      orientationNote.textContent = playerSide.value === 'han'
-        ? '한이 화면 아래쪽입니다. 한이 먼저 둡니다.'
-        : '초가 화면 아래쪽입니다. 한이 먼저 응수합니다.';
+      orientationNote.textContent = playerSide.value === 'cho'
+        ? '초가 화면 아래쪽입니다. 초가 먼저 둡니다.'
+        : '한이 화면 아래쪽입니다. 초가 먼저 응수합니다.';
     });
 
     reset.addEventListener('click', async () => {

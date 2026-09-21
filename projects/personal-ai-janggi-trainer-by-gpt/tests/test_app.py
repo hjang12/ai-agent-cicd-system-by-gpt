@@ -53,25 +53,31 @@ class TrainerApplicationTests(unittest.TestCase):
     def test_snapshot_exposes_player_and_ai_sides(self):
         app = TrainerApplication()
         snapshot = app.snapshot()
-        self.assertEqual(snapshot["player_side"], "han")
-        self.assertEqual(snapshot["ai_side"], "cho")
+        self.assertEqual(snapshot["player_side"], "cho")
+        self.assertEqual(snapshot["ai_side"], "han")
 
-    def test_reset_han_starts_with_no_history(self):
+    def test_reset_can_select_han_and_ai_opens(self):
         app = TrainerApplication()
         snapshot = app.reset(player_side="han")
         self.assertEqual(snapshot["player_side"], "han")
         self.assertEqual(snapshot["ai_side"], "cho")
         self.assertEqual(snapshot["state"]["turn"], "han")
-        self.assertEqual(len(snapshot["state"]["history"]), 0)
-        self.assertEqual(snapshot["can_undo"], False)
+        self.assertEqual(len(snapshot["state"]["history"]), 1)
 
-    def test_han_player_turn_starts_immediately(self):
+    def test_han_player_turn_after_ai_opening(self):
         app = TrainerApplication()
         snapshot = app.reset(player_side="han")
         move = snapshot["legal_moves"][0]
         response = app.play_player_turn({"src": move["src"], "dst": move["dst"]})
         self.assertEqual(response["snapshot"]["state"]["turn"], "han")
-        self.assertEqual(len(response["snapshot"]["state"]["history"]), 2)
+        self.assertEqual(len(response["snapshot"]["state"]["history"]), 3)
+
+    def test_han_initial_ai_opening_is_not_undoable(self):
+        app = TrainerApplication()
+        snapshot = app.reset(player_side="han")
+        self.assertEqual(snapshot["can_undo"], False)
+        with self.assertRaises(ValueError):
+            app.undo()
 
     def test_han_ai_recovery_is_available_after_player_move(self):
         app = TrainerApplication()
@@ -82,32 +88,6 @@ class TrainerApplicationTests(unittest.TestCase):
         response = app.engine_move()
         self.assertTrue(response["analysis"]["best_move"])
         self.assertEqual(response["snapshot"]["state"]["turn"], "han")
-
-    def test_cho_player_gets_han_opening(self):
-        app = TrainerApplication()
-        snapshot = app.reset(player_side="cho")
-        self.assertEqual(snapshot["player_side"], "cho")
-        self.assertEqual(snapshot["ai_side"], "han")
-        self.assertEqual(snapshot["state"]["turn"], "cho")
-        self.assertEqual(len(snapshot["state"]["history"]), 1)
-
-        move = snapshot["legal_moves"][0]
-        response = app.play_player_turn({"src": move["src"], "dst": move["dst"]})
-        self.assertEqual(response["snapshot"]["state"]["turn"], "cho")
-        self.assertEqual(len(response["snapshot"]["state"]["history"]), 3)
-
-    def test_cho_player_causes_han_ai_to_open(self):
-        app = TrainerApplication()
-        snapshot = app.reset(player_side="cho")
-        self.assertEqual(snapshot["state"]["turn"], "cho")
-        self.assertEqual(len(snapshot["state"]["history"]), 1)
-        self.assertEqual(len(snapshot["state"]["history"]), 1)
-        self.assertEqual(snapshot["state"]["turn"], "cho")
-
-        move = snapshot["legal_moves"][0]
-        response = app.play_player_turn({"src": move["src"], "dst": move["dst"]})
-        self.assertEqual(response["snapshot"]["state"]["turn"], "cho")
-        self.assertEqual(len(response["snapshot"]["state"]["history"]), 3)
 
     def test_reset_rejects_unknown_player_side(self):
         app = TrainerApplication()
@@ -122,15 +102,15 @@ class TrainerApplicationTests(unittest.TestCase):
     def test_analyze_move_does_not_change_state(self):
         app = TrainerApplication()
         before = app.snapshot()
-        response = app.analyze_move({"src": [0, 6], "dst": [0, 5]})
+        response = app.analyze_move({"src": [0, 3], "dst": [0, 4]})
         self.assertIn("analysis", response)
-        self.assertEqual(response["analysis"]["move"]["src"], [0, 6])
-        self.assertEqual(response["analysis"]["move"]["dst"], [0, 5])
+        self.assertEqual(response["analysis"]["move"]["src"], [0, 3])
+        self.assertEqual(response["analysis"]["move"]["dst"], [0, 4])
         self.assertEqual(response["snapshot"]["state"], before["state"])
 
     def test_analyze_move_reports_recommendation_coaching_tactical_risk_and_pv(self):
         app = TrainerApplication()
-        response = app.analyze_move({"src": [0, 6], "dst": [0, 5]})
+        response = app.analyze_move({"src": [0, 3], "dst": [0, 4]})
         self.assertIn("recommended_move", response["analysis"])
         self.assertIn("score_delta_cp", response["analysis"])
         self.assertIn("is_best_move", response["analysis"])
@@ -156,7 +136,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("engine_analysis", response)
         self.assertTrue(response["engine_analysis"]["best_move"])
         self.assertIn("snapshot", response)
-        self.assertEqual(response["snapshot"]["state"]["turn"], "han")
+        self.assertEqual(response["snapshot"]["state"]["turn"], "cho")
         self.assertEqual(len(response["snapshot"]["state"]["history"]), 2)
 
     def test_engine_move_returns_analysis_and_updates_state(self):
@@ -206,7 +186,7 @@ class TrainerApplicationTests(unittest.TestCase):
 
     def test_review_aggregates_current_learner_moves(self):
         app = TrainerApplication()
-        app.play({"src": [0, 6], "dst": [0, 5]})
+        app.play({"src": [0, 3], "dst": [0, 4]})
 
         review = app.review({"limit": 5})
 
@@ -217,7 +197,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIsInstance(review["severity_counts"], dict)
         self.assertEqual(len(review["entries"]), 1)
         self.assertEqual(review["entries"][0]["ply"], 1)
-        self.assertEqual(review["entries"][0]["side"], "han")
+        self.assertEqual(review["entries"][0]["side"], "cho")
         self.assertIn("reason_codes", review["entries"][0])
 
     def test_review_rejects_invalid_limit(self):
@@ -261,11 +241,11 @@ class TrainerApplicationTests(unittest.TestCase):
 
     def test_record_exports_played_moves(self):
         app = TrainerApplication()
-        app.play({"src": [0, 6], "dst": [0, 5]})
+        app.play({"src": [0, 3], "dst": [0, 4]})
         record = app.record()
         self.assertEqual(len(record["moves"]), 1)
-        self.assertEqual(record["moves"][0]["src"], [0, 6])
-        self.assertEqual(record["moves"][0]["dst"], [0, 5])
+        self.assertEqual(record["moves"][0]["src"], [0, 3])
+        self.assertEqual(record["moves"][0]["dst"], [0, 4])
 
     def test_undo_restores_previous_player_turn(self):
         app = TrainerApplication()
@@ -357,9 +337,6 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn('class="analysis-row analysis-pv"', html)
         self.assertIn("undo.disabled = busy || !canUndo", html)
         self.assertIn("engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== snapshot?.ai_side", html)
-        self.assertIn("function displayToState(x, y)", html)
-        self.assertIn("return boardSide() === 'cho' ? [8 - x, 9 - y] : [x, y];", html)
-        self.assertIn("cell.addEventListener('click', () => clickCell(x, y));", html)
         self.assertIn("const [stateX, stateY] = displayToState(x, y)", html)
         self.assertIn("legalDestination(selected, [stateX, stateY])", html)
         self.assertIn("const move = {src:selected, dst:[stateX, stateY]};", html)
@@ -370,4 +347,3 @@ class TrainerApplicationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

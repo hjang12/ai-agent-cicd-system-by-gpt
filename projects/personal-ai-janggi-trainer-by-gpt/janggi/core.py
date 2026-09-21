@@ -66,16 +66,9 @@ class GameState:
         return cls((None,) * BOARD_SIZE, turn)
 
     @classmethod
-    def initial(
-        cls,
-        setup: str = "classic",
-        *,
-        starting_side: Side = Side.HAN,
-    ) -> "GameState":
+    def initial(cls, setup: str = "classic") -> "GameState":
         if setup not in {"classic", "left", "right", "both"}:
             raise ValueError("setup must be classic, left, right, or both")
-        if not isinstance(starting_side, Side):
-            raise ValueError("starting_side must be a Side")
         board: list[Optional[Piece]] = [None] * BOARD_SIZE
 
         def put(x: int, y: int, side: Side, kind: PieceType) -> None:
@@ -99,7 +92,7 @@ class GameState:
         for x in (0, 2, 4, 6, 8):
             put(x, 3, Side.CHO, PieceType.SOLDIER)
             put(x, 6, Side.HAN, PieceType.SOLDIER)
-        return cls(tuple(board), starting_side)
+        return cls(tuple(board), Side.CHO)
 
     def piece_at(self, pos: Position) -> Optional[Piece]:
         return self.board[index(pos)]
