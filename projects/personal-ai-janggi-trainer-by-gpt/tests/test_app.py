@@ -245,6 +245,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("reasonAccuracySummary", html)
         self.assertIn("reason_correct", html)
         self.assertIn("problem_incorrect", html)
+        self.assertIn("다른 문제도 함께 섞었습니다", html)
         self.assertIn("priority_reason_codes", html)
         self.assertIn("priority_problem_ids", html)
         self.assertIn("반복 오답 문제", html)

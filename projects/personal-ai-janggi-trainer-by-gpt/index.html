@@ -282,8 +282,11 @@
       if (priorityReasons.length) {
         priorityParts.push('낮은 정답률 reason ' + priorityReasons.join(', '));
       }
+      const diversityNote = result.problem_count > 1 && priorityProblems.length > 1 && result.problem_count > repeated.length
+        ? ' 반복 오답만 고르지 않고 다른 문제도 함께 섞었습니다.'
+        : '';
       const priorityNote = priorityParts.length
-        ? ' ' + priorityParts.join(' · ') + '을 우선했습니다.'
+        ? ' ' + priorityParts.join(' · ') + '을 우선했습니다.' + diversityNote
         : ' 아직 관찰된 오답이 없어 최근 문제 순서를 유지했습니다.';
       trainingSummary.textContent = result.problem_count
         ? '복기에서 다시 풀어볼 수 있는 문제 ' + result.problem_count + '개가 생성되었습니다.' + priorityNote

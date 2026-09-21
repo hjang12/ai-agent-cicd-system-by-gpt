@@ -133,20 +133,50 @@ def select_adaptive_training_problems(
     if not priority_problem_rank and not priority_reason_rank:
         return problems[:max_problems]
 
-    def selection_key(indexed_problem: tuple[int, PositionTrainingProblem]) -> tuple[int, int, int, int]:
-        index, problem = indexed_problem
-        problem_rank = priority_problem_rank.get(problem.problem_id)
+    indexed = list(enumerate(problems))
+    repeat_candidates = [
+        item for item in indexed if item[1].problem_id in priority_problem_rank
+    ]
+    repeat_candidates.sort(
+        key=lambda item: (priority_problem_rank[item[1].problem_id], item[0])
+    )
+    repeat_quota = min(
+        len(repeat_candidates),
+        max(1, (max_problems + 1) // 2),
+    )
+    selected: list[tuple[int, PositionTrainingProblem]] = repeat_candidates[:repeat_quota]
+    selected_ids = {problem.problem_id for _, problem in selected}
+    selected_reasons = {
+        reason
+        for _, problem in selected
+        for reason in problem.reason_codes
+    }
+    remaining = [
+        item for item in indexed if item[1].problem_id not in selected_ids
+    ]
+
+    def reason_rank(problem: PositionTrainingProblem) -> int:
         matching_ranks = [
             priority_reason_rank[reason]
             for reason in problem.reason_codes
             if reason in priority_reason_rank
         ]
-        if problem_rank is not None:
-            return (0, problem_rank, min(matching_ranks, default=len(priority_reason_rank)), index)
-        return (1, len(priority_problem_rank), min(matching_ranks, default=len(priority_reason_rank)), index)
+        return min(matching_ranks, default=len(priority_reason_rank))
 
-    ordered = sorted(enumerate(problems), key=selection_key)
-    return tuple(problem for _, problem in ordered[:max_problems])
+    diverse_remaining = sorted(
+        remaining,
+        key=lambda item: (
+            0 if any(
+                reason in priority_reason_rank and reason not in selected_reasons
+                for reason in item[1].reason_codes
+            ) else 1,
+            reason_rank(item[1]),
+            item[0],
+        ),
+    )
+    selected.extend(diverse_remaining[: max_problems - len(selected)])
+
+    return tuple(problem for _, problem in selected)
 
 
 def _problem_from_entry(entry: ReviewEntry) -> PositionTrainingProblem:
