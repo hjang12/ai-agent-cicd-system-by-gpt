@@ -53,6 +53,10 @@ Serialized state may optionally include the setup identifier. When setup is know
 
 Training examples are produced only from records accepted by the validation pipeline. Outcome labels are normalized to the side-to-move perspective so model training can use a consistent target convention.
 
+### Coaching review and position problems: `janggi/review.py`, `janggi/training_problems.py`
+
+`CoachingReview` replays a current personal session and preserves each learner move's pre-move `GameState`. `training_problems.py` converts only non-recommended review entries with a valid recommendation into bounded position-training problems. The problem layer is non-persistent and does not redefine engine truth: the recommended move remains derived from the existing normalized analysis contract.
+
 ### Model metadata: `janggi/model.py`
 
 `ModelSpec` and `ModelRegistry` store stable model identity and metadata only. Engine instances are not stored in the registry. This keeps model selection separate from execution and search implementation.
@@ -109,6 +113,25 @@ TrainingDatasetBuilder
    v
 TrainingExample
 ```
+
+### Personal coaching loop
+
+```text
+Current GameRecord
+      |
+      v
+   ReviewEntry
+      |
+      +--> CoachingInsight / reason_codes
+      |
+      v
+PositionTrainingProblem
+      |
+      v
+Browser problem / answer
+```
+
+The personal-training loop is separate from ground-truth dataset construction. A user's mistake can become a practice problem without becoming a model-training label.
 
 ### Model evaluation
 
