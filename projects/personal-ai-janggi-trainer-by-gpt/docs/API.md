@@ -144,9 +144,9 @@ Optional JSON body:
 {"review_limit":20,"problem_limit":5}
 ```
 
-The endpoint returns each problem's complete pre-move position, legal moves, original learner move, conservative severity/reason codes, prompt, explanation, and next action. The service considers up to 20 eligible review-derived problems and, using the current ephemeral training metrics, prioritizes problems carrying reason codes with observed mistakes and lower session accuracy. When there are no observed reason-specific mistakes, the recent-first order is preserved. The recommended target move is intentionally omitted by default so the browser can present the position as a problem instead of immediately revealing the answer.
+The endpoint returns each problem's complete pre-move position, legal moves, original learner move, conservative severity/reason codes, prompt, explanation, and next action. The service considers up to 20 eligible review-derived problems and, using the current ephemeral training metrics, prioritizes repeatedly missed problem ids first and then reason codes with observed mistakes and lower session accuracy. When there are no observed reason-specific mistakes, the recent-first order is preserved. The recommended target move is intentionally omitted by default so the browser can present the position as a problem instead of immediately revealing the answer.
 
-Set `include_solution` to `true` for trusted/internal consumers that need the target move. The response also includes `priority_reason_codes`, ordered from the lowest observed session accuracy among reasons with at least one mistake.
+Set `include_solution` to `true` for trusted/internal consumers that need the target move. The response also includes `priority_reason_codes` and `priority_problem_ids`. The former lists reasons ordered from the lowest observed session accuracy among reasons with at least one mistake; the latter lists problem ids with repeated incorrect answers, ordered by observed incorrect count.
 
 ### `GET /api/training/metrics`
 
@@ -159,6 +159,8 @@ Returns the current in-memory training-session metrics without changing the acti
   "incorrect": 2,
   "unique_problems": 3,
   "accuracy": 0.5,
+  "problem_attempts": {"ply-7": 3, "ply-9": 1},
+  "problem_incorrect": {"ply-7": 2},
   "reason_attempts": {
     "hanging_piece": 2,
     "score_deviation": 4
