@@ -179,6 +179,72 @@ class TrainingProblemTests(unittest.TestCase):
         self.assertEqual(adaptive_problem_priority(snapshot), ("ply-3", "ply-2"))
         self.assertEqual([problem.problem_id for problem in selected], ["ply-3", "ply-2"])
 
+    def test_adaptive_selection_bounds_repeated_mistake_share(self):
+        state = GameState.initial()
+        legal = state.legal_moves(include_pass=False)
+        entries = tuple(
+            self._entry(
+                ply,
+                state,
+                legal[ply - 1],
+                legal[ply],
+                CoachingSeverity.INACCURACY,
+                CoachingReason.HANGING_PIECE if ply <= 2 else CoachingReason.SCORE_DEVIATION,
+            )
+            for ply in range(1, 6)
+        )
+        problems = generate_training_problems(self._review(entries), max_problems=20)
+        metrics = TrainingSessionMetrics()
+        for problem_id in ("ply-5", "ply-4", "ply-3", "ply-2"):
+            metrics.record_attempt(
+                problem_id=problem_id,
+                correct=False,
+                reason_codes=(CoachingReason.HANGING_PIECE,),
+            )
+
+        selected = select_adaptive_training_problems(
+            problems, metrics.snapshot(), max_problems=5
+        )
+
+        self.assertEqual([problem.problem_id for problem in selected[:3]], ["ply-5", "ply-4", "ply-3"])
+        self.assertIn("ply-1", [problem.problem_id for problem in selected])
+        self.assertIn("ply-2", [problem.problem_id for problem in selected])
+
+    def test_adaptive_selection_mixes_unrepeated_reason_when_available(self):
+        state = GameState.initial()
+        legal = state.legal_moves(include_pass=False)
+        entries = (
+            self._entry(1, state, legal[0], legal[1], CoachingSeverity.INACCURACY, CoachingReason.HANGING_PIECE),
+            self._entry(2, state, legal[1], legal[2], CoachingSeverity.INACCURACY, CoachingReason.SCORE_DEVIATION),
+            self._entry(3, state, legal[2], legal[3], CoachingSeverity.INACCURACY, CoachingReason.DOUBLE_ATTACK),
+            self._entry(4, state, legal[3], legal[4], CoachingSeverity.INACCURACY, CoachingReason.CHECK),
+        )
+        problems = generate_training_problems(self._review(entries), max_problems=20)
+        metrics = TrainingSessionMetrics()
+        metrics.record_attempt(
+            problem_id="ply-4",
+            correct=False,
+            reason_codes=(CoachingReason.CHECK,),
+        )
+        metrics.record_attempt(
+            problem_id="ply-3",
+            correct=False,
+            reason_codes=(CoachingReason.DOUBLE_ATTACK,),
+        )
+        metrics.record_attempt(
+            problem_id="ply-3",
+            correct=False,
+            reason_codes=(CoachingReason.DOUBLE_ATTACK,),
+        )
+
+        selected = select_adaptive_training_problems(
+            problems, metrics.snapshot(), max_problems=3
+        )
+
+        self.assertEqual(selected[0].problem_id, "ply-3")
+        self.assertIn("ply-1", [problem.problem_id for problem in selected])
+        self.assertEqual(len(selected), 3)
+
     def test_adaptive_selection_falls_back_to_recent_order_without_mistakes(self):
         state = GameState.initial()
         legal = state.legal_moves(include_pass=False)
