@@ -13,6 +13,7 @@ class TrainingMetricsSnapshot:
     unique_problems: int
     accuracy: float
     reason_attempts: tuple[tuple[CoachingReason, int], ...]
+    reason_correct: tuple[tuple[CoachingReason, int], ...]
 
 
 class TrainingSessionMetrics:
@@ -26,6 +27,7 @@ class TrainingSessionMetrics:
         self._correct = 0
         self._problem_ids: set[str] = set()
         self._reason_attempts = {reason: 0 for reason in CoachingReason}
+        self._reason_correct = {reason: 0 for reason in CoachingReason}
 
     def record_attempt(
         self,
@@ -44,6 +46,8 @@ class TrainingSessionMetrics:
         self._problem_ids.add(problem_id)
         for reason in reason_codes:
             self._reason_attempts[reason] += 1
+            if correct:
+                self._reason_correct[reason] += 1
 
     def snapshot(self) -> TrainingMetricsSnapshot:
         incorrect = self._attempts - self._correct
@@ -57,6 +61,11 @@ class TrainingSessionMetrics:
             reason_attempts=tuple(
                 (reason, count)
                 for reason, count in self._reason_attempts.items()
+                if count
+            ),
+            reason_correct=tuple(
+                (reason, count)
+                for reason, count in self._reason_correct.items()
                 if count
             ),
         )

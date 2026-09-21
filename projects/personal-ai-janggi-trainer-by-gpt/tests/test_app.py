@@ -240,6 +240,8 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("정답률", html)
         self.assertIn("renderTrainingMetrics(result.metrics)", html)
         self.assertIn("accuracy", html)
+        self.assertIn("reasonAccuracySummary", html)
+        self.assertIn("reason_correct", html)
 
     def test_browser_session_review_contract_is_present(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
