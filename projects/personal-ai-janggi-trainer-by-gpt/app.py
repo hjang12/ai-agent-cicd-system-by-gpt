@@ -8,7 +8,7 @@ from pathlib import Path
 from threading import RLock
 from urllib.parse import urlparse
 
-from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, coach_move, generate_training_problems, review_record, state_to_dict
+from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, adaptive_reason_priority, coach_move, generate_training_problems, review_record, select_adaptive_training_problems, state_to_dict
 from janggi.review import DEFAULT_REVIEW_LIMIT
 from janggi.training_metrics import TrainingSessionMetrics
 from janggi.training_problems import DEFAULT_PROBLEM_LIMIT, MAX_PROBLEM_LIMIT
@@ -129,12 +129,19 @@ class TrainerApplication:
                 max_moves=review_limit,
                 side=Side.CHO,
             )
-            problems = generate_training_problems(review, max_problems=problem_limit)
+            metrics = self.training_metrics.snapshot()
+            candidates = generate_training_problems(review, max_problems=MAX_PROBLEM_LIMIT)
+            problems = select_adaptive_training_problems(
+                candidates,
+                metrics,
+                max_problems=problem_limit,
+            )
             return {
                 "reviewed_moves": review.reviewed_moves,
                 "problem_count": len(problems),
+                "priority_reason_codes": [reason.value for reason in adaptive_reason_priority(metrics)],
                 "problems": [_training_problem_to_dict(problem, include_solution=include_solution) for problem in problems],
-                "metrics": _training_metrics_to_dict(self.training_metrics.snapshot()),
+                "metrics": _training_metrics_to_dict(metrics),
             }
 
     def training_problem_answer(self, payload: dict[str, object]) -> dict[str, object]:

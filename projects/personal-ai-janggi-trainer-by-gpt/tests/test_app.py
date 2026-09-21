@@ -242,6 +242,8 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("accuracy", html)
         self.assertIn("reasonAccuracySummary", html)
         self.assertIn("reason_correct", html)
+        self.assertIn("priority_reason_codes", html)
+        self.assertIn("낮은 정답률로 관찰된", html)
 
     def test_browser_session_review_contract_is_present(self):
         html = INDEX_HTML.read_text(encoding="utf-8")

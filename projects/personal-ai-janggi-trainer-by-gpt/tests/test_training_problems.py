@@ -10,12 +10,15 @@ from janggi import (
     MoveAnalysis,
     PositionTrainingProblem,
     Side,
+    TrainingSessionMetrics,
+    adaptive_reason_priority,
     generate_training_problems,
+    select_adaptive_training_problems,
 )
 
 
 class TrainingProblemTests(unittest.TestCase):
-    def _entry(self, ply, state, move, recommended, severity):
+    def _entry(self, ply, state, move, recommended, severity, reason=CoachingReason.SCORE_DEVIATION):
         analysis = MoveAnalysis(
             move=move,
             recommended_move=recommended,
@@ -31,7 +34,7 @@ class TrainingProblemTests(unittest.TestCase):
             message="테스트 설명",
             score_delta_cp=analysis.score_delta_cp,
             next_action="다음 수를 확인하세요.",
-            reason_codes=(CoachingReason.SCORE_DEVIATION,),
+            reason_codes=(reason,),
         )
         from janggi.review import ReviewEntry
         return ReviewEntry(
@@ -43,18 +46,23 @@ class TrainingProblemTests(unittest.TestCase):
             insight=insight,
         )
 
+    def _review(self, entries):
+        return CoachingReview(
+            total_moves=len(entries),
+            reviewed_moves=len(entries),
+            skipped_moves=0,
+            entries=tuple(entries),
+            reason_counts=(),
+            severity_counts=(),
+        )
+
     def test_generates_problem_from_non_recommended_move(self):
         state = GameState.initial()
         move = state.legal_moves(include_pass=False)[0]
         recommended = state.legal_moves(include_pass=False)[1]
-        review = CoachingReview(
-            total_moves=1,
-            reviewed_moves=1,
-            skipped_moves=0,
-            entries=(self._entry(1, state, move, recommended, CoachingSeverity.INACCURACY),),
-            reason_counts=((CoachingReason.SCORE_DEVIATION, 1),),
-            severity_counts=((CoachingSeverity.INACCURACY, 1),),
-        )
+        review = self._review((
+            self._entry(1, state, move, recommended, CoachingSeverity.INACCURACY),
+        ))
 
         problems = generate_training_problems(review, max_problems=5)
 
@@ -72,22 +80,12 @@ class TrainingProblemTests(unittest.TestCase):
         second = state.legal_moves(include_pass=False)[1]
         recommended_entry = self._entry(1, state, first, first, CoachingSeverity.RECOMMENDED)
         unavailable_entry = self._entry(2, state, second, None, CoachingSeverity.UNAVAILABLE)
-        review = CoachingReview(
-            total_moves=2,
-            reviewed_moves=2,
-            skipped_moves=0,
-            entries=(recommended_entry, unavailable_entry),
-            reason_counts=(),
-            severity_counts=(),
-        )
+        review = self._review((recommended_entry, unavailable_entry))
         problems = generate_training_problems(review)
         self.assertEqual(problems, ())
 
     def test_problem_limit_is_bounded_and_boolean_rejected(self):
-        review = CoachingReview(
-            total_moves=0, reviewed_moves=0, skipped_moves=0, entries=(),
-            reason_counts=(), severity_counts=(),
-        )
+        review = self._review(())
         with self.assertRaises(ValueError):
             generate_training_problems(review, max_problems=21)
         with self.assertRaises(ValueError):
@@ -110,6 +108,65 @@ class TrainingProblemTests(unittest.TestCase):
                 explanation="설명",
                 next_action="다음 수",
             )
+
+    def test_adaptive_selection_prioritizes_low_accuracy_reasons(self):
+        state = GameState.initial()
+        legal = state.legal_moves(include_pass=False)
+        entries = (
+            self._entry(1, state, legal[0], legal[1], CoachingSeverity.INACCURACY, CoachingReason.SCORE_DEVIATION),
+            self._entry(2, state, legal[1], legal[2], CoachingSeverity.INACCURACY, CoachingReason.HANGING_PIECE),
+            self._entry(3, state, legal[2], legal[3], CoachingSeverity.INACCURACY, CoachingReason.DOUBLE_ATTACK),
+            self._entry(4, state, legal[3], legal[4], CoachingSeverity.INACCURACY, CoachingReason.SCORE_DEVIATION),
+        )
+        problems = generate_training_problems(self._review(entries), max_problems=20)
+        metrics = TrainingSessionMetrics()
+        metrics.record_attempt(
+            problem_id="ply-2", correct=False, reason_codes=(CoachingReason.HANGING_PIECE,)
+        )
+        metrics.record_attempt(
+            problem_id="ply-1", correct=True, reason_codes=(CoachingReason.SCORE_DEVIATION,)
+        )
+        metrics.record_attempt(
+            problem_id="ply-4", correct=False, reason_codes=(CoachingReason.SCORE_DEVIATION,)
+        )
+        metrics.record_attempt(
+            problem_id="ply-4", correct=True, reason_codes=(CoachingReason.SCORE_DEVIATION,)
+        )
+
+        snapshot = metrics.snapshot()
+        selected = select_adaptive_training_problems(
+            problems, snapshot, max_problems=2
+        )
+
+        self.assertEqual([problem.problem_id for problem in selected], ["ply-2", "ply-4"])
+        self.assertEqual(
+            adaptive_reason_priority(snapshot),
+            (CoachingReason.HANGING_PIECE, CoachingReason.SCORE_DEVIATION),
+        )
+
+    def test_adaptive_selection_falls_back_to_recent_order_without_mistakes(self):
+        state = GameState.initial()
+        legal = state.legal_moves(include_pass=False)
+        entries = (
+            self._entry(1, state, legal[0], legal[1], CoachingSeverity.INACCURACY),
+            self._entry(2, state, legal[1], legal[2], CoachingSeverity.INACCURACY),
+            self._entry(3, state, legal[2], legal[3], CoachingSeverity.INACCURACY),
+        )
+        problems = generate_training_problems(self._review(entries), max_problems=20)
+
+        selected = select_adaptive_training_problems(
+            problems, TrainingSessionMetrics().snapshot(), max_problems=2
+        )
+
+        self.assertEqual([problem.problem_id for problem in selected], ["ply-3", "ply-2"])
+
+    def test_adaptive_selection_limit_is_bounded_and_boolean_rejected(self):
+        problems = ()
+        metrics = TrainingSessionMetrics().snapshot()
+        with self.assertRaises(ValueError):
+            select_adaptive_training_problems(problems, metrics, max_problems=21)
+        with self.assertRaises(ValueError):
+            select_adaptive_training_problems(problems, metrics, max_problems=True)
 
 
 if __name__ == "__main__":

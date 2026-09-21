@@ -144,9 +144,9 @@ Optional JSON body:
 {"review_limit":20,"problem_limit":5}
 ```
 
-The endpoint returns each problem's complete pre-move position, legal moves, original learner move, conservative severity/reason codes, prompt, explanation, and next action. The recommended target move is intentionally omitted by default so the browser can present the position as a problem instead of immediately revealing the answer.
+The endpoint returns each problem's complete pre-move position, legal moves, original learner move, conservative severity/reason codes, prompt, explanation, and next action. The service considers up to 20 eligible review-derived problems and, using the current ephemeral training metrics, prioritizes problems carrying reason codes with observed mistakes and lower session accuracy. When there are no observed reason-specific mistakes, the recent-first order is preserved. The recommended target move is intentionally omitted by default so the browser can present the position as a problem instead of immediately revealing the answer.
 
-Set `include_solution` to `true` for trusted/internal consumers that need the target move.
+Set `include_solution` to `true` for trusted/internal consumers that need the target move. The response also includes `priority_reason_codes`, ordered from the lowest observed session accuracy among reasons with at least one mistake.
 
 ### `GET /api/training/metrics`
 

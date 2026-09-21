@@ -1,3 +1,39 @@
+## 29. 2026-09-21 — Session-local adaptive training problem selection
+
+### Requirement
+
+단순히 최근 복기 문제를 다시 보여주는 것보다, 현재 세션에서 실제로 틀린 실수 유형을 다음 훈련 문제에서 먼저 다루는 것이 자연스러운 다음 단계였습니다. 다만 현재 지표는 샘플이 작고 ephemeral이므로 장기 숙련도나 난이도 모델로 확대하면 안 됩니다.
+
+### Decision
+
+기존 review-derived training problems를 최대 20개까지 후보로 만든 뒤, 현재 `TrainingMetricsSnapshot`의 reason별 시도/정답 수를 사용해 **관찰된 오답이 있고 정확도가 낮은 reason**을 우선하는 session-local selection policy를 추가했습니다.
+
+- 문제 자체의 생성 규칙은 변경하지 않음
+- 기존 문제를 재정렬할 뿐 새로운 증거나 label을 생성하지 않음
+- 관찰된 reason-specific mistake가 없으면 기존 recent-first 순서 유지
+- 기본 최대 5개, 전체 후보 최대 20개
+- persistence/mastery/difficulty model 미도입
+
+### Implementation
+
+- `adaptive_reason_priority()` 추가
+- `select_adaptive_training_problems()` 추가
+- `/api/training/problems`가 최대 20개 후보를 만든 뒤 현재 session metrics로 재선택하도록 변경
+- 응답에 `priority_reason_codes` 추가
+- 브라우저에서 적응형 선택 여부와 전체/이유별 정답률을 함께 표시
+- selector unit/API/browser contract 테스트 추가
+- `TRAINING_PROBLEMS.md`, `TRAINING_METRICS.md`, `API.md`, `CURRENT_STATUS.md` 동기화
+
+### Boundary
+
+reason-specific 정확도는 현재 세션의 관찰치일 뿐 mastery estimate가 아닙니다. 작은 표본의 일시적인 0%/100%도 장기적인 난이도나 사용자 능력으로 해석하지 않습니다.
+
+### Next Step
+
+실제 사용 흐름에서 adaptive selection이 원하는 문제를 반복적으로 앞으로 가져오는지 확인하고, 필요성이 입증될 때만 별도 persistence 요구사항을 검토합니다.
+
+---
+
 ## 28. 2026-09-21 — Reason-specific training accuracy
 
 ### Requirement
