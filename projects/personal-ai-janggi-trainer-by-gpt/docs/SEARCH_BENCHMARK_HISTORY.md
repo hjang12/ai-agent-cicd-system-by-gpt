@@ -205,3 +205,38 @@ The legal-move cache continued to preserve minimax scores.
 ### Decision
 
 Keep bounded quiescence at depth 1 as the default. The extension materially increases the tactical search horizon while remaining bounded in the deterministic benchmark. The next AI-strength step should focus on targeted tactical fixtures and, only after those are stable, consider a larger principal search depth.
+
+
+## 2026-09-21 — Positional evaluation symmetry correction
+
+### Finding
+
+The evaluation's material and mobility terms were zero-sum, but the positional score previously awarded positional bonuses only to the side to move. That meant an opponent's advanced/central soldier or palace guard bonus was not subtracted from the evaluation.
+
+### Change
+
+- keep the existing calibrated material and bounded positional constants;
+- score the side to move's positional terms positively and the opponent's corresponding terms negatively;
+- add a regression fixture asserting that an opponent's advanced center soldier lowers the side-to-move evaluation;
+- keep the search protocol, legality boundary, and default depth unchanged.
+
+### Deterministic search result
+
+| Fixture | Depth | Reference nodes | Production nodes | Reduction |
+| --- | ---: | ---: | ---: | ---: |
+| initial | 2 | 129 | 129 | 0.00% |
+| capture | 2 | 63 | 56 | 11.11% |
+| capture | 3 | 534 | 409 | 23.41% |
+| check | 2 | 50 | 41 | 18.00% |
+| check | 3 | 519 | 522 | -0.58% |
+| double_attack | 2 | 170 | 118 | 30.59% |
+| double_attack | 3 | 1097 | 983 | 10.39% |
+| midgame | 2 | 237 | 149 | 37.13% |
+| endgame | 2 | 195 | 108 | 44.62% |
+| endgame | 3 | 1965 | 634 | 67.74% |
+
+All measured ordering variants preserved the coordinate-reference minimax score. Production best-move agreement remained unchanged on the fixtures where the benchmark checks deterministic agreement. The changed node counts are expected alpha-beta consequences of the corrected evaluation; they are not a runtime or playing-strength claim.
+
+### Decision
+
+Promote the new production node counts as the regression baseline for the corrected evaluation. Keep the current capture-value-first/check-second ordering unchanged.

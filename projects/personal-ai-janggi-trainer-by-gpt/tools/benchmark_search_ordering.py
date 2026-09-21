@@ -170,16 +170,16 @@ def main() -> None:
         _endgame_fixture(),
     )
     expected_current_nodes = {
-        ("initial", 2): 144,
+        ("initial", 2): 129,
         ("capture", 2): 56,
         ("capture", 3): 409,
         ("check", 2): 41,
         ("check", 3): 522,
         ("double_attack", 2): 118,
-        ("double_attack", 3): 941,
+        ("double_attack", 3): 983,
         ("midgame", 2): 149,
         ("endgame", 2): 108,
-        ("endgame", 3): 641,
+        ("endgame", 3): 634,
     }
 
     print("Search benchmark: reference vs current vs check-first vs capture-check-first")
@@ -188,6 +188,7 @@ def main() -> None:
     print()
     print("fixture,depth,reference_nodes,current_nodes,check_first_nodes,capture_check_nodes,current_reduction_pct,check_first_reduction_pct,capture_check_reduction_pct,current_same_score,check_first_same_score,capture_check_same_score,current_same_best_move,check_first_same_best_move,capture_check_same_best_move")
 
+    baseline_mismatches: list[str] = []
     for fixture in fixtures:
         depths = (2, 3) if fixture.name in {"capture", "check", "double_attack", "endgame"} else (2,)
         for depth in depths:
@@ -204,9 +205,8 @@ def main() -> None:
                 capture_check_reduction = 100.0 * (reference.nodes - capture_check.nodes) / reference.nodes
             expected_nodes = expected_current_nodes.get((fixture.name, depth))
             if expected_nodes is not None and current.nodes != expected_nodes:
-                raise AssertionError(
-                    f"current node baseline changed for {fixture.name} depth {depth}: "
-                    f"expected {expected_nodes}, got {current.nodes}"
+                baseline_mismatches.append(
+                    f"{fixture.name} depth {depth}: expected {expected_nodes}, got {current.nodes}"
                 )
             if current.score_cp != reference.score_cp:
                 raise AssertionError(f"current ordering changed minimax score for {fixture.name} depth {depth}")
@@ -223,6 +223,9 @@ def main() -> None:
                 f"{capture_check.score_cp == reference.score_cp},{current.best_move == reference.best_move},"
                 f"{check_first.best_move == reference.best_move},{capture_check.best_move == reference.best_move}"
             )
+
+    if baseline_mismatches:
+        raise AssertionError("current node baselines changed: " + "; ".join(baseline_mismatches))
 
     print()
     print("Legal-move generation benchmark: current cache vs disabled cache")

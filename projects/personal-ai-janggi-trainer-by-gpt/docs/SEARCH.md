@@ -35,6 +35,7 @@ The evaluation now combines material, mobility, and small domain-aware positiona
 - material values are calibrated to common Janggi point ordering: chariot 13, cannon 7, horse 5, elephant 3, guard 3, soldier 2;
 - advanced soldiers receive a modest forward-progress bonus, with a small central-file preference;
 - guards retained inside their own palace receive a small defensive bonus;
+- the positional score is symmetric: the side-to-move's positional terms are added and the opponent's corresponding terms are subtracted;
 - checking pressure receives a bounded score bonus, while being in check receives the corresponding penalty.
 
 These terms are deliberately small relative to material and mate scores. They improve leaf-position discrimination without moving legality or terminal-state decisions out of `GameState`.
@@ -69,16 +70,16 @@ Baseline measurements on GitHub Actions (Python 3.12) for the production orderin
 
 | Fixture | Depth | Reference nodes | Production nodes | Node reduction |
 | --- | ---: | ---: | ---: | ---: |
-| initial | 2 | 144 | 144 | 0.00% |
+| initial | 2 | 129 | 129 | 0.00% |
 | capture | 2 | 63 | 56 | 11.11% |
 | capture | 3 | 534 | 409 | 23.41% |
 | check | 2 | 50 | 41 | 18.00% |
 | check | 3 | 519 | 522 | -0.58% |
 | double_attack | 2 | 170 | 118 | 30.59% |
-| double_attack | 3 | 1063 | 941 | 11.48% |
-| midgame | 2 | 235 | 149 | 36.60% |
-| endgame | 2 | 186 | 108 | 41.94% |
-| endgame | 3 | 2349 | 641 | 72.71% |
+| double_attack | 3 | 1097 | 983 | 10.39% |
+| midgame | 2 | 237 | 149 | 37.13% |
+| endgame | 2 | 195 | 108 | 44.62% |
+| endgame | 3 | 1965 | 634 | 67.74% |
 
 All measured positions preserved the reference minimax score. The `check` fixture still has deterministic best-move differences caused by equal-score tie ordering rather than a score change. The new midgame/endgame fixtures matched the reference best move at the measured depths.
 
@@ -88,7 +89,7 @@ The benchmark treats the production node counts as deterministic regression base
 
 Detailed time-ordered experiment records are kept in `docs/SEARCH_BENCHMARK_HISTORY.md`.
 
-These measurements support keeping the current forcing-move ordering. Evaluation v3 adds a bounded quiescence extension; the representative set remains deterministic, and the benchmark now reflects the additional forcing-line work. They are evidence for node reduction, not a performance guarantee across all positions; the current evaluation's mobility generation remains a major cost center. Re-run the benchmark before adopting a materially different move-ordering scheme.
+These measurements support keeping the current forcing-move ordering. The positional evaluation is now explicitly zero-sum by construction, and the benchmark captures the deterministic alpha-beta effects of that correction. Evaluation v3 adds a bounded quiescence extension; the representative set remains deterministic, and the benchmark now reflects the additional forcing-line work. They are evidence for node reduction, not a performance guarantee across all positions; the current evaluation's mobility generation remains a major cost center. Re-run the benchmark before adopting a materially different move-ordering scheme.
 
 ## Legal move generation cache
 

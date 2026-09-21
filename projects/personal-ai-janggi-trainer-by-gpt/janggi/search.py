@@ -49,7 +49,7 @@ class NegamaxEngine:
     """Dependency-free depth-limited Janggi search backend.
 
     Authoritative move legality remains in GameState. This engine supplies a
-    deterministic material/mobility evaluation and alpha-beta negamax search.
+    deterministic material/mobility/positional evaluation and alpha-beta negamax search.
     Optional root-level random tie breaking can add self-play diversity without
     changing the default deterministic behavior.
     """
@@ -349,29 +349,33 @@ class NegamaxEngine:
 
     @staticmethod
     def _positional_score(state: GameState, side: Side) -> int:
-        """Evaluate small, domain-aware shape bonuses from one side's perspective."""
+        """Evaluate bounded positional terms from both sides' perspective."""
         score = 0
+        opponent = side.opponent
 
         for y in range(10):
             for x in range(9):
                 piece = state.board[y * 9 + x]
-                if piece is None or piece.side is not side:
+                if piece is None or piece.side not in (side, opponent):
                     continue
 
+                sign = 1 if piece.side is side else -1
+
                 if piece.kind is PieceType.SOLDIER:
-                    progress = (y - 3) if side is Side.CHO else (6 - y)
-                    score += max(progress, 0) * SOLDIER_ADVANCE_BONUS
+                    progress = (y - 3) if piece.side is Side.CHO else (6 - y)
+                    soldier_score = max(progress, 0) * SOLDIER_ADVANCE_BONUS
                     distance_from_center = abs(x - 4)
                     if distance_from_center == 0:
-                        score += SOLDIER_CENTER_BONUS
+                        soldier_score += SOLDIER_CENTER_BONUS
                     elif distance_from_center == 1:
-                        score += SOLDIER_CENTER_BONUS // 2
+                        soldier_score += SOLDIER_CENTER_BONUS // 2
+                    score += sign * soldier_score
 
                 elif piece.kind is PieceType.GUARD:
                     if (3 <= x <= 5) and (
-                        (side is Side.CHO and 0 <= y <= 2)
-                        or (side is Side.HAN and 7 <= y <= 9)
+                        (piece.side is Side.CHO and 0 <= y <= 2)
+                        or (piece.side is Side.HAN and 7 <= y <= 9)
                     ):
-                        score += GUARD_PALACE_BONUS
+                        score += sign * GUARD_PALACE_BONUS
 
         return score
