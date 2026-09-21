@@ -117,6 +117,8 @@ class TrainerApplicationTests(unittest.TestCase):
 
     def test_engine_move_degrades_non_analysis_engine_output(self):
         app = TrainerApplication()
+        player_move = app.snapshot()["legal_moves"][0]
+        app.play({"src": player_move["src"], "dst": player_move["dst"]})
         app.engine = NonAnalysisEngine()
         before = app.snapshot()
 
@@ -127,6 +129,8 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(response["snapshot"]["state"], before["state"])
     def test_engine_move_suppresses_malformed_engine_analysis(self):
         app = TrainerApplication()
+        player_move = app.snapshot()["legal_moves"][0]
+        app.play({"src": player_move["src"], "dst": player_move["dst"]})
         app.engine = InvalidAnalysisEngine()
         before = app.snapshot()
 
