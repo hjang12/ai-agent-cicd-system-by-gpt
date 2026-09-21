@@ -37,7 +37,7 @@
 - Bounded on-demand session review that replays the current record, preserves pre-move states, analyzes recent learner-side moves, and aggregates reason/severity counts without persistence
 - Bounded position-training problem generation from non-recommended review entries, with browser answer checking and no persistence
 - Ephemeral training-session metrics for attempts, correctness, unique problems, overall accuracy, and reason-specific attempt/correctness exposure
-- Session-local adaptive training problem selection that prioritizes repeated incorrect problem attempts, then observed reason-specific mistakes and lower accuracy, while preserving recent-first fallback
+- Session-local adaptive training problem selection that prioritizes repeated incorrect problem attempts, bounds their share when other candidates exist, then uses observed reason-specific mistakes and lower accuracy, with recent-first fallback
 - Representative tactical regression fixtures for clean captures, protected exchanges, hanging pieces, non-immediate threats, and bounded double-attack threats
 - Bounded `double_attack` tactical motif signal kept separate from score-based severity
 - Human-record validation and training-data eligibility pipeline
@@ -167,6 +167,6 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 ## Known Next Targets
 
 1. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
-2. Use adaptive position-training selection and ephemeral session metrics to evaluate whether repeated coaching signals translate into useful practice interactions, including repeated-problem retry behavior without treating small samples as mastery.
+2. Use adaptive position-training selection and ephemeral session metrics to evaluate whether repeated coaching signals translate into useful practice interactions, including repeated-problem retry behavior and selection diversity without treating small samples as mastery.
 3. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
 4. Keep training/evaluation interfaces stable while model strategy remains undecided.
