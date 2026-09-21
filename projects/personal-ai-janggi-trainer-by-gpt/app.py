@@ -12,12 +12,14 @@ from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfi
 from janggi.review import DEFAULT_REVIEW_LIMIT
 from janggi.training_metrics import TrainingSessionMetrics
 from janggi.training_problems import DEFAULT_PROBLEM_LIMIT, MAX_PROBLEM_LIMIT
-from janggi.engine import validate_engine_analysis, validate_engine_move
+from janggi.engine import EngineAnalysis, validate_engine_analysis, validate_engine_move
 
 
 ROOT = Path(__file__).resolve().parent
 INDEX_HTML = ROOT / "index.html"
 ENGINE_SEARCH_DEPTH = 2
+PLAYER_SIDE = Side.CHO
+AI_SIDE = Side.HAN
 
 
 class TrainerApplication:
@@ -63,12 +65,44 @@ class TrainerApplication:
     def play(self, payload: dict[str, object]) -> dict[str, object]:
         move = self._move_from_payload(payload)
         with self._lock:
+            self._ensure_player_turn()
             self.match = self.match.play(move)
             return self.snapshot()
 
+    def play_player_turn(self, payload: dict[str, object]) -> dict[str, object]:
+        """Apply one human move, then automatically let the AI answer."""
+        move = self._move_from_payload(payload)
+        with self._lock:
+            self._ensure_player_turn()
+            player_analysis = self.analyzer.analyze_move(self.match.state, move)
+            player_coaching = coach_move(player_analysis)
+            self.match = self.match.play(move)
+
+            engine_analysis = EngineAnalysis(perspective=self.match.state.turn)
+            if self.match.status.value == "playing" and self.match.state.turn is AI_SIDE:
+                engine_analysis = validate_engine_analysis(
+                    self.match.state,
+                    self.engine.analyze(self.match.state),
+                )
+                if engine_analysis.best_move is not None:
+                    validate_engine_move(self.engine, self.match.state, engine_analysis.best_move)
+                    self.match = self.match.play(engine_analysis.best_move)
+
+            return {
+                "player_analysis": _analysis_to_dict(player_analysis),
+                "player_coaching": _coaching_to_dict(player_coaching),
+                "engine_analysis": _analysis_to_dict(engine_analysis),
+                "snapshot": self.snapshot(),
+            }
+
     def undo(self) -> dict[str, object]:
         with self._lock:
+            if not self.match.state.history:
+                raise ValueError("cannot undo without move history")
+            last_move_was_ai = self.match.state.turn is PLAYER_SIDE
             self.match = self.match.undo()
+            if last_move_was_ai and self.match.state.history:
+                self.match = self.match.undo()
             return self.snapshot()
 
     def analyze_move(self, payload: dict[str, object]) -> dict[str, object]:
@@ -99,7 +133,7 @@ class TrainerApplication:
                 record,
                 self.analyzer,
                 max_moves=limit,
-                side=Side.CHO,
+                side=PLAYER_SIDE,
             )
             return _review_to_dict(review)
 
@@ -127,7 +161,7 @@ class TrainerApplication:
                 record,
                 self.analyzer,
                 max_moves=review_limit,
-                side=Side.CHO,
+                side=PLAYER_SIDE,
             )
             metrics = self.training_metrics.snapshot()
             candidates = generate_training_problems(review, max_problems=MAX_PROBLEM_LIMIT)
@@ -163,7 +197,7 @@ class TrainerApplication:
                 record,
                 self.analyzer,
                 max_moves=DEFAULT_REVIEW_LIMIT,
-                side=Side.CHO,
+                side=PLAYER_SIDE,
             )
             problems = generate_training_problems(review, max_problems=MAX_PROBLEM_LIMIT)
             problem = next((item for item in problems if item.problem_id == problem_id), None)
@@ -204,12 +238,25 @@ class TrainerApplication:
 
     def engine_move(self) -> dict[str, object]:
         with self._lock:
+            self._ensure_ai_turn()
             analysis = validate_engine_analysis(self.match.state, self.engine.analyze(self.match.state))
             if analysis.best_move is None:
                 return {"analysis": _analysis_to_dict(analysis), "snapshot": self.snapshot()}
             validate_engine_move(self.engine, self.match.state, analysis.best_move)
             self.match = self.match.play(analysis.best_move)
             return {"analysis": _analysis_to_dict(analysis), "snapshot": self.snapshot()}
+
+    def _ensure_player_turn(self) -> None:
+        if self.match.status.value != "playing":
+            raise ValueError("game is not in progress")
+        if self.match.state.turn is not PLAYER_SIDE:
+            raise ValueError("it is the AI's turn")
+
+    def _ensure_ai_turn(self) -> None:
+        if self.match.status.value != "playing":
+            raise ValueError("game is not in progress")
+        if self.match.state.turn is not AI_SIDE:
+            raise ValueError("it is the player's turn")
 
     @staticmethod
     def _move_from_payload(payload: dict[str, object]) -> Move:
@@ -426,6 +473,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             if path == "/api/move":
                 self._send_json(APP.play(self._read_json()))
                 return
+            if path == "/api/player/turn":
+                self._send_json(APP.play_player_turn(self._read_json()))
+                return
             if path == "/api/undo":
                 self._send_json(APP.undo())
                 return
@@ -447,6 +497,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
         except (ValueError, KeyError, TypeError) as exc:
             self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+
 
     def log_message(self, format: str, *args: object) -> None:
         print(f"{self.address_string()} - {format % args}")

@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: improve coaching quality and preserve clean boundaries for future stronger search/learned evaluation
+- Current priority: complete the human-vs-AI match loop first, then improve baseline AI strength while preserving clean engine/evaluation boundaries
 
 ## Implemented Capability
 
@@ -56,7 +56,7 @@
 - Dependency-free browser trainer and HTTP API
 - Browser analysis panel shows tactical risk, bounded tactical warnings, recommendation principal variation, and structured next-action coaching; principal variations use learner-facing board notation (`a1`–`i10`) with numbered plies and side labels, terminal results are localized, and turn handoff is explicit in the heading
 - Browser engine-move result also shows the engine principal variation, normalized evaluation score, search depth, and visited-node count as learning aids
-- Browser match controls now include one-ply undo, disabled when there is no move history or while a request is in flight; the baseline engine control is available only during the opponent (Han) turn
+- Browser match flow is now human-vs-AI by default: a Cho move is submitted through one server-side turn that automatically applies one Han engine response; the AI move button remains as a manual recovery path when the automatic response is unavailable. Undo restores the previous human decision point by removing the AI response plus the preceding human move when applicable
 
 ## Web/API
 
@@ -65,8 +65,9 @@
 - `GET /api/state` — current match snapshot and legal moves
 - `GET /api/record` — current session record
 - `POST /api/reset` — reset session/setup
-- `POST /api/move` — apply a player move through `Match`
-- `POST /api/undo` — remove the most recent move and restore the previous immutable match state
+- `POST /api/move` — low-level player move compatibility endpoint
+- `POST /api/player/turn` — apply one human move and automatically apply one baseline AI response
+- `POST /api/undo` — restore the previous human decision point, normally undoing the AI reply plus the preceding human move
 - `POST /api/analyze/move` — analyze a legal move without mutating the active match
 - `POST /api/engine/move` — analyze, validate, and apply a baseline engine move
 - `POST /api/review` — review recent learner-side moves from the current in-memory record and aggregate coaching signals
@@ -166,7 +167,9 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 
 ## Known Next Targets
 
-1. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
-2. Use adaptive position-training selection and ephemeral session metrics to evaluate whether repeated coaching signals translate into useful practice interactions, including repeated-problem retry behavior and selection diversity without treating small samples as mastery.
-3. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
-4. Keep training/evaluation interfaces stable while model strategy remains undecided.
+1. Exercise the human-vs-AI turn loop against the live service and close any gameplay/UX defects before increasing engine strength.
+2. Upgrade baseline AI strength in measured stages, using the existing deterministic search benchmarks and keeping move legality as the authoritative boundary.
+3. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
+4. Use adaptive position-training selection and ephemeral session metrics to evaluate whether repeated coaching signals translate into useful practice interactions, including repeated-problem retry behavior and selection diversity without treating small samples as mastery.
+5. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
+6. Keep training/evaluation interfaces stable while AI strategy evolves.

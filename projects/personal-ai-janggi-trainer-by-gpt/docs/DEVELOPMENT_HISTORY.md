@@ -869,3 +869,28 @@ UI / 모바일 최적화
 | 인증 | 미구현 | MVP 이후 결정 |
 | 모바일 | 후순위 | 기능 검증 우선 |
 | 학습 모델 | 미구현 | 데이터/코칭 기반 확립 후 진행 |
+
+
+## 32. Human-vs-AI match loop
+
+### Requirement
+사람이 초로 착수하면 AI가 한 수 자동 응수하고, 다시 사람 차례로 돌아오는 완결된 단일 대국 루프가 필요하다.
+
+### Decision
+브라우저가 `/api/analyze/move` → `/api/move` → `/api/engine/move`를 개별 조합하지 않고, 서버에 `/api/player/turn`을 추가해 사람 수 분석/착수와 AI 응수를 하나의 직렬화된 애플리케이션 턴으로 처리한다. AI 응수는 현재 baseline `NegamaxEngine`을 그대로 사용한다.
+
+### Implementation
+- Cho 플레이어 턴/ Han AI 턴을 서버에서 명시적으로 제한했다.
+- `POST /api/player/turn`이 사람 수의 분석/코칭과 AI 응수 결과를 함께 반환한다.
+- 기존 `/api/engine/move`는 자동 응답 실패 시 수동 복구 경로로 유지한다.
+- 브라우저는 사람 수 후 AI 응수를 자동 실행하고, AI 응수가 가능하지 않으면 수동 복구 버튼을 제공한다.
+- 일반적인 대국 되돌리기는 AI 응수와 직전 사람 수를 함께 제거해 이전 사람 차례를 복원한다.
+
+### Boundary
+이번 변경에서는 AI 검색 깊이와 평가함수 자체는 변경하지 않았다. 기능 목표는 '사람이 실제로 AI와 한 판을 끝까지 둘 수 있는가'이며, AI strength 개선은 별도 후속 단계다.
+
+### Verification
+- 사람 1수 + AI 1수의 서버-side turn contract 테스트 추가
+- AI 턴 외부의 `/api/engine/move` 호출 거부 테스트 추가
+- 브라우저의 자동 AI 응수 및 턴 복귀 contract 테스트 추가
+- 기존 validation workflow로 compile/test 검증 예정

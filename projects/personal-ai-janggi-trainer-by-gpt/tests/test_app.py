@@ -81,19 +81,44 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("reason_codes", response["coaching"])
         self.assertIsInstance(response["coaching"]["reason_codes"], list)
 
+    def test_player_turn_applies_human_move_and_ai_response(self):
+        app = TrainerApplication()
+        move = app.snapshot()["legal_moves"][0]
+
+        response = app.play_player_turn({"src": move["src"], "dst": move["dst"]})
+
+        self.assertIn("player_analysis", response)
+        self.assertIn("player_coaching", response)
+        self.assertIn("engine_analysis", response)
+        self.assertTrue(response["engine_analysis"]["best_move"])
+        self.assertIn("snapshot", response)
+        self.assertEqual(response["snapshot"]["state"]["turn"], "cho")
+        self.assertEqual(len(response["snapshot"]["state"]["history"]), 2)
+
     def test_engine_move_returns_analysis_and_updates_state(self):
         app = TrainerApplication()
+        player_move = app.snapshot()["legal_moves"][0]
+        app.play({"src": player_move["src"], "dst": player_move["dst"]})
         before = app.snapshot()["state"]["turn"]
+
         response = app.engine_move()
+
         self.assertIn("analysis", response)
         self.assertIn("principal_variation", response["analysis"])
         self.assertIsInstance(response["analysis"]["principal_variation"], list)
         self.assertIn("snapshot", response)
         self.assertNotEqual(response["snapshot"]["state"]["turn"], before)
-        self.assertEqual(len(response["snapshot"]["state"]["history"]), 1)
+        self.assertEqual(len(response["snapshot"]["state"]["history"]), 2)
+
+    def test_engine_move_rejects_player_turn(self):
+        app = TrainerApplication()
+        with self.assertRaises(ValueError):
+            app.engine_move()
 
     def test_engine_move_degrades_non_analysis_engine_output(self):
         app = TrainerApplication()
+        player_move = app.snapshot()["legal_moves"][0]
+        app.play({"src": player_move["src"], "dst": player_move["dst"]})
         app.engine = NonAnalysisEngine()
         before = app.snapshot()
 
@@ -104,6 +129,8 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(response["snapshot"]["state"], before["state"])
     def test_engine_move_suppresses_malformed_engine_analysis(self):
         app = TrainerApplication()
+        player_move = app.snapshot()["legal_moves"][0]
+        app.play({"src": player_move["src"], "dst": player_move["dst"]})
         app.engine = InvalidAnalysisEngine()
         before = app.snapshot()
 
@@ -176,11 +203,11 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(record["moves"][0]["src"], [0, 3])
         self.assertEqual(record["moves"][0]["dst"], [0, 4])
 
-    def test_undo_restores_previous_state(self):
+    def test_undo_restores_previous_player_turn(self):
         app = TrainerApplication()
         initial = app.snapshot()
         move = initial["legal_moves"][0]
-        app.play({"src": move["src"], "dst": move["dst"]})
+        app.play_player_turn({"src": move["src"], "dst": move["dst"]})
         undone = app.undo()
         self.assertEqual(undone["state"], initial["state"])
         self.assertEqual(undone["status"], "playing")
@@ -192,10 +219,9 @@ class TrainerApplicationTests(unittest.TestCase):
 
     def test_browser_makes_turn_handoff_explicit_in_heading(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
-        self.assertIn("좋은 수입니다 · 상대 차례", html)
-        self.assertIn("착수 분석 완료 · 상대 차례", html)
-        self.assertIn("엔진이 수를 두었습니다 · 내 차례", html)
-        self.assertIn("엔진 수가 없습니다 · 내 차례", html)
+        self.assertIn("AI가 응수했습니다 · 내 차례", html)
+        self.assertIn("AI 응수가 필요합니다 · AI 수 두기", html)
+        self.assertIn("post('/api/player/turn', move)", html)
     def test_browser_localizes_terminal_status_and_engine_heading(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("'cho_win':'초 승'", html)
@@ -268,7 +294,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("undo.disabled = busy || !hasHistory", html)
         self.assertIn("engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== 'han'", html)
         self.assertIn("post('/api/undo', {})", html)
-        self.assertIn("한 수 되돌리기 완료", html)
+        self.assertIn("내 한 턴 되돌리기 완료", html)
 
 
 if __name__ == "__main__":
