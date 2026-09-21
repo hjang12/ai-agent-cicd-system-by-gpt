@@ -8,7 +8,7 @@ class JanggiCoreTests(unittest.TestCase):
         state = GameState.initial(starting_side=Side.CHO)
         self.assertEqual(sum(piece is not None for piece in state.board), 32)
         self.assertEqual(state.turn, Side.CHO)
-        han_first = GameState.initial()
+        han_first = GameState.initial(starting_side=Side.HAN)
         self.assertEqual(han_first.turn, Side.HAN)
         self.assertEqual(state.piece_at((4, 0)), Piece(Side.CHO, PieceType.GENERAL))
         self.assertEqual(state.piece_at((3, 0)), Piece(Side.CHO, PieceType.GUARD))
