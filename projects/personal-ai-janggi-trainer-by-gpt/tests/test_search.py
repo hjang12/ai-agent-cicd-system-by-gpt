@@ -12,6 +12,8 @@ class SearchEngineTests(unittest.TestCase):
             SearchConfig(mobility_weight=-1)
         with self.assertRaises(ValueError):
             SearchConfig(quiescence_depth=-1)
+        with self.assertRaises(ValueError):
+            SearchConfig(root_refinement_count=-1)
 
     def test_piece_values_follow_janggi_material_order(self):
         self.assertEqual(PIECE_VALUES[PieceType.CHARIOT], 1300)
@@ -85,6 +87,45 @@ class SearchEngineTests(unittest.TestCase):
         self.assertIsNotNone(analysis.best_move)
         self.assertTrue(state.is_legal(analysis.best_move))
         self.assertEqual(engine.choose_move(state), analysis.best_move)
+
+    def test_root_refinement_is_deterministic_and_reports_effective_depth(self):
+        board = [None] * 90
+        board[4] = Piece(Side.CHO, PieceType.GENERAL)
+        board[85] = Piece(Side.HAN, PieceType.GENERAL)
+        board[36] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[46] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[35] = Piece(Side.CHO, PieceType.SOLDIER)
+        board[81] = Piece(Side.HAN, PieceType.CHARIOT)
+        state = GameState(tuple(board), turn=Side.CHO)
+
+        shallow = NegamaxEngine(SearchConfig(depth=2, root_refinement_count=0))
+        refined = NegamaxEngine(SearchConfig(depth=2, root_refinement_count=3))
+        deep = NegamaxEngine(SearchConfig(depth=3, root_refinement_count=0))
+
+        shallow_analysis = shallow.analyze(state)
+        refined_analysis = refined.analyze(state)
+        deep_analysis = deep.analyze(state)
+
+        self.assertIsNotNone(shallow_analysis.best_move)
+        self.assertIsNotNone(refined_analysis.best_move)
+        self.assertIsNotNone(deep_analysis.best_move)
+        self.assertEqual(refined_analysis.score_cp, deep_analysis.score_cp)
+        self.assertEqual(refined_analysis.score_cp, 99997)
+        self.assertTrue(state.is_legal(refined_analysis.best_move))
+        self.assertEqual(refined_analysis.depth, 3)
+        self.assertGreater(refined_analysis.nodes, shallow_analysis.nodes)
+        self.assertLess(refined_analysis.nodes, deep_analysis.nodes)
+
+    def test_root_refinement_zero_preserves_base_depth(self):
+        state = GameState.initial()
+        base = NegamaxEngine(SearchConfig(depth=2, root_refinement_count=0))
+        explicit_zero = NegamaxEngine(SearchConfig(depth=2, root_refinement_count=0))
+
+        first = base.analyze(state)
+        second = explicit_zero.analyze(state)
+
+        self.assertEqual(first, second)
+        self.assertEqual(first.depth, 2)
 
     def test_negamax_is_deterministic(self):
         state = GameState.initial()
