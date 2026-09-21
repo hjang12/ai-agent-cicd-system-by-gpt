@@ -12,7 +12,7 @@ The engine boundary is defined separately from the domain model. The move-analys
 
 `index.html` is connected to the small dependency-free HTTP boundary in `app.py`. The browser can load the authoritative state, select a piece and legal destination, preview the selected move against the baseline engine, show conservative coaching feedback, reset among supported setup variants, undo the latest move, and request a baseline engine move.
 
-The browser analysis panel exposes the coaching result together with the move, recommendation, score delta, tactical-risk signal, bounded tactical motif warning, and principal variation. The application also provides a bounded on-demand session review that aggregates learner-side coaching signals for repeated-mistake analysis without persistence. The UI presentation consumes backend analysis data rather than reimplementing Janggi rules or search logic.
+The browser analysis panel exposes the coaching result together with the move, recommendation, score delta, tactical-risk signal, bounded tactical motif warning, and principal variation. The application also provides a bounded on-demand session review and can turn non-recommended review entries into position-training problems that can be answered in the browser without persistence. The UI presentation consumes backend analysis data rather than reimplementing Janggi rules or search logic.
 
 The server exposes:
 
@@ -26,6 +26,8 @@ The server exposes:
 - `POST /api/analyze/move` — analyze a legal move and return coaching insight without changing the active match
 - `POST /api/engine/move` — analyze, validate, and apply a baseline engine move (browser exposes this as the opponent/Han turn)
 - `POST /api/review` — review recent learner-side moves and aggregate coaching reason/severity counts
+- `POST /api/training/problems` — generate position-training problems from the current review
+- `POST /api/training/answer` — check a training answer without mutating the active match
 
 See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module boundaries, and `docs/COACHING.md` for the learner-feedback contract.
 
@@ -41,6 +43,7 @@ See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module 
 - `janggi/analysis.py` — backend-neutral move/position analysis results
 - `janggi/coaching.py` — conservative learner-facing move quality classification and explanations
 - `janggi/review.py` — bounded session review and coaching-signal aggregation
+- `janggi/training_problems.py` — bounded position-training problem generation and answer contract
 - `janggi/pipeline.py` — record validation and training-candidate classification
 - `janggi/search.py` — dependency-free negamax/alpha-beta search backend
 - `janggi/self_play.py` — engine-vs-engine game generation and pipeline validation
@@ -59,6 +62,7 @@ See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module 
 - `docs/SELF_PLAY.md` — self-play generation contract
 - `docs/TRAINING_DATA.md` — position/action/value dataset contract
 - `docs/COACHING.md` — coaching severity and explanation contract
+- `docs/TRAINING_PROBLEMS.md` — position-training problem contract
 - `docs/SEARCH.md` — current search architecture and benchmark interpretation
 - `docs/SEARCH_BENCHMARK_HISTORY.md` — persistent search benchmark decision history
 - `../../.github/workflows/janggi-validation.yml` — Python 3.12 compile/test validation
