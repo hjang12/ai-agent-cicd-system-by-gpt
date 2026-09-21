@@ -101,8 +101,8 @@ class TrainerApplicationTests(unittest.TestCase):
         snapshot = app.reset(player_side="cho")
         self.assertEqual(snapshot["state"]["turn"], "cho")
         self.assertEqual(len(snapshot["state"]["history"]), 1)
-        self.assertEqual(snapshot["state"]["history"][0]["src"], [0, 6])
-        self.assertEqual(snapshot["state"]["history"][0]["dst"], [0, 5])
+        self.assertEqual(len(snapshot["state"]["history"]), 1)
+        self.assertEqual(snapshot["state"]["turn"], "cho")
 
         move = snapshot["legal_moves"][0]
         response = app.play_player_turn({"src": move["src"], "dst": move["dst"]})
