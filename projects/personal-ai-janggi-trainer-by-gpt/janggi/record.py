@@ -111,6 +111,14 @@ def state_from_dict(data: dict[str, Any], *, setup: Optional[str] = None) -> Gam
 
 
 def _validate_state_history(state: GameState, setup: str) -> None:
+    if not state.history:
+        if any(
+            GameState.initial(setup, starting_side=side).board == state.board
+            for side in (Side.HAN, Side.CHO)
+        ):
+            return
+        raise ValueError("serialized board does not match setup")
+
     try:
         replayed = _replay_moves(setup, state.history)
     except ValueError as exc:
