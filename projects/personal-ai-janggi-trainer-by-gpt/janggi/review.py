@@ -17,6 +17,7 @@ MAX_REVIEW_LIMIT = 60
 class ReviewEntry:
     ply: int
     side: Side
+    state: GameState
     move: Move
     analysis: MoveAnalysis
     insight: CoachingInsight
