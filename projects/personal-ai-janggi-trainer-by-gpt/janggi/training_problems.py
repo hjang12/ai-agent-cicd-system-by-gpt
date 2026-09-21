@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
-
 from .coaching import CoachingReason, CoachingSeverity
 from .core import GameState, Move, Side
 from .review import CoachingReview, ReviewEntry
