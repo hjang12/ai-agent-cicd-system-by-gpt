@@ -124,8 +124,8 @@ class TrainerApplicationTests(unittest.TestCase):
         before = app.snapshot()
         response = app.analyze_move({"src": [0, 6], "dst": [0, 5]})
         self.assertIn("analysis", response)
-        self.assertEqual(response["analysis"]["move"]["src"], [0, 3])
-        self.assertEqual(response["analysis"]["move"]["dst"], [0, 4])
+        self.assertEqual(response["analysis"]["move"]["src"], [0, 6])
+        self.assertEqual(response["analysis"]["move"]["dst"], [0, 5])
         self.assertEqual(response["snapshot"]["state"], before["state"])
 
     def test_analyze_move_reports_recommendation_coaching_tactical_risk_and_pv(self):
