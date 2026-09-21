@@ -34,7 +34,8 @@
 - Action-oriented coaching explanations for captures, checks, alternative moves, and counterplay review
 - Structured coaching `next_action` guidance for browser/UI presentation without message parsing
 - Stable coaching `reason_codes` for machine-readable tactical, capture/check, and score-deviation signals without message parsing
-- Bounded on-demand session review that replays the current record, analyzes recent learner-side moves, and aggregates reason/severity counts without persistence
+- Bounded on-demand session review that replays the current record, preserves pre-move states, analyzes recent learner-side moves, and aggregates reason/severity counts without persistence
+- Bounded position-training problem generation from non-recommended review entries, with browser answer checking and no persistence
 - Representative tactical regression fixtures for clean captures, protected exchanges, hanging pieces, non-immediate threats, and bounded double-attack threats
 - Bounded `double_attack` tactical motif signal kept separate from score-based severity
 - Human-record validation and training-data eligibility pipeline
@@ -67,9 +68,12 @@
 - `POST /api/analyze/move` — analyze a legal move without mutating the active match
 - `POST /api/engine/move` — analyze, validate, and apply a baseline engine move
 - `POST /api/review` — review recent learner-side moves from the current in-memory record and aggregate coaching signals
+- `POST /api/training/problems` — generate bounded non-persistent position-training problems from the current review
+- `POST /api/training/answer` — check a training attempt against the current problem definition without changing the match
 - Move analysis API includes `tactical_risk` (`none`, `immediate_capture`, `hanging_piece`) and `tactical_motifs` (currently `double_attack` when detected)
 - Move coaching API includes `severity`, `message`, `score_delta_cp`, presentation-ready `next_action`, and stable `reason_codes` for future repeated-mistake aggregation
 - Engine move analysis includes principal variation data after authoritative legality normalization
+- Position-training problems preserve the original pre-move state, hide the target move by default, and reuse the existing coaching reason/severity contract
 
 ## CI/CD
 
@@ -159,6 +163,6 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 ## Known Next Targets
 
 1. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
-2. Use session-review signals to define position-based training problems without introducing persistence prematurely.
+2. Use generated position-training problems to test whether repeated coaching signals translate into useful practice interactions.
 3. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
 4. Keep training/evaluation interfaces stable while model strategy remains undecided.
