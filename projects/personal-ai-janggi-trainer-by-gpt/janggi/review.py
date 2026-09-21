@@ -68,6 +68,7 @@ def review_record(
         entries.append(ReviewEntry(
             ply=ply,
             side=move_side,
+            state=move_state,
             move=move,
             analysis=analysis,
             insight=insight,
