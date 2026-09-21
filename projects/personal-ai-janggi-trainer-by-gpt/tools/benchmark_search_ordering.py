@@ -189,11 +189,14 @@ def main() -> None:
     print("fixture,depth,reference_nodes,current_nodes,check_first_nodes,capture_check_nodes,current_reduction_pct,check_first_reduction_pct,capture_check_reduction_pct,current_same_score,check_first_same_score,capture_check_same_score,current_same_best_move,check_first_same_best_move,capture_check_same_best_move")
 
     baseline_mismatches: list[str] = []
+    current_depth_probe: dict[str, dict[int, object]] = {}
     for fixture in fixtures:
         depths = (2, 3) if fixture.name in {"capture", "check", "double_attack", "endgame"} else (2,)
         for depth in depths:
             _, reference = _run(CoordinateOrderedEngine, fixture, depth)
             _, current = _run(NegamaxEngine, fixture, depth)
+            if fixture.name in {"capture", "check", "double_attack", "endgame"}:
+                current_depth_probe.setdefault(fixture.name, {})[depth] = current
             _, check_first = _run(StrongForcingOrderedEngine, fixture, depth)
             _, capture_check = _run(CaptureCheckOrderedEngine, fixture, depth)
             current_reduction = 0.0
@@ -226,6 +229,18 @@ def main() -> None:
 
     if baseline_mismatches:
         raise AssertionError("current node baselines changed: " + "; ".join(baseline_mismatches))
+
+    print()
+    print("Depth-2 vs depth-3 move agreement probe")
+    print("This is an informational strength proxy: it measures whether one additional full search ply changes the selected move.")
+    print("fixture,depth2_nodes,depth3_nodes,depth2_score,depth3_score,depth2_best_move,depth3_best_move,same_best_move")
+    for fixture_name, by_depth in current_depth_probe.items():
+        shallow = by_depth[2]
+        deep = by_depth[3]
+        print(
+            f"{fixture_name},{shallow.nodes},{deep.nodes},{shallow.score_cp},{deep.score_cp},"
+            f"{shallow.best_move},{deep.best_move},{shallow.best_move == deep.best_move}"
+        )
 
     print()
     print("Legal-move generation benchmark: current cache vs disabled cache")
