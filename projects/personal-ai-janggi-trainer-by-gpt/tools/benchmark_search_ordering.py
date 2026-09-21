@@ -171,15 +171,15 @@ def main() -> None:
     )
     expected_current_nodes = {
         ("initial", 2): 144,
-        ("capture", 2): 43,
-        ("capture", 3): 393,
+        ("capture", 2): 56,
+        ("capture", 3): 409,
         ("check", 2): 41,
-        ("check", 3): 587,
-        ("double_attack", 2): 81,
-        ("double_attack", 3): 885,
-        ("midgame", 2): 108,
-        ("endgame", 2): 72,
-        ("endgame", 3): 635,
+        ("check", 3): 522,
+        ("double_attack", 2): 118,
+        ("double_attack", 3): 941,
+        ("midgame", 2): 149,
+        ("endgame", 2): 108,
+        ("endgame", 3): 641,
     }
 
     print("Search benchmark: reference vs current vs check-first vs capture-check-first")

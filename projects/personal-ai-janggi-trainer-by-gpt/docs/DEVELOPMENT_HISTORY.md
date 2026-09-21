@@ -919,3 +919,27 @@ UI / 모바일 최적화
 - 전진한 중앙 졸 평가 테스트 추가
 - 장군 압박 평가 테스트 추가
 - 기존 검색 테스트와 deterministic benchmark를 통한 회귀 확인 예정
+
+
+## 34. Bounded quiescence search
+
+### Requirement
+depth-2 search에서 마지막 평가 지점 직전에 잡기/장군 같은 forcing sequence가 시작되면, 단순 leaf evaluation 때문에 전술 교환을 놓칠 수 있다.
+
+### Decision
+일반 search depth는 그대로 유지하고 leaf에서 제한적인 quiescence search를 적용한다. 기본 `quiescence_depth=1`이며, quiet position은 stand-pat evaluation, check position은 legal evasion, 그 외 position은 capture/check만 연장한다.
+
+### Implementation
+- `SearchConfig.quiescence_depth`를 추가했다.
+- leaf evaluation을 bounded `_quiescence()` 호출로 전환했다.
+- 엔진 metadata version을 `3`으로 올렸다.
+- PV 길이 계약을 `depth + quiescence_depth`까지 허용하도록 조정했다.
+- 기본 depth는 2로 유지한다.
+
+### Boundary
+이번 변경은 depth 3 전체 탐색을 바로 강제하지 않는다. quiescence는 1-ply forcing extension일 뿐이며, 장기 전술을 완전히 해결하는 tactical solver로 간주하지 않는다.
+
+### Verification
+- quiescence depth 입력 검증 추가
+- quiescence 활성화가 search node 수를 줄이지 않는지 regression test 추가
+- deterministic search benchmark 재실행 예정

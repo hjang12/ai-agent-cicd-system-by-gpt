@@ -10,6 +10,8 @@ class SearchEngineTests(unittest.TestCase):
             SearchConfig(depth=0)
         with self.assertRaises(ValueError):
             SearchConfig(mobility_weight=-1)
+        with self.assertRaises(ValueError):
+            SearchConfig(quiescence_depth=-1)
 
     def test_piece_values_follow_janggi_material_order(self):
         self.assertEqual(PIECE_VALUES[PieceType.CHARIOT], 1300)
@@ -89,7 +91,24 @@ class SearchEngineTests(unittest.TestCase):
         self.assertIsNotNone(analysis.best_move)
         self.assertTrue(analysis.principal_variation)
         self.assertEqual(analysis.principal_variation[0], analysis.best_move)
-        self.assertLessEqual(len(analysis.principal_variation), analysis.depth)
+        self.assertLessEqual(
+            len(analysis.principal_variation),
+            analysis.depth + engine.config.quiescence_depth,
+        )
+
+    def test_quiescence_extension_is_configurable(self):
+        state = GameState.initial()
+
+        without_extension = NegamaxEngine(SearchConfig(depth=1, quiescence_depth=0))
+        with_extension = NegamaxEngine(SearchConfig(depth=1, quiescence_depth=1))
+
+        first = without_extension.analyze(state)
+        second = with_extension.analyze(state)
+
+        self.assertIsNotNone(first.best_move)
+        self.assertIsNotNone(second.best_move)
+        self.assertGreaterEqual(second.nodes, first.nodes)
+        self.assertLessEqual(len(second.principal_variation), 2)
 
     def test_evaluation_cache_reuses_position_result(self):
         state = GameState.initial()

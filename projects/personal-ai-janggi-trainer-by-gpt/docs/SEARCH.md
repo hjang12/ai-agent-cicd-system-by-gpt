@@ -22,10 +22,11 @@ Material + Mobility + positional evaluation
 
 - `depth`
 - `mobility_weight`
+- `quiescence_depth`
 - `random_ties`
 - `seed`
 
-The baseline engine metadata version is now `2`, reflecting the upgraded evaluation contract.
+The baseline engine metadata version is now `3`, reflecting the bounded quiescence search contract.
 
 ## Evaluation v2
 
@@ -37,6 +38,12 @@ The evaluation now combines material, mobility, and small domain-aware positiona
 - checking pressure receives a bounded score bonus, while being in check receives the corresponding penalty.
 
 These terms are deliberately small relative to material and mate scores. They improve leaf-position discrimination without moving legality or terminal-state decisions out of `GameState`.
+
+## Quiescence search
+
+At the configured search horizon, the engine now performs a bounded forcing-line extension. Quiet leaf positions use stand-pat evaluation; leaf positions in check search legal evasions; otherwise only captures and checks are extended. The default `quiescence_depth` is 1, so the baseline remains depth-2 for normal search while seeing one additional forcing ply at the horizon.
+
+The extension is intentionally bounded and does not claim to be a full tactical solver. Its purpose is to reduce obvious horizon effects around immediate exchanges and checks before considering a larger principal search depth.
 
 The default behavior remains deterministic unless root-level random tie breaking is explicitly enabled.
 
@@ -63,15 +70,15 @@ Baseline measurements on GitHub Actions (Python 3.12) for the production orderin
 | Fixture | Depth | Reference nodes | Production nodes | Node reduction |
 | --- | ---: | ---: | ---: | ---: |
 | initial | 2 | 144 | 144 | 0.00% |
-| capture | 2 | 50 | 43 | 14.00% |
-| capture | 3 | 536 | 393 | 26.68% |
+| capture | 2 | 63 | 56 | 11.11% |
+| capture | 3 | 534 | 409 | 23.41% |
 | check | 2 | 50 | 41 | 18.00% |
-| check | 3 | 605 | 587 | 2.98% |
-| double_attack | 2 | 133 | 81 | 39.10% |
-| double_attack | 3 | 1047 | 885 | 15.47% |
-| midgame | 2 | 262 | 108 | 58.78% |
-| endgame | 2 | 140 | 72 | 48.57% |
-| endgame | 3 | 2073 | 635 | 69.37% |
+| check | 3 | 519 | 522 | -0.58% |
+| double_attack | 2 | 170 | 118 | 30.59% |
+| double_attack | 3 | 1063 | 941 | 11.48% |
+| midgame | 2 | 235 | 149 | 36.60% |
+| endgame | 2 | 186 | 108 | 41.94% |
+| endgame | 3 | 2349 | 641 | 72.71% |
 
 All measured positions preserved the reference minimax score. The `check` fixture still has deterministic best-move differences caused by equal-score tie ordering rather than a score change. The new midgame/endgame fixtures matched the reference best move at the measured depths.
 
@@ -81,7 +88,7 @@ The benchmark treats the production node counts as deterministic regression base
 
 Detailed time-ordered experiment records are kept in `docs/SEARCH_BENCHMARK_HISTORY.md`.
 
-These measurements support keeping the current forcing-move ordering. They are evidence for node reduction, not a performance guarantee across all positions; the current evaluation's mobility generation remains a major cost center. Re-run the benchmark before adopting a materially different move-ordering scheme.
+These measurements support keeping the current forcing-move ordering. Evaluation v3 adds a bounded quiescence extension; the representative set remains deterministic, and the benchmark now reflects the additional forcing-line work. They are evidence for node reduction, not a performance guarantee across all positions; the current evaluation's mobility generation remains a major cost center. Re-run the benchmark before adopting a materially different move-ordering scheme.
 
 ## Legal move generation cache
 
@@ -142,6 +149,7 @@ The current optimization sequence is:
 8. evaluate alternative forcing-order schemes before production adoption;
 9. bounded multi-ply tactical analysis for coaching;
 10. stronger evaluation features only after representative regression positions exist;
-11. evaluation v2 with calibrated material and bounded positional terms.
+11. evaluation v2 with calibrated material and bounded positional terms;
+12. bounded quiescence search at the leaf horizon.
 
 Search optimization must not move authoritative move legality out of `GameState` or couple the domain layer to the search implementation.
