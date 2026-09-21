@@ -35,6 +35,10 @@ class TrainingMetricsTests(unittest.TestCase):
             snapshot.reason_attempts,
             ((CoachingReason.HANGING_PIECE, 2), (CoachingReason.SCORE_DEVIATION, 1)),
         )
+        self.assertEqual(
+            snapshot.reason_correct,
+            ((CoachingReason.HANGING_PIECE, 1),),
+        )
 
     def test_reset_clears_session_metrics(self):
         session = TrainingSessionMetrics()
