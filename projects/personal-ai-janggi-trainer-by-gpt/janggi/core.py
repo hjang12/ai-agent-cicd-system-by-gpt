@@ -54,7 +54,7 @@ class Move:
 @dataclass(frozen=True)
 class GameState:
     board: tuple[Optional[Piece], ...]
-    turn: Side = Side.CHO
+    turn: Side = Side.HAN
     history: tuple[Move, ...] = ()
 
     def __post_init__(self) -> None:
@@ -92,7 +92,7 @@ class GameState:
         for x in (0, 2, 4, 6, 8):
             put(x, 3, Side.CHO, PieceType.SOLDIER)
             put(x, 6, Side.HAN, PieceType.SOLDIER)
-        return cls(tuple(board), Side.CHO)
+        return cls(tuple(board), Side.HAN)
 
     def piece_at(self, pos: Position) -> Optional[Piece]:
         return self.board[index(pos)]
