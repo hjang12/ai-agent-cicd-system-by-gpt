@@ -36,7 +36,7 @@
 - Stable coaching `reason_codes` for machine-readable tactical, capture/check, and score-deviation signals without message parsing
 - Bounded on-demand session review that replays the current record, preserves pre-move states, analyzes recent learner-side moves, and aggregates reason/severity counts without persistence
 - Bounded position-training problem generation from non-recommended review entries, with browser answer checking and no persistence
-- Ephemeral training-session metrics for attempts, correctness, unique problems, accuracy, and reason-code exposure
+- Ephemeral training-session metrics for attempts, correctness, unique problems, overall accuracy, and reason-specific attempt/correctness exposure
 - Representative tactical regression fixtures for clean captures, protected exchanges, hanging pieces, non-immediate threats, and bounded double-attack threats
 - Bounded `double_attack` tactical motif signal kept separate from score-based severity
 - Human-record validation and training-data eligibility pipeline
@@ -76,7 +76,7 @@
 - Move coaching API includes `severity`, `message`, `score_delta_cp`, presentation-ready `next_action`, and stable `reason_codes` for future repeated-mistake aggregation
 - Engine move analysis includes principal variation data after authoritative legality normalization
 - Position-training problems preserve the original pre-move state, hide the target move by default, and reuse the existing coaching reason/severity contract
-- Training metrics reset with the match and are never promoted to persistent user or model-training data
+- Training metrics reset with the match and are never promoted to persistent user or model-training data; reason-specific accuracy is derived from the same ephemeral counts
 
 ## CI/CD
 
