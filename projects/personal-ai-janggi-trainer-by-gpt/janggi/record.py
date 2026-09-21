@@ -115,7 +115,7 @@ def state_from_dict(data: dict[str, Any], *, setup: Optional[str] = None) -> Gam
 
 def _validate_state_history(state: GameState, setup: str) -> None:
     try:
-        replayed = GameState.initial(setup)
+        replayed = GameState.initial(setup, starting_side=Side.HAN)
         for move in state.history:
             replayed = replayed.apply(move)
     except ValueError as exc:
