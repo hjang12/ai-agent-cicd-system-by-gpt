@@ -96,6 +96,19 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(response["snapshot"]["state"]["turn"], "cho")
         self.assertEqual(len(response["snapshot"]["state"]["history"]), 3)
 
+    def test_cho_player_causes_han_ai_to_open(self):
+        app = TrainerApplication()
+        snapshot = app.reset(player_side="cho")
+        self.assertEqual(snapshot["state"]["turn"], "cho")
+        self.assertEqual(len(snapshot["state"]["history"]), 1)
+        self.assertEqual(snapshot["state"]["history"][0].src, (0, 6))
+        self.assertEqual(snapshot["state"]["history"][0].dst, (0, 5))
+
+        move = snapshot["legal_moves"][0]
+        response = app.play_player_turn({"src": move["src"], "dst": move["dst"]})
+        self.assertEqual(response["snapshot"]["state"]["turn"], "cho")
+        self.assertEqual(len(response["snapshot"]["state"]["history"]), 3)
+
     def test_reset_rejects_unknown_player_side(self):
         app = TrainerApplication()
         with self.assertRaises(ValueError):
@@ -143,7 +156,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("engine_analysis", response)
         self.assertTrue(response["engine_analysis"]["best_move"])
         self.assertIn("snapshot", response)
-        self.assertEqual(response["snapshot"]["state"]["turn"], "cho")
+        self.assertEqual(response["snapshot"]["state"]["turn"], "han")
         self.assertEqual(len(response["snapshot"]["state"]["history"]), 2)
 
     def test_engine_move_returns_analysis_and_updates_state(self):
@@ -193,7 +206,7 @@ class TrainerApplicationTests(unittest.TestCase):
 
     def test_review_aggregates_current_learner_moves(self):
         app = TrainerApplication()
-        app.play({"src": [0, 3], "dst": [0, 4]})
+        app.play({"src": [0, 6], "dst": [0, 5]})
 
         review = app.review({"limit": 5})
 
@@ -248,7 +261,7 @@ class TrainerApplicationTests(unittest.TestCase):
 
     def test_record_exports_played_moves(self):
         app = TrainerApplication()
-        app.play({"src": [0, 3], "dst": [0, 4]})
+        app.play({"src": [0, 6], "dst": [0, 5]})
         record = app.record()
         self.assertEqual(len(record["moves"]), 1)
         self.assertEqual(record["moves"][0]["src"], [0, 6])
@@ -358,10 +371,3 @@ class TrainerApplicationTests(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
-
-    def test_cho_player_causes_han_ai_to_open(self):
-        app = TrainerApplication()
-        snapshot = app.reset(player_side="cho")
-        self.assertEqual(snapshot["state"]["turn"], "cho")
-        self.assertEqual(len(snapshot["state"]["history"]), 1)
-        self.assertEqual(snapshot["state"]["history"][0].side if False else "cho", "cho")
