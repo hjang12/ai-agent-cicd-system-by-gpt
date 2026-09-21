@@ -58,7 +58,10 @@ class NegamaxEngine:
         self.config = config or SearchConfig()
         self._nodes = 0
         self._rng = random.Random(self.config.seed)
-        self._transposition: dict[tuple[tuple[object, ...], int], tuple[int, tuple[Move, ...]]] = {}
+        self._transposition: dict[
+            tuple[tuple[object, ...], int, bool],
+            tuple[int, tuple[Move, ...]],
+        ] = {}
         self._evaluation_cache: dict[tuple[object, ...], int] = {}
         self._check_cache: dict[tuple[tuple[object, ...], Move], bool] = {}
         self._legal_moves_cache: dict[tuple[tuple[object, ...], bool], tuple[Move, ...]] = {}
@@ -107,7 +110,14 @@ class NegamaxEngine:
 
         for move in moves:
             child = state.apply(move)
-            child_score, child_pv = self._search(child, self.config.depth - 1, -beta, -alpha)
+            child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+            child_score, child_pv = self._search(
+                child,
+                self.config.depth - 1,
+                -beta,
+                -alpha,
+                child_noisy,
+            )
             score = -child_score
             if score > best_score:
                 best_score = score
@@ -136,9 +146,10 @@ class NegamaxEngine:
         depth: int,
         alpha: int,
         beta: int,
+        noisy: bool = False,
     ) -> tuple[int, tuple[Move, ...]]:
         self._nodes += 1
-        cache_key = (state.position_key(), depth)
+        cache_key = (state.position_key(), depth, noisy)
         cached = self._transposition.get(cache_key)
         if cached is not None:
             return cached
@@ -156,7 +167,7 @@ class NegamaxEngine:
             self._transposition[cache_key] = result
             return result
 
-        if depth <= 0:
+        if depth <= 0 and noisy and self.config.quiescence_depth > 0:
             result = self._quiescence(
                 state,
                 self.config.quiescence_depth,
@@ -171,7 +182,14 @@ class NegamaxEngine:
         cutoff = False
         for move in moves:
             child = state.apply(move)
-            child_score, child_pv = self._search(child, depth - 1, -beta, -alpha)
+            child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+            child_score, child_pv = self._search(
+                child,
+                depth - 1,
+                -beta,
+                -alpha,
+                child_noisy,
+            )
             score = -child_score
             if not best_pv or score > best_score:
                 best_score = score
@@ -196,18 +214,15 @@ class NegamaxEngine:
         alpha: int,
         beta: int,
     ) -> tuple[int, tuple[Move, ...]]:
-        """Extend leaf search through short forcing sequences only.
-
-        Quiet positions use stand-pat evaluation. Positions in check must search
-        all legal evasions; otherwise only captures and checks are extended.
-        """
+        """Extend only short forcing sequences after a noisy move."""
         self._nodes += 1
         stand_pat = self._evaluate(state)
 
         if depth <= 0:
             return stand_pat, ()
 
-        if state.is_in_check(state.turn):
+        in_check = state.is_in_check(state.turn)
+        if in_check:
             moves = self._ordered_moves(
                 state,
                 self._legal_moves(state, include_pass=False),
@@ -223,7 +238,7 @@ class NegamaxEngine:
             )
 
         if not moves:
-            if state.is_in_check(state.turn):
+            if in_check:
                 return -MATE_SCORE, ()
             return stand_pat, ()
 
@@ -235,12 +250,16 @@ class NegamaxEngine:
 
         for move in moves:
             child = state.apply(move)
-            child_score, child_pv = self._quiescence(
-                child,
-                depth - 1,
-                -beta,
-                -alpha,
-            )
+            child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+            if child_noisy and depth > 1:
+                child_score, child_pv = self._quiescence(
+                    child,
+                    depth - 1,
+                    -beta,
+                    -alpha,
+                )
+            else:
+                child_score, child_pv = self._evaluate(child), ()
             score = -child_score
             if score > best_score:
                 best_score = score
