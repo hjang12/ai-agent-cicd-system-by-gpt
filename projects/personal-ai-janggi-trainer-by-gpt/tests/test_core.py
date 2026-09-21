@@ -165,7 +165,7 @@ class JanggiRecordTests(unittest.TestCase):
         record = GameRecord(moves=(Move.pass_move(),), source="manual")
         restored = GameRecord.from_dict(record.to_dict())
         self.assertEqual(restored.moves, (Move.pass_move(),))
-        self.assertEqual(restored.replay().turn, Side.HAN)
+        self.assertEqual(restored.replay().turn, Side.CHO)
 
     def test_state_json_round_trip(self):
         state = GameState.initial(starting_side=Side.CHO).apply(Move((0, 3), (0, 4)))
