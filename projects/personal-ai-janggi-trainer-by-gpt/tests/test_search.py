@@ -500,7 +500,7 @@ class SearchEngineTests(unittest.TestCase):
         history_state = GameState(
             tuple(board),
             turn=Side.CHO,
-            history=(Move.pass_move(), Move.pass_move(), Move.pass_move()),
+            history=(Move((0, 0), (0, 1)), Move((0, 0), (0, 1)), Move((0, 0), (0, 1))),
         )
         engine = NegamaxEngine(SearchConfig(depth=3))
 
