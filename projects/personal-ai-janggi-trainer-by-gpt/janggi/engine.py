@@ -99,7 +99,7 @@ def validate_engine_analysis(state: GameState, analysis: object) -> EngineAnalys
         return EngineAnalysis(perspective=state.turn)
 
     perspective = analysis.perspective
-    if not isinstance(perspective, Side):
+    if not isinstance(perspective, Side) or perspective is not state.turn:
         return EngineAnalysis(perspective=state.turn)
 
     score_cp = analysis.score_cp if _valid_optional_int(analysis.score_cp) else None
