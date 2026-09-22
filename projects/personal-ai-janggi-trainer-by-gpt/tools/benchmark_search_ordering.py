@@ -175,17 +175,20 @@ def main() -> None:
         _midgame_fixture(),
         _endgame_fixture(),
     )
+    # Pass/한수쉼 is now part of the searched action space. These baselines
+    # intentionally supersede the pre-pass node counts after confirming that
+    # all ordering variants preserve the coordinate-reference minimax scores.
     expected_current_nodes = {
-        ("initial", 2): 81,
-        ("capture", 2): 56,
-        ("capture", 3): 404,
-        ("check", 2): 39,
-        ("check", 3): 473,
-        ("double_attack", 2): 118,
-        ("double_attack", 3): 945,
-        ("midgame", 2): 153,
-        ("endgame", 2): 104,
-        ("endgame", 3): 638,
+        ("initial", 2): 84,
+        ("capture", 2): 60,
+        ("capture", 3): 444,
+        ("check", 2): 41,
+        ("check", 3): 514,
+        ("double_attack", 2): 121,
+        ("double_attack", 3): 1003,
+        ("midgame", 2): 157,
+        ("endgame", 2): 108,
+        ("endgame", 3): 690,
     }
 
     print("Search benchmark: reference vs current vs check-first vs capture-check-first")

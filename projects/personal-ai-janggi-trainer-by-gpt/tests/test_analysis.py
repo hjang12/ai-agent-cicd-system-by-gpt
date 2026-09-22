@@ -49,16 +49,16 @@ class AnalysisTests(unittest.TestCase):
     def test_analysis_normalizes_score_to_mover_perspective(self):
         state = GameState.initial()
         move = state.legal_moves(include_pass=False)[0]
-        before = EngineAnalysis(best_move=move, score_cp=-10, perspective=Side.HAN)
+        before = EngineAnalysis(best_move=move, score_cp=-10, perspective=Side.CHO)
         after_state = state.apply(move)
-        after = EngineAnalysis(score_cp=5, perspective=Side.CHO)
+        after = EngineAnalysis(score_cp=5, perspective=Side.HAN)
         engine = ScriptedEngine({state.position_key(): before, after_state.position_key(): after})
 
         result = Analyzer(engine).analyze_move(state, move)
 
-        self.assertEqual(result.score_before_cp, 10)
-        self.assertEqual(result.score_after_cp, 5)
-        self.assertEqual(result.score_delta_cp, -5)
+        self.assertEqual(result.score_before_cp, -10)
+        self.assertEqual(result.score_after_cp, -5)
+        self.assertEqual(result.score_delta_cp, 5)
 
     def test_analysis_reports_capture_and_check(self):
         board = [None] * BOARD_SIZE

@@ -303,3 +303,33 @@ All measured ordering variants preserved the coordinate-reference minimax score.
 ### Decision
 
 Promote the new production node counts as the regression baseline for the corrected evaluation. Keep the current capture-value-first/check-second ordering unchanged.
+
+
+## 2026-09-23 — Pass-inclusive search action space
+
+### Finding
+
+The correctness hardening work promoted legal 한수쉼/pass from a match-layer capability into the search action space. The search now considers a legal pass alongside ordinary moves and treats two consecutive passes as a terminal draw.
+
+### Deterministic search result
+
+| Fixture | Depth | Reference nodes | Production nodes |
+| --- | ---: | ---: | ---: |
+| initial | 2 | 136 | 84 |
+| capture | 2 | 64 | 60 |
+| capture | 3 | 786 | 444 |
+| check | 2 | 65 | 41 |
+| check | 3 | 511 | 514 |
+| double_attack | 2 | 165 | 121 |
+| double_attack | 3 | 2139 | 1003 |
+| midgame | 2 | 206 | 157 |
+| endgame | 2 | 270 | 108 |
+| endgame | 3 | 3161 | 690 |
+
+All measured ordering variants preserved the coordinate-reference minimax score. The check depth-3 fixture shows permissible equal-score best-move tie differences caused by ordering; this is not treated as a correctness failure.
+
+The production node counts increased relative to the pre-pass baseline because every non-check position now has an additional legal action available to the search. The change is intentional and should not be interpreted as a runtime regression by itself.
+
+### Decision
+
+Promote the pass-inclusive production node counts above to the deterministic regression baseline. Keep pass late in move ordering so ordinary tactical candidates are considered before the quiet pass action, while retaining pass as a valid fallback/search choice when its evaluated value warrants it.

@@ -1,6 +1,54 @@
 import unittest
 
 from janggi import GameState, Move, Piece, PieceType, Side
+
+
+_REFERENCE_PIECE_VALUES = {
+    PieceType.GENERAL: 10_000,
+    PieceType.CHARIOT: 1_300,
+    PieceType.CANNON: 700,
+    PieceType.ELEPHANT: 300,
+    PieceType.HORSE: 500,
+    PieceType.GUARD: 300,
+    PieceType.SOLDIER: 200,
+}
+_REFERENCE_MATE_SCORE = 100_000
+
+
+def _reference_material_score(state: GameState, perspective: Side) -> int:
+    score = 0
+    for piece in state.board:
+        if piece is None:
+            continue
+        value = _REFERENCE_PIECE_VALUES[piece.kind]
+        score += value if piece.side is perspective else -value
+    return score
+
+
+def _reference_minimax(state: GameState, depth: int, perspective: Side) -> int:
+    legal_moves = state.legal_moves(include_pass=True)
+    if not legal_moves:
+        if state.is_in_check(state.turn):
+            return -_REFERENCE_MATE_SCORE if state.turn is perspective else _REFERENCE_MATE_SCORE
+        return 0
+    if depth == 0:
+        return _reference_material_score(state, perspective)
+
+    scores = [
+        _reference_minimax(state.apply(move), depth - 1, perspective)
+        for move in legal_moves
+    ]
+    return max(scores) if state.turn is perspective else min(scores)
+
+
+def _reference_best_move(state: GameState, depth: int) -> Move:
+    perspective = state.turn
+    legal_moves = state.legal_moves(include_pass=True)
+    scored_moves = [
+        (move, _reference_minimax(state.apply(move), depth - 1, perspective))
+        for move in legal_moves
+    ]
+    return max(scored_moves, key=lambda item: item[1])[0]
 from janggi.search import MATE_SCORE, NegamaxEngine, PIECE_VALUES, SearchConfig
 
 
@@ -190,6 +238,71 @@ class SearchEngineTests(unittest.TestCase):
         self.assertTrue(state.is_legal(analysis.best_move))
         self.assertGreater(analysis.nodes, 0)
         self.assertEqual(analysis.principal_variation[0], analysis.best_move)
+
+    def test_search_can_select_pass_when_evaluation_prefers_it(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(
+            SearchConfig(depth=1, mobility_weight=0, quiescence_depth=0)
+        )
+        original_evaluate = engine._evaluate
+        engine._evaluate = lambda current: (
+            -1_000 if current.history and current.history[-1].is_pass else 0
+        )
+        try:
+            analysis = engine.analyze(state)
+        finally:
+            engine._evaluate = original_evaluate
+
+        self.assertEqual(analysis.best_move, Move.pass_move())
+
+    def test_two_consecutive_passes_are_a_search_draw(self):
+        state = GameState.initial().apply(Move.pass_move()).apply(Move.pass_move())
+        engine = NegamaxEngine(SearchConfig(depth=2))
+
+        analysis = engine.analyze(state)
+
+        self.assertIsNone(analysis.best_move)
+        self.assertEqual(analysis.score_cp, 0)
+        self.assertEqual(analysis.principal_variation, ())
+
+    def test_time_budget_starts_before_root_move_generation(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(SearchConfig(depth=1, time_limit_ms=1_000))
+        original_legal_moves = engine._legal_moves
+        observed_deadline = []
+
+        def wrapped_legal_moves(current_state, include_pass):
+            observed_deadline.append(engine._deadline is not None)
+            return original_legal_moves(current_state, include_pass)
+
+        engine._legal_moves = wrapped_legal_moves
+        analysis = engine.analyze(state)
+
+        self.assertTrue(observed_deadline)
+        self.assertTrue(all(observed_deadline))
+        self.assertIsNone(engine._deadline)
+        self.assertIsNotNone(analysis.best_move)
+
+    def test_search_matches_independent_full_width_minimax_on_tiny_capture_fixture(self):
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[0 + 4 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
+        state = GameState(tuple(board), turn=Side.CHO)
+
+        engine = NegamaxEngine(
+            SearchConfig(
+                depth=1,
+                mobility_weight=0,
+                quiescence_depth=0,
+                adaptive_ordering=False,
+            )
+        )
+        analysis = engine.analyze(state)
+        reference_move = _reference_best_move(state, depth=1)
+
+        self.assertEqual(analysis.best_move, reference_move)
 
     def test_negamax_exposes_metadata_and_returns_legal_move(self):
         state = GameState.initial()
@@ -387,7 +500,7 @@ class SearchEngineTests(unittest.TestCase):
         history_state = GameState(
             tuple(board),
             turn=Side.CHO,
-            history=(Move.pass_move(), Move.pass_move(), Move.pass_move()),
+            history=(Move((0, 0), (0, 1)), Move((0, 0), (0, 1)), Move((0, 0), (0, 1))),
         )
         engine = NegamaxEngine(SearchConfig(depth=3))
 

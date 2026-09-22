@@ -147,121 +147,147 @@ class NegamaxEngine:
         self._evaluation_cache.clear()
         self._check_cache.clear()
         self._legal_moves_cache.clear()
-        moves = self._ordered_search_moves(
-            state,
-            self._legal_moves(state, include_pass=False),
-            preferred_move=None,
-            depth=self._active_search_depth,
-        )
-        if not moves:
-            if self._legal_moves(state, include_pass=True):
-                move = Move.pass_move()
-                return EngineAnalysis(
-                    best_move=move,
-                    score_cp=self._evaluate(state),
-                    depth=self.config.depth,
-                    nodes=self._nodes,
-                    principal_variation=(move,),
-                    perspective=state.turn,
-                )
-            return EngineAnalysis(
-                best_move=None,
-                score_cp=-MATE_SCORE if state.is_in_check(state.turn) else 0,
-                depth=self.config.depth,
-                nodes=self._nodes,
-                principal_variation=(),
-                perspective=state.turn,
-            )
 
         if self.config.time_limit_ms is not None:
-            return self._analyze_iterative_deepening(state, moves)
+            self._deadline = monotonic() + (self.config.time_limit_ms / 1000.0)
 
-        best_score = -MATE_SCORE * 2
-        best_results: list[tuple[Move, tuple[Move, ...]]] = []
-        alpha = -MATE_SCORE * 2
-        self._shallow_node_count = 0
-        beta = MATE_SCORE * 2
+        try:
+            if self._is_consecutive_pass_draw(state):
+                return EngineAnalysis(
+                    best_move=None,
+                    score_cp=0,
+                    depth=0,
+                    nodes=self._nodes,
+                    principal_variation=(),
+                    perspective=state.turn,
+                )
 
-        shallow_results: list[tuple[int, int, Move, tuple[Move, ...]]] = []
-        self._active_search_depth = self.config.depth
-        for index, move in enumerate(moves):
-            child = state.apply(move)
-            child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
-            child_score, child_pv = self._search(
-                child,
-                self.config.depth - 1,
-                -beta,
-                -alpha,
-                child_noisy,
+            # The time budget includes root move generation and ordering, not
+            # just the recursive alpha-beta search.
+            legal_moves = self._legal_moves(state, include_pass=True)
+            if not legal_moves:
+                return EngineAnalysis(
+                    best_move=None,
+                    score_cp=-MATE_SCORE if state.is_in_check(state.turn) else 0,
+                    depth=self.config.depth,
+                    nodes=self._nodes,
+                    principal_variation=(),
+                    perspective=state.turn,
+                )
+            if self._deadline_expired():
+                return self._fallback_analysis(state, legal_moves)
+
+            moves = self._ordered_search_moves(
+                state,
+                legal_moves,
+                preferred_move=None,
+                depth=self._active_search_depth,
             )
-            score = -child_score
-            shallow_results.append((score, index, move, (move,) + child_pv))
-            if score > best_score:
-                best_score = score
-                best_results = [(move, (move,) + child_pv)]
-            elif score == best_score:
-                best_results.append((move, (move,) + child_pv))
-            alpha = max(alpha, score)
+            if self._deadline_expired():
+                return self._fallback_analysis(state, moves)
 
-        self._shallow_node_count = self._nodes
-        if self.config.root_refinement_count > 0:
-            finalists = sorted(
-                shallow_results,
-                key=lambda item: (-item[0], item[1]),
-            )[: self.config.root_refinement_count]
-            refined_results: list[tuple[int, int, Move, tuple[Move, ...]]] = []
-            refinement_nodes = 0
-            for _, shallow_rank, move, _ in finalists:
-                self._transposition.clear()
-                self._evaluation_cache.clear()
-                self._check_cache.clear()
-                self._legal_moves_cache.clear()
-                self._nodes = 0
-                self._active_search_depth = self.config.depth + 1
+            if self.config.time_limit_ms is not None:
+                return self._analyze_iterative_deepening(state, moves)
+
+            best_score = -MATE_SCORE * 2
+            best_results: list[tuple[Move, tuple[Move, ...]]] = []
+            alpha = -MATE_SCORE * 2
+            self._shallow_node_count = 0
+            beta = MATE_SCORE * 2
+
+            shallow_results: list[tuple[int, int, Move, tuple[Move, ...]]] = []
+            self._active_search_depth = self.config.depth
+            for index, move in enumerate(moves):
                 child = state.apply(move)
                 child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
                 child_score, child_pv = self._search(
                     child,
-                    self.config.depth,
-                    -MATE_SCORE * 2,
-                    MATE_SCORE * 2,
+                    self.config.depth - 1,
+                    -beta,
+                    -alpha,
                     child_noisy,
                 )
-                refinement_nodes += self._nodes
-                refined_results.append((-child_score, shallow_rank, move, (move,) + child_pv))
+                score = -child_score
+                shallow_results.append((score, index, move, (move,) + child_pv))
+                if score > best_score:
+                    best_score = score
+                    best_results = [(move, (move,) + child_pv)]
+                elif score == best_score:
+                    best_results.append((move, (move,) + child_pv))
+                alpha = max(alpha, score)
 
-            total_refinement_results = sorted(
-                refined_results,
-                key=lambda item: (-item[0], item[1]),
-            )
-            if total_refinement_results:
-                best_score, _, best_move, best_pv = total_refinement_results[0]
-                if len(total_refinement_results) > 1:
-                    tied = [item for item in total_refinement_results if item[0] == best_score]
-                    if self.config.random_ties and len(tied) > 1:
-                        best_score, _, best_move, best_pv = self._rng.choice(tied)
-                self._nodes = self._shallow_node_count + refinement_nodes
-                return EngineAnalysis(
-                    best_move=best_move,
-                    score_cp=best_score,
-                    depth=self.config.depth + 1,
-                    nodes=self._nodes,
-                    principal_variation=best_pv,
-                    perspective=state.turn,
+            self._shallow_node_count = self._nodes
+            if self.config.root_refinement_count > 0:
+                finalists = sorted(
+                    shallow_results,
+                    key=lambda item: (-item[0], item[1]),
+                )[: self.config.root_refinement_count]
+                refined_results: list[tuple[int, int, Move, tuple[Move, ...]]] = []
+                refinement_nodes = 0
+                for _, shallow_rank, move, _ in finalists:
+                    self._transposition.clear()
+                    self._evaluation_cache.clear()
+                    self._check_cache.clear()
+                    self._legal_moves_cache.clear()
+                    self._nodes = 0
+                    self._active_search_depth = self.config.depth + 1
+                    child = state.apply(move)
+                    child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+                    child_score, child_pv = self._search(
+                        child,
+                        self.config.depth,
+                        -MATE_SCORE * 2,
+                        MATE_SCORE * 2,
+                        child_noisy,
+                    )
+                    refinement_nodes += self._nodes
+                    refined_results.append((-child_score, shallow_rank, move, (move,) + child_pv))
+
+                total_refinement_results = sorted(
+                    refined_results,
+                    key=lambda item: (-item[0], item[1]),
                 )
+                if total_refinement_results:
+                    best_score, _, best_move, best_pv = total_refinement_results[0]
+                    if len(total_refinement_results) > 1:
+                        tied = [item for item in total_refinement_results if item[0] == best_score]
+                        if self.config.random_ties and len(tied) > 1:
+                            best_score, _, best_move, best_pv = self._rng.choice(tied)
+                    self._nodes = self._shallow_node_count + refinement_nodes
+                    return EngineAnalysis(
+                        best_move=best_move,
+                        score_cp=best_score,
+                        depth=self.config.depth + 1,
+                        nodes=self._nodes,
+                        principal_variation=best_pv,
+                        perspective=state.turn,
+                    )
 
-        if self.config.random_ties and len(best_results) > 1:
-            best_move, best_pv = self._rng.choice(best_results)
-        else:
-            best_move, best_pv = best_results[0]
+            if self.config.random_ties and len(best_results) > 1:
+                best_move, best_pv = self._rng.choice(best_results)
+            else:
+                best_move, best_pv = best_results[0]
 
-        self._active_search_depth = self.config.depth
+            self._active_search_depth = self.config.depth
+            return EngineAnalysis(
+                best_move=best_move,
+                score_cp=best_score,
+                depth=self.config.depth,
+                nodes=self._nodes,
+                principal_variation=best_pv,
+                perspective=state.turn,
+            )
+        finally:
+            self._deadline = None
+
+    def _fallback_analysis(self, state: GameState, moves: tuple[Move, ...]) -> EngineAnalysis:
+        move = moves[0]
         return EngineAnalysis(
-            best_move=best_move,
-            score_cp=best_score,
-            depth=self.config.depth,
+            best_move=move,
+            score_cp=None,
+            depth=0,
             nodes=self._nodes,
-            principal_variation=best_pv,
+            principal_variation=(move,),
             perspective=state.turn,
         )
 
@@ -272,39 +298,36 @@ class NegamaxEngine:
     ) -> EngineAnalysis:
         """Search completed depths until the budget expires."""
         assert self.config.time_limit_ms is not None
-        self._deadline = monotonic() + (self.config.time_limit_ms / 1000.0)
+        assert self._deadline is not None
         best_analysis: Optional[EngineAnalysis] = None
         preferred_move: Optional[Move] = None
 
-        try:
-            for depth in range(1, self.config.depth + 1):
-                if depth > 1:
-                    self._transposition.clear()
-                self._active_search_depth = depth
-                try:
-                    score, best_move, best_pv = self._search_root(
-                        state,
-                        moves,
-                        depth,
-                        preferred_move,
-                    )
-                except _SearchTimeout:
-                    break
-
-                best_analysis = EngineAnalysis(
-                    best_move=best_move,
-                    score_cp=score,
-                    depth=depth,
-                    nodes=self._nodes,
-                    principal_variation=best_pv,
-                    perspective=state.turn,
+        for depth in range(1, self.config.depth + 1):
+            if depth > 1:
+                self._transposition.clear()
+            self._active_search_depth = depth
+            try:
+                score, best_move, best_pv = self._search_root(
+                    state,
+                    moves,
+                    depth,
+                    preferred_move,
                 )
-                preferred_move = best_move
+            except _SearchTimeout:
+                break
 
-                if abs(score) >= MATE_SCORE - self.config.depth:
-                    break
-        finally:
-            self._deadline = None
+            best_analysis = EngineAnalysis(
+                best_move=best_move,
+                score_cp=score,
+                depth=depth,
+                nodes=self._nodes,
+                principal_variation=best_pv,
+                perspective=state.turn,
+            )
+            preferred_move = best_move
+
+            if abs(score) >= MATE_SCORE - self.config.depth:
+                break
 
         if best_analysis is not None:
             return best_analysis
@@ -365,8 +388,19 @@ class NegamaxEngine:
         return best_score, best_move, best_pv
 
     def _check_time_budget(self) -> None:
-        if self._deadline is not None and monotonic() >= self._deadline:
+        if self._deadline_expired():
             raise _SearchTimeout
+
+    def _deadline_expired(self) -> bool:
+        return self._deadline is not None and monotonic() >= self._deadline
+
+    @staticmethod
+    def _is_consecutive_pass_draw(state: GameState) -> bool:
+        return (
+            len(state.history) >= 2
+            and state.history[-1].is_pass
+            and state.history[-2].is_pass
+        )
 
     def _search(
         self,
@@ -378,6 +412,9 @@ class NegamaxEngine:
     ) -> tuple[int, tuple[Move, ...]]:
         self._check_time_budget()
         self._nodes += 1
+        if self._is_consecutive_pass_draw(state):
+            return 0, ()
+
         original_alpha = alpha
         original_beta = beta
         cache_key = (state.position_key(), depth, noisy)
@@ -398,7 +435,7 @@ class NegamaxEngine:
 
         moves = self._ordered_search_moves(
             state,
-            self._legal_moves(state, include_pass=False),
+            self._legal_moves(state, include_pass=True),
             preferred_move,
             depth,
         )
@@ -498,6 +535,7 @@ class NegamaxEngine:
                 self._history_hits += 1
             return (
                 is_preferred,
+                int(move.is_pass),
                 -capture_value,
                 -gives_check,
                 killer_index,
@@ -618,6 +656,7 @@ class NegamaxEngine:
                 moves,
                 key=lambda move: (
                     0 if preferred_move is not None and move == preferred_move else 1,
+                    int(move.is_pass),
                     -self._captured_value(state, move),
                     -int(self._gives_check(state, move)),
                     move.src or (-1, -1),
