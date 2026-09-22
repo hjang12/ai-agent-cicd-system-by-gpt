@@ -186,6 +186,14 @@ A cached lower/upper bound is reused only when it proves the current alpha-beta 
 
 The table is cleared for each top-level `analyze()` call so results remain isolated between analyses. Iterative-deepening depths are still isolated from one another because mate-distance scoring depends on the active root depth.
 
+## Quiescence check extension
+
+Quiescence search does not use a stand-pat score while the side to move is in check. A checked position must search legal evasions even when the nominal quiescence depth has reached zero.
+
+This is implemented as a one-ply check-evasion extension at the horizon. It prevents the engine from treating an in-check position as a legal quiet leaf and preserves bounded tactical search without changing the authoritative legality boundary in GameState.
+
+Non-checking quiet leaves retain the existing stand-pat behavior and beta cutoff. Forcing captures/checks continue to use the configured quiescence depth.
+
 ## Adaptive move ordering
 
 Within one top-level search, the engine now supplements the existing capture/check ordering with two deterministic search heuristics:
