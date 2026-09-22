@@ -382,6 +382,9 @@
         heading.textContent = '포지션 훈련 문제 준비 완료';
       } catch (error) {
         status.textContent = error.message;
+        if (snapshot?.state?.turn === snapshot?.ai_side) {
+          heading.textContent = 'AI 응수가 필요합니다 · AI 수 두기';
+        }
       } finally {
         busy = false;
         updateControls();
