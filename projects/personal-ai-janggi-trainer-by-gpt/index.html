@@ -11,7 +11,7 @@
     .workspace { display:grid; grid-template-columns:minmax(300px,1fr) 340px; gap:28px; margin-top:42px; }
     .board { --board-inset:36px; box-sizing:content-box; aspect-ratio:8/9; width:min(calc(100% - var(--board-inset)),584px); margin:auto; padding:0; position:relative; background:var(--board); border:8px solid var(--frame); box-shadow:0 10px 24px #0002; touch-action:manipulation; -webkit-tap-highlight-color:transparent; overflow:hidden; }
     .board-lines { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
-    .cell { position:absolute; box-sizing:border-box; display:grid; place-items:center; cursor:pointer; color:#211605; font-size:clamp(18px,3.1vw,34px); font-weight:800; user-select:none; background:transparent; width:8.4%; aspect-ratio:1; padding:0; border:0; transform:translate(-50%,-50%); z-index:1; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+    .cell { position:absolute; box-sizing:border-box; display:grid; place-items:center; cursor:pointer; color:#211605; font-size:clamp(18px,3.1vw,34px); font-weight:800; user-select:none; background:transparent; width:8.4%; aspect-ratio:1; padding:0; border:0; margin:0; transform:translate(-50%,-50%); z-index:1; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     .cell.legal { border-radius:50%; box-shadow:inset 0 0 0 3px #fff7; }
     .cell.selected { outline:3px solid var(--accent); outline-offset:-2px; border-radius:50%; }
     .cell.last-move-from { outline:2px dashed var(--accent); outline-offset:-4px; background:#b6792312; } .cell.last-move-to { outline:3px solid var(--accent); outline-offset:-4px; background:#b6792326; } .cell.last-move-to .piece { box-shadow:0 0 0 3px #b67923, 0 2px 3px #0003, inset 0 0 0 1px #fff9; } .piece { width:82%; aspect-ratio:1; border-radius:50%; display:grid; place-items:center; background:var(--piece); border:2px solid var(--piece-edge); box-shadow:0 2px 3px #0003, inset 0 0 0 1px #fff9; line-height:1; font-size:clamp(20px,3.2vw,36px); font-family:"Noto Serif CJK KR", "Noto Serif KR", serif; }
@@ -498,7 +498,7 @@
       const view = currentPosition();
       board.innerHTML = `
         <svg class="board-lines" viewBox="0 0 8 9" preserveAspectRatio="none" aria-hidden="true">
-          <g stroke="var(--line)" stroke-width="0.035" fill="none" vector-effect="non-scaling-stroke">
+          <g stroke="var(--line)" stroke-width="0.035" fill="none">
             <line x1="0" y1="0" x2="0" y2="9"></line>
             <line x1="1" y1="0" x2="1" y2="9"></line>
             <line x1="2" y1="0" x2="2" y2="9"></line>
