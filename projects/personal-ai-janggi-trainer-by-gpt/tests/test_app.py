@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 
 from app import TrainerApplication
-from janggi import EngineAnalysis, Move, Side
+from janggi import EngineAnalysis, FirstLegalEngine, Move, Side
 
 
 INDEX_HTML = Path(__file__).resolve().parents[1] / "index.html"
@@ -138,6 +138,23 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("snapshot", response)
         self.assertEqual(response["snapshot"]["state"]["turn"], "cho")
         self.assertEqual(len(response["snapshot"]["state"]["history"]), 2)
+
+    def test_player_turn_does_not_require_heavy_analyzer(self):
+        class ExplodingAnalyzer:
+            def analyze_move(self, state, move):
+                raise AssertionError("gameplay must not block on move analysis")
+
+        app = TrainerApplication()
+        app.analyzer = ExplodingAnalyzer()
+        app.engine = FirstLegalEngine()
+        move = app.snapshot()["legal_moves"][0]
+
+        response = app.play_player_turn({"src": move["src"], "dst": move["dst"]})
+
+        self.assertEqual(response["snapshot"]["state"]["turn"], "cho")
+        self.assertEqual(len(response["snapshot"]["state"]["history"]), 2)
+        self.assertIsNone(response["player_analysis"]["recommended_move"])
+        self.assertEqual(response["player_analysis"]["score_delta_cp"], None)
 
     def test_engine_move_returns_analysis_and_updates_state(self):
         app = TrainerApplication()
