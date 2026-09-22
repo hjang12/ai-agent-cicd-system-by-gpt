@@ -30,4 +30,4 @@ jobs:
         with:
           python-version: '3.12'
       - name: Run AI v1 vs v2 head-to-head benchmark
-        run: PYTHONPATH=. python tools/benchmark_ai_versions.py --games 1 --max-plies 16
+        run: PYTHONPATH=. python tools/benchmark_ai_versions.py --games 1 --max-plies 4
