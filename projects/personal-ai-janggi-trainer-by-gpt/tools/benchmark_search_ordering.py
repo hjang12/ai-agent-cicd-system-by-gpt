@@ -15,12 +15,16 @@ class Fixture:
 class CoordinateOrderedEngine(NegamaxEngine):
     """Reference engine with stable coordinate ordering only."""
 
+    _adaptive_ordering_enabled = False
+
     def _ordered_moves(self, state: GameState, moves: tuple[Move, ...]) -> tuple[Move, ...]:
         return tuple(sorted(moves, key=lambda move: (move.src or (-1, -1), move.dst or (-1, -1))))
 
 
 class StrongForcingOrderedEngine(NegamaxEngine):
     """Experiment with checks ahead of captures."""
+
+    _adaptive_ordering_enabled = False
 
     def _ordered_moves(self, state: GameState, moves: tuple[Move, ...]) -> tuple[Move, ...]:
         return tuple(
@@ -38,6 +42,8 @@ class StrongForcingOrderedEngine(NegamaxEngine):
 
 class CaptureCheckOrderedEngine(NegamaxEngine):
     """Experiment with checking captures ahead of other forcing moves."""
+
+    _adaptive_ordering_enabled = False
 
     def _ordered_moves(self, state: GameState, moves: tuple[Move, ...]) -> tuple[Move, ...]:
         return tuple(
