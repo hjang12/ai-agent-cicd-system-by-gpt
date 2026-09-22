@@ -11,7 +11,7 @@ from janggi.match import GameStatus
 from janggi.rating import update_ratings
 from janggi.training import Outcome
 
-from benchmark_ai_versions import v1_config, v2_config
+from tools.benchmark_ai_versions import v1_config, v2_config
 
 
 def summarize_games(
