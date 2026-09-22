@@ -346,7 +346,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn('option value="6">Lv.6 전문', html)
         self.assertIn("ai_level:aiLevel.value", html)
         self.assertIn("snapshot.ai_level || '1'", html)
-        self.assertIn("현재 선택한 AI:", html)
+        self.assertIn("선택된 AI:", html)
 
     def test_browser_move_presentation_uses_board_notation(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
