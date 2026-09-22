@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import random
+from time import monotonic
 from typing import Optional
 
 from .core import GameState, Move, PieceType, Side, palace_for
@@ -44,12 +45,17 @@ TACTICAL_PRESSURE_DIVISOR = 25
 PALACE_PRESSURE_BONUS = 5
 
 
+class _SearchTimeout(Exception):
+    """Internal control flow for a time-budgeted iterative search."""
+
+
 @dataclass(frozen=True)
 class SearchConfig:
     depth: int = 2
     mobility_weight: int = 2
     quiescence_depth: int = 1
     root_refinement_count: int = 0
+    time_limit_ms: Optional[int] = None
     random_ties: bool = False
     seed: Optional[int] = None
 
@@ -62,6 +68,9 @@ class SearchConfig:
             raise ValueError("quiescence_depth must be non-negative")
         if self.root_refinement_count < 0:
             raise ValueError("root_refinement_count must be non-negative")
+        if self.time_limit_ms is not None:
+            if isinstance(self.time_limit_ms, bool) or self.time_limit_ms < 1:
+                raise ValueError("time_limit_ms must be positive when provided")
 
 
 class NegamaxEngine:
@@ -86,10 +95,11 @@ class NegamaxEngine:
         self._legal_moves_cache: dict[tuple[tuple[object, ...], bool], tuple[Move, ...]] = {}
         self._active_search_depth = self.config.depth
         self._shallow_node_count = 0
+        self._deadline: Optional[float] = None
 
     @property
     def info(self) -> EngineInfo:
-        return EngineInfo(name="negamax", version="5")
+        return EngineInfo(name="negamax", version="6")
 
     def choose_move(self, state: GameState) -> Move:
         analysis = self.analyze(state)
@@ -123,6 +133,9 @@ class NegamaxEngine:
                 principal_variation=(),
                 perspective=state.turn,
             )
+
+        if self.config.time_limit_ms is not None:
+            return self._analyze_iterative_deepening(state, moves)
 
         best_score = -MATE_SCORE * 2
         best_results: list[tuple[Move, tuple[Move, ...]]] = []
@@ -213,6 +226,104 @@ class NegamaxEngine:
             perspective=state.turn,
         )
 
+    def _analyze_iterative_deepening(
+        self,
+        state: GameState,
+        moves: tuple[Move, ...],
+    ) -> EngineAnalysis:
+        """Search completed depths until the budget expires."""
+        assert self.config.time_limit_ms is not None
+        self._deadline = monotonic() + (self.config.time_limit_ms / 1000.0)
+        best_analysis: Optional[EngineAnalysis] = None
+        preferred_move: Optional[Move] = None
+
+        try:
+            for depth in range(1, self.config.depth + 1):
+                if depth > 1:
+                    self._transposition.clear()
+                self._active_search_depth = depth
+                try:
+                    score, best_move, best_pv = self._search_root(
+                        state,
+                        moves,
+                        depth,
+                        preferred_move,
+                    )
+                except _SearchTimeout:
+                    break
+
+                best_analysis = EngineAnalysis(
+                    best_move=best_move,
+                    score_cp=score,
+                    depth=depth,
+                    nodes=self._nodes,
+                    principal_variation=best_pv,
+                    perspective=state.turn,
+                )
+                preferred_move = best_move
+
+                if abs(score) >= MATE_SCORE - self.config.depth:
+                    break
+        finally:
+            self._deadline = None
+
+        if best_analysis is not None:
+            return best_analysis
+
+        fallback = moves[0]
+        return EngineAnalysis(
+            best_move=fallback,
+            score_cp=None,
+            depth=0,
+            nodes=self._nodes,
+            principal_variation=(fallback,),
+            perspective=state.turn,
+        )
+
+    def _search_root(
+        self,
+        state: GameState,
+        moves: tuple[Move, ...],
+        depth: int,
+        preferred_move: Optional[Move],
+    ) -> tuple[int, Move, tuple[Move, ...]]:
+        self._check_time_budget()
+        ordered_moves = self._ordered_moves(state, moves, preferred_move)
+        best_score = -MATE_SCORE * 2
+        best_results: list[tuple[Move, tuple[Move, ...]]] = []
+        alpha = -MATE_SCORE * 2
+        beta = MATE_SCORE * 2
+
+        for move in ordered_moves:
+            self._check_time_budget()
+            child = state.apply(move)
+            child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+            child_score, child_pv = self._search(
+                child,
+                depth - 1,
+                -beta,
+                -alpha,
+                child_noisy,
+            )
+            score = -child_score
+            candidate_pv = (move,) + child_pv
+            if score > best_score:
+                best_score = score
+                best_results = [(move, candidate_pv)]
+            elif score == best_score:
+                best_results.append((move, candidate_pv))
+            alpha = max(alpha, score)
+
+        if self.config.random_ties and len(best_results) > 1:
+            best_move, best_pv = self._rng.choice(best_results)
+        else:
+            best_move, best_pv = best_results[0]
+        return best_score, best_move, best_pv
+
+    def _check_time_budget(self) -> None:
+        if self._deadline is not None and monotonic() >= self._deadline:
+            raise _SearchTimeout
+
     def _search(
         self,
         state: GameState,
@@ -221,6 +332,7 @@ class NegamaxEngine:
         beta: int,
         noisy: bool = False,
     ) -> tuple[int, tuple[Move, ...]]:
+        self._check_time_budget()
         self._nodes += 1
         cache_key = (state.position_key(), depth, noisy)
         cached = self._transposition.get(cache_key)
@@ -291,6 +403,7 @@ class NegamaxEngine:
         beta: int,
     ) -> tuple[int, tuple[Move, ...]]:
         """Extend only short forcing sequences after a noisy move."""
+        self._check_time_budget()
         self._nodes += 1
         stand_pat = self._evaluate(state)
 
@@ -347,12 +460,18 @@ class NegamaxEngine:
 
         return best_score, best_pv
 
-    def _ordered_moves(self, state: GameState, moves: tuple[Move, ...]) -> tuple[Move, ...]:
-        """Prioritize captures, then checks, then stable source/destination order."""
+    def _ordered_moves(
+        self,
+        state: GameState,
+        moves: tuple[Move, ...],
+        preferred_move: Optional[Move] = None,
+    ) -> tuple[Move, ...]:
+        """Prioritize a previous-PV move, then captures, checks, and stable order."""
         return tuple(
             sorted(
                 moves,
                 key=lambda move: (
+                    0 if preferred_move is not None and move == preferred_move else 1,
                     -self._captured_value(state, move),
                     -int(self._gives_check(state, move)),
                     move.src or (-1, -1),
