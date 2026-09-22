@@ -403,6 +403,54 @@ class SearchEngineTests(unittest.TestCase):
 
         self.assertEqual(analysis.best_move, Move((0, 3), (0, 4)))
 
+    def test_adaptive_ordering_prefers_killer_before_history_for_quiet_moves(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(SearchConfig(depth=2, mobility_weight=0, quiescence_depth=0))
+        quiet_moves = tuple(
+            move
+            for move in state.legal_moves(include_pass=False)
+            if engine._captured_value(state, move) == 0
+            and not engine._gives_check(state, move)
+        )
+        self.assertGreaterEqual(len(quiet_moves), 3)
+        history_move = quiet_moves[0]
+        killer_move = quiet_moves[1]
+
+        engine._history_scores[(state.turn, history_move)] = 100
+        engine._killer_moves[0] = [killer_move]
+        ordered = engine._ordered_search_moves(
+            state,
+            quiet_moves[:3],
+            preferred_move=None,
+            depth=engine.config.depth,
+        )
+
+        self.assertEqual(ordered[0], killer_move)
+        self.assertGreater(engine._killer_hits, 0)
+
+    def test_adaptive_ordering_uses_history_for_non_killer_quiet_moves(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(SearchConfig(depth=2, mobility_weight=0, quiescence_depth=0))
+        quiet_moves = tuple(
+            move
+            for move in state.legal_moves(include_pass=False)
+            if engine._captured_value(state, move) == 0
+            and not engine._gives_check(state, move)
+        )
+        self.assertGreaterEqual(len(quiet_moves), 2)
+        preferred_history_move = quiet_moves[1]
+
+        engine._history_scores[(state.turn, preferred_history_move)] = 50
+        ordered = engine._ordered_search_moves(
+            state,
+            quiet_moves[:2],
+            preferred_move=None,
+            depth=engine.config.depth,
+        )
+
+        self.assertEqual(ordered[0], preferred_history_move)
+        self.assertGreater(engine._history_hits, 0)
+
     def test_ordered_moves_put_captures_first(self):
         board = [None] * 90
         board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
