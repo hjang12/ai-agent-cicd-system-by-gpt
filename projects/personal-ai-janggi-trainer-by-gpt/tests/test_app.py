@@ -51,6 +51,31 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(app.engine.config.root_refinement_count, 0)
         self.assertEqual(app.analysis_engine.config.depth, 2)
 
+    def test_default_ai_level_is_beginner(self):
+        app = TrainerApplication()
+        snapshot = app.snapshot()
+        self.assertEqual(snapshot["ai_level"], "1")
+        self.assertEqual(snapshot["ai_level_name"], "입문")
+        self.assertEqual(app.engine.config.depth, 1)
+
+    def test_reset_accepts_ai_level(self):
+        app = TrainerApplication()
+        snapshot = app.reset(ai_level="5")
+        self.assertEqual(snapshot["ai_level"], "5")
+        self.assertEqual(snapshot["ai_level_name"], "상급")
+        self.assertEqual(app.engine.config.depth, 2)
+        self.assertEqual(app.engine.config.quiescence_depth, 1)
+        self.assertEqual(app.engine.config.root_refinement_count, 2)
+
+    def test_reset_rejects_unknown_ai_level(self):
+        app = TrainerApplication()
+        with self.assertRaises(ValueError):
+            app.reset(ai_level="7")
+
+    def test_ai_level_endpoint_payload_is_available(self):
+        from app import RequestHandler
+        self.assertTrue(callable(RequestHandler.do_GET))
+
     def test_reset_accepts_setup_variant(self):
         app = TrainerApplication()
         snapshot = app.reset("left")
@@ -313,6 +338,15 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("grid-template-rows:repeat(10,minmax(0,1fr))", html)
         self.assertIn("box-sizing:content-box", html)
         self.assertIn("padding:0", html)
+
+    def test_browser_exposes_ai_level_selector_and_reset_contract(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn('id="ai-level"', html)
+        self.assertIn('option value="1">Lv.1 입문', html)
+        self.assertIn('option value="6">Lv.6 전문', html)
+        self.assertIn("ai_level:aiLevel.value", html)
+        self.assertIn("snapshot.ai_level || '1'", html)
+        self.assertIn("현재 선택한 AI:", html)
 
     def test_browser_move_presentation_uses_board_notation(self):
         html = INDEX_HTML.read_text(encoding="utf-8")

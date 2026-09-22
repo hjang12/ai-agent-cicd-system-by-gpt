@@ -43,6 +43,10 @@ An engine proposes a move or analysis. The domain remains authoritative: callers
 
 `NegamaxEngine` is the current deterministic baseline search. It is intentionally separated from the domain so search quality can evolve independently of rule correctness.
 
+### Gameplay AI profiles: `janggi/ai_level.py`
+
+`AILevelSpec` maps the user-facing six-level difficulty ladder to concrete `SearchConfig` profiles. This is a configuration boundary, not a second rules or engine implementation. The same `NegamaxEngine` is reused across levels, while future engine-version upgrades can change the underlying search/evaluation without changing the public difficulty control.
+
 ### Records and validation: `janggi/record.py`, `janggi/pipeline.py`
 
 Records are portable game data. The validation pipeline distinguishes structural validity, replay validity, completeness, source provenance, and training eligibility. A human or personal record is not silently promoted to ground truth.

@@ -68,6 +68,16 @@
         <select id="player-side" aria-label="내 진영">
           <option value="cho">초</option><option value="han">한</option>
         </select>
+        <label for="ai-level">AI 레벨</label>
+        <select id="ai-level" aria-label="AI 레벨">
+          <option value="1">Lv.1 입문</option>
+          <option value="2">Lv.2 초급</option>
+          <option value="3">Lv.3 중급</option>
+          <option value="4">Lv.4 고급</option>
+          <option value="5">Lv.5 상급</option>
+          <option value="6">Lv.6 전문</option>
+        </select>
+        <div class="meta" id="ai-level-note">현재 선택한 AI 레벨은 대국 초기화부터 적용됩니다.</div>
         <label for="setup">장기판 배치</label>
         <select id="setup" aria-label="장기판 배치">
           <option value="classic">기본 배치</option><option value="left">왼쪽 마상 교환</option><option value="right">오른쪽 마상 교환</option><option value="both">양쪽 마상 교환</option>
@@ -165,6 +175,8 @@
     const heading = document.querySelector('#heading');
     const setup = document.querySelector('#setup');
     const playerSide = document.querySelector('#player-side');
+    const aiLevel = document.querySelector('#ai-level');
+    const aiLevelNote = document.querySelector('#ai-level-note');
     const orientationNote = document.querySelector('#orientation-note');
     const reset = document.querySelector('#reset');
     const undo = document.querySelector('#undo');
@@ -274,6 +286,7 @@
       training.disabled = busy || !hasHistory;
       setup.disabled = busy;
       playerSide.disabled = busy;
+      aiLevel.disabled = busy;
     }
 
     function clearTrainingMode() {
@@ -529,6 +542,8 @@
       if (!response.ok) throw new Error(`대국 상태 요청 실패 (${response.status})`);
       snapshot = await response.json();
       playerSide.value = snapshot.player_side || 'cho';
+      aiLevel.value = snapshot.ai_level || '1';
+      aiLevelNote.textContent = '현재 AI: Lv.' + (snapshot.ai_level || '1') + ' ' + (snapshot.ai_level_name || '입문') + ' · 레벨 변경은 대국 초기화부터 적용됩니다.';
       orientationNote.textContent = boardSide() === 'cho'
         ? '초가 화면 아래쪽입니다. 초가 먼저 둡니다.'
         : '한이 화면 아래쪽입니다. 초가 위에서 먼저 둡니다.';
@@ -641,11 +656,16 @@
         : '한이 화면 아래쪽입니다. 초가 먼저 응수합니다.';
     });
 
+    aiLevel.addEventListener('change', () => {
+      const labels = {'1':'입문','2':'초급','3':'중급','4':'고급','5':'상급','6':'전문'};
+      aiLevelNote.textContent = '선택된 AI: Lv.' + aiLevel.value + ' ' + (labels[aiLevel.value] || '') + ' · 대국 초기화 후 적용됩니다.';
+    });
+
     reset.addEventListener('click', async () => {
       busy = true;
       updateControls();
       try {
-        snapshot = await post('/api/reset', {setup:setup.value, player_side:playerSide.value});
+        snapshot = await post('/api/reset', {setup:setup.value, player_side:playerSide.value, ai_level:aiLevel.value});
         heading.textContent = snapshot.player_side === 'han'
           ? '한 진영으로 대국이 초기화되었습니다'
           : '초 진영으로 대국이 초기화되었습니다';

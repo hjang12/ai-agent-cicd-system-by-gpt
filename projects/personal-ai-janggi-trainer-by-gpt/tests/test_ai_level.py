@@ -1,0 +1,47 @@
+import unittest
+
+from janggi.ai_level import AI_LEVELS, AILevel, ai_level_payload, get_ai_level
+
+
+class AILevelTests(unittest.TestCase):
+    def test_all_levels_have_unique_order_and_metadata(self):
+        self.assertEqual([spec.level for spec in AI_LEVELS], list(AILevel))
+        self.assertEqual(len({spec.name for spec in AI_LEVELS}), len(AI_LEVELS))
+        self.assertTrue(all(spec.description for spec in AI_LEVELS))
+
+    def test_levels_progress_through_search_complexity(self):
+        configs = [spec.config for spec in AI_LEVELS]
+        for earlier, later in zip(configs, configs[1:]):
+            self.assertGreaterEqual(later.depth, earlier.depth)
+            self.assertGreaterEqual(later.quiescence_depth, earlier.quiescence_depth)
+
+    def test_named_level_lookup(self):
+        spec = get_ai_level("5")
+        self.assertEqual(spec.level, AILevel.ADVANCED)
+        self.assertEqual(spec.name, "상급")
+        self.assertEqual(spec.config.root_refinement_count, 2)
+
+    def test_enum_level_lookup(self):
+        spec = get_ai_level(AILevel.EXPERT)
+        self.assertEqual(spec.level, AILevel.EXPERT)
+        self.assertEqual(spec.config.depth, 3)
+
+    def test_invalid_level_is_rejected(self):
+        with self.assertRaises(ValueError):
+            get_ai_level("0")
+        with self.assertRaises(ValueError):
+            get_ai_level("7")
+        with self.assertRaises(ValueError):
+            get_ai_level(3)  # type: ignore[arg-type]
+
+    def test_payload_is_serializable_and_complete(self):
+        payload = ai_level_payload()
+        self.assertEqual(len(payload), 6)
+        self.assertEqual(payload[0]["level"], "1")
+        self.assertEqual(payload[-1]["level"], "6")
+        self.assertIn("description", payload[0])
+        self.assertIn("root_refinement_count", payload[-1])
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,3 +1,4 @@
+from .ai_level import AI_LEVELS, AILevel, AILevelSpec, ai_level_payload, get_ai_level
 from .analysis import Analyzer, MoveAnalysis, TacticalMotif, TacticalRisk
 from .coaching import CoachingInsight, CoachingReason, CoachingSeverity, coach_move
 from .core import GameState, Move, Piece, PieceType, Side
@@ -25,6 +26,9 @@ from .tournament import EvaluationSummary, HeadToHeadTournament
 from .training import Outcome, TrainingDataset, TrainingDatasetBuilder, TrainingExample
 
 __all__ = [
+    "AI_LEVELS",
+    "AILevel",
+    "AILevelSpec",
     "Analyzer",
     "CoachingInsight",
     "CoachingReason",
@@ -71,6 +75,8 @@ __all__ = [
     "TrainingDisposition",
     "TrainingExample",
     "ValidationStatus",
+    "ai_level_payload",
+    "get_ai_level",
     "coach_move",
     "expected_score",
     "generate_self_play_game",

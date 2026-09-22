@@ -8,7 +8,7 @@ from pathlib import Path
 from threading import RLock
 from urllib.parse import urlparse
 
-from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, adaptive_problem_priority, adaptive_reason_priority, coach_move, generate_training_problems, review_record, select_adaptive_training_problems, state_to_dict
+from janggi import AILevel, Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, adaptive_problem_priority, adaptive_reason_priority, ai_level_payload, coach_move, generate_training_problems, get_ai_level, review_record, select_adaptive_training_problems, state_to_dict
 from janggi.analysis import MoveAnalysis
 from janggi.review import DEFAULT_REVIEW_LIMIT
 from janggi.training_metrics import TrainingSessionMetrics
@@ -24,6 +24,7 @@ ENGINE_ROOT_REFINEMENT_COUNT = 0
 ANALYSIS_SEARCH_DEPTH = 2
 DEFAULT_PLAYER_SIDE = Side.CHO
 DEFAULT_AI_SIDE = Side.HAN
+DEFAULT_AI_LEVEL = AILevel.BEGINNER
 
 
 class TrainerApplication:
@@ -31,14 +32,9 @@ class TrainerApplication:
         self._lock = RLock()
         self.player_side = DEFAULT_PLAYER_SIDE
         self.ai_side = DEFAULT_AI_SIDE
+        self.ai_level = DEFAULT_AI_LEVEL
         self.match = Match.new()
-        self.engine = NegamaxEngine(
-            SearchConfig(
-                depth=ENGINE_SEARCH_DEPTH,
-                quiescence_depth=ENGINE_QUIESCENCE_DEPTH,
-                root_refinement_count=ENGINE_ROOT_REFINEMENT_COUNT,
-            )
-        )
+        self.engine = NegamaxEngine(get_ai_level(self.ai_level).config)
         self.analysis_engine = NegamaxEngine(SearchConfig(depth=ANALYSIS_SEARCH_DEPTH))
         self.analyzer = Analyzer(self.analysis_engine)
         self.training_metrics = TrainingSessionMetrics()
@@ -50,6 +46,8 @@ class TrainerApplication:
                 "setup": self.match.setup,
                 "player_side": self.player_side.value,
                 "ai_side": self.ai_side.value,
+                "ai_level": self.ai_level.value,
+                "ai_level_name": get_ai_level(self.ai_level).name,
                 "can_undo": self.can_undo(),
                 "state": state_to_dict(self.match.state, setup=self.match.setup),
                 "legal_moves": [
@@ -72,11 +70,19 @@ class TrainerApplication:
             )
             return record.to_dict()
 
-    def reset(self, setup: str = "classic", player_side: str = "cho") -> dict[str, object]:
+    def reset(
+        self,
+        setup: str = "classic",
+        player_side: str = "cho",
+        ai_level: str = DEFAULT_AI_LEVEL.value,
+    ) -> dict[str, object]:
         selected_side = self._side_from_value(player_side)
+        selected_level = get_ai_level(ai_level)
         with self._lock:
             self.player_side = selected_side
             self.ai_side = selected_side.opponent
+            self.ai_level = selected_level.level
+            self.engine = NegamaxEngine(selected_level.config)
             self.match = Match.new(setup=setup)
             self.training_metrics.reset()
             if self.match.status.value == "playing" and self.match.state.turn is self.ai_side:
@@ -508,6 +514,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         if path == "/api/state":
             self._send_json(APP.snapshot())
             return
+        if path == "/api/ai/levels":
+            self._send_json({"levels": ai_level_payload(), "current": APP.snapshot()["ai_level"]})
+            return
         if path == "/api/record":
             self._send_json(APP.record())
             return
@@ -536,11 +545,14 @@ class RequestHandler(BaseHTTPRequestHandler):
                 payload = self._read_json()
                 setup = payload.get("setup", "classic")
                 player_side = payload.get("player_side", "cho")
+                ai_level = payload.get("ai_level", DEFAULT_AI_LEVEL.value)
                 if not isinstance(setup, str):
                     raise ValueError("setup must be a string")
                 if not isinstance(player_side, str):
                     raise ValueError("player_side must be a string")
-                self._send_json(APP.reset(setup=setup, player_side=player_side))
+                if not isinstance(ai_level, str):
+                    raise ValueError("ai_level must be a string")
+                self._send_json(APP.reset(setup=setup, player_side=player_side, ai_level=ai_level))
                 return
             if path == "/api/move":
                 self._send_json(APP.play(self._read_json()))
