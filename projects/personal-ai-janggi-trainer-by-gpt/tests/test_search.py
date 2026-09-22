@@ -390,6 +390,34 @@ class SearchEngineTests(unittest.TestCase):
 
         self.assertEqual(empty_history_score, history_score)
 
+    def test_quiescence_extends_check_evasion_at_horizon(self):
+        board = [None] * 90
+        board[0] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 9 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[8] = Piece(Side.CHO, PieceType.HORSE)
+        state = GameState(tuple(board), turn=Side.CHO)
+
+        checking_move = Move((0, 3), (4, 3))
+        checked_state = state.apply(checking_move)
+        self.assertTrue(checked_state.is_in_check(Side.HAN))
+        self.assertTrue(checked_state.legal_moves(include_pass=False))
+
+        engine = NegamaxEngine(SearchConfig(depth=1, quiescence_depth=0))
+        original_evaluate = engine._evaluate
+        engine._evaluate = lambda current_state: 1_000 if current_state is checked_state else 0
+        try:
+            score, principal_variation = engine._quiescence(
+                checked_state,
+                0,
+                -MATE_SCORE * 2,
+                100,
+            )
+        finally:
+            engine._evaluate = original_evaluate
+
+        self.assertEqual(score, 0)
+        self.assertTrue(principal_variation)
     def test_search_can_prefer_a_free_capture(self):
         board = [None] * 90
         board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
