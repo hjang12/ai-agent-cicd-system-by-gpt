@@ -14,6 +14,8 @@ class SearchEngineTests(unittest.TestCase):
             SearchConfig(quiescence_depth=-1)
         with self.assertRaises(ValueError):
             SearchConfig(root_refinement_count=-1)
+        with self.assertRaises(ValueError):
+            SearchConfig(time_limit_ms=0)
 
     def test_piece_values_follow_janggi_material_order(self):
         self.assertEqual(PIECE_VALUES[PieceType.CHARIOT], 1300)
@@ -155,6 +157,29 @@ class SearchEngineTests(unittest.TestCase):
             engine._capture_pressure(exposed_han_moves, exposed),
             engine._capture_pressure(safe_han_moves, safe),
         )
+
+    def test_iterative_deepening_completes_tiny_position_with_time_budget(self):
+        board = [None] * 90
+        board[4] = Piece(Side.CHO, PieceType.GENERAL)
+        board[85] = Piece(Side.HAN, PieceType.GENERAL)
+        board[4 + 4 * 9] = Piece(Side.CHO, PieceType.SOLDIER)
+        state = GameState(tuple(board), turn=Side.CHO)
+
+        engine = NegamaxEngine(
+            SearchConfig(
+                depth=2,
+                mobility_weight=0,
+                quiescence_depth=0,
+                time_limit_ms=1000,
+            )
+        )
+        analysis = engine.analyze(state)
+
+        self.assertEqual(analysis.depth, 2)
+        self.assertIsNotNone(analysis.best_move)
+        self.assertTrue(state.is_legal(analysis.best_move))
+        self.assertGreater(analysis.nodes, 0)
+        self.assertEqual(analysis.principal_variation[0], analysis.best_move)
 
     def test_negamax_exposes_metadata_and_returns_legal_move(self):
         state = GameState.initial()
