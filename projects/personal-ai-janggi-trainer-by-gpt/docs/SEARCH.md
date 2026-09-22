@@ -26,8 +26,9 @@ Material + Mobility + positional evaluation
 - `root_refinement_count`
 - `random_ties`
 - `seed`
+- `time_limit_ms` (optional wall-clock budget; enables iterative deepening)
 
-The baseline engine metadata version is now `3`, reflecting the bounded quiescence search contract.
+The engine metadata version is now `6`. The latest search change adds an optional time budget that activates iterative deepening without changing the existing fixed-depth behavior when no budget is configured.
 
 ## Evaluation v4
 
@@ -73,6 +74,23 @@ The deterministic search benchmark after the v4 evaluation change produced these
 | endgame | 3 | 637 |
 
 All measured production, check-first, and capture-check-first orderings preserved the coordinate-reference minimax score in this run. The benchmark remains a deterministic regression/algorithm-behavior gate, not a direct playing-strength claim.
+
+## Iterative deepening and time budgets
+
+When `SearchConfig.time_limit_ms` is provided, the engine switches from a single fixed-depth root search to iterative deepening:
+
+1. search depth 1;
+2. keep the last fully completed result;
+3. promote the previous root move when starting the next depth;
+4. continue until the configured maximum depth or the wall-clock budget expires.
+
+A timeout never returns a partially searched principal variation. If the first iteration cannot complete, the engine still returns the first legal move as a safe application fallback with depth `0` and no score claim.
+
+The transposition table is cleared between iterative depths because mate-distance scores depend on the active root depth. Legality, evaluation, and check caches remain available within the overall analysis.
+
+The default `time_limit_ms=None` path remains the original deterministic fixed-depth search, so the deterministic benchmark baselines are unaffected by the time-budget feature.
+
+The current user-facing Expert level uses a maximum depth of 3 with an 800 ms budget. This is intentionally a search ceiling rather than a strength guarantee: hardware, position complexity, and whether depth 3 completes within the budget can change the effective depth.
 
 ## Quiescence search
 
