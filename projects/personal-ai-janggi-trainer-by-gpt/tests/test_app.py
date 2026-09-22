@@ -44,6 +44,13 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(len(snapshot["state"]["board"]), 90)
         self.assertTrue(snapshot["legal_moves"])
 
+    def test_gameplay_engine_uses_fast_response_configuration(self):
+        app = TrainerApplication()
+        self.assertEqual(app.engine.config.depth, 1)
+        self.assertEqual(app.engine.config.quiescence_depth, 0)
+        self.assertEqual(app.engine.config.root_refinement_count, 0)
+        self.assertEqual(app.analysis_engine.config.depth, 2)
+
     def test_reset_accepts_setup_variant(self):
         app = TrainerApplication()
         snapshot = app.reset("left")
