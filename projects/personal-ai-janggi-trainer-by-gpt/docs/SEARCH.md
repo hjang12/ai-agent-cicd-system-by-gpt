@@ -23,12 +23,13 @@ Material + Mobility + positional evaluation
 - `depth`
 - `mobility_weight`
 - `quiescence_depth`
+- `root_refinement_count`
 - `random_ties`
 - `seed`
 
 The baseline engine metadata version is now `3`, reflecting the bounded quiescence search contract.
 
-## Evaluation v2
+## Evaluation v4
 
 The evaluation now combines material, mobility, and small domain-aware positional terms:
 
@@ -39,6 +40,39 @@ The evaluation now combines material, mobility, and small domain-aware positiona
 - checking pressure receives a bounded score bonus, while being in check receives the corresponding penalty.
 
 These terms are deliberately small relative to material and mate scores. They improve leaf-position discrimination without moving legality or terminal-state decisions out of `GameState`.
+
+The evaluation combines material, mobility, and bounded domain-aware strategic terms:
+- material values remain calibrated to common Janggi point ordering;
+- advanced soldiers receive bounded forward-progress and central-file bonuses;
+- guards retained inside their own palace receive a small defensive bonus;
+- piece activity is weighted by piece type using the legal moves already available in the per-analysis legality cache, giving Chariots and Cannons more weight than blocked minor pieces;
+- immediate capture pressure is scored from legal captures, while corresponding opponent capture pressure acts as a bounded vulnerability penalty;
+- moves that enter the opponent's palace contribute a small initiative-pressure term;
+- checking pressure remains explicitly rewarded and being in check remains penalized;
+- all positional/strategic terms are substantially smaller than material values, so material and forced tactical outcomes remain dominant.
+
+The evaluation continues to be zero-sum by construction: the side to move's strategic terms are added and the opponent's corresponding terms are subtracted.
+
+The v4 change is intentionally bounded and reuses cached legal moves rather than generating a second move list solely for these features.
+
+## Evaluation v4 benchmark result
+
+The deterministic search benchmark after the v4 evaluation change produced these production node counts:
+
+| Fixture | Depth | Production nodes |
+| --- | ---: | ---: |
+| initial | 2 | 88 |
+| capture | 2 | 56 |
+| capture | 3 | 409 |
+| check | 2 | 39 |
+| check | 3 | 472 |
+| double_attack | 2 | 118 |
+| double_attack | 3 | 945 |
+| midgame | 2 | 153 |
+| endgame | 2 | 104 |
+| endgame | 3 | 637 |
+
+All measured production, check-first, and capture-check-first orderings preserved the coordinate-reference minimax score in this run. The benchmark remains a deterministic regression/algorithm-behavior gate, not a direct playing-strength claim.
 
 ## Quiescence search
 

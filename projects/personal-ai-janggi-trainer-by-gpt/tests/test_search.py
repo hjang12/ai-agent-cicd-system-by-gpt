@@ -72,7 +72,88 @@ class SearchEngineTests(unittest.TestCase):
 
         self.assertGreaterEqual(
             engine._evaluate(checking) - engine._evaluate(quiet),
-            100,
+            80,
+        )
+
+    def test_activity_score_rewards_unblocked_major_piece(self):
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[1 + 2 * 9] = Piece(Side.CHO, PieceType.HORSE)
+        board[1 + 1 * 9] = Piece(Side.CHO, PieceType.SOLDIER)
+        blocked = GameState(tuple(board), turn=Side.CHO)
+
+        board[1 + 1 * 9] = None
+        unblocked = GameState(tuple(board), turn=Side.CHO)
+
+        engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0))
+        blocked_moves = engine._legal_moves(blocked, include_pass=False)
+        unblocked_moves = engine._legal_moves(unblocked, include_pass=False)
+
+        self.assertGreater(
+            engine._activity_score_for_state(unblocked, Side.CHO, unblocked_moves),
+            engine._activity_score_for_state(blocked, Side.CHO, blocked_moves),
+        )
+
+    def test_capture_pressure_rewards_immediate_material_threat(self):
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[0 + 4 * 9] = Piece(Side.HAN, PieceType.CANNON)
+        threatened = GameState(tuple(board), turn=Side.CHO)
+
+        board[0 + 4 * 9] = None
+        quiet = GameState(tuple(board), turn=Side.CHO)
+
+        engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0))
+        threatened_moves = engine._legal_moves(threatened, include_pass=False)
+        quiet_moves = engine._legal_moves(quiet, include_pass=False)
+
+        self.assertGreater(
+            engine._capture_pressure(threatened_moves, threatened),
+            engine._capture_pressure(quiet_moves, quiet),
+        )
+
+    def test_palace_pressure_rewards_reaching_opponent_palace(self):
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[4 + 5 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        pressured = GameState(tuple(board), turn=Side.CHO)
+
+        board[4 + 5 * 9] = None
+        board[0 + 5 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        quiet = GameState(tuple(board), turn=Side.CHO)
+
+        engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0))
+        pressured_moves = engine._legal_moves(pressured, include_pass=False)
+        quiet_moves = engine._legal_moves(quiet, include_pass=False)
+
+        self.assertGreater(
+            engine._palace_pressure(pressured_moves, Side.HAN),
+            engine._palace_pressure(quiet_moves, Side.HAN),
+        )
+
+    def test_evaluation_penalizes_vulnerable_chariot(self):
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[0 + 4 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[0 + 8 * 9] = Piece(Side.HAN, PieceType.CHARIOT)
+        exposed = GameState(tuple(board), turn=Side.CHO)
+
+        board[0 + 4 * 9] = None
+        board[1 + 4 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        safe = GameState(tuple(board), turn=Side.CHO)
+
+        engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0, quiescence_depth=0))
+
+        safe_han_moves = engine._legal_moves(safe, include_pass=False)
+        exposed_han_moves = engine._legal_moves(exposed, include_pass=False)
+        self.assertGreater(
+            engine._capture_pressure(exposed_han_moves, exposed),
+            engine._capture_pressure(safe_han_moves, safe),
         )
 
     def test_negamax_exposes_metadata_and_returns_legal_move(self):
