@@ -18,8 +18,10 @@ from janggi.engine import EngineAnalysis, validate_engine_analysis, validate_eng
 
 ROOT = Path(__file__).resolve().parent
 INDEX_HTML = ROOT / "index.html"
-ENGINE_SEARCH_DEPTH = 2
-ENGINE_ROOT_REFINEMENT_COUNT = 3
+ENGINE_SEARCH_DEPTH = 1
+ENGINE_QUIESCENCE_DEPTH = 0
+ENGINE_ROOT_REFINEMENT_COUNT = 0
+ANALYSIS_SEARCH_DEPTH = 2
 DEFAULT_PLAYER_SIDE = Side.CHO
 DEFAULT_AI_SIDE = Side.HAN
 
@@ -33,10 +35,11 @@ class TrainerApplication:
         self.engine = NegamaxEngine(
             SearchConfig(
                 depth=ENGINE_SEARCH_DEPTH,
+                quiescence_depth=ENGINE_QUIESCENCE_DEPTH,
                 root_refinement_count=ENGINE_ROOT_REFINEMENT_COUNT,
             )
         )
-        self.analysis_engine = NegamaxEngine(SearchConfig(depth=ENGINE_SEARCH_DEPTH))
+        self.analysis_engine = NegamaxEngine(SearchConfig(depth=ANALYSIS_SEARCH_DEPTH))
         self.analyzer = Analyzer(self.analysis_engine)
         self.training_metrics = TrainingSessionMetrics()
 
