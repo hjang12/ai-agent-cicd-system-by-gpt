@@ -307,6 +307,58 @@ class SearchEngineTests(unittest.TestCase):
         self.assertTrue(with_pass[-1].is_pass)
         self.assertEqual(len(engine._legal_moves_cache), 2)
 
+    def test_transposition_lower_bound_reuse_preserves_full_window_score(self):
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[0 + 4 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
+        state = GameState(tuple(board), turn=Side.CHO)
+
+        engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0, quiescence_depth=0))
+        narrow_score, _ = engine._search(state, 1, -100, 100)
+        entry = engine._transposition[(state.position_key(), 1, False)]
+
+        self.assertGreaterEqual(narrow_score, 100)
+        self.assertEqual(entry.bound, "lower")
+
+        reused_score, _ = engine._search(state, 1, -MATE_SCORE * 2, MATE_SCORE * 2)
+        reference_engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0, quiescence_depth=0))
+        reference_score, _ = reference_engine._search(
+            state, 1, -MATE_SCORE * 2, MATE_SCORE * 2
+        )
+
+        self.assertEqual(reused_score, reference_score)
+        self.assertGreater(engine._tt_hits, 0)
+
+    def test_transposition_upper_bound_reuse_preserves_full_window_score(self):
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[0 + 4 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
+        state = GameState(tuple(board), turn=Side.CHO)
+
+        reference_engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0, quiescence_depth=0))
+        reference_score, _ = reference_engine._search(
+            state, 1, -MATE_SCORE * 2, MATE_SCORE * 2
+        )
+
+        engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0, quiescence_depth=0))
+        upper_score, _ = engine._search(
+            state,
+            1,
+            reference_score + 1,
+            reference_score + 100,
+        )
+        entry = engine._transposition[(state.position_key(), 1, False)]
+
+        self.assertLessEqual(upper_score, reference_score + 1)
+        self.assertEqual(entry.bound, "upper")
+
+        reused_score, _ = engine._search(state, 1, -MATE_SCORE * 2, MATE_SCORE * 2)
+        self.assertEqual(reused_score, reference_score)
+
     def test_analysis_returns_no_move_for_truly_terminal_position(self):
         board = [None] * 90
         board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
