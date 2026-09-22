@@ -1,5 +1,36 @@
 # Search Benchmark History
 
+## 2026-09-22 — Adaptive killer/history move ordering
+
+### Method
+
+- Production search keeps the bound-aware transposition table and TT-PV ordering.
+- Quiet beta-cutoff moves now feed deterministic killer-move and history heuristics within a top-level analysis.
+- Capture and checking moves remain ahead of killer/history candidates.
+- Benchmark reference engines explicitly disable adaptive ordering so the comparison remains a coordinate/forcing-order reference rather than sharing the production heuristic state.
+- Python 3.12 on GitHub Actions.
+
+### Production baseline
+
+| Fixture | Depth | Previous nodes | Adaptive-ordering nodes | Change |
+| --- | ---: | ---: | ---: | ---: |
+| initial | 2 | 88 | 81 | -7.95% |
+| capture | 2 | 56 | 56 | 0.00% |
+| capture | 3 | 409 | 404 | -1.22% |
+| check | 2 | 39 | 39 | 0.00% |
+| check | 3 | 472 | 473 | +0.21% |
+| double_attack | 2 | 118 | 118 | 0.00% |
+| double_attack | 3 | 945 | 945 | 0.00% |
+| midgame | 2 | 153 | 153 | 0.00% |
+| endgame | 2 | 104 | 104 | 0.00% |
+| endgame | 3 | 637 | 638 | +0.16% |
+
+All measured production positions preserved the coordinate-reference minimax score. The check depth-3 fixture produced an equal-score best-move tie difference; this changes the deterministic selected move without changing minimax score and is therefore treated as an ordering tie, not a correctness failure.
+
+### Decision
+
+Promote these node counts as the deterministic regression baseline. The heuristic combination provides a measurable reduction on the initial and capture depth-3 fixtures while remaining essentially neutral on the broader tactical/endgame matrix. It does not justify claiming a universal runtime or playing-strength gain; those require broader profiling and strength tests.
+
 이 문서는 검색 최적화 실험의 재현 가능한 기준점과 의사결정을 별도로 기록합니다. `docs/SEARCH.md`는 현재 구조와 원칙을 설명하고, 이 문서는 실험 결과의 시간순 기록을 담당합니다.
 
 ## 2026-09-15 — Forcing-move ordering baseline
