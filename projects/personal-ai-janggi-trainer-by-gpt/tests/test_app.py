@@ -339,6 +339,15 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("box-sizing:content-box", html)
         self.assertIn("padding:0", html)
 
+    def test_browser_exposes_ai_level_selector_and_reset_contract(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn('id="ai-level"', html)
+        self.assertIn('option value="1">Lv.1 입문', html)
+        self.assertIn('option value="6">Lv.6 전문', html)
+        self.assertIn("ai_level:aiLevel.value", html)
+        self.assertIn("snapshot.ai_level || '1'", html)
+        self.assertIn("현재 선택한 AI:", html)
+
     def test_browser_move_presentation_uses_board_notation(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("function formatPosition(position)", html)
