@@ -51,6 +51,31 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(app.engine.config.root_refinement_count, 0)
         self.assertEqual(app.analysis_engine.config.depth, 2)
 
+    def test_default_ai_level_is_beginner(self):
+        app = TrainerApplication()
+        snapshot = app.snapshot()
+        self.assertEqual(snapshot["ai_level"], "1")
+        self.assertEqual(snapshot["ai_level_name"], "입문")
+        self.assertEqual(app.engine.config.depth, 1)
+
+    def test_reset_accepts_ai_level(self):
+        app = TrainerApplication()
+        snapshot = app.reset(ai_level="5")
+        self.assertEqual(snapshot["ai_level"], "5")
+        self.assertEqual(snapshot["ai_level_name"], "상급")
+        self.assertEqual(app.engine.config.depth, 2)
+        self.assertEqual(app.engine.config.quiescence_depth, 1)
+        self.assertEqual(app.engine.config.root_refinement_count, 2)
+
+    def test_reset_rejects_unknown_ai_level(self):
+        app = TrainerApplication()
+        with self.assertRaises(ValueError):
+            app.reset(ai_level="7")
+
+    def test_ai_level_endpoint_payload_is_available(self):
+        from app import RequestHandler
+        self.assertTrue(callable(RequestHandler.do_GET))
+
     def test_reset_accepts_setup_variant(self):
         app = TrainerApplication()
         snapshot = app.reset("left")
