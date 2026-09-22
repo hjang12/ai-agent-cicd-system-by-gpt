@@ -89,7 +89,7 @@ class NegamaxEngine:
 
     @property
     def info(self) -> EngineInfo:
-        return EngineInfo(name="negamax", version="4")
+        return EngineInfo(name="negamax", version="5")
 
     def choose_move(self, state: GameState) -> Move:
         analysis = self.analyze(state)
@@ -439,23 +439,6 @@ class NegamaxEngine:
             score += CHECK_BONUS
 
         self._evaluation_cache[position_key] = score
-        return score
-
-    @staticmethod
-    def _activity_score(side: Side, moves: tuple[Move, ...]) -> int:
-        score = 0
-        # Use the already-generated legal move list, avoiding a second move
-        # generation pass solely for the activity evaluation.
-        for move in moves:
-            if move.is_pass or move.src is None:
-                continue
-            piece = None
-            # The caller's move list is generated from the corresponding side's
-            # position, so the piece kind is recovered by the source square in
-            # the helper below rather than by creating a new state.
-            # This method is replaced by _activity_score_for_state when the
-            # board is available; kept private and intentionally unused here.
-            _ = piece
         return score
 
     @staticmethod
