@@ -34,15 +34,36 @@ Returns the current match status, setup, serialized state, and currently legal m
 
 Returns the current in-memory session as a `janggi-record-v1` game record, including setup, result, source, and played moves.
 
+### `GET /api/ai/levels`
+
+Returns the selectable AI level profiles and the currently active level.
+
+```json
+{
+  "current":"1",
+  "levels":[
+    {
+      "level":"1",
+      "name":"입문",
+      "description":"즉시 응수하는 최소 탐색",
+      "depth":1,
+      "mobility_weight":0,
+      "quiescence_depth":0,
+      "root_refinement_count":0
+    }
+  ]
+}
+```
+
 ### `POST /api/reset`
 
 Resets the in-memory session. Optional JSON body:
 
 ```json
-{"setup":"classic"}
+{"setup":"classic","player_side":"cho","ai_level":"1"}
 ```
 
-Supported setups are `classic`, `left`, `right`, and `both`.
+Supported setups are `classic`, `left`, `right`, and `both`. AI levels are `1` through `6`. The selected level is applied when the new match is initialized.
 
 ### `POST /api/player/turn`
 
