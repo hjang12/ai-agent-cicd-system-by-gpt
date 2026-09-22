@@ -28,7 +28,7 @@ Material + Mobility + positional evaluation
 - `seed`
 - `time_limit_ms` (optional wall-clock budget; enables iterative deepening)
 
-The engine metadata version is now `6`. The latest search change adds an optional time budget that activates iterative deepening without changing the existing fixed-depth behavior when no budget is configured.
+The engine metadata version is now `7`. The latest search change adds an optional time budget that activates iterative deepening without changing the existing fixed-depth behavior when no budget is configured.
 
 ## Evaluation v4
 
@@ -173,12 +173,18 @@ This optimization does not intentionally change node counts or minimax results. 
 The search backend maintains a per-analysis transposition table keyed by:
 
 ```text
-(position_key, remaining_depth)
+(position_key, remaining_depth, noisy)
 ```
 
-Only exact results are cached. Nodes where alpha-beta cut off the remaining moves are deliberately not cached as exact values because a cutoff result is only a bound under the current search window.
+Entries carry one of three alpha-beta bound types:
 
-The table is cleared for each top-level `analyze()` call so results remain isolated between analyses.
+- `EXACT`: the stored score is valid as the searched minimax result for the position/window;
+- `LOWER`: the stored score is a lower bound, produced when the node reaches a beta cutoff;
+- `UPPER`: the stored score is an upper bound, produced when the node fails to raise alpha.
+
+A cached lower/upper bound is reused only when it proves the current alpha-beta window can be cut off. Otherwise its principal-variation move is used as a move-ordering hint before re-searching the node. This preserves score correctness while allowing cutoff nodes to contribute to later search.
+
+The table is cleared for each top-level `analyze()` call so results remain isolated between analyses. Iterative-deepening depths are still isolated from one another because mate-distance scoring depends on the active root depth.
 
 ## Evaluation cache
 
