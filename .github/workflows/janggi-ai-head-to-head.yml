@@ -1,0 +1,40 @@
+name: Janggi AI v1 vs v2 head-to-head
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/tournament.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_versions.py'
+      - 'GOVERNANCE/**'
+      - '.github/workflows/janggi-ai-head-to-head.yml'
+  pull_request:
+    paths:
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/tournament.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_versions.py'
+      - 'GOVERNANCE/**'
+      - '.github/workflows/janggi-ai-head-to-head.yml'
+
+concurrency:
+  group: janggi-ai-head-to-head-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  head-to-head:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: projects/personal-ai-janggi-trainer-by-gpt
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Run AI v1 vs v2 head-to-head benchmark
+        run: PYTHONPATH=. python tools/benchmark_ai_versions.py --games 4 --max-plies 64
