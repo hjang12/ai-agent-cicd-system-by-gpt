@@ -57,8 +57,14 @@ AI_LEVELS: tuple[AILevelSpec, ...] = (
     AILevelSpec(
         level=AILevel.EXPERT,
         name="전문",
-        description="3수 탐색 + 전술 연장",
-        config=SearchConfig(depth=3, mobility_weight=2, quiescence_depth=1, root_refinement_count=0),
+        description="3수 최대 탐색 + 반복심화 + 0.8초 시간 예산",
+        config=SearchConfig(
+            depth=3,
+            mobility_weight=2,
+            quiescence_depth=1,
+            root_refinement_count=0,
+            time_limit_ms=800,
+        ),
     ),
 )
 
@@ -90,6 +96,7 @@ def ai_level_payload() -> list[dict[str, object]]:
             "mobility_weight": spec.config.mobility_weight,
             "quiescence_depth": spec.config.quiescence_depth,
             "root_refinement_count": spec.config.root_refinement_count,
+            "time_limit_ms": spec.config.time_limit_ms,
         }
         for spec in AI_LEVELS
     ]
