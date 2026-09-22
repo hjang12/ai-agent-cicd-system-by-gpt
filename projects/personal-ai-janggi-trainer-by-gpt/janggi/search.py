@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import random
 from typing import Optional
 
-from .core import GameState, Move, PieceType, Side
+from .core import GameState, Move, PieceType, Side, palace_for
 from .engine import EngineAnalysis, EngineInfo, validate_engine_move
 
 
@@ -26,6 +26,22 @@ CHECK_BONUS = 120
 GUARD_PALACE_BONUS = 18
 SOLDIER_ADVANCE_BONUS = 12
 SOLDIER_CENTER_BONUS = 8
+
+# Small strategic terms layered on top of material and raw mobility.
+# These are deliberately much smaller than piece values so tactical material
+# changes remain dominant while activity and safety can break quiet ties.
+PIECE_ACTIVITY_WEIGHTS = {
+    PieceType.GENERAL: 0,
+    PieceType.CHARIOT: 3,
+    PieceType.CANNON: 2,
+    PieceType.HORSE: 2,
+    PieceType.ELEPHANT: 1,
+    PieceType.GUARD: 1,
+    PieceType.SOLDIER: 1,
+}
+ACTIVITY_BONUS = 2
+TACTICAL_PRESSURE_DIVISOR = 25
+PALACE_PRESSURE_BONUS = 5
 
 
 @dataclass(frozen=True)
@@ -389,13 +405,34 @@ class NegamaxEngine:
             else:
                 opp_material += value
 
-        own_mobility = len(self._legal_moves(state, include_pass=False))
+        own_legal_moves = self._legal_moves(state, include_pass=False)
         opponent_state = GameState(board=state.board, turn=state.turn.opponent, history=state.history)
-        opponent_mobility = len(self._legal_moves(opponent_state, include_pass=False))
+        opponent_legal_moves = self._legal_moves(opponent_state, include_pass=False)
+        own_mobility = len(own_legal_moves)
+        opponent_mobility = len(opponent_legal_moves)
         score = (own_material - opp_material) + self.config.mobility_weight * (
             own_mobility - opponent_mobility
         )
+
         score += self._positional_score(state, state.turn)
+
+        own_activity = self._activity_score_for_state(state, state.turn, own_legal_moves)
+        opponent_activity = self._activity_score_for_state(opponent_state, state.turn.opponent, opponent_legal_moves)
+        score += ACTIVITY_BONUS * (own_activity - opponent_activity)
+
+        own_pressure = self._capture_pressure(own_legal_moves, state)
+        opponent_pressure = self._capture_pressure(opponent_legal_moves, opponent_state)
+        score += own_pressure - opponent_pressure
+
+        own_vulnerability = self._capture_pressure(opponent_legal_moves, opponent_state)
+        opponent_vulnerability = self._capture_pressure(own_legal_moves, state)
+        score -= own_vulnerability // 2
+        score += opponent_vulnerability // 2
+
+        own_palace_pressure = self._palace_pressure(own_legal_moves, state.turn.opponent)
+        opponent_palace_pressure = self._palace_pressure(opponent_legal_moves, state.turn)
+        score += own_palace_pressure - opponent_palace_pressure
+
         if state.is_in_check(state.turn):
             score -= CHECK_BONUS
         if state.is_in_check(state.turn.opponent):
@@ -403,6 +440,66 @@ class NegamaxEngine:
 
         self._evaluation_cache[position_key] = score
         return score
+
+    @staticmethod
+    def _activity_score(side: Side, moves: tuple[Move, ...]) -> int:
+        score = 0
+        # Use the already-generated legal move list, avoiding a second move
+        # generation pass solely for the activity evaluation.
+        for move in moves:
+            if move.is_pass or move.src is None:
+                continue
+            piece = None
+            # The caller's move list is generated from the corresponding side's
+            # position, so the piece kind is recovered by the source square in
+            # the helper below rather than by creating a new state.
+            # This method is replaced by _activity_score_for_state when the
+            # board is available; kept private and intentionally unused here.
+            _ = piece
+        return score
+
+    @staticmethod
+    def _activity_score_for_state(
+        state: GameState,
+        side: Side,
+        moves: tuple[Move, ...],
+    ) -> int:
+        score = 0
+        for move in moves:
+            if move.is_pass or move.src is None:
+                continue
+            piece = state.piece_at(move.src)
+            if piece is not None and piece.side is side:
+                score += PIECE_ACTIVITY_WEIGHTS[piece.kind]
+        return score
+
+    @staticmethod
+    def _capture_pressure(
+        moves: tuple[Move, ...],
+        state: GameState,
+    ) -> int:
+        captured = 0
+        for move in moves:
+            if move.is_pass or move.dst is None:
+                continue
+            target = state.piece_at(move.dst)
+            if target is None or target.kind is PieceType.GENERAL:
+                continue
+            captured += PIECE_VALUES[target.kind]
+        return captured // TACTICAL_PRESSURE_DIVISOR
+
+    @staticmethod
+    def _palace_pressure(
+        moves: tuple[Move, ...],
+        target_side: Side,
+    ) -> int:
+        palace = palace_for(target_side)
+        pressured_points = sum(
+            1
+            for move in moves
+            if not move.is_pass and move.dst in palace
+        )
+        return pressured_points * PALACE_PRESSURE_BONUS
 
     @staticmethod
     def _positional_score(state: GameState, side: Side) -> int:
