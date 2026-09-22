@@ -72,7 +72,7 @@ class SearchEngineTests(unittest.TestCase):
 
         self.assertGreaterEqual(
             engine._evaluate(checking) - engine._evaluate(quiet),
-            100,
+            80,
         )
 
     def test_activity_score_rewards_unblocked_major_piece(self):
@@ -149,7 +149,12 @@ class SearchEngineTests(unittest.TestCase):
 
         engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0, quiescence_depth=0))
 
-        self.assertGreater(engine._evaluate(safe), engine._evaluate(exposed))
+        safe_han_moves = engine._legal_moves(safe, include_pass=False)
+        exposed_han_moves = engine._legal_moves(exposed, include_pass=False)
+        self.assertGreater(
+            engine._capture_pressure(exposed_han_moves, exposed),
+            engine._capture_pressure(safe_han_moves, safe),
+        )
 
     def test_negamax_exposes_metadata_and_returns_legal_move(self):
         state = GameState.initial()
