@@ -119,12 +119,11 @@ class SearchEngineTests(unittest.TestCase):
         board = [None] * 90
         board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
         board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
-        board[0 + 5 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[4 + 5 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
         pressured = GameState(tuple(board), turn=Side.CHO)
 
+        board[4 + 5 * 9] = None
         board[0 + 5 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
-        board[0 + 5 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
-        board[8 + 5 * 9] = Piece(Side.CHO, PieceType.SOLDIER)
         quiet = GameState(tuple(board), turn=Side.CHO)
 
         engine = NegamaxEngine(SearchConfig(depth=1, mobility_weight=0))
