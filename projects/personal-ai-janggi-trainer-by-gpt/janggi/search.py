@@ -50,6 +50,18 @@ class _SearchTimeout(Exception):
 
 
 @dataclass(frozen=True)
+class _TranspositionEntry:
+    score: int
+    principal_variation: tuple[Move, ...]
+    bound: str
+
+
+_TT_EXACT = "exact"
+_TT_LOWER = "lower"
+_TT_UPPER = "upper"
+
+
+@dataclass(frozen=True)
 class SearchConfig:
     depth: int = 2
     mobility_weight: int = 2
@@ -92,8 +104,10 @@ class NegamaxEngine:
         self._rng = random.Random(self.config.seed)
         self._transposition: dict[
             tuple[tuple[object, ...], int, bool],
-            tuple[int, tuple[Move, ...]],
+            _TranspositionEntry,
         ] = {}
+        self._tt_hits = 0
+        self._tt_cutoffs = 0
         self._evaluation_cache: dict[tuple[object, ...], int] = {}
         self._check_cache: dict[tuple[tuple[object, ...], Move], bool] = {}
         self._legal_moves_cache: dict[tuple[tuple[object, ...], bool], tuple[Move, ...]] = {}
@@ -103,7 +117,7 @@ class NegamaxEngine:
 
     @property
     def info(self) -> EngineInfo:
-        return EngineInfo(name="negamax", version="6")
+        return EngineInfo(name="negamax", version="7")
 
     def choose_move(self, state: GameState) -> Move:
         analysis = self.analyze(state)
@@ -113,6 +127,8 @@ class NegamaxEngine:
 
     def analyze(self, state: GameState) -> EngineAnalysis:
         self._nodes = 0
+        self._tt_hits = 0
+        self._tt_cutoffs = 0
         self._transposition.clear()
         self._evaluation_cache.clear()
         self._check_cache.clear()
@@ -338,12 +354,29 @@ class NegamaxEngine:
     ) -> tuple[int, tuple[Move, ...]]:
         self._check_time_budget()
         self._nodes += 1
+        original_alpha = alpha
+        original_beta = beta
         cache_key = (state.position_key(), depth, noisy)
         cached = self._transposition.get(cache_key)
+        preferred_move: Optional[Move] = None
         if cached is not None:
-            return cached
+            self._tt_hits += 1
+            if cached.bound == _TT_EXACT:
+                return cached.score, cached.principal_variation
+            if cached.bound == _TT_LOWER and cached.score >= beta:
+                self._tt_cutoffs += 1
+                return cached.score, cached.principal_variation
+            if cached.bound == _TT_UPPER and cached.score <= alpha:
+                self._tt_cutoffs += 1
+                return cached.score, cached.principal_variation
+            if cached.principal_variation:
+                preferred_move = cached.principal_variation[0]
 
-        moves = self._ordered_moves(state, self._legal_moves(state, include_pass=False))
+        moves = self._ordered_search_moves(
+            state,
+            self._legal_moves(state, include_pass=False),
+            preferred_move,
+        )
         if not moves:
             if state.is_in_check(state.turn):
                 # Mate distance must depend only on search depth, not the
@@ -353,7 +386,9 @@ class NegamaxEngine:
                 result = (-MATE_SCORE + mate_distance, ())
             else:
                 result = (self._evaluate(state), ())
-            self._transposition[cache_key] = result
+            self._transposition[cache_key] = _TranspositionEntry(
+                score=result[0], principal_variation=result[1], bound=_TT_EXACT
+            )
             return result
 
         if depth <= 0:
@@ -364,14 +399,17 @@ class NegamaxEngine:
                     alpha,
                     beta,
                 )
+                bound = self._transposition_bound(result[0], original_alpha, original_beta)
             else:
                 result = (self._evaluate(state), ())
-            self._transposition[cache_key] = result
+                bound = _TT_EXACT
+            self._transposition[cache_key] = _TranspositionEntry(
+                score=result[0], principal_variation=result[1], bound=bound
+            )
             return result
 
         best_score = -MATE_SCORE * 2
         best_pv: tuple[Move, ...] = ()
-        cutoff = False
         for move in moves:
             child = state.apply(move)
             child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
@@ -389,15 +427,34 @@ class NegamaxEngine:
             if score > alpha:
                 alpha = score
             if alpha >= beta:
-                cutoff = True
                 break
 
-        # Only cache fully searched nodes. A cutoff value is a bound, not an
-        # exact minimax result, and therefore must not be reused as one.
-        result = (best_score, best_pv)
-        if not cutoff:
-            self._transposition[cache_key] = result
-        return result
+        bound = self._transposition_bound(best_score, original_alpha, original_beta)
+        self._transposition[cache_key] = _TranspositionEntry(
+            score=best_score,
+            principal_variation=best_pv,
+            bound=bound,
+        )
+        return best_score, best_pv
+
+    @staticmethod
+    def _transposition_bound(score: int, alpha: int, beta: int) -> str:
+        if score <= alpha:
+            return _TT_UPPER
+        if score >= beta:
+            return _TT_LOWER
+        return _TT_EXACT
+
+    def _ordered_search_moves(
+        self,
+        state: GameState,
+        moves: tuple[Move, ...],
+        preferred_move: Optional[Move],
+    ) -> tuple[Move, ...]:
+        ordered = self._ordered_moves(state, moves)
+        if preferred_move is None or preferred_move not in ordered:
+            return ordered
+        return (preferred_move,) + tuple(move for move in ordered if move != preferred_move)
 
     def _quiescence(
         self,
