@@ -109,7 +109,7 @@ The benchmark has two parts:
 1. deterministic fixture comparison of node counts, scores, and selected moves;
 2. alternating-color engine-vs-engine games using the existing HeadToHeadTournament.
 
-The CI benchmark runs 4 games with a 64-ply cap. This is a regression/evidence harness, not a certified rating system. Larger manual tournaments can be run with the same script and a larger game count.
+The CI benchmark runs a lightweight 1-game/4-ply smoke test. This validates the end-to-end tournament path without turning CI into a long strength run. The benchmark script itself defaults to 4 games with a 64-ply cap for manual strength experiments, and can be run with a larger game count.
 
 Command:
 
