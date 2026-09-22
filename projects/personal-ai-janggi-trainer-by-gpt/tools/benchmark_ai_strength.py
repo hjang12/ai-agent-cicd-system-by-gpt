@@ -14,6 +14,25 @@ from janggi.training import Outcome
 from tools.benchmark_ai_versions import v1_config, v2_config
 
 
+def score_confidence_interval_pct(scores: list[float]) -> tuple[float | None, float | None]:
+    """Return an approximate 95% normal CI for mean game score, in percent.
+
+    Each completed game contributes a score in {0.0, 0.5, 1.0}. This is an
+    exploratory summary statistic, not a formal model of Janggi match variance.
+    """
+    n = len(scores)
+    if n == 0:
+        return None, None
+    mean = sum(scores) / n
+    if n == 1:
+        pct = mean * 100.0
+        return pct, pct
+    variance = sum((score - mean) ** 2 for score in scores) / (n - 1)
+    standard_error = (variance / n) ** 0.5
+    margin = 1.96 * standard_error
+    return max(0.0, (mean - margin) * 100.0), min(100.0, (mean + margin) * 100.0)
+
+
 def summarize_games(
     games: Iterable,
     *,
@@ -75,8 +94,16 @@ def summarize_games(
 
     completed = v1_wins + v2_wins + draws
     requested = completed + unfinished
+    completed_scores = [
+        1.0 if row["outcome_for_v1"] == Outcome.WIN.value
+        else 0.0 if row["outcome_for_v1"] == Outcome.LOSS.value
+        else 0.5
+        for row in game_rows
+        if row["outcome_for_v1"] is not None
+    ]
     v1_score = v1_wins + draws * 0.5
     score_pct = (100.0 * v1_score / completed) if completed else None
+    score_ci_low_pct, score_ci_high_pct = score_confidence_interval_pct(completed_scores)
 
     if v1_wins + v2_wins + draws != completed:
         raise AssertionError("completed-game result accounting mismatch")
@@ -95,6 +122,10 @@ def summarize_games(
         "v1_score": v1_score,
         "v2_score": completed - v1_score,
         "v1_score_pct": score_pct,
+        "v1_score_95ci_pct": {
+            "low": score_ci_low_pct,
+            "high": score_ci_high_pct,
+        },
         "initial_rating": initial_rating,
         "final_v1_rating": v1_rating,
         "final_v2_rating": v2_rating,
@@ -158,6 +189,7 @@ def run_strength_benchmark(
             "games": games,
             "max_plies": max_plies,
             "random_ties": random_ties,
+            "tie_breaking_mode": "stochastic_fixed_seed" if random_ties else "deterministic",
             "seed_v1": seed,
             "seed_v2": seed + 1,
             "initial_rating": initial_rating,
@@ -211,9 +243,9 @@ def main() -> None:
         help="Starting arrangement used for every game in the experiment.",
     )
     parser.add_argument(
-        "--deterministic-ties",
+        "--random-ties",
         action="store_true",
-        help="Disable random tie-breaking. The default uses fixed-seed tie-breaking for game diversity.",
+        help="Enable fixed-seed random tie-breaking for stochastic self-play. Default is deterministic.",
     )
     parser.add_argument(
         "--output",
@@ -230,7 +262,7 @@ def main() -> None:
         initial_rating=args.initial_rating,
         k_factor=args.k_factor,
         setup=args.setup,
-        random_ties=not args.deterministic_ties,
+        random_ties=args.random_ties,
     )
 
     print("AI v1 vs AI v2 strength benchmark")
