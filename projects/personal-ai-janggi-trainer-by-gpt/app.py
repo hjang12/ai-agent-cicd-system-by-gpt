@@ -9,6 +9,7 @@ from threading import RLock
 from urllib.parse import urlparse
 
 from janggi import Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, adaptive_problem_priority, adaptive_reason_priority, coach_move, generate_training_problems, review_record, select_adaptive_training_problems, state_to_dict
+from janggi.analysis import MoveAnalysis
 from janggi.review import DEFAULT_REVIEW_LIMIT
 from janggi.training_metrics import TrainingSessionMetrics
 from janggi.training_problems import DEFAULT_PROBLEM_LIMIT, MAX_PROBLEM_LIMIT
@@ -87,13 +88,40 @@ class TrainerApplication:
             return self.snapshot()
 
     def play_player_turn(self, payload: dict[str, object]) -> dict[str, object]:
-        """Apply one human move, then automatically let the AI answer."""
+        """Apply one human move, then automatically let the AI answer.
+
+        The gameplay path deliberately does not run the heavyweight coaching
+        analyzer. A played move must update the board immediately; detailed
+        move analysis remains available through /api/analyze/move.
+        """
         move = self._move_from_payload(payload)
         with self._lock:
             self._ensure_player_turn()
-            player_analysis = self.analyzer.analyze_move(self.match.state, move)
-            player_coaching = coach_move(player_analysis)
+            state_before = self.match.state
+            moved_piece = None
+            captured_piece = None
+            if move.src is not None:
+                source = state_before.piece_at(move.src)
+                moved_piece = source.kind if source is not None else None
+            if move.dst is not None:
+                target = state_before.piece_at(move.dst)
+                captured_piece = target.kind if target is not None else None
+
             self.match = self.match.play(move)
+            player_analysis = MoveAnalysis(
+                move=move,
+                recommended_move=None,
+                score_before_cp=None,
+                score_after_cp=None,
+                score_delta_cp=None,
+                depth=None,
+                nodes=None,
+                perspective=state_before.turn,
+                moved_piece=moved_piece,
+                captured_piece=captured_piece,
+                gives_check=self.match.state.is_in_check(state_before.turn.opponent),
+            )
+            player_coaching = coach_move(player_analysis)
 
             engine_analysis = EngineAnalysis(perspective=self.match.state.turn)
             if self.match.status.value == "playing" and self.match.state.turn is self.ai_side:
