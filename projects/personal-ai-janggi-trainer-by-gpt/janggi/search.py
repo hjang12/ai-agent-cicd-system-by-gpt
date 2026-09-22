@@ -55,9 +55,9 @@ class SearchConfig:
     mobility_weight: int = 2
     quiescence_depth: int = 1
     root_refinement_count: int = 0
-    time_limit_ms: Optional[int] = None
     random_ties: bool = False
     seed: Optional[int] = None
+    time_limit_ms: Optional[int] = None
 
     def __post_init__(self) -> None:
         if self.depth < 1:
@@ -69,8 +69,12 @@ class SearchConfig:
         if self.root_refinement_count < 0:
             raise ValueError("root_refinement_count must be non-negative")
         if self.time_limit_ms is not None:
-            if isinstance(self.time_limit_ms, bool) or self.time_limit_ms < 1:
-                raise ValueError("time_limit_ms must be positive when provided")
+            if (
+                not isinstance(self.time_limit_ms, int)
+                or isinstance(self.time_limit_ms, bool)
+                or self.time_limit_ms < 1
+            ):
+                raise ValueError("time_limit_ms must be a positive integer when provided")
 
 
 class NegamaxEngine:
