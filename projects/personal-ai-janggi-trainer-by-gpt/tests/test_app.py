@@ -304,6 +304,16 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("cp (${sideLabels[result.perspective] || result.perspective || '기준'} 기준)", html)
         self.assertIn("탐색 깊이 ${result.depth}.", html)
         self.assertIn("확인한 노드 ${result.nodes.toLocaleString()}개.", html)
+    def test_browser_highlights_last_move_and_uses_uniform_board_grid(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("last-move-from", html)
+        self.assertIn("last-move-to", html)
+        self.assertIn("const lastMove = history.length ? history[history.length - 1] : null;", html)
+        self.assertIn("grid-template-columns:repeat(9,minmax(0,1fr))", html)
+        self.assertIn("grid-template-rows:repeat(10,minmax(0,1fr))", html)
+        self.assertIn("box-sizing:content-box", html)
+        self.assertIn("padding:0", html)
+
     def test_browser_move_presentation_uses_board_notation(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("function formatPosition(position)", html)
