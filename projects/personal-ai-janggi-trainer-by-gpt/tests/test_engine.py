@@ -65,6 +65,22 @@ class JanggiEngineTests(unittest.TestCase):
         self.assertIsNone(normalized.depth)
         self.assertIsNone(normalized.nodes)
         self.assertEqual(normalized.perspective, Side.CHO)
+    def test_validate_engine_analysis_rejects_opposite_valid_side(self):
+        state = GameState.empty(turn=Side.CHO)
+        move = Move((4, 0), (4, 1))
+        analysis = EngineAnalysis(
+            best_move=move,
+            score_cp=25,
+            depth=1,
+            nodes=1,
+            principal_variation=(move,),
+            perspective=Side.HAN,
+        )
+
+        normalized = validate_engine_analysis(state, analysis)
+
+        self.assertEqual(normalized, EngineAnalysis(perspective=Side.CHO))
+
     def test_validate_engine_analysis_degrades_non_analysis_output(self):
         state = GameState.initial()
 
