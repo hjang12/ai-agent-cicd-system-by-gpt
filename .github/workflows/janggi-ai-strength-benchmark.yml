@@ -25,6 +25,11 @@ on:
           - right
           - both
         default: classic
+      random_ties:
+        description: "Enable stochastic fixed-seed tie-breaking"
+        required: true
+        type: boolean
+        default: false
   pull_request:
     paths:
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
@@ -63,11 +68,16 @@ jobs:
       - name: Run full strength benchmark
         if: github.event_name == 'workflow_dispatch'
         run: |
+          RANDOM_TIES=""
+          if [ "${{ inputs.random_ties }}" = "true" ]; then
+            RANDOM_TIES="--random-ties"
+          fi
           PYTHONPATH=. python tools/benchmark_ai_strength.py \
             --games "${{ inputs.games }}" \
             --max-plies "${{ inputs.max_plies }}" \
             --seed "${{ inputs.seed }}" \
             --setup "${{ inputs.setup }}" \
+            $RANDOM_TIES \
             --output strength-result.json
           cat strength-result.json >> "$GITHUB_STEP_SUMMARY"
       - name: Upload benchmark evidence
