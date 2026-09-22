@@ -8,7 +8,7 @@ from pathlib import Path
 from threading import RLock
 from urllib.parse import urlparse
 
-from janggi import AILevel, AI_LEVELS, Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, adaptive_problem_priority, adaptive_reason_priority, ai_level_payload, coach_move, generate_training_problems, get_ai_level, review_record, select_adaptive_training_problems, state_to_dict
+from janggi import AILevel, Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, adaptive_problem_priority, adaptive_reason_priority, ai_level_payload, coach_move, generate_training_problems, get_ai_level, review_record, select_adaptive_training_problems, state_to_dict
 from janggi.analysis import MoveAnalysis
 from janggi.review import DEFAULT_REVIEW_LIMIT
 from janggi.training_metrics import TrainingSessionMetrics
