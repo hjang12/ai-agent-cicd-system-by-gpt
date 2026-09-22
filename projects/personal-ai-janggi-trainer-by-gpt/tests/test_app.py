@@ -343,6 +343,8 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("(y / 9 * 100) + '%'", html)
         self.assertIn("box-sizing:content-box", html)
         self.assertIn("padding:0", html)
+        self.assertIn("margin:0; transform:translate(-50%,-50%)", html)
+        self.assertIn('stroke-width="0.035" fill="none">', html)
 
     def test_browser_exposes_ai_level_selector_and_reset_contract(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
