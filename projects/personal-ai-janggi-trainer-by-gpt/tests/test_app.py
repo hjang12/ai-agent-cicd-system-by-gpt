@@ -336,7 +336,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("const lastMove = history.length ? history[history.length - 1] : null;", html)
         self.assertIn("aspect-ratio:8/9", html)
         self.assertIn('viewBox="0 0 8 9"', html)
-        self.assertIn("x1="4" y1="0" x2="4" y2="9"", html)
+        self.assertIn('x1="4" y1="0" x2="4" y2="9"', html)
         self.assertIn("for (let x = 0; x < 9; x += 1)", html)
         self.assertIn("for (let y = 0; y < 10; y += 1)", html)
         self.assertIn("(x / 8 * 100) + '%'", html)
