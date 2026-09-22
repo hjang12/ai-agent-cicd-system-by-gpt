@@ -15,12 +15,16 @@ class Fixture:
 class CoordinateOrderedEngine(NegamaxEngine):
     """Reference engine with stable coordinate ordering only."""
 
+    _adaptive_ordering_enabled = False
+
     def _ordered_moves(self, state: GameState, moves: tuple[Move, ...]) -> tuple[Move, ...]:
         return tuple(sorted(moves, key=lambda move: (move.src or (-1, -1), move.dst or (-1, -1))))
 
 
 class StrongForcingOrderedEngine(NegamaxEngine):
     """Experiment with checks ahead of captures."""
+
+    _adaptive_ordering_enabled = False
 
     def _ordered_moves(self, state: GameState, moves: tuple[Move, ...]) -> tuple[Move, ...]:
         return tuple(
@@ -38,6 +42,8 @@ class StrongForcingOrderedEngine(NegamaxEngine):
 
 class CaptureCheckOrderedEngine(NegamaxEngine):
     """Experiment with checking captures ahead of other forcing moves."""
+
+    _adaptive_ordering_enabled = False
 
     def _ordered_moves(self, state: GameState, moves: tuple[Move, ...]) -> tuple[Move, ...]:
         return tuple(
@@ -170,16 +176,16 @@ def main() -> None:
         _endgame_fixture(),
     )
     expected_current_nodes = {
-        ("initial", 2): 88,
+        ("initial", 2): 81,
         ("capture", 2): 56,
-        ("capture", 3): 409,
+        ("capture", 3): 404,
         ("check", 2): 39,
-        ("check", 3): 472,
+        ("check", 3): 473,
         ("double_attack", 2): 118,
         ("double_attack", 3): 945,
         ("midgame", 2): 153,
         ("endgame", 2): 104,
-        ("endgame", 3): 637,
+        ("endgame", 3): 638,
     }
 
     print("Search benchmark: reference vs current vs check-first vs capture-check-first")

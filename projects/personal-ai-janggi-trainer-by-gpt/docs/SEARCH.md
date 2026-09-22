@@ -186,6 +186,26 @@ A cached lower/upper bound is reused only when it proves the current alpha-beta 
 
 The table is cleared for each top-level `analyze()` call so results remain isolated between analyses. Iterative-deepening depths are still isolated from one another because mate-distance scoring depends on the active root depth.
 
+## Adaptive move ordering
+
+Within one top-level search, the engine now supplements the existing capture/check ordering with two deterministic search heuristics:
+
+- **Killer moves**: quiet moves that caused a beta cutoff are retained for the current search ply, with up to two moves per ply. They are tried before other quiet moves.
+- **History heuristic**: quiet beta-cutoff moves accumulate a bounded score per side and move. Higher-scoring quiet moves receive earlier ordering among otherwise equivalent candidates.
+
+The ordering priority is:
+
+1. cached transposition-table PV move;
+2. capture value;
+3. checking move;
+4. killer move;
+5. history score;
+6. stable coordinate order.
+
+Captures and checks therefore remain ahead of the quiet-search heuristics, while a trusted TT PV move remains the strongest ordering hint. Killer/history state is cleared at the start of each top-level analysis and then reused across iterative-deepening depths within that analysis.
+
+The benchmark's coordinate/reference orderings explicitly disable these adaptive heuristics so node-count reductions remain attributable to the production search policy rather than leaking into the reference engines.
+
 ## Evaluation cache
 
 The material/mobility evaluation is also cached per `position_key` within a top-level analysis. The key includes board state and side to move, which are the inputs that affect the current evaluation.
@@ -209,6 +229,7 @@ The current optimization sequence is:
 9. bounded multi-ply tactical analysis for coaching;
 10. stronger evaluation features only after representative regression positions exist;
 11. evaluation v2 with calibrated material and bounded positional terms;
-12. bounded quiescence search at the leaf horizon.
+12. bounded quiescence search at the leaf horizon;
+13. TT-PV, killer-move, and history-heuristic ordering before deeper principal-search expansion.
 
 Search optimization must not move authoritative move legality out of `GameState` or couple the domain layer to the search implementation.

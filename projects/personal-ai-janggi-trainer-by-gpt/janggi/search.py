@@ -108,6 +108,10 @@ class NegamaxEngine:
         ] = {}
         self._tt_hits = 0
         self._tt_cutoffs = 0
+        self._killer_moves: dict[int, list[Move]] = {}
+        self._history_scores: dict[tuple[Side, Move], int] = {}
+        self._killer_hits = 0
+        self._history_hits = 0
         self._evaluation_cache: dict[tuple[object, ...], int] = {}
         self._check_cache: dict[tuple[tuple[object, ...], Move], bool] = {}
         self._legal_moves_cache: dict[tuple[tuple[object, ...], bool], tuple[Move, ...]] = {}
@@ -129,11 +133,20 @@ class NegamaxEngine:
         self._nodes = 0
         self._tt_hits = 0
         self._tt_cutoffs = 0
+        self._killer_hits = 0
+        self._history_hits = 0
         self._transposition.clear()
+        self._killer_moves.clear()
+        self._history_scores.clear()
         self._evaluation_cache.clear()
         self._check_cache.clear()
         self._legal_moves_cache.clear()
-        moves = self._ordered_moves(state, self._legal_moves(state, include_pass=False))
+        moves = self._ordered_search_moves(
+            state,
+            self._legal_moves(state, include_pass=False),
+            preferred_move=None,
+            depth=self._active_search_depth,
+        )
         if not moves:
             if self._legal_moves(state, include_pass=True):
                 move = Move.pass_move()
@@ -308,7 +321,12 @@ class NegamaxEngine:
         preferred_move: Optional[Move],
     ) -> tuple[int, Move, tuple[Move, ...]]:
         self._check_time_budget()
-        ordered_moves = self._ordered_moves(state, moves, preferred_move)
+        ordered_moves = self._ordered_search_moves(
+            state,
+            moves,
+            preferred_move,
+            depth,
+        )
         best_score = -MATE_SCORE * 2
         best_results: list[tuple[Move, tuple[Move, ...]]] = []
         alpha = -MATE_SCORE * 2
@@ -376,6 +394,7 @@ class NegamaxEngine:
             state,
             self._legal_moves(state, include_pass=False),
             preferred_move,
+            depth,
         )
         if not moves:
             if state.is_in_check(state.turn):
@@ -427,6 +446,7 @@ class NegamaxEngine:
             if score > alpha:
                 alpha = score
             if alpha >= beta:
+                self._record_cutoff_heuristics(state, move, depth)
                 break
 
         bound = self._transposition_bound(best_score, original_alpha, original_beta)
@@ -450,11 +470,61 @@ class NegamaxEngine:
         state: GameState,
         moves: tuple[Move, ...],
         preferred_move: Optional[Move],
+        depth: int,
     ) -> tuple[Move, ...]:
         ordered = self._ordered_moves(state, moves)
-        if preferred_move is None or preferred_move not in ordered:
+        if not getattr(self, "_adaptive_ordering_enabled", True):
             return ordered
-        return (preferred_move,) + tuple(move for move in ordered if move != preferred_move)
+
+        ply = max(self._active_search_depth - depth, 0)
+        killers = self._killer_moves.get(ply, ())
+        killer_rank = {move: index for index, move in enumerate(killers)}
+
+        def ordering_key(move: Move) -> tuple[object, ...]:
+            is_preferred = 0 if preferred_move is not None and move == preferred_move else 1
+            capture_value = self._captured_value(state, move)
+            gives_check = int(self._gives_check(state, move))
+            killer_index = killer_rank.get(move, len(killers))
+            history = self._history_scores.get((state.turn, move), 0)
+            if killer_index < len(killers):
+                self._killer_hits += 1
+            elif history:
+                self._history_hits += 1
+            return (
+                is_preferred,
+                -capture_value,
+                -gives_check,
+                killer_index,
+                -history,
+                move.src is None,
+                move.src or (-1, -1),
+                move.dst or (-1, -1),
+            )
+
+        return tuple(sorted(ordered, key=ordering_key))
+
+    def _record_cutoff_heuristics(
+        self,
+        state: GameState,
+        move: Move,
+        depth: int,
+    ) -> None:
+        if self._captured_value(state, move) > 0 or self._gives_check(state, move):
+            return
+
+        ply = max(self._active_search_depth - depth, 0)
+        killers = self._killer_moves.setdefault(ply, [])
+        if move in killers:
+            killers.remove(move)
+        killers.insert(0, move)
+        del killers[2:]
+
+        history_key = (state.turn, move)
+        bonus = max(depth, 1) * max(depth, 1)
+        self._history_scores[history_key] = min(
+            1_000_000,
+            self._history_scores.get(history_key, 0) + bonus,
+        )
 
     def _quiescence(
         self,
@@ -520,6 +590,8 @@ class NegamaxEngine:
                 break
 
         return best_score, best_pv
+
+    _adaptive_ordering_enabled = True
 
     def _ordered_moves(
         self,
