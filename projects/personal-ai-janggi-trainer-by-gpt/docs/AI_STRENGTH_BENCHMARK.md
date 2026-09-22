@@ -12,12 +12,12 @@ This document defines the larger self-play experiment used to collect explorator
 - Alternate colors on every game.
 - v1 and v2 retain the same fixed depth/evaluation/root configuration used by the A/B benchmark.
 - Adaptive move ordering and check-safe quiescence remain the only version switches.
-- Root tie-breaking is enabled with fixed seeds by default for game diversity while preserving run reproducibility.
-- A separate seed stream is used for each model.
+- Deterministic tie-breaking is the default for strength measurement so search changes are not mixed with RNG/tie-order effects.
+- Optional stochastic self-play uses fixed seeds and a separate seed stream for each model; it is a distinct experiment mode.
 - Unfinished games are reported separately and are excluded from win/draw score and Elo updates.
 - Every engine move is still validated by `HeadToHeadEvaluator` through the authoritative `GameState` legality boundary.
 - Elo starts at 1000/1000 and uses the existing `rating.update_ratings()` primitive with K=16 by default.
-- The default manual experiment is 100 games with a 128-ply cap from the classic starting arrangement.
+- The manual experiment supports staged sample sizes such as 8, 20, 50, and 100 games. Use the smaller samples for iteration and the larger samples only after the benchmark is stable. The default full experiment remains 100 games with a 128-ply cap from the classic starting arrangement.
 
 ## CI policy
 
@@ -38,7 +38,8 @@ The full experiment must be reported with:
 - v1 wins, v2 wins, and draws;
 - v1 score percentage over completed games;
 - final sequential Elo values and rating delta;
-- setup, seed, max-plies, and K-factor.
+- v1 score percentage with an approximate 95% confidence interval;
+- setup, seed, max-plies, K-factor, and tie-breaking mode.
 
 A single 100-game run is exploratory evidence, not proof of a universal strength advantage. A second seed or larger sample should be considered before making a broader conclusion, especially when unfinished-game frequency is material.
 
@@ -47,3 +48,5 @@ A single 100-game run is exploratory evidence, not proof of a universal strength
 The benchmark harness and PR smoke workflow are implemented.
 
 No full 100-game result has been recorded yet. Until the manual run is completed and its JSON evidence is reviewed, no playing-strength conclusion is recorded.
+
+The PR smoke benchmark is intentionally short and is not a strength claim. The next measurement sequence should be deterministic first (8/20/50/100 games as needed), followed by a separate stochastic self-play run when practical game diversity is being studied.
