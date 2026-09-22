@@ -302,32 +302,33 @@ class NegamaxEngine:
         best_analysis: Optional[EngineAnalysis] = None
         preferred_move: Optional[Move] = None
 
-            for depth in range(1, self.config.depth + 1):
-                if depth > 1:
-                    self._transposition.clear()
-                self._active_search_depth = depth
-                try:
-                    score, best_move, best_pv = self._search_root(
-                        state,
-                        moves,
-                        depth,
-                        preferred_move,
-                    )
-                except _SearchTimeout:
-                    break
-
-                best_analysis = EngineAnalysis(
-                    best_move=best_move,
-                    score_cp=score,
-                    depth=depth,
-                    nodes=self._nodes,
-                    principal_variation=best_pv,
-                    perspective=state.turn,
+        for depth in range(1, self.config.depth + 1):
+            if depth > 1:
+                self._transposition.clear()
+            self._active_search_depth = depth
+            try:
+                score, best_move, best_pv = self._search_root(
+                    state,
+                    moves,
+                    depth,
+                    preferred_move,
                 )
-                preferred_move = best_move
+            except _SearchTimeout:
+                break
 
-                if abs(score) >= MATE_SCORE - self.config.depth:
-                    break
+            best_analysis = EngineAnalysis(
+                best_move=best_move,
+                score_cp=score,
+                depth=depth,
+                nodes=self._nodes,
+                principal_variation=best_pv,
+                perspective=state.turn,
+            )
+            preferred_move = best_move
+
+            if abs(score) >= MATE_SCORE - self.config.depth:
+                break
+
         if best_analysis is not None:
             return best_analysis
 
@@ -658,7 +659,6 @@ class NegamaxEngine:
                     int(move.is_pass),
                     -self._captured_value(state, move),
                     -int(self._gives_check(state, move)),
-                    int(move.is_pass),
                     move.src or (-1, -1),
                     move.dst or (-1, -1),
                 ),
