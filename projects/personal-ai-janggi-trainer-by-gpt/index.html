@@ -577,30 +577,29 @@
           heading.textContent = result.correct ? '훈련 정답' : '훈련 다시 보기';
           return;
         }
-        status.textContent = 'AI가 응수하는 중입니다…';
-        const result = await post('/api/player/turn', move);
-        const playerCoaching = result.player_coaching;
-        snapshot = result.snapshot;
+        status.textContent = '내 수를 반영하는 중입니다…';
+        const moveResult = await post('/api/move', move);
+        snapshot = moveResult;
         clearTrainingMode();
         renderReview(null);
         selected = null;
+        renderAnalysis(null, null);
         render();
-        if (result.player_analysis?.recommended_move || result.player_analysis?.score_delta_cp !== null) {
-          renderAnalysis(result.player_analysis, playerCoaching);
-        } else {
-          renderAnalysis(null, null);
-        }
-        if (result.engine_analysis && result.engine_analysis.best_move) {
-          severity.textContent = '내 수: ' + (severityLabels[playerCoaching.severity] || playerCoaching.severity || '분석 불가');
-          analysisNote.textContent = 'AI가 ' + formatMove(result.engine_analysis.best_move) + '로 응수했습니다.';
+        if (snapshot.status !== 'playing' || snapshot.state.turn !== snapshot.ai_side) {
           heading.textContent = snapshot.status === 'playing'
-            ? 'AI가 응수했습니다 · 내 차례'
+            ? '내 차례'
             : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
-        } else {
-          heading.textContent = snapshot.status === 'playing'
-            ? 'AI 응수가 필요합니다 · AI 수 두기'
-            : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
+          return;
         }
+
+        status.textContent = 'AI가 응수하는 중입니다…';
+        const engineResult = await post('/api/engine/move', {});
+        snapshot = engineResult.snapshot;
+        render();
+        renderEngineResult(engineResult.analysis);
+        heading.textContent = snapshot.status === 'playing'
+          ? 'AI가 응수했습니다 · 내 차례'
+          : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
       } catch (error) {
         status.textContent = error.message;
       } finally {
