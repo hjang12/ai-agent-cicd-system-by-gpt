@@ -1,0 +1,79 @@
+name: Janggi AI v1 vs v2 strength benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: "Number of games (must be even)"
+        required: true
+        default: "100"
+      max_plies:
+        description: "Maximum plies per game"
+        required: true
+        default: "128"
+      seed:
+        description: "Master RNG seed"
+        required: true
+        default: "20260922"
+      setup:
+        description: "Starting arrangement"
+        required: true
+        type: choice
+        options:
+          - classic
+          - left
+          - right
+          - both
+        default: classic
+  pull_request:
+    paths:
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/tournament.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/rating.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_versions.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_strength.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/tests/test_ai_strength_benchmark.py'
+      - 'GOVERNANCE/**'
+      - '.github/workflows/janggi-ai-strength-benchmark.yml'
+
+concurrency:
+  group: janggi-ai-strength-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: projects/personal-ai-janggi-trainer-by-gpt
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Run lightweight PR smoke benchmark
+        if: github.event_name == 'pull_request'
+        run: |
+          PYTHONPATH=. python tools/benchmark_ai_strength.py --games 2 --max-plies 8 --seed 20260922 --output strength-smoke.json
+          cat strength-smoke.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Run full strength benchmark
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          PYTHONPATH=. python tools/benchmark_ai_strength.py \
+            --games "${{ inputs.games }}" \
+            --max-plies "${{ inputs.max_plies }}" \
+            --seed "${{ inputs.seed }}" \
+            --setup "${{ inputs.setup }}" \
+            --output strength-result.json
+          cat strength-result.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janggi-ai-strength-benchmark
+          path: projects/personal-ai-janggi-trainer-by-gpt/strength-*.json
+          if-no-files-found: ignore
