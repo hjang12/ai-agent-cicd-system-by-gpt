@@ -17,6 +17,16 @@ class SearchEngineTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             SearchConfig(time_limit_ms=0)
 
+    def test_search_config_validates_variant_flags(self):
+        with self.assertRaises(ValueError):
+            SearchConfig(adaptive_ordering=1)
+        with self.assertRaises(ValueError):
+            SearchConfig(quiescence_check_extension=0)
+
+        current = SearchConfig()
+        self.assertTrue(current.adaptive_ordering)
+        self.assertTrue(current.quiescence_check_extension)
+
     def test_piece_values_follow_janggi_material_order(self):
         self.assertEqual(PIECE_VALUES[PieceType.CHARIOT], 1300)
         self.assertEqual(PIECE_VALUES[PieceType.CANNON], 700)
@@ -389,6 +399,53 @@ class SearchEngineTests(unittest.TestCase):
         )
 
         self.assertEqual(empty_history_score, history_score)
+
+    def test_quiescence_variant_flag_can_reproduce_pre_v2_check_horizon(self):
+        board = [None] * 90
+        board[0] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 9 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[8] = Piece(Side.CHO, PieceType.HORSE)
+        state = GameState(tuple(board), turn=Side.CHO)
+        checked_state = state.apply(Move((0, 3), (4, 3)))
+        self.assertTrue(checked_state.is_in_check(Side.HAN))
+
+        v1 = NegamaxEngine(
+            SearchConfig(
+                depth=1,
+                quiescence_depth=1,
+                adaptive_ordering=False,
+                quiescence_check_extension=False,
+            )
+        )
+        v2 = NegamaxEngine(
+            SearchConfig(
+                depth=1,
+                quiescence_depth=1,
+                adaptive_ordering=True,
+                quiescence_check_extension=True,
+            )
+        )
+
+        v1._evaluate = lambda current_state: 1_000 if current_state is checked_state else 0
+        v2._evaluate = lambda current_state: 1_000 if current_state is checked_state else 0
+
+        v1_score, _ = v1._quiescence(
+            checked_state,
+            0,
+            -MATE_SCORE * 2,
+            100,
+        )
+        v2_score, v2_pv = v2._quiescence(
+            checked_state,
+            0,
+            -MATE_SCORE * 2,
+            100,
+        )
+
+        self.assertEqual(v1_score, 1_000)
+        self.assertEqual(v2_score, 0)
+        self.assertTrue(v2_pv)
 
     def test_quiescence_extends_check_evasion_at_horizon(self):
         board = [None] * 90
