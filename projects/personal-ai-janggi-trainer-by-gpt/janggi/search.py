@@ -533,15 +533,19 @@ class NegamaxEngine:
         alpha: int,
         beta: int,
     ) -> tuple[int, tuple[Move, ...]]:
-        """Extend only short forcing sequences after a noisy move."""
+        """Extend short forcing sequences while never standing pat in check."""
         self._check_time_budget()
         self._nodes += 1
         stand_pat = self._evaluate(state)
+        in_check = state.is_in_check(state.turn)
 
-        if depth <= 0:
+        # A side in check has no legal stand-pat value: it must make a move.
+        # Even when the nominal quiescence budget is exhausted, extend one
+        # check-evasion ply so the search never evaluates an illegal position
+        # as if it were a legal quiet leaf.
+        if depth <= 0 and not in_check:
             return stand_pat, ()
 
-        in_check = state.is_in_check(state.turn)
         if in_check:
             moves = self._ordered_moves(
                 state,
@@ -562,12 +566,15 @@ class NegamaxEngine:
                 return -MATE_SCORE, ()
             return stand_pat, ()
 
-        best_score = stand_pat
-        best_pv: tuple[Move, ...] = ()
-        if stand_pat >= beta:
-            return stand_pat, ()
-        alpha = max(alpha, stand_pat)
+        if in_check:
+            best_score = -MATE_SCORE * 2
+        else:
+            best_score = stand_pat
+            if stand_pat >= beta:
+                return stand_pat, ()
+            alpha = max(alpha, stand_pat)
 
+        best_pv: tuple[Move, ...] = ()
         for move in moves:
             child = state.apply(move)
             child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
@@ -581,7 +588,7 @@ class NegamaxEngine:
             else:
                 child_score, child_pv = self._evaluate(child), ()
             score = -child_score
-            if score > best_score:
+            if not best_pv or score > best_score:
                 best_score = score
                 best_pv = (move,) + child_pv
             if score > alpha:
