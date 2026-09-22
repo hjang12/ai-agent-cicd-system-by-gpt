@@ -12,15 +12,16 @@ The engine boundary is defined separately from the domain model. The move-analys
 
 `index.html` is connected to the small dependency-free HTTP boundary in `app.py`. The browser can load the authoritative state, select a piece and legal destination, preview the selected move against the baseline engine, show conservative coaching feedback, reset among supported setup variants, undo the latest move, and request a baseline engine move.
 
-The browser analysis panel exposes the coaching result together with the move, recommendation, score delta, tactical-risk signal, bounded tactical motif warning, and principal variation. The application also provides a bounded on-demand session review, can turn non-recommended review entries into position-training problems, and tracks ephemeral answer accuracy for the current session without persistence. The UI presentation consumes backend analysis data rather than reimplementing Janggi rules or search logic.
+The browser analysis panel exposes the coaching result together with the move, recommendation, score delta, tactical-risk signal, bounded tactical motif warning, and principal variation. The trainer also exposes six selectable AI search levels; the selected level is applied when a match is reset. The application provides a bounded on-demand session review, can turn non-recommended review entries into position-training problems, and tracks ephemeral answer accuracy for the current session without persistence. The UI presentation consumes backend analysis data rather than reimplementing Janggi rules or search logic.
 
 The server exposes:
 
 - `GET /` — browser trainer shell
 - `GET /api/health` — service health
-- `GET /api/state` — current match snapshot and legal moves
+- `GET /api/state` — current match snapshot, selected AI level, and legal moves
 - `GET /api/record` — current session record
-- `POST /api/reset` — reset session/setup
+- `GET /api/ai/levels` — available AI level profiles
+- `POST /api/reset` — reset session/setup and apply the selected AI level
 - `POST /api/move` — apply a player move through `Match`
 - `POST /api/undo` — restore the match state immediately before the latest move
 - `POST /api/analyze/move` — analyze a legal move and return coaching insight without changing the active match
@@ -48,6 +49,7 @@ See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module 
 - `janggi/training_metrics.py` — ephemeral training-session metrics
 - `janggi/pipeline.py` — record validation and training-candidate classification
 - `janggi/search.py` — dependency-free negamax/alpha-beta search backend
+- `janggi/ai_level.py` — selectable gameplay AI search profiles
 - `janggi/self_play.py` — engine-vs-engine game generation and pipeline validation
 - `janggi/training.py` — position/action/value training examples and dataset builder
 - `janggi/model.py` — stable model metadata registry
@@ -56,6 +58,7 @@ See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module 
 - `janggi/rating.py` — Elo-style rating calculations
 - `tests/` — unit and application-boundary tests
 - `tools/benchmark_search_ordering.py` — deterministic search-ordering and legal-move-generation benchmark
+- `tools/benchmark_ai_levels.py` — search-complexity and adjacent-level self-play benchmark
 - `docs/PRODUCT_BRIEF.md` — product scope and MVP criteria
 - `docs/ARCHITECTURE.md` — module boundaries and future extension points
 - `docs/API.md` — web/API transport contract
@@ -68,6 +71,7 @@ See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module 
 - `docs/TRAINING_METRICS.md` — training-session metrics contract
 - `docs/SEARCH.md` — current search architecture and benchmark interpretation
 - `docs/SEARCH_BENCHMARK_HISTORY.md` — persistent search benchmark decision history
+- `docs/AI_LEVELS.md` — AI level and future version-promotion strategy
 - `../../.github/workflows/janggi-validation.yml` — Python 3.12 compile/test validation
 - `../../.github/workflows/janggi-search-benchmark.yml` — deterministic search benchmark
 
