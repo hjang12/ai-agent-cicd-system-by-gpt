@@ -12,7 +12,7 @@
     .board { aspect-ratio:9/10; width:100%; max-width:620px; margin:auto; padding:10px; display:grid; grid-template-columns:repeat(9,1fr); grid-template-rows:repeat(10,1fr); background:var(--board); border:8px solid var(--frame); box-shadow:0 10px 24px #0002; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     .cell { position:relative; border:1px solid var(--line); display:grid; place-items:center; cursor:pointer; color:#211605; font-size:clamp(18px,3.1vw,34px); font-weight:800; user-select:none; background:transparent; min-width:0; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     .cell.selected { outline:3px solid var(--accent); outline-offset:-3px; } .cell.legal { box-shadow:inset 0 0 0 3px #fff7; } .piece { width:82%; aspect-ratio:1; border-radius:50%; display:grid; place-items:center; background:var(--piece); border:2px solid var(--piece-edge); box-shadow:0 2px 3px #0003, inset 0 0 0 1px #fff9; line-height:1; font-size:clamp(20px,3.2vw,36px); font-family:"Noto Serif CJK KR", "Noto Serif KR", serif; }
-    .piece-cho { color:#b0261b; border-color:#8c231b; } .piece-han { color:#222; border-color:#4c463d; }
+    .piece-cho { color:#168447; border-color:#168447; } .piece-han { color:#b52b24; border-color:#b52b24; }
     .panel { padding:24px; background:var(--panel); border:1px solid #d6cfc3; border-radius:14px; box-shadow:0 4px 14px #0001; }
     button, select { width:100%; border-radius:8px; padding:12px 16px; cursor:pointer; font-weight:700; margin-top:10px; }
     button.primary { background:var(--accent); color:#fff; border:1px solid #96601b; } button.secondary { background:#f0ece4; color:#2d2924; border:1px solid #d4cdc1; } button:disabled { opacity:.6; cursor:wait; }
@@ -34,7 +34,7 @@
     .training-result { margin-top:10px; padding:10px; border-radius:8px; background:#f0e7d8; }
     .step { padding:12px 0; border-bottom:1px solid #e0d8cc; } .step:last-child { border-bottom:0; }
     @media(max-width:760px){
-      :root { color-scheme:dark; }
+       :root { color-scheme:light; }
       body { overflow-x:hidden; overscroll-behavior-y:none; }
       main { max-width:none; padding:12px 10px 24px; }
       .eyebrow, .lead { display:none; }
@@ -577,7 +577,7 @@
           heading.textContent = result.correct ? '훈련 정답' : '훈련 다시 보기';
           return;
         }
-        status.textContent = '착수를 분석하는 중입니다…';
+        status.textContent = 'AI가 응수하는 중입니다…';
         const result = await post('/api/player/turn', move);
         const playerCoaching = result.player_coaching;
         snapshot = result.snapshot;
@@ -585,10 +585,14 @@
         renderReview(null);
         selected = null;
         render();
-        renderAnalysis(result.player_analysis, playerCoaching);
+        if (result.player_analysis?.recommended_move || result.player_analysis?.score_delta_cp !== null) {
+          renderAnalysis(result.player_analysis, playerCoaching);
+        } else {
+          renderAnalysis(null, null);
+        }
         if (result.engine_analysis && result.engine_analysis.best_move) {
           severity.textContent = '내 수: ' + (severityLabels[playerCoaching.severity] || playerCoaching.severity || '분석 불가');
-          analysisNote.textContent = (playerCoaching.message || '착수 설명이 없습니다.') + ' AI가 ' + formatMove(result.engine_analysis.best_move) + '로 응수했습니다.';
+          analysisNote.textContent = 'AI가 ' + formatMove(result.engine_analysis.best_move) + '로 응수했습니다.';
           heading.textContent = snapshot.status === 'playing'
             ? 'AI가 응수했습니다 · 내 차례'
             : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
