@@ -1,5 +1,37 @@
 # Search Benchmark History
 
+## 2026-09-22 — AI v1 vs AI v2 head-to-head smoke benchmark
+
+### Definition
+
+- v1 and v2 use the same fixed depth, evaluation weights, quiescence depth, and root settings.
+- v1 disables adaptive killer/history ordering and check-safe quiescence horizon handling.
+- v2 enables both current refinements.
+- Colors are alternated by the existing `HeadToHeadTournament`.
+
+### Deterministic fixture result
+
+| Fixture | v1 nodes | v2 nodes | Node change | v1 score | v2 score | Same best move |
+| --- | ---: | ---: | ---: | ---: | ---: | :---: |
+| initial | 88 | 81 | -7.95% | 0 | 0 | yes |
+| capture | 56 | 56 | 0.00% | 1982 | 1982 | yes |
+| check | 39 | 39 | 0.00% | 1959 | 1959 | yes |
+| endgame | 104 | 104 | 0.00% | -269 | -269 | yes |
+
+All four fixtures preserved the same minimax score and selected move. The measured node reduction is evidence for this fixture set only, not a direct playing-strength claim.
+
+### Head-to-head smoke result
+
+- 1 game, 4-ply cap, alternating-color tournament path.
+- v1 score: 0.0; v2 score: 0.0.
+- completed: 0; unfinished: 1.
+- The unfinished game is intentionally not counted as a draw.
+
+### Decision
+
+Keep the benchmark as a regression/evidence harness. The CI job uses the lightweight 1-game/4-ply smoke configuration so search CI remains bounded. Larger strength experiments use the benchmark tool's default 4-game/64-ply configuration or a larger explicit game count.
+
+
 ## 2026-09-22 — Adaptive killer/history move ordering
 
 ### Method
