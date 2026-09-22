@@ -70,6 +70,8 @@ class SearchConfig:
     random_ties: bool = False
     seed: Optional[int] = None
     time_limit_ms: Optional[int] = None
+    adaptive_ordering: bool = True
+    quiescence_check_extension: bool = True
 
     def __post_init__(self) -> None:
         if self.depth < 1:
@@ -87,6 +89,10 @@ class SearchConfig:
                 or self.time_limit_ms < 1
             ):
                 raise ValueError("time_limit_ms must be a positive integer when provided")
+        if not isinstance(self.adaptive_ordering, bool):
+            raise ValueError("adaptive_ordering must be a boolean")
+        if not isinstance(self.quiescence_check_extension, bool):
+            raise ValueError("quiescence_check_extension must be a boolean")
 
 
 class NegamaxEngine:
@@ -473,7 +479,7 @@ class NegamaxEngine:
         depth: int,
     ) -> tuple[Move, ...]:
         ordered = self._ordered_moves(state, moves)
-        if not getattr(self, "_adaptive_ordering_enabled", True):
+        if not self.config.adaptive_ordering or not getattr(self, "_adaptive_ordering_enabled", True):
             return ordered
 
         ply = max(self._active_search_depth - depth, 0)
@@ -543,7 +549,7 @@ class NegamaxEngine:
         # Even when the nominal quiescence budget is exhausted, extend one
         # check-evasion ply so the search never evaluates an illegal position
         # as if it were a legal quiet leaf.
-        if depth <= 0 and not in_check:
+        if depth <= 0 and (not in_check or not self.config.quiescence_check_extension):
             return stand_pat, ()
 
         if in_check:
