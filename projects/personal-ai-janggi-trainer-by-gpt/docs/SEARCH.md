@@ -27,6 +27,8 @@ Material + Mobility + positional evaluation
 - `random_ties`
 - `seed`
 - `time_limit_ms` (optional wall-clock budget; enables iterative deepening)
+- `adaptive_ordering` (default `true`; enables killer/history ordering)
+- `quiescence_check_extension` (default `true`; forbids stand-pat in check at the quiescence horizon)
 
 The engine metadata version is now `7`. The latest search change adds an optional time budget that activates iterative deepening without changing the existing fixed-depth behavior when no budget is configured.
 
@@ -91,6 +93,27 @@ The transposition table is cleared between iterative depths because mate-distanc
 The default `time_limit_ms=None` path remains the original deterministic fixed-depth search, so the deterministic benchmark baselines are unaffected by the time-budget feature.
 
 The current user-facing Expert level uses a maximum depth of 3 with an 800 ms budget. This is intentionally a search ceiling rather than a strength guarantee: hardware, position complexity, and whether depth 3 completes within the budget can change the effective depth.
+
+## AI v1 vs AI v2 head-to-head
+
+The repository now has a repeatable A/B benchmark for the search stack itself.
+
+**AI v1** keeps the same depth, evaluation, quiescence depth, and root settings as the comparison target, but disables the two post-v1 refinements:
+- adaptive killer/history move ordering;
+- check-safe quiescence horizon handling.
+
+**AI v2** enables both refinements using the current default search behavior. This isolates the algorithmic change without changing principal search depth or evaluation weights.
+
+The benchmark has two parts:
+
+1. deterministic fixture comparison of node counts, scores, and selected moves;
+2. alternating-color engine-vs-engine games using the existing HeadToHeadTournament.
+
+The CI benchmark runs 4 games with a 64-ply cap. This is a regression/evidence harness, not a certified rating system. Larger manual tournaments can be run with the same script and a larger game count.
+
+Command:
+
+`PYTHONPATH=. python tools/benchmark_ai_versions.py --games 4 --max-plies 64`
 
 ## Quiescence search
 
