@@ -42,3 +42,8 @@ AI v1 -> AI v2 -> AI v3 -> ...
 A version change may improve evaluation, move ordering, search, or learned parameters while preserving the same public level ladder.
 
 The evaluation/tournament pipeline should decide whether a new version is strong enough to replace the previous one; the browser level should remain the user's difficulty control.
+
+
+## Expert search budget
+
+Lv6 Expert uses iterative deepening with a maximum depth of 3 and an 800 ms wall-clock budget. The effective depth can be lower when a position is computationally expensive.
