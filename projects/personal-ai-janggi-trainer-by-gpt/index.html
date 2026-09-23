@@ -32,6 +32,7 @@
     .players{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch;margin-bottom:10px}
     .player-card{background:#fffaf2cc;border:1px solid #d8cbb5;border-radius:15px;padding:10px 12px;box-shadow:0 5px 18px #5d442611}
     .player-card.me{border-color:#b98a4a}.player-card.opponent{background:#f8f2e9}
+    .player-card.side-cho .player-dot{background:var(--cho)}.player-card.side-han .player-dot{background:var(--han)}
     .player-top{display:flex;align-items:center;gap:8px}.player-dot{width:10px;height:10px;border-radius:50%;background:var(--cho);flex:none}
     .player-card.opponent .player-dot{background:var(--han)}
     .player-name{font-weight:900;font-size:.9rem}.player-rating{margin-left:auto;font-weight:900;font-size:1.05rem}
@@ -122,13 +123,13 @@
     <section class="dashboard" aria-label="장기 대국 화면">
       <div class="game-stage">
         <div class="players">
-          <div class="player-card opponent">
-            <div class="player-top"><span class="player-dot" aria-hidden="true"></span><span class="player-name" id="opponent-name">기준 AI</span><strong class="player-rating" id="opponent-rating">—</strong></div>
+          <div class="player-card opponent side-han" id="opponent-card">
+            <div class="player-top"><span class="player-dot" aria-hidden="true"></span><span class="player-name" id="opponent-name">기준 AI · 한</span><strong class="player-rating" id="opponent-rating">—</strong></div>
             <div class="player-sub"><span id="opponent-level">Lv.1 입문</span><span id="opponent-meta">실력 보정 준비 중</span></div>
           </div>
           <div class="turn-badge" id="turn">대국 준비</div>
-          <div class="player-card me">
-            <div class="player-top"><span class="player-dot" aria-hidden="true"></span><span class="player-name">나</span><strong class="player-rating" id="player-rating">평가 준비 중</strong></div>
+          <div class="player-card me side-cho" id="player-card">
+            <div class="player-top"><span class="player-dot" aria-hidden="true"></span><span class="player-name" id="player-name">나 · 초</span><strong class="player-rating" id="player-rating">평가 준비 중</strong></div>
             <div class="player-sub"><span id="player-record">0승 0무 0패</span><span id="player-rating-status">미평가</span></div>
           </div>
         </div>
@@ -285,6 +286,8 @@
     const analysisPanel = document.querySelector('#analysis');
     const matchBadge = document.querySelector('#match-badge');
     const statusContext = document.querySelector('#status-context');
+    const opponentCard = document.querySelector('#opponent-card');
+    const playerCard = document.querySelector('#player-card');
     const opponentName = document.querySelector('#opponent-name');
     const opponentRating = document.querySelector('#opponent-rating');
     const opponentLevel = document.querySelector('#opponent-level');
@@ -728,7 +731,14 @@
           ? '평가 데이터가 쌓이는 중입니다. AI 모델이 바뀌어도 당시 상대 정보를 기준으로 기록됩니다.'
           : '실전 대국 결과를 기준으로 계산된 사용자 Rating입니다.')
         : '현재 AI는 아직 강도 보정 전이라 결과를 실력 증거로만 보관합니다.';
-      opponentName.textContent = o.model_id === 'baseline-search' ? '기준 AI' : (o.model_id || 'AI');
+      const playerSideValue = snapshot?.player_side || 'cho';
+      const aiSideValue = snapshot?.ai_side || (playerSideValue === 'cho' ? 'han' : 'cho');
+      playerCard.classList.toggle('side-cho', playerSideValue === 'cho');
+      playerCard.classList.toggle('side-han', playerSideValue === 'han');
+      opponentCard.classList.toggle('side-cho', aiSideValue === 'cho');
+      opponentCard.classList.toggle('side-han', aiSideValue === 'han');
+      opponentName.textContent = (o.model_id === 'baseline-search' ? '기준 AI' : (o.model_id || 'AI')) + ' · ' + (sideLabels[aiSideValue] || aiSideValue);
+      document.querySelector('#player-name').textContent = '나 · ' + (sideLabels[playerSideValue] || playerSideValue);
       opponentRating.textContent = o.rating === null || o.rating === undefined ? '—' : String(o.rating);
       opponentLevel.textContent = 'Lv.' + (o.ai_level || snapshot?.ai_level || '1') + ' ' + (snapshot?.ai_level_name || '입문');
       opponentMeta.textContent = o.rating === null || o.rating === undefined ? '실력 보정 준비 중' : '보정된 상대 Rating';
@@ -823,6 +833,7 @@
       snapshot = await readJsonResponse(response);
       playerSide.value = snapshot.player_side || 'cho';
       aiLevel.value = snapshot.ai_level || '1';
+      setup.value = snapshot.setup || 'classic';
       aiLevelNote.textContent = '현재 AI: Lv.' + (snapshot.ai_level || '1') + ' ' + (snapshot.ai_level_name || '입문') + ' · 레벨 변경은 대국 초기화부터 적용됩니다.';
       orientationNote.textContent = boardSide() === 'cho'
         ? '초가 화면 아래쪽입니다. 초가 먼저 둡니다.'
