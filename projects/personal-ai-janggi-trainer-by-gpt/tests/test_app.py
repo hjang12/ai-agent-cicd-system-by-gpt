@@ -398,6 +398,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("AI 응수가 필요합니다 · AI 수 두기", html)
         self.assertIn("post('/api/player/turn', move)", html)
         self.assertIn("readJsonResponse(response)", html)
+        self.assertIn("await getState()", html)
         self.assertNotIn("post('/api/move', move)", html)
         self.assertIn("post('/api/engine/move', {})", html)
     def test_browser_localizes_terminal_status_and_engine_heading(self):
