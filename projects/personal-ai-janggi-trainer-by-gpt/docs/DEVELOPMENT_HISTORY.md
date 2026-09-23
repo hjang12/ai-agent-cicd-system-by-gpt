@@ -1049,3 +1049,28 @@ Use the existing low-level `/api/move` endpoint for the human move so the update
 ### Boundary
 
 The separate AI request remains recoverable: if it fails, the browser re-reads the authoritative server state instead of replaying the human move.
+
+
+## 39. 2026-09-23 — Board overlay for turn-state feedback
+
+### Requirement
+
+AI search feedback and important match events should be visible directly on the board rather than only in the side panel. The human move must be visibly committed before the AI search begins.
+
+### Decision
+
+Keep the existing two-request browser flow so the human board update can render before the AI request, but force a browser paint boundary before starting `/api/engine/move`. Use a persistent board overlay during AI search and short-lived overlays for start/check/check-response/end events.
+
+### Implementation
+
+- Added an in-board overlay with a main message and optional secondary line.
+- AI thinking overlay remains visible until the engine request resolves or errors.
+- `장군` and `멍군` can be shown while the AI is thinking when relevant.
+- Start and terminal messages display on the board for a short duration.
+- Invalid moves continue to use piece-specific movement explanations.
+- Added a regression test asserting human render and paint occur before the AI request.
+
+### AI level clarification
+
+AI levels intentionally differ by search budget: Lv.1 uses depth 1, mobility weight 0, and no quiescence; Lv.6 uses depth 3, mobility weight 2, quiescence depth 1, and an 800 ms search budget. The levels therefore search different amounts, but identical selected moves on a given position are still possible; a level configuration is not itself an empirical guarantee of different move choices or playing strength.
+
