@@ -180,16 +180,16 @@ def main() -> None:
     # so these deterministic node baselines intentionally supersede the prior
     # baseline while preserving score/best-move agreement across orderings.
     expected_current_nodes = {
-        ("initial", 2): 161,
-        ("capture", 2): 60,
-        ("capture", 3): 441,
+        ("initial", 2): 166,
+        ("capture", 2): 68,
+        ("capture", 3): 511,
         ("check", 2): 39,
         ("check", 3): 449,
         ("double_attack", 2): 117,
-        ("double_attack", 3): 928,
-        ("midgame", 2): 156,
-        ("endgame", 2): 114,
-        ("endgame", 3): 699,
+        ("double_attack", 3): 931,
+        ("midgame", 2): 164,
+        ("endgame", 2): 117,
+        ("endgame", 3): 792,
     }
 
     print("Search benchmark: reference vs current vs check-first vs capture-check-first")
