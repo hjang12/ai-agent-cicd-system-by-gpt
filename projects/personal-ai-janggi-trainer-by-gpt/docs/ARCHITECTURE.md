@@ -65,6 +65,10 @@ Training examples are produced only from records accepted by the validation pipe
 
 `TrainingSessionMetrics` is a process-local measurement boundary for legal training attempts. It records attempts, correctness, unique problem identifiers, accuracy, and reason-code attempt counts. It is deliberately separate from the persistent training-data pipeline and is reset with the active match.
 
+### Player skill assessment: `janggi/player_assessment.py`
+
+Player skill assessment is a separate product-layer boundary. It records completed player-vs-model outcomes, opponent model identity/version, point-in-time opponent rating when calibrated, and optional move-quality summaries. It consumes the existing Elo-style rating primitive but does not decide model strength. Current uncalibrated AI levels create unrated evidence rather than a misleading numeric player rating.
+
 ### Model metadata: `janggi/model.py`
 
 `ModelSpec` and `ModelRegistry` store stable model identity and metadata only. Engine instances are not stored in the registry. This keeps model selection separate from execution and search implementation.
@@ -157,6 +161,8 @@ results -> RatingUpdate
 ```
 
 ## Persistence contract
+
+Player assessment must remain separate from GameRecord persistence. A future database layer should persist player identity, assessment events, and model metadata independently so model upgrades do not rewrite historical rating events.
 
 The current implementation uses explicit, versioned JSON payload identifiers such as `janggi-record-v1`, `janggi-state-v1`, and `janggi-training-v1`. New fields should prefer backward-compatible additions rather than silently changing the meaning of existing fields.
 

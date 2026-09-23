@@ -10,12 +10,13 @@ from pathlib import Path
 from threading import RLock
 from urllib.parse import urlparse
 
-from janggi import AILevel, Analyzer, GameRecord, Match, Move, NegamaxEngine, SearchConfig, Side, adaptive_problem_priority, adaptive_reason_priority, ai_level_payload, coach_move, generate_training_problems, get_ai_level, review_record, select_adaptive_training_problems, state_to_dict
+from janggi import AILevel, Analyzer, GameRecord, Match, Move, NegamaxEngine, OpponentProfile, PlayerSkillAssessment, SearchConfig, Side, adaptive_problem_priority, adaptive_reason_priority, ai_level_payload, coach_move, generate_training_problems, get_ai_level, review_record, select_adaptive_training_problems, state_to_dict
 from janggi.analysis import MoveAnalysis
 from janggi.review import DEFAULT_REVIEW_LIMIT
 from janggi.training_metrics import TrainingSessionMetrics
 from janggi.training_problems import DEFAULT_PROBLEM_LIMIT, MAX_PROBLEM_LIMIT
 from janggi.engine import EngineAnalysis, validate_engine_analysis, validate_engine_move
+from janggi.player_assessment import outcome_from_result
 
 
 ROOT = Path(__file__).resolve().parent
@@ -78,6 +79,12 @@ class TrainerApplication:
         self.analysis_engine = NegamaxEngine(SearchConfig(depth=ANALYSIS_SEARCH_DEPTH))
         self.analyzer = Analyzer(self.analysis_engine)
         self.training_metrics = TrainingSessionMetrics()
+        self.player_id = f"session-{secrets.token_urlsafe(12)}"
+        self.assessment = PlayerSkillAssessment(self.player_id)
+        self.opponent_model_id = "baseline-search"
+        self.opponent_model_version = None
+        self._game_id = f"game-{secrets.token_urlsafe(12)}"
+        self._assessment_recorded = False
 
     def snapshot(self) -> dict[str, object]:
         with self._lock:
@@ -89,6 +96,8 @@ class TrainerApplication:
                 "ai_side": self.ai_side.value,
                 "ai_level": self.ai_level.value,
                 "ai_level_name": get_ai_level(self.ai_level).name,
+                "opponent": self._opponent_profile().to_dict(),
+                "assessment": self.assessment.snapshot(),
                 "can_undo": self.can_undo(),
                 "state": state_to_dict(self.match.state, setup=self.match.setup),
                 "legal_moves": [
@@ -120,12 +129,15 @@ class TrainerApplication:
         selected_side = self._side_from_value(player_side)
         selected_level = get_ai_level(ai_level)
         with self._lock:
+            self._finalize_assessment_if_terminal()
             self.player_side = selected_side
             self.ai_side = selected_side.opponent
             self.ai_level = selected_level.level
             self.engine = NegamaxEngine(selected_level.config)
             self.match = Match.new(setup=setup)
             self.training_metrics.reset()
+            self._game_id = f"game-{secrets.token_urlsafe(12)}"
+            self._assessment_recorded = False
             if self.match.status.value == "playing" and self.match.state.turn is self.ai_side:
                 self._apply_ai_move()
             return self.snapshot()
@@ -135,6 +147,7 @@ class TrainerApplication:
         with self._lock:
             self._ensure_player_turn()
             self.match = self.match.play(move)
+            self._finalize_assessment_if_terminal()
             return self.snapshot()
 
     def play_player_turn(self, payload: dict[str, object]) -> dict[str, object]:
@@ -186,6 +199,7 @@ class TrainerApplication:
                         validate_engine_move(self.engine, self.match.state, engine_analysis.best_move)
                         self.match = self.match.play(engine_analysis.best_move)
 
+                self._finalize_assessment_if_terminal()
                 return {
                     "player_analysis": _analysis_to_dict(player_analysis),
                     "player_coaching": _coaching_to_dict(player_coaching),
@@ -207,6 +221,8 @@ class TrainerApplication:
             return self.snapshot()
 
     def can_undo(self) -> bool:
+        if self.match.status.value != "playing":
+            return False
         if not self.match.state.history:
             return False
         if (
@@ -352,7 +368,34 @@ class TrainerApplication:
         with self._lock:
             self._ensure_ai_turn()
             analysis = self._apply_ai_move()
+            self._finalize_assessment_if_terminal()
             return {"analysis": _analysis_to_dict(analysis), "snapshot": self.snapshot()}
+
+    def assessment_snapshot(self) -> dict[str, object]:
+        with self._lock:
+            return self.assessment.snapshot()
+
+    def _opponent_profile(self) -> OpponentProfile:
+        return OpponentProfile(
+            model_id=self.opponent_model_id,
+            model_version=self.opponent_model_version,
+            ai_level=self.ai_level.value,
+            rating=None,
+        )
+
+    def _finalize_assessment_if_terminal(self) -> None:
+        if self._assessment_recorded or self.match.status.value == "playing":
+            return
+        result_status = self.match.status.value
+        self.assessment.record_game(
+            game_id=self._game_id,
+            player_side=self.player_side,
+            opponent=self._opponent_profile(),
+            outcome=outcome_from_result(self.player_side, result_status),
+            result_status=result_status,
+            move_count=len(self.match.state.history),
+        )
+        self._assessment_recorded = True
 
     def _apply_ai_move(self) -> EngineAnalysis:
         analysis = validate_engine_analysis(self.match.state, self.engine.analyze(self.match.state))
@@ -600,6 +643,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/training/metrics":
             self._send_json(application.training_metrics_snapshot())
+            return
+        if path == "/api/assessment":
+            self._send_json(application.assessment_snapshot())
             return
         self._send_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
 
