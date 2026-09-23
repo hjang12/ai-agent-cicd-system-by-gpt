@@ -15,6 +15,7 @@ from .evaluation import EvaluationGame, HeadToHeadEvaluator
 from .match import GameStatus, Match, RuleSet
 from .model import ModelRegistry, ModelSpec
 from .pipeline import RecordSource, RecordValidation, RecordValidator, TrainingDisposition, ValidationStatus
+from .player_assessment import MoveQualitySummary, OpponentProfile, PlayerGameAssessment, PlayerSkillAssessment, outcome_from_result
 from .rating import RatingUpdate, expected_score, update_ratings
 from .record import GameRecord, state_from_dict, state_to_dict
 from .review import CoachingReview, ReviewEntry, review_record
@@ -63,6 +64,10 @@ __all__ = [
     "ReviewEntry",
     "RecordValidation",
     "RatingUpdate",
+    "MoveQualitySummary",
+    "OpponentProfile",
+    "PlayerGameAssessment",
+    "PlayerSkillAssessment",
     "RuleSet",
     "SearchConfig",
     "SelfPlayGenerator",
@@ -85,6 +90,7 @@ __all__ = [
     "state_from_dict",
     "state_to_dict",
     "update_ratings",
+    "outcome_from_result",
     "validate_engine_analysis",
     "validate_engine_move",
     "review_record",
