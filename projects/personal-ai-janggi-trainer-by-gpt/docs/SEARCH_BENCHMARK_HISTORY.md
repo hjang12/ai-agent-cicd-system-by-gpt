@@ -10,19 +10,18 @@ The domain core was corrected to place each General at the center point of its 3
 
 | Fixture | Depth | Reference nodes | Production nodes |
 | --- | ---: | ---: | ---: |
-| initial | 2 | 218 | 161 |
-| capture | 2 | 64 | 60 |
-| capture | 3 | 782 | 441 |
+| initial | 2 | 225 | 166 |
+| capture | 2 | 74 | 68 |
+| capture | 3 | 901 | 511 |
 | check | 2 | 60 | 39 |
 | check | 3 | 485 | 449 |
 | double_attack | 2 | 157 | 117 |
-| double_attack | 3 | 1993 | 928 |
-| midgame | 2 | 202 | 156 |
-| endgame | 2 | 280 | 114 |
-| endgame | 3 | 3338 | 699 |
+| double_attack | 3 | 1997 | 931 |
+| midgame | 2 | 216 | 164 |
+| endgame | 2 | 278 | 117 |
+| endgame | 3 | 3638 | 792 |
 
 All current-ordering measurements preserved the coordinate-reference minimax score and best move on this run. These counts replace the prior deterministic CI baseline because the board geometry/initial setup changed semantically, not because of a search optimization change.
-
 
 ## 2026-09-22 — AI v1 vs AI v2 head-to-head smoke benchmark
 
