@@ -1025,3 +1025,27 @@ Use `POST /api/player/turn` as the browser's single gameplay transaction. The ap
 ### Boundary
 
 This prevents partial application of a human-vs-AI turn and client-side JSON parsing crashes. It does not eliminate upstream proxy timeouts; after such a timeout, the browser reconciles with the authoritative server state rather than replaying the move.
+
+
+## 38. 2026-09-23 — Immediate human move rendering and in-game feedback
+
+### Requirement
+
+The browser should show the learner's move immediately before the AI starts calculating, explain invalid destination clicks using the selected piece's movement rule, and surface turn-state events such as game start, check, response to check, and game termination.
+
+### Decision
+
+Use the existing low-level `/api/move` endpoint for the human move so the updated board can render before the separate `/api/engine/move` request begins. The server snapshot now exposes whether the side to move is in check. Browser messages derive from the pre-move and post-move snapshots and localized terminal status.
+
+### Implementation
+
+- Added `in_check` to session snapshots.
+- Human move UI renders immediately after `/api/move` returns, then starts the AI calculation request.
+- Added explicit messages for `장군`, `멍군`, and terminal outcomes including wins and draw reasons.
+- Added a visible game-message area with `aria-live` for turn-state feedback.
+- Added piece-specific invalid-move explanations for general, guard, elephant, horse, chariot, cannon, and soldier.
+- Added regression coverage for the snapshot check-state field and browser feedback contracts.
+
+### Boundary
+
+The separate AI request remains recoverable: if it fails, the browser re-reads the authoritative server state instead of replaying the human move.

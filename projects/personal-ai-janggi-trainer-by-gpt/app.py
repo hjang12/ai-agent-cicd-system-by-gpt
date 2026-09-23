@@ -85,6 +85,7 @@ class TrainerApplication:
                 "status": self.match.status.value,
                 "setup": self.match.setup,
                 "player_side": self.player_side.value,
+                "in_check": self.match.state.is_in_check(self.match.state.turn),
                 "ai_side": self.ai_side.value,
                 "ai_level": self.ai_level.value,
                 "ai_level_name": get_ai_level(self.ai_level).name,
