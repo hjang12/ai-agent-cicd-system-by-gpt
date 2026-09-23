@@ -53,6 +53,7 @@
 - Position/action/value training examples and dataset builder
 - Model metadata registry
 - Head-to-head evaluation, tournament aggregation, and Elo-style rating primitives
+- Player skill-assessment foundation that records completed player-vs-AI outcomes, opponent model/version identity, point-in-time opponent ratings when calibrated, and unrated evidence while calibration is pending
 - Dependency-free browser trainer and HTTP API
 - Per-browser in-memory session isolation using an opaque HttpOnly SameSite cookie, so separate browser sessions no longer share the same `Match` or training state
 - Browser analysis panel shows tactical risk, bounded tactical warnings, recommendation principal variation, and structured next-action coaching; principal variations use learner-facing board notation (`a1`–`i10`) with numbered plies and side labels, terminal results are localized, and turn handoff is explicit in the heading
@@ -75,6 +76,7 @@
 - `POST /api/training/problems` — generate bounded non-persistent position-training problems from the current review, with session-local reason-specific adaptive prioritization
 - `POST /api/training/answer` — check a training attempt against the current problem definition without changing the match
 - `GET /api/training/metrics` — read current non-persistent training-session metrics
+- `GET /api/assessment` — read the current anonymous player's skill-assessment snapshot
 - Move analysis API includes `tactical_risk` (`none`, `immediate_capture`, `hanging_piece`) and `tactical_motifs` (currently `double_attack` when detected)
 - Move coaching API includes `severity`, `message`, `score_delta_cp`, presentation-ready `next_action`, and stable `reason_codes` for future repeated-mistake aggregation
 - Engine move analysis includes principal variation data after authoritative legality normalization
@@ -140,6 +142,7 @@ The service is now running from the canonical monorepo. Live Render `healthCheck
 ## Explicitly Deferred
 
 - Persistent user accounts and cloud synchronization
+- Persistent player rating/history storage and cross-device skill profiles
 - Persistent or cross-instance session storage; current browser sessions live only in one server process and are lost on process restart or replacement
 - Database-backed game history
 - Trained neural/learned policy or value model
@@ -172,6 +175,6 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 1. Exercise the human-vs-AI turn loop against the live service and close any gameplay/UX defects before increasing engine strength.
 2. Upgrade baseline AI strength in measured stages, using the existing deterministic search benchmarks and keeping move legality as the authoritative boundary.
 3. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
-4. Use adaptive position-training selection and ephemeral session metrics to evaluate whether repeated coaching signals translate into useful practice interactions, including repeated-problem retry behavior and selection diversity without treating small samples as mastery.
+4. Use player skill-assessment evidence together with adaptive position-training selection and ephemeral session metrics, while keeping match rating separate from coaching statistics and preventing uncalibrated AI levels from producing numeric player ratings.
 5. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
 6. Keep training/evaluation interfaces stable while AI strategy evolves.
