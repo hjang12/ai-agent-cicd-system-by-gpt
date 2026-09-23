@@ -240,7 +240,7 @@ def _on_palace_diagonal(pos: Position, side: Side) -> bool:
         return False
     local_x = x - 3
     local_y = y if side is Side.CHO else y - 7
-    return local_x == local_y or local_x + local_y == 4
+    return local_x == local_y or local_x + local_y == 2
 
 
 def _king_like_destinations(src: Position, piece: Piece) -> set[Position]:
