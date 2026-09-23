@@ -47,6 +47,7 @@ See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module 
 - `janggi/review.py` — bounded session review and coaching-signal aggregation
 - `janggi/training_problems.py` — bounded position-training problem generation and answer contract
 - `janggi/training_metrics.py` — ephemeral training-session metrics
+- `janggi/player_assessment.py` — player skill assessment and rating provenance
 - `janggi/pipeline.py` — record validation and training-candidate classification
 - `janggi/search.py` — dependency-free negamax/alpha-beta search backend
 - `janggi/ai_level.py` — selectable gameplay AI search profiles
