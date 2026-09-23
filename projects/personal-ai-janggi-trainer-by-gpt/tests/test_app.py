@@ -426,7 +426,7 @@ class TrainerApplicationTests(unittest.TestCase):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("'cho_win':'초 승'", html)
         self.assertIn("'draw_consecutive_pass':'연속 한수쉼 무승부'", html)
-        self.assertIn("statusLabels[snapshot.status] || snapshot.status", html)
+        self.assertIn("terminalMessage(snapshot.status)", html)
         self.assertIn("로 대국이 종료되었습니다", html)
 
     def test_browser_engine_result_surfaces_evaluation_and_search_details(self):
