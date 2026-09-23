@@ -15,6 +15,17 @@ class AILevelTests(unittest.TestCase):
             self.assertGreaterEqual(later.depth, earlier.depth)
             self.assertGreaterEqual(later.quiescence_depth, earlier.quiescence_depth)
 
+    def test_beginner_and_expert_use_materially_different_search_budgets(self):
+        beginner = get_ai_level("1").config
+        expert = get_ai_level("6").config
+        self.assertEqual(beginner.depth, 1)
+        self.assertEqual(beginner.mobility_weight, 0)
+        self.assertEqual(beginner.quiescence_depth, 0)
+        self.assertEqual(expert.depth, 3)
+        self.assertEqual(expert.mobility_weight, 2)
+        self.assertEqual(expert.quiescence_depth, 1)
+        self.assertEqual(expert.time_limit_ms, 800)
+
     def test_named_level_lookup(self):
         spec = get_ai_level("5")
         self.assertEqual(spec.level, AILevel.ADVANCED)
