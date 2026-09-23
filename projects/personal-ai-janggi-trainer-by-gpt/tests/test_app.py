@@ -549,6 +549,26 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("post('/api/undo', {})", html)
         self.assertIn("내 한 턴 되돌리기 완료", html)
 
+    def test_assessment_snapshot_is_available_and_starts_unrated(self):
+        app = TrainerApplication()
+        assessment = app.assessment_snapshot()
+        self.assertEqual(assessment["games"], 0)
+        self.assertEqual(assessment["rating_status"], "unrated")
+        self.assertIsNone(assessment["rating"])
+
+    def test_state_snapshot_exposes_assessment_and_opponent_identity(self):
+        app = TrainerApplication()
+        snapshot = app.snapshot()
+        self.assertIn("assessment", snapshot)
+        self.assertIn("opponent", snapshot)
+        self.assertEqual(snapshot["opponent"]["model_id"], "baseline-search")
+        self.assertIsNone(snapshot["opponent"]["rating"])
+
+    def test_assessment_endpoint_is_available(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertTrue(callable(RequestHandler.do_GET))
+        self.assertIn("/api/assessment", __import__("app").RequestHandler.do_GET.__code__.co_consts)
+
 
 if __name__ == "__main__":
     unittest.main()
