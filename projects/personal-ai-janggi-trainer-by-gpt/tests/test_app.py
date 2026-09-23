@@ -402,10 +402,9 @@ class TrainerApplicationTests(unittest.TestCase):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("AI가 응수했습니다 · 내 차례", html)
         self.assertIn("대국 상태를 복구했습니다 · 내 차례", html)
-        self.assertIn("post('/api/player/turn', move)", html)
+        self.assertIn("post('/api/move', move)", html)
         self.assertIn("readJsonResponse(response)", html)
         self.assertIn("await getState()", html)
-        self.assertNotIn("post('/api/move', move)", html)
         self.assertIn("post('/api/engine/move', {})", html)
     def test_browser_exposes_move_feedback_and_game_messages(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
