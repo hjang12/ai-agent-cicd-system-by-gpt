@@ -1001,3 +1001,27 @@ This is session isolation, not persistent authentication. Sessions are process-l
 
 - Python compile and unit-test workflow covers session-store and request-cookie regressions.
 - Existing Janggi domain, engine, coaching, training, and browser-contract tests remain unchanged apart from the new session coverage.
+
+
+## 37. 2026-09-23 — Atomic human turn and API response recovery
+
+### Finding
+
+The browser gameplay flow still used two requests for one user turn: `/api/move` followed by `/api/engine/move`. If the second request received a non-JSON proxy/error response, the browser could stop after the human move while the server-side match had already advanced, causing client/server turn desynchronization. The browser's generic response parser also assumed every response body was JSON, producing `Unexpected token '<'` when an HTML error page was returned.
+
+### Decision
+
+Use `POST /api/player/turn` as the browser's single gameplay transaction. The application must roll back the human move when the AI response fails, and the browser must tolerate non-JSON responses and resynchronize from `GET /api/state` instead of attempting a blind retry.
+
+### Implementation
+
+- Browser human moves now call `/api/player/turn` once.
+- `TrainerApplication.play_player_turn()` restores the original immutable match when any AI-response step fails.
+- HTTP POST failures are returned as JSON when the application itself can produce the response.
+- Browser response parsing now validates JSON before reading error payloads.
+- Browser move failures trigger a state refresh to reconcile the UI with the server-side match.
+- Added regression coverage for atomic rollback and the browser request contract.
+
+### Boundary
+
+This prevents partial application of a human-vs-AI turn and client-side JSON parsing crashes. It does not eliminate upstream proxy timeouts; after such a timeout, the browser reconciles with the authoritative server state rather than replaying the move.
