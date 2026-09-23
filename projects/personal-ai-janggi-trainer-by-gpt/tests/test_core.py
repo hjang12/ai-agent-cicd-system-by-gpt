@@ -1,15 +1,7 @@
 import unittest
 
-from janggi import GameRecord, GameState, Move, Piece, PieceType, Side, palace_for, state_from_dict, state_to_dict
-
-
-def _on_palace_diagonal_for_test(pos, side):
-    x, y = pos
-    if pos not in palace_for(side):
-        return False
-    local_x = x - 3
-    local_y = y if side is Side.CHO else y - 7
-    return local_x == local_y or local_x + local_y == 4
+from janggi import GameRecord, GameState, Move, Piece, PieceType, Side, state_from_dict, state_to_dict
+from janggi.core import _on_palace_diagonal
 
 
 class JanggiCoreTests(unittest.TestCase):
@@ -97,11 +89,11 @@ class JanggiCoreTests(unittest.TestCase):
         for y in range(3):
             for x in range(3, 6):
                 pos = (x, y)
-                self.assertEqual(_on_palace_diagonal_for_test(pos, Side.CHO), pos in cho_expected)
+                self.assertEqual(_on_palace_diagonal(pos, Side.CHO), pos in cho_expected)
         for y in range(7, 10):
             for x in range(3, 6):
                 pos = (x, y)
-                self.assertEqual(_on_palace_diagonal_for_test(pos, Side.HAN), pos in han_expected)
+                self.assertEqual(_on_palace_diagonal(pos, Side.HAN), pos in han_expected)
 
     def test_soldier_can_step_forward_diagonally_inside_enemy_palace(self):
         board = [None] * 90
