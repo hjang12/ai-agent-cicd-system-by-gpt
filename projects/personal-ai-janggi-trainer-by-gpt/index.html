@@ -754,8 +754,22 @@
         selected = null;
         render();
         renderEngineResult(response.analysis);
-      } catch (error) { status.textContent = error.message; }
-      finally { busy = false; updateControls(); }
+      } catch (error) {
+        status.textContent = error.message;
+        try {
+          await getState();
+          render();
+          if (snapshot?.status === 'playing' && snapshot?.state?.turn === snapshot?.player_side) {
+            heading.textContent = '대국 상태를 복구했습니다 · 내 차례';
+            status.textContent = '요청 중 오류가 있었지만 현재 대국 상태를 다시 확인했습니다.';
+          } else if (snapshot?.status === 'playing') {
+            heading.textContent = 'AI 응수 상태를 다시 확인했습니다';
+            status.textContent = '현재 서버 대국 상태를 다시 표시했습니다.';
+          }
+        } catch {
+          render();
+        }
+      } finally { busy = false; updateControls(); }
     });
 
     getState().catch(error => { status.textContent = error.message; });
