@@ -571,8 +571,7 @@
 
     async function getState() {
       const response = await fetch('/api/state', {cache:'no-store'});
-      if (!response.ok) throw new Error(`대국 상태 요청 실패 (${response.status})`);
-      snapshot = await response.json();
+      snapshot = await readJsonResponse(response);
       playerSide.value = snapshot.player_side || 'cho';
       aiLevel.value = snapshot.ai_level || '1';
       aiLevelNote.textContent = '현재 AI: Lv.' + (snapshot.ai_level || '1') + ' ' + (snapshot.ai_level_name || '입문') + ' · 레벨 변경은 대국 초기화부터 적용됩니다.';
@@ -584,11 +583,21 @@
       render();
     }
 
-    async function post(path, body) {
-      const response = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
-      const payload = await response.json();
+    async function readJsonResponse(response) {
+      const raw = await response.text();
+      let payload;
+      try {
+        payload = JSON.parse(raw);
+      } catch {
+        throw new Error(`서버 응답 형식 오류 (${response.status}). 대국 상태를 다시 확인하세요.`);
+      }
       if (!response.ok) throw new Error(payload.error || `요청 실패 (${response.status})`);
       return payload;
+    }
+
+    async function post(path, body) {
+      const response = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      return readJsonResponse(response);
     }
 
     async function clickCell(x, y) {
@@ -628,33 +637,32 @@
           heading.textContent = result.correct ? '훈련 정답' : '훈련 다시 보기';
           return;
         }
-        status.textContent = '내 수를 반영하는 중입니다…';
-        const moveResult = await post('/api/move', move);
-        snapshot = moveResult;
+        status.textContent = '내 수와 AI 응수를 처리하는 중입니다…';
+        const result = await post('/api/player/turn', move);
+        snapshot = result.snapshot;
         clearTrainingMode();
         renderReview(null);
         selected = null;
-        renderAnalysis(null, null);
         render();
-        if (snapshot.status !== 'playing' || snapshot.state.turn !== snapshot.ai_side) {
-          heading.textContent = snapshot.status === 'playing'
-            ? '내 차례'
-            : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
-          return;
-        }
-
-        status.textContent = 'AI가 응수하는 중입니다…';
-        const engineResult = await post('/api/engine/move', {});
-        snapshot = engineResult.snapshot;
-        render();
-        renderEngineResult(engineResult.analysis);
+        renderEngineResult(result.engine_analysis);
         heading.textContent = snapshot.status === 'playing'
           ? 'AI가 응수했습니다 · 내 차례'
           : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
       } catch (error) {
         status.textContent = error.message;
-        if (snapshot?.state?.turn === snapshot?.ai_side) {
-          heading.textContent = 'AI 응수가 필요합니다 · AI 수 두기';
+        selected = null;
+        try {
+          await getState();
+          render();
+          if (snapshot?.status === 'playing' && snapshot?.state?.turn === snapshot?.player_side) {
+            heading.textContent = '대국 상태를 복구했습니다 · 내 차례';
+            status.textContent = '요청 중 오류가 있었지만 현재 대국 상태를 다시 확인했습니다.';
+          } else if (snapshot?.status === 'playing') {
+            heading.textContent = 'AI 응수 처리 상태를 확인했습니다';
+            status.textContent = '현재 서버 대국 상태를 다시 표시했습니다.';
+          }
+        } catch {
+          render();
         }
       } finally {
         busy = false;
