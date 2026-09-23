@@ -34,6 +34,14 @@ class OpponentProfile:
         if self.rating is not None:
             _validate_rating(self.rating)
 
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "model_id": self.model_id,
+            "model_version": self.model_version,
+            "ai_level": self.ai_level,
+            "rating": self.rating,
+        }
+
 
 @dataclass(frozen=True)
 class MoveQualitySummary:
