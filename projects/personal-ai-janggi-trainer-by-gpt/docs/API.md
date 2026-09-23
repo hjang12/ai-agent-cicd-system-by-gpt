@@ -219,6 +219,10 @@ The response reports whether the move was legal and matched the current recommen
 
 Training problems are generated only from reviewed moves that are `acceptable`, `inaccuracy`, or `major_mistake` and have a valid engine recommendation. `recommended` and `unavailable` review entries are not converted into problems.
 
+## Assessment scope
+
+The application records completed player-vs-AI games as unrated or rated assessment events. The current baseline AI levels do not have calibrated model ratings, so game results are retained as unrated evidence and do not change the player's numeric rating. Future model versions can provide model_id, model_version, and a point-in-time rating without changing the player assessment API.
+
 ## Session scope
 
 The current server keeps one in-memory match per process. It is intentionally an MVP application boundary, not yet a persistent multi-user service. Authentication, databases, sessions, and concurrent-user isolation remain future application-layer concerns.
