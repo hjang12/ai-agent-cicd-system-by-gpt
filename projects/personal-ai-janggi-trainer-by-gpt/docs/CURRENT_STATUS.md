@@ -58,6 +58,7 @@
 - Per-browser in-memory session isolation using an opaque HttpOnly SameSite cookie, so separate browser sessions no longer share the same `Match` or training state
 - Browser analysis panel shows tactical risk, bounded tactical warnings, recommendation principal variation, and structured next-action coaching; principal variations use learner-facing board notation (`a1`–`i10`) with numbered plies and side labels, terminal results are localized, and turn handoff is explicit in the heading
 - Browser engine-move result also shows the engine principal variation, normalized evaluation score, search depth, and visited-node count as learning aids
+- Browser UI redesigned around a board-first, mobile-friendly game screen with explicit new-game settings, side/opponent cards, player assessment summary, and compact action controls
 - Browser match flow renders the human move immediately through `/api/move`, then starts the AI calculation through `/api/engine/move`; the UI exposes check-state feedback (`장군`/`멍군`) and localized terminal results. The previously available `/api/player/turn` remains an atomic server-side transaction for callers that need the combined turn contract. Browser requests validate JSON responses and resynchronize from `/api/state` after request-format/server errors. Undo restores the previous human decision point by removing the AI response plus the preceding human move when applicable
 
 ## Web/API
