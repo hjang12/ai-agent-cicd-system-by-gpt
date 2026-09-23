@@ -859,11 +859,11 @@
       updateControls();
       try {
         status.textContent = 'AI가 수를 계산하는 중입니다…';
+        const aiBeforeSnapshot = snapshot;
         const response = await post('/api/engine/move', {});
         snapshot = response.snapshot;
         clearTrainingMode();
         renderReview(null);
-        const aiBeforeSnapshot = snapshot;
         const aiMessage = moveEventMessage(aiBeforeSnapshot, snapshot, aiBeforeSnapshot.state.turn);
         if (aiMessage) {
           showGameMessage(aiMessage);
