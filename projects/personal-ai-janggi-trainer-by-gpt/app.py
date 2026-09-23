@@ -137,15 +137,17 @@ class TrainerApplication:
             return self.snapshot()
 
     def play_player_turn(self, payload: dict[str, object]) -> dict[str, object]:
-        """Apply one human move, then automatically let the AI answer.
+        """Apply one human move and one AI reply as one atomic application turn.
 
         The gameplay path deliberately does not run the heavyweight coaching
-        analyzer. A played move must update the board immediately; detailed
-        move analysis remains available through /api/analyze/move.
+        analyzer. A played move must either complete the full turn or leave
+        the match unchanged; detailed move analysis remains available through
+        /api/analyze/move.
         """
         move = self._move_from_payload(payload)
         with self._lock:
             self._ensure_player_turn()
+            original_match = self.match
             state_before = self.match.state
             moved_piece = None
             captured_piece = None
@@ -156,38 +158,42 @@ class TrainerApplication:
                 target = state_before.piece_at(move.dst)
                 captured_piece = target.kind if target is not None else None
 
-            self.match = self.match.play(move)
-            player_analysis = MoveAnalysis(
-                move=move,
-                recommended_move=None,
-                score_before_cp=None,
-                score_after_cp=None,
-                score_delta_cp=None,
-                depth=None,
-                nodes=None,
-                perspective=state_before.turn,
-                moved_piece=moved_piece,
-                captured_piece=captured_piece,
-                gives_check=self.match.state.is_in_check(state_before.turn.opponent),
-            )
-            player_coaching = coach_move(player_analysis)
-
-            engine_analysis = EngineAnalysis(perspective=self.match.state.turn)
-            if self.match.status.value == "playing" and self.match.state.turn is self.ai_side:
-                engine_analysis = validate_engine_analysis(
-                    self.match.state,
-                    self.engine.analyze(self.match.state),
+            try:
+                self.match = self.match.play(move)
+                player_analysis = MoveAnalysis(
+                    move=move,
+                    recommended_move=None,
+                    score_before_cp=None,
+                    score_after_cp=None,
+                    score_delta_cp=None,
+                    depth=None,
+                    nodes=None,
+                    perspective=state_before.turn,
+                    moved_piece=moved_piece,
+                    captured_piece=captured_piece,
+                    gives_check=self.match.state.is_in_check(state_before.turn.opponent),
                 )
-                if engine_analysis.best_move is not None:
-                    validate_engine_move(self.engine, self.match.state, engine_analysis.best_move)
-                    self.match = self.match.play(engine_analysis.best_move)
+                player_coaching = coach_move(player_analysis)
 
-            return {
-                "player_analysis": _analysis_to_dict(player_analysis),
-                "player_coaching": _coaching_to_dict(player_coaching),
-                "engine_analysis": _analysis_to_dict(engine_analysis),
-                "snapshot": self.snapshot(),
-            }
+                engine_analysis = EngineAnalysis(perspective=self.match.state.turn)
+                if self.match.status.value == "playing" and self.match.state.turn is self.ai_side:
+                    engine_analysis = validate_engine_analysis(
+                        self.match.state,
+                        self.engine.analyze(self.match.state),
+                    )
+                    if engine_analysis.best_move is not None:
+                        validate_engine_move(self.engine, self.match.state, engine_analysis.best_move)
+                        self.match = self.match.play(engine_analysis.best_move)
+
+                return {
+                    "player_analysis": _analysis_to_dict(player_analysis),
+                    "player_coaching": _coaching_to_dict(player_coaching),
+                    "engine_analysis": _analysis_to_dict(engine_analysis),
+                    "snapshot": self.snapshot(),
+                }
+            except Exception:
+                self.match = original_match
+                raise
 
     def undo(self) -> dict[str, object]:
         with self._lock:
@@ -654,6 +660,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
         except (ValueError, KeyError, TypeError) as exc:
             self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+        except Exception as exc:
+            print(f"request error: {type(exc).__name__}: {exc}")
+            self._send_json({"error": "internal server error"}, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
     def log_message(self, format: str, *args: object) -> None:

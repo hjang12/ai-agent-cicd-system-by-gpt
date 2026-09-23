@@ -57,7 +57,7 @@
 - Per-browser in-memory session isolation using an opaque HttpOnly SameSite cookie, so separate browser sessions no longer share the same `Match` or training state
 - Browser analysis panel shows tactical risk, bounded tactical warnings, recommendation principal variation, and structured next-action coaching; principal variations use learner-facing board notation (`a1`–`i10`) with numbered plies and side labels, terminal results are localized, and turn handoff is explicit in the heading
 - Browser engine-move result also shows the engine principal variation, normalized evaluation score, search depth, and visited-node count as learning aids
-- Browser match flow is now human-vs-AI by default: a Cho move is submitted through one server-side turn that automatically applies one Han engine response; the AI move button remains as a manual recovery path when the automatic response is unavailable. Undo restores the previous human decision point by removing the AI response plus the preceding human move when applicable
+- Browser match flow is now human-vs-AI by default: a human move is submitted through one server-side `/api/player/turn` transaction that applies the AI response atomically; if the AI response fails, the human move is rolled back. The browser also validates JSON responses and resynchronizes from `/api/state` after request-format/server errors. The AI move button remains as a manual recovery path when the automatic response is unavailable. Undo restores the previous human decision point by removing the AI response plus the preceding human move when applicable
 
 ## Web/API
 
