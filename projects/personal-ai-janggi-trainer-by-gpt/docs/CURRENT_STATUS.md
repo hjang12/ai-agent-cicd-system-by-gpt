@@ -54,6 +54,7 @@
 - Model metadata registry
 - Head-to-head evaluation, tournament aggregation, and Elo-style rating primitives
 - Dependency-free browser trainer and HTTP API
+- Per-browser in-memory session isolation using an opaque HttpOnly SameSite cookie, so separate browser sessions no longer share the same `Match` or training state
 - Browser analysis panel shows tactical risk, bounded tactical warnings, recommendation principal variation, and structured next-action coaching; principal variations use learner-facing board notation (`a1`–`i10`) with numbered plies and side labels, terminal results are localized, and turn handoff is explicit in the heading
 - Browser engine-move result also shows the engine principal variation, normalized evaluation score, search depth, and visited-node count as learning aids
 - Browser match flow is now human-vs-AI by default: a Cho move is submitted through one server-side turn that automatically applies one Han engine response; the AI move button remains as a manual recovery path when the automatic response is unavailable. Undo restores the previous human decision point by removing the AI response plus the preceding human move when applicable
@@ -62,9 +63,9 @@
 
 - `GET /` — browser trainer shell
 - `GET /api/health` — service health
-- `GET /api/state` — current match snapshot and legal moves
-- `GET /api/record` — current session record
-- `POST /api/reset` — reset session/setup
+- `GET /api/state` — current browser-session match snapshot and legal moves
+- `GET /api/record` — current browser-session record
+- `POST /api/reset` — reset the current browser session's match/setup
 - `POST /api/move` — low-level player move compatibility endpoint
 - `POST /api/player/turn` — apply one human move and automatically apply one baseline AI response
 - `POST /api/undo` — restore the previous human decision point, normally undoing the AI reply plus the preceding human move
@@ -139,6 +140,7 @@ The service is now running from the canonical monorepo. Live Render `healthCheck
 ## Explicitly Deferred
 
 - Persistent user accounts and cloud synchronization
+- Persistent or cross-instance session storage; current browser sessions live only in one server process and are lost on process restart or replacement
 - Database-backed game history
 - Trained neural/learned policy or value model
 - Production model hosting/model serving
@@ -151,7 +153,7 @@ The service is now running from the canonical monorepo. Live Render `healthCheck
 
 `domain core → match policy → records → engine adapter → search/self-play → training/evaluation → web/API → personal coaching → persistence/authentication/multi-user experience`
 
-The domain model remains authoritative for legality and terminal state. HTTP/browser layers must not duplicate those rules. Engine output must be validated before application.
+The domain model remains authoritative for legality and terminal state. HTTP/browser layers must not duplicate those rules. Engine output must be validated before application. The HTTP layer resolves each browser request to an isolated `TrainerApplication` session before invoking the domain/match layer.
 
 Tactical analysis is intentionally kept at the analysis layer and does not assume a particular engine strength. Immediate tactical risk is one-ply deep. The bounded `double_attack` motif allows one opponent reply and then checks whether the original mover would have legal captures against at least two opposing non-general pieces of at least guard value, while explicitly ignoring the mover's intervening defense. It is therefore a forward-looking warning, not proof of a forced win or loss. Coaching keeps tactical signals separate from score-based severity. Representative fixtures are documented in `docs/TACTICAL_ANALYSIS.md`.
 

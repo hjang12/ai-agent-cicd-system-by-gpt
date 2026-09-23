@@ -1,7 +1,9 @@
 import unittest
+from email.message import Message
 from pathlib import Path
+from unittest.mock import patch
 
-from app import TrainerApplication
+from app import SESSION_COOKIE_NAME, RequestHandler, TrainerApplication, TrainerSessionStore
 from janggi import EngineAnalysis, FirstLegalEngine, Move, Side
 
 
@@ -33,6 +35,66 @@ class InvalidAnalysisEngine:
     @property
     def info(self):
         raise AssertionError("info should not be read")
+
+
+class TrainerSessionStoreTests(unittest.TestCase):
+    def test_sessions_are_isolated(self):
+        store = TrainerSessionStore(max_sessions=4)
+        first_id, first_app, first_new = store.get_or_create()
+        second_id, second_app, second_new = store.get_or_create()
+        self.assertNotEqual(first_id, second_id)
+        self.assertTrue(first_new)
+        self.assertTrue(second_new)
+        self.assertIsNot(first_app, second_app)
+        move = first_app.snapshot()["legal_moves"][0]
+        first_app.play({"src": move["src"], "dst": move["dst"]})
+        self.assertEqual(len(first_app.snapshot()["state"]["history"]), 1)
+        self.assertEqual(len(second_app.snapshot()["state"]["history"]), 0)
+
+    def test_existing_session_id_reuses_application(self):
+        store = TrainerSessionStore(max_sessions=4)
+        session_id, application, created = store.get_or_create()
+        same_id, same_application, created_again = store.get_or_create(session_id)
+        self.assertEqual(same_id, session_id)
+        self.assertIs(same_application, application)
+        self.assertFalse(created_again)
+
+    def test_invalid_session_id_creates_new_application(self):
+        store = TrainerSessionStore(max_sessions=4)
+        first_id, first_app, _ = store.get_or_create()
+        second_id, second_app, created = store.get_or_create("not-a-valid-session")
+        self.assertNotEqual(second_id, first_id)
+        self.assertIsNot(second_app, first_app)
+        self.assertTrue(created)
+
+
+class RequestHandlerSessionTests(unittest.TestCase):
+    def test_cookie_selects_existing_session_application(self):
+        store = TrainerSessionStore(max_sessions=4)
+        session_id, application, _ = store.get_or_create()
+        handler = RequestHandler.__new__(RequestHandler)
+        handler.headers = Message()
+        handler.headers["Cookie"] = f"{SESSION_COOKIE_NAME}={session_id}"
+        with patch("app.SESSION_STORE", store):
+            resolved = handler._session_application()
+        self.assertIs(resolved, application)
+        self.assertFalse(handler._session_cookie_pending)
+
+    def test_new_session_sets_http_only_same_site_cookie(self):
+        store = TrainerSessionStore(max_sessions=4)
+        handler = RequestHandler.__new__(RequestHandler)
+        handler.headers = Message()
+        sent = []
+        handler.send_header = lambda name, value: sent.append((name, value))
+        with patch("app.SESSION_STORE", store):
+            handler._session_application()
+            handler._set_session_cookie()
+        cookie_values = [value for name, value in sent if name == "Set-Cookie"]
+        self.assertEqual(len(cookie_values), 1)
+        self.assertIn(f"{SESSION_COOKIE_NAME}=", cookie_values[0])
+        self.assertIn("HttpOnly", cookie_values[0])
+        self.assertIn("Path=/", cookie_values[0])
+        self.assertIn("SameSite=Lax", cookie_values[0])
 
 
 class TrainerApplicationTests(unittest.TestCase):

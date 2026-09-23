@@ -973,3 +973,31 @@ GitHub Actions on the PR head confirmed:
 ### Boundary
 
 This is an evaluation correctness/quality correction, not a claim that the AI is already stronger overall. The next strength step remains measured search-depth/tactical quality evaluation against deterministic fixtures and self-play.
+
+
+## 36. 2026-09-23 — Browser session isolation
+
+### Finding
+
+The browser trainer previously routed every HTTP request to one process-wide `TrainerApplication`. As a result, all visitors shared the same match, undo history, review state, and training metrics.
+
+### Decision
+
+Introduce an opaque browser session identifier stored in an HttpOnly, SameSite cookie and resolve each request to its own in-memory `TrainerApplication`. Keep the existing domain, match, engine, and browser contracts unchanged.
+
+### Implementation
+
+- Added `TrainerSessionStore` with bounded in-memory session storage.
+- Added per-browser `janggi_session` cookie handling in the dependency-free HTTP server.
+- Routed stateful GET/POST endpoints through the session-specific `TrainerApplication`.
+- Kept `/api/health` stateless so health checks do not create sessions.
+- Added regression tests proving separate sessions have independent match state and cookie-based request routing.
+
+### Boundary
+
+This is session isolation, not persistent authentication. Sessions are process-local and disappear when the Render service restarts or a request is routed to a different service instance. Persistent accounts and shared session storage remain deferred to a later persistence layer.
+
+### Verification
+
+- Python compile and unit-test workflow covers session-store and request-cookie regressions.
+- Existing Janggi domain, engine, coaching, training, and browser-contract tests remain unchanged apart from the new session coverage.
