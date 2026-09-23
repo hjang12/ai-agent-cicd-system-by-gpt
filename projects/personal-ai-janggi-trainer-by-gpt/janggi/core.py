@@ -83,8 +83,10 @@ class GameState:
         for x in (3, 5):
             put(x, 0, Side.CHO, PieceType.GUARD)
             put(x, 9, Side.HAN, PieceType.GUARD)
-        put(4, 0, Side.CHO, PieceType.GENERAL)
-        put(4, 9, Side.HAN, PieceType.GENERAL)
+        # The General starts at the center point of the 3x3 palace,
+        # one rank forward from the back rank.
+        put(4, 1, Side.CHO, PieceType.GENERAL)
+        put(4, 8, Side.HAN, PieceType.GENERAL)
 
         for x in (1, 7):
             put(x, 2, Side.CHO, PieceType.CANNON)
@@ -236,9 +238,9 @@ def _on_palace_diagonal(pos: Position, side: Side) -> bool:
     x, y = pos
     if pos not in palace_for(side):
         return False
-    if side is Side.CHO:
-        return (x - 3 == y) or (x + y == 4)
-    return (x - 3 == 9 - y) or (x + y == 13)
+    local_x = x - 3
+    local_y = y if side is Side.CHO else y - 7
+    return local_x == local_y or local_x + local_y == 2
 
 
 def _king_like_destinations(src: Position, piece: Piece) -> set[Position]:

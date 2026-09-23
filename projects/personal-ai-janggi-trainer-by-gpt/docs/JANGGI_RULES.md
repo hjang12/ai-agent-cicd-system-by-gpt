@@ -19,7 +19,7 @@ Each side has 16 pieces: 1 General, 2 Guards, 2 Elephants, 2 Horses, 2 Chariots,
 
 The fixed pieces are:
 
-- General: center of the back rank (`e1` / `e10` in the top/bottom notation used by the reference rules).
+- General: center point of the 3×3 palace, one rank forward from the back rank (`(4, 1)` for Cho and `(4, 8)` for Han in code coordinates).
 - Guards: immediately left and right of the General on the back rank.
 - Chariots: both corners of the back rank.
 - Cannons: files `b` and `h`, one rank forward from the Soldier rank.
