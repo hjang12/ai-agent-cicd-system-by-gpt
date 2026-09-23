@@ -36,11 +36,13 @@ The browser prototype now consumes the application API for authoritative state, 
 - Dependency-free search baseline
 - Self-play and batch game generation
 - Model metadata registry and head-to-head evaluation/rating primitives
+- Player skill-assessment foundation with unrated-game evidence, future-calibrated rating input, and opponent model/version provenance
 - Product and technical decision records
 
 ## Explicitly deferred
 
 - Persistent user accounts and cloud synchronization
+- Durable user rating/history storage and cross-device skill profile
 - Database-backed game history
 - Trained neural or learned policy/value model
 - Production model hosting and model-serving infrastructure
