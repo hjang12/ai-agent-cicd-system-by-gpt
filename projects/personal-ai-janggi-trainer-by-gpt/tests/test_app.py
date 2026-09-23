@@ -97,6 +97,14 @@ class RequestHandlerSessionTests(unittest.TestCase):
         self.assertIn("SameSite=Lax", cookie_values[0])
 
 
+class ExplodingEngine:
+    def analyze(self, state):
+        raise RuntimeError("engine failed")
+
+    def choose_move(self, state):
+        raise AssertionError("choose_move should not be called")
+
+
 class TrainerApplicationTests(unittest.TestCase):
     def test_initial_snapshot_is_playing(self):
         app = TrainerApplication()
@@ -232,6 +240,18 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("snapshot", response)
         self.assertEqual(response["snapshot"]["state"]["turn"], "cho")
         self.assertEqual(len(response["snapshot"]["state"]["history"]), 2)
+
+    def test_player_turn_rolls_back_when_ai_response_fails(self):
+        app = TrainerApplication()
+        app.engine = ExplodingEngine()
+        move = app.snapshot()["legal_moves"][0]
+
+        with self.assertRaises(RuntimeError):
+            app.play_player_turn({"src": move["src"], "dst": move["dst"]})
+
+        snapshot = app.snapshot()
+        self.assertEqual(len(snapshot["state"]["history"]), 0)
+        self.assertEqual(snapshot["state"]["turn"], "cho")
 
     def test_player_turn_does_not_require_heavy_analyzer(self):
         class ExplodingAnalyzer:
@@ -376,7 +396,9 @@ class TrainerApplicationTests(unittest.TestCase):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("AI가 응수했습니다 · 내 차례", html)
         self.assertIn("AI 응수가 필요합니다 · AI 수 두기", html)
-        self.assertIn("post('/api/move', move)", html)
+        self.assertIn("post('/api/player/turn', move)", html)
+        self.assertIn("readJsonResponse(response)", html)
+        self.assertNotIn("post('/api/move', move)", html)
         self.assertIn("post('/api/engine/move', {})", html)
     def test_browser_localizes_terminal_status_and_engine_heading(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
