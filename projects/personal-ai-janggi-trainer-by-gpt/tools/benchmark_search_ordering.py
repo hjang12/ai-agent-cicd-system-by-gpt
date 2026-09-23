@@ -175,20 +175,21 @@ def main() -> None:
         _midgame_fixture(),
         _endgame_fixture(),
     )
-    # Pass/한수쉼 is now part of the searched action space. These baselines
-    # intentionally supersede the pre-pass node counts after confirming that
-    # all ordering variants preserve the coordinate-reference minimax scores.
+    # Pass/한수쉼 is now part of the searched action space. The initial setup
+    # and palace-diagonal geometry were corrected to the standard Janggi layout,
+    # so these deterministic node baselines intentionally supersede the prior
+    # baseline while preserving score/best-move agreement across orderings.
     expected_current_nodes = {
-        ("initial", 2): 84,
+        ("initial", 2): 161,
         ("capture", 2): 60,
-        ("capture", 3): 444,
-        ("check", 2): 41,
-        ("check", 3): 514,
-        ("double_attack", 2): 121,
-        ("double_attack", 3): 1003,
-        ("midgame", 2): 157,
-        ("endgame", 2): 108,
-        ("endgame", 3): 690,
+        ("capture", 3): 441,
+        ("check", 2): 39,
+        ("check", 3): 449,
+        ("double_attack", 2): 117,
+        ("double_attack", 3): 928,
+        ("midgame", 2): 156,
+        ("endgame", 2): 114,
+        ("endgame", 3): 699,
     }
 
     print("Search benchmark: reference vs current vs check-first vs capture-check-first")
