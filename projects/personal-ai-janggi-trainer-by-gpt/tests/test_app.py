@@ -469,11 +469,24 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("for (let y = 0; y < 10; y += 1)", html)
         self.assertIn("cell.style.left = (5 + x * 11.25) + '%'", html)
         self.assertIn("cell.style.top = (5 + y * 10) + '%'", html)
-        self.assertIn("box-sizing:content-box", html)
-        self.assertIn(".board-lines { position:absolute; inset:5%; width:90%; height:90%;", html)
-        self.assertIn("padding:0", html)
-        self.assertIn("margin:0; transform:translate(-50%,-50%)", html)
+        self.assertIn(".board{", html)
+        self.assertIn("width:min(100%,660px)", html)
+        self.assertIn("board-wrap", html)
         self.assertIn('stroke-width="0.035" fill="none">', html)
+
+    def test_browser_mobile_game_layout_and_pending_settings_contract(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn('class="app-shell"', html)
+        self.assertIn('class="players"', html)
+        self.assertIn('class="game-stage"', html)
+        self.assertIn('class="side-panel"', html)
+        self.assertIn('class="card"', html)
+        self.assertIn("새 대국 설정", html)
+        self.assertIn("현재 대국과 분리", html)
+        self.assertIn("이 설정으로 새 대국 시작", html)
+        self.assertIn("<strong>한 선택</strong>", html)
+        self.assertIn("이 설정으로 새 대국을 시작하면 초가 먼저", html)
+        self.assertIn("renderAssessment(snapshot?.assessment, snapshot?.opponent)", html)
 
     def test_browser_exposes_ai_level_selector_and_reset_contract(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
