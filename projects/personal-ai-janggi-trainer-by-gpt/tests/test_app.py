@@ -106,6 +106,12 @@ class ExplodingEngine:
 
 
 class TrainerApplicationTests(unittest.TestCase):
+    def test_snapshot_exposes_current_check_state(self):
+        app = TrainerApplication()
+        snapshot = app.snapshot()
+        self.assertIn("in_check", snapshot)
+        self.assertFalse(snapshot["in_check"])
+
     def test_initial_snapshot_is_playing(self):
         app = TrainerApplication()
         snapshot = app.snapshot()
@@ -401,6 +407,22 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("await getState()", html)
         self.assertNotIn("post('/api/move', move)", html)
         self.assertIn("post('/api/engine/move', {})", html)
+    def test_browser_exposes_move_feedback_and_game_messages(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("game-message", html)
+        self.assertIn("pieceMoveHints", html)
+        self.assertIn("상은 2칸×3칸 또는 3칸×2칸", html)
+        self.assertIn("explainIllegalMove(selected, [stateX, stateY], view)", html)
+        self.assertIn("post('/api/move', move)", html)
+        self.assertIn("내 수가 먼저 반영되었습니다.", html)
+        self.assertIn("AI가 수를 계산하는 중입니다…", html)
+        self.assertIn("장군!", html)
+        self.assertIn("멍군!", html)
+        self.assertIn("대국 시작 · 초가 먼저 둡니다.", html)
+        self.assertIn("대국 종료 · 초가 이겼습니다.", html)
+        self.assertIn("대국 종료 · 한이 이겼습니다.", html)
+        self.assertIn("snapshot.in_check", html)
+
     def test_browser_localizes_terminal_status_and_engine_heading(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("'cho_win':'초 승'", html)
