@@ -221,6 +221,8 @@ class TrainerApplication:
             return self.snapshot()
 
     def can_undo(self) -> bool:
+        if self.match.status.value != "playing":
+            return False
         if not self.match.state.history:
             return False
         if (
