@@ -421,7 +421,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("대국 시작 · 초가 먼저 둡니다.", html)
         self.assertIn("대국 종료 · 초가 이겼습니다.", html)
         self.assertIn("대국 종료 · 한이 이겼습니다.", html)
-        self.assertIn(""in_check": self.match.state.is_in_check(self.match.state.turn)", html)
+        self.assertIn('"in_check": self.match.state.is_in_check(self.match.state.turn)', html)
 
     def test_browser_localizes_terminal_status_and_engine_heading(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
