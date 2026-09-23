@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
+from http.cookies import SimpleCookie
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -25,6 +27,44 @@ ANALYSIS_SEARCH_DEPTH = 2
 DEFAULT_PLAYER_SIDE = Side.CHO
 DEFAULT_AI_SIDE = Side.HAN
 DEFAULT_AI_LEVEL = AILevel.BEGINNER
+SESSION_COOKIE_NAME = "janggi_session"
+SESSION_TOKEN_BYTES = 32
+MAX_SESSIONS = 512
+
+
+def _is_valid_session_id(value: object) -> bool:
+    return isinstance(value, str) and 32 <= len(value) <= 128 and all(
+        char.isalnum() or char in "_-" for char in value
+    )
+
+
+class TrainerSessionStore:
+    """Keep each browser session isolated within this server process."""
+
+    def __init__(self, max_sessions: int = MAX_SESSIONS) -> None:
+        if not isinstance(max_sessions, int) or isinstance(max_sessions, bool) or max_sessions < 1:
+            raise ValueError("max_sessions must be a positive integer")
+        self._lock = RLock()
+        self._max_sessions = max_sessions
+        self._sessions: dict[str, TrainerApplication] = {}
+
+    def get_or_create(self, session_id: object = None) -> tuple[str, TrainerApplication, bool]:
+        with self._lock:
+            if _is_valid_session_id(session_id) and session_id in self._sessions:
+                return session_id, self._sessions[session_id], False
+
+            if len(self._sessions) >= self._max_sessions:
+                oldest_session_id = next(iter(self._sessions))
+                del self._sessions[oldest_session_id]
+
+            new_session_id = secrets.token_urlsafe(SESSION_TOKEN_BYTES)
+            application = TrainerApplication()
+            self._sessions[new_session_id] = application
+            return new_session_id, application, True
+
+    def size(self) -> int:
+        with self._lock:
+            return len(self._sessions)
 
 
 class TrainerApplication:
@@ -471,11 +511,39 @@ def _move_to_dict(move: object) -> object:
     }
 
 
-APP = TrainerApplication()
+SESSION_STORE = TrainerSessionStore()
 
 
 class RequestHandler(BaseHTTPRequestHandler):
     server_version = "PersonalAIJanggiTrainer/0.1"
+
+    def _session_application(self) -> TrainerApplication:
+        if hasattr(self, "_application"):
+            return self._application
+        cookie = SimpleCookie()
+        cookie.load(self.headers.get("Cookie", ""))
+        raw_session_id = cookie.get(SESSION_COOKIE_NAME)
+        session_id, application, is_new = SESSION_STORE.get_or_create(
+            raw_session_id.value if raw_session_id is not None else None
+        )
+        self._session_id = session_id
+        self._application = application
+        self._session_cookie_pending = is_new
+        return application
+
+    def _set_session_cookie(self) -> None:
+        if not getattr(self, "_session_cookie_pending", False):
+            return
+        attributes = [
+            f"{SESSION_COOKIE_NAME}={self._session_id}",
+            "HttpOnly",
+            "Path=/",
+            "SameSite=Lax",
+        ]
+        if self.headers.get("X-Forwarded-Proto", "").lower() == "https":
+            attributes.append("Secure")
+        self.send_header("Set-Cookie", "; ".join(attributes))
+        self._session_cookie_pending = False
 
     def _send_json(self, payload: object, status: HTTPStatus = HTTPStatus.OK) -> None:
         raw = json.dumps(
@@ -487,6 +555,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(raw)))
         self.send_header("Cache-Control", "no-store")
+        self._set_session_cookie()
         self.end_headers()
         self.wfile.write(raw)
 
@@ -506,22 +575,24 @@ class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         path = urlparse(self.path).path
         if path == "/":
+            self._session_application()
             self._send_index()
             return
         if path == "/api/health":
             self._send_json({"status": "ok"})
             return
+        application = self._session_application()
         if path == "/api/state":
-            self._send_json(APP.snapshot())
+            self._send_json(application.snapshot())
             return
         if path == "/api/ai/levels":
-            self._send_json({"levels": ai_level_payload(), "current": APP.snapshot()["ai_level"]})
+            self._send_json({"levels": ai_level_payload(), "current": application.snapshot()["ai_level"]})
             return
         if path == "/api/record":
-            self._send_json(APP.record())
+            self._send_json(application.record())
             return
         if path == "/api/training/metrics":
-            self._send_json(APP.training_metrics_snapshot())
+            self._send_json(application.training_metrics_snapshot())
             return
         self._send_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
 
@@ -535,12 +606,14 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(raw)))
         self.send_header("Cache-Control", "no-store")
+        self._set_session_cookie()
         self.end_headers()
         self.wfile.write(raw)
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
         try:
+            application = self._session_application()
             if path == "/api/reset":
                 payload = self._read_json()
                 setup = payload.get("setup", "classic")
@@ -552,31 +625,31 @@ class RequestHandler(BaseHTTPRequestHandler):
                     raise ValueError("player_side must be a string")
                 if not isinstance(ai_level, str):
                     raise ValueError("ai_level must be a string")
-                self._send_json(APP.reset(setup=setup, player_side=player_side, ai_level=ai_level))
+                self._send_json(application.reset(setup=setup, player_side=player_side, ai_level=ai_level))
                 return
             if path == "/api/move":
-                self._send_json(APP.play(self._read_json()))
+                self._send_json(application.play(self._read_json()))
                 return
             if path == "/api/player/turn":
-                self._send_json(APP.play_player_turn(self._read_json()))
+                self._send_json(application.play_player_turn(self._read_json()))
                 return
             if path == "/api/undo":
-                self._send_json(APP.undo())
+                self._send_json(application.undo())
                 return
             if path == "/api/analyze/move":
-                self._send_json(APP.analyze_move(self._read_json()))
+                self._send_json(application.analyze_move(self._read_json()))
                 return
             if path == "/api/engine/move":
-                self._send_json(APP.engine_move())
+                self._send_json(application.engine_move())
                 return
             if path == "/api/review":
-                self._send_json(APP.review(self._read_json()))
+                self._send_json(application.review(self._read_json()))
                 return
             if path == "/api/training/problems":
-                self._send_json(APP.training_problems(self._read_json()))
+                self._send_json(application.training_problems(self._read_json()))
                 return
             if path == "/api/training/answer":
-                self._send_json(APP.training_problem_answer(self._read_json()))
+                self._send_json(application.training_problem_answer(self._read_json()))
                 return
             self._send_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
         except (ValueError, KeyError, TypeError) as exc:
