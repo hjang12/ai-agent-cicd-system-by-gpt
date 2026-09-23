@@ -435,6 +435,28 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("cp (${sideLabels[result.perspective] || result.perspective || '기준'} 기준)", html)
         self.assertIn("탐색 깊이 ${result.depth}.", html)
         self.assertIn("확인한 노드 ${result.nodes.toLocaleString()}개.", html)
+    def test_browser_turn_flow_renders_human_move_before_ai_request(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        human = html.index("const moveResult = await post('/api/move', move);")
+        render_after = html.index("render();", human)
+        thinking = html.index("showBoardMessage(thinkingTitle, thinkingSubtitle", human)
+        paint = html.index("await new Promise(resolve => requestAnimationFrame(resolve));", human)
+        engine = html.index("const engineResult = await post('/api/engine/move', {});", human)
+        self.assertLess(human, render_after)
+        self.assertLess(render_after, thinking)
+        self.assertLess(thinking, paint)
+        self.assertLess(paint, engine)
+
+    def test_browser_board_message_contract_is_present(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn('class="board-message"', html)
+        self.assertIn('class="board-message-title"', html)
+        self.assertIn('class="board-message-sub"', html)
+        self.assertIn("showBoardThinking", html)
+        self.assertIn("thinking:true", html)
+        self.assertIn("durationMs:2200", html)
+        self.assertIn("durationMs:2600", html)
+        self.assertIn("durationMs:1800", html)
     def test_browser_highlights_last_move_and_uses_uniform_board_grid(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("last-move-from", html)
