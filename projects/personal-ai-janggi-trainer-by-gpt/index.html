@@ -21,6 +21,8 @@
     button.primary { background:var(--accent); color:#fff; border:1px solid #96601b; } button.secondary { background:#f0ece4; color:#2d2924; border:1px solid #d4cdc1; } button:disabled { opacity:.6; cursor:wait; }
     select { background:#fff; color:var(--ink); border:1px solid #cfc7ba; }
     .status { color:#514b43; min-height:3em; } .meta { color:var(--muted); font-size:.9rem; }
+    .game-message { margin:12px 0 0; padding:11px 13px; border:1px solid #d2b47d; border-radius:10px; background:#fff8e8; font-weight:800; }
+    .game-message[hidden] { display:none; }
     .analysis { margin-top:18px; padding:16px; border:1px solid #d6cfc3; border-radius:12px; background:#fbf8f2; }
     .analysis h3 { margin:0 0 8px; } .analysis-row { display:flex; justify-content:space-between; gap:16px; padding:4px 0; color:#d8d3c8; } .analysis-row strong { text-align:right; overflow-wrap:anywhere; } .analysis-pv { display:block; } .analysis-pv strong { display:block; margin-top:4px; text-align:left; line-height:1.65; } .analysis-note { margin:10px 0 0; color:var(--muted); }
     .action { margin-top:14px; padding:13px 14px; border:1px solid #8a6736; border-radius:10px; background:#f7f0e4; } .action-title { display:block; margin-bottom:4px; color:var(--accent); }
@@ -66,6 +68,7 @@
       <aside class="panel">
         <h2 id="heading">대국 준비</h2>
         <p class="status" id="status">현재 대국 상태를 불러오는 중입니다…</p>
+        <div class="game-message" id="game-message" hidden role="status" aria-live="polite"></div>
         <div class="meta" id="turn"></div>
         <label for="player-side">내 진영 · 선택한 진영이 화면 아래쪽</label>
         <select id="player-side" aria-label="내 진영">
@@ -172,9 +175,19 @@
       'draw_consecutive_pass':'연속 한수쉼 무승부',
       'draw_stalemate':'스테일메이트 무승부'
     };
+    const pieceMoveHints = {
+      'general':'왕은 궁성 안에서 한 칸씩 이동합니다. 궁성 대각선도 사용할 수 있습니다.',
+      'guard':'사는 궁성 안에서 한 칸씩 이동하며 궁성 대각선을 따라 이동할 수 있습니다.',
+      'elephant':'상은 2칸×3칸 또는 3칸×2칸으로 이동하며 중간 경유점 두 곳이 모두 비어 있어야 합니다.',
+      'horse':'마는 한 칸을 직선으로 이동한 뒤 한 칸을 대각선으로 이동합니다. 첫 칸이 막히면 움직일 수 없습니다.',
+      'chariot':'차는 가로 또는 세로로 이동하며, 일반적으로 앞을 막는 기물이 없어야 합니다.',
+      'cannon':'포는 한 기물을 정확히 하나 넘어서 이동하거나 잡습니다. 포끼리는 포를 넘는 데 사용할 수 없습니다.',
+      'soldier':'졸/병은 앞으로 한 칸 또는 옆으로 한 칸 이동할 수 있으며 궁성 안에서는 대각선 이동이 가능합니다.'
+    };
     const board = document.querySelector('#board');
     const status = document.querySelector('#status');
     const turn = document.querySelector('#turn');
+    const gameMessage = document.querySelector('#game-message');
     const heading = document.querySelector('#heading');
     const setup = document.querySelector('#setup');
     const playerSide = document.querySelector('#player-side');
@@ -278,6 +291,54 @@
     function formatTacticalMotifs(motifs) {
       if (!Array.isArray(motifs) || motifs.length === 0) return '없음';
       return motifs.map(motif => tacticalMotifLabels[motif] || motif).join(', ');
+    }
+
+    function showGameMessage(message) {
+      if (!message) {
+        gameMessage.hidden = true;
+        gameMessage.textContent = '';
+        return;
+      }
+      gameMessage.hidden = false;
+      gameMessage.textContent = message;
+    }
+
+    function terminalMessage(status) {
+      const messages = {
+        'cho_win':'대국 종료 · 초가 이겼습니다.',
+        'han_win':'대국 종료 · 한이 이겼습니다.',
+        'draw_bikjang':'대국 종료 · 빅장으로 무승부입니다.',
+        'draw_repetition':'대국 종료 · 동일 포지션 반복으로 무승부입니다.',
+        'draw_consecutive_pass':'대국 종료 · 연속 한수쉼으로 무승부입니다.',
+        'draw_stalemate':'대국 종료 · 스테일메이트로 무승부입니다.'
+      };
+      return messages[status] || '';
+    }
+
+    function moveEventMessage(before, after, moverSide) {
+      const parts = [];
+      if (before?.in_check) {
+        parts.push('멍군! ' + (sideLabels[moverSide] || moverSide) + '이(가) 장군을 받았습니다.');
+      }
+      if (after?.in_check) {
+        const targetSide = after.state?.turn;
+        parts.push('장군! ' + (sideLabels[moverSide] || moverSide) + '이(가) ' + (sideLabels[targetSide] || targetSide) + '에게 장군을 걸었습니다.');
+      }
+      if (after?.status && after.status !== 'playing') {
+        const terminal = terminalMessage(after.status);
+        if (terminal) parts.push(terminal);
+      }
+      return parts.join(' ');
+    }
+
+    function explainIllegalMove(src, dst, view) {
+      const piece = pieceAt(src[1] * 9 + src[0]);
+      if (!piece) return '선택한 칸에 이동할 기물이 없습니다.';
+      const target = pieceAt(dst[1] * 9 + dst[0]);
+      if (target && target.side === piece.side) {
+        return '같은 편 기물이 있는 칸으로는 이동할 수 없습니다.';
+      }
+      return pieceMoveHints[piece.kind] || '이 기물의 이동 규칙에 맞지 않는 수입니다.';
     }
 
     function updateControls() {
@@ -581,6 +642,17 @@
       clearTrainingMode();
       selected = null;
       render();
+      if (snapshot.state.history.length === 0) {
+        const startMessage = snapshot.player_side === 'cho'
+          ? '대국 시작 · 초가 먼저 둡니다.'
+          : '대국 시작 · 한이 화면 아래쪽에서 대국을 시작합니다.';
+        showGameMessage(startMessage);
+        heading.textContent = startMessage;
+      } else if (snapshot.status !== 'playing') {
+        const terminal = terminalMessage(snapshot.status);
+        showGameMessage(terminal);
+        heading.textContent = terminal || '대국 종료';
+      }
     }
 
     async function readJsonResponse(response) {
@@ -608,6 +680,7 @@
       if (!selected) {
         if (current && current.side === snapshot.state.turn) {
           selected = [stateX, stateY];
+          showGameMessage('');
           status.textContent = '이동할 수 있는 칸을 선택하세요.';
           render();
         }
@@ -617,7 +690,7 @@
         selected = null; render(); return;
       }
       if (!legalDestination(selected, [stateX, stateY])) {
-        status.textContent = '그 칸으로는 이동할 수 없습니다.';
+        status.textContent = explainIllegalMove(selected, [stateX, stateY], view);
         return;
       }
       busy = true;
@@ -637,17 +710,51 @@
           heading.textContent = result.correct ? '훈련 정답' : '훈련 다시 보기';
           return;
         }
-        status.textContent = '내 수와 AI 응수를 처리하는 중입니다…';
-        const result = await post('/api/player/turn', move);
-        snapshot = result.snapshot;
+
+        const beforeSnapshot = snapshot;
+        status.textContent = '내 수를 반영하는 중입니다…';
+        const moveResult = await post('/api/move', move);
+        snapshot = moveResult;
         clearTrainingMode();
         renderReview(null);
         selected = null;
         render();
-        renderEngineResult(result.engine_analysis);
-        heading.textContent = snapshot.status === 'playing'
-          ? 'AI가 응수했습니다 · 내 차례'
-          : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
+
+        const humanMessage = moveEventMessage(beforeSnapshot, snapshot, beforeSnapshot.state.turn);
+        if (humanMessage) {
+          showGameMessage(humanMessage);
+          heading.textContent = humanMessage;
+        } else if (snapshot.status !== 'playing') {
+          const terminal = terminalMessage(snapshot.status);
+          showGameMessage(terminal);
+          heading.textContent = terminal || '대국 종료';
+          return;
+        } else {
+          showGameMessage('내 수가 먼저 반영되었습니다.');
+          heading.textContent = '내 수 완료 · AI가 생각하는 중';
+        }
+
+        if (snapshot.status !== 'playing' || snapshot.state.turn !== snapshot.ai_side) {
+          return;
+        }
+
+        status.textContent = 'AI가 수를 계산하는 중입니다…';
+        const engineResult = await post('/api/engine/move', {});
+        const aiBeforeSnapshot = snapshot;
+        snapshot = engineResult.snapshot;
+        render();
+        renderEngineResult(engineResult.analysis);
+
+        const aiMessage = moveEventMessage(aiBeforeSnapshot, snapshot, aiBeforeSnapshot.state.turn);
+        if (aiMessage) {
+          showGameMessage(aiMessage);
+          heading.textContent = aiMessage;
+        } else {
+          showGameMessage('AI의 응수가 완료되었습니다.');
+          heading.textContent = snapshot.status === 'playing'
+            ? 'AI가 응수했습니다 · 내 차례'
+            : (terminalMessage(snapshot.status) || '대국 종료');
+        }
       } catch (error) {
         status.textContent = error.message;
         selected = null;
@@ -655,11 +762,15 @@
           await getState();
           render();
           if (snapshot?.status === 'playing' && snapshot?.state?.turn === snapshot?.player_side) {
-            heading.textContent = '대국 상태를 복구했습니다 · 내 차례';
-            status.textContent = '요청 중 오류가 있었지만 현재 대국 상태를 다시 확인했습니다.';
+            showGameMessage('대국 상태를 다시 확인했습니다.');
+            heading.textContent = '대국 상태 복구 · 내 차례';
           } else if (snapshot?.status === 'playing') {
-            heading.textContent = 'AI 응수 처리 상태를 확인했습니다';
-            status.textContent = '현재 서버 대국 상태를 다시 표시했습니다.';
+            showGameMessage('AI 응수 상태를 다시 확인했습니다.');
+            heading.textContent = 'AI 응수 상태 확인';
+          } else {
+            const terminal = terminalMessage(snapshot?.status);
+            showGameMessage(terminal);
+            heading.textContent = terminal || '대국 종료';
           }
         } catch {
           render();
@@ -706,9 +817,11 @@
       updateControls();
       try {
         snapshot = await post('/api/reset', {setup:setup.value, player_side:playerSide.value, ai_level:aiLevel.value});
-        heading.textContent = snapshot.player_side === 'han'
-          ? '한 진영으로 대국이 초기화되었습니다'
-          : '초 진영으로 대국이 초기화되었습니다';
+        const startMessage = snapshot.player_side === 'han' && snapshot.state.history.length
+          ? '대국 시작 · AI가 선공했습니다.'
+          : (snapshot.player_side === 'han' ? '대국 시작 · 한 진영으로 준비되었습니다.' : '대국 시작 · 초가 먼저 둡니다.');
+        showGameMessage(startMessage);
+        heading.textContent = startMessage;
         clearTrainingMode();
         selected = null;
         renderAnalysis(null, null);
@@ -727,7 +840,9 @@
         status.textContent = '내 턴을 되돌리는 중입니다…';
         snapshot = await post('/api/undo', {});
         clearTrainingMode();
-        heading.textContent = '내 한 턴 되돌리기 완료';
+        const undoMessage = '내 한 턴 되돌리기 완료 · 다시 내 차례입니다.';
+        showGameMessage(undoMessage);
+        heading.textContent = undoMessage;
         selected = null;
         renderAnalysis(null, null);
         render();
@@ -748,9 +863,18 @@
         snapshot = response.snapshot;
         clearTrainingMode();
         renderReview(null);
-        heading.textContent = snapshot.status === 'playing'
-          ? (response.analysis.best_move ? 'AI가 수를 두었습니다 · 내 차례' : 'AI 수가 없습니다 · 내 차례')
-          : `${statusLabels[snapshot.status] || snapshot.status}로 대국이 종료되었습니다`;
+        const aiBeforeSnapshot = snapshot;
+        const aiMessage = moveEventMessage(aiBeforeSnapshot, snapshot, aiBeforeSnapshot.state.turn);
+        if (aiMessage) {
+          showGameMessage(aiMessage);
+          heading.textContent = aiMessage;
+        } else {
+          const manualMessage = snapshot.status === 'playing'
+            ? (response.analysis.best_move ? 'AI가 수를 두었습니다 · 내 차례' : 'AI 수가 없습니다 · 내 차례')
+            : (terminalMessage(snapshot.status) || '대국 종료');
+          showGameMessage(manualMessage);
+          heading.textContent = manualMessage;
+        }
         selected = null;
         render();
         renderEngineResult(response.analysis);
