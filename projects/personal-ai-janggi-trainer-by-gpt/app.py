@@ -660,6 +660,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "not_found"}, HTTPStatus.NOT_FOUND)
         except (ValueError, KeyError, TypeError) as exc:
             self._send_json({"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+        except Exception as exc:
+            print(f"request error: {type(exc).__name__}: {exc}")
+            self._send_json({"error": "internal server error"}, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
     def log_message(self, format: str, *args: object) -> None:
