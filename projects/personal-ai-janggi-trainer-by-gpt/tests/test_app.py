@@ -395,7 +395,7 @@ class TrainerApplicationTests(unittest.TestCase):
     def test_browser_makes_turn_handoff_explicit_in_heading(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("AI가 응수했습니다 · 내 차례", html)
-        self.assertIn("AI 응수가 필요합니다 · AI 수 두기", html)
+        self.assertIn("대국 상태를 복구했습니다 · 내 차례", html)
         self.assertIn("post('/api/player/turn', move)", html)
         self.assertIn("readJsonResponse(response)", html)
         self.assertIn("await getState()", html)
