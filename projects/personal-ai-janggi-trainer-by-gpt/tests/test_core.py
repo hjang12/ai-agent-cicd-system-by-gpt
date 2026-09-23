@@ -1,6 +1,15 @@
 import unittest
 
-from janggi import GameRecord, GameState, Move, Piece, PieceType, Side, state_from_dict, state_to_dict
+from janggi import GameRecord, GameState, Move, Piece, PieceType, Side, palace_for, state_from_dict, state_to_dict
+
+
+def _on_palace_diagonal_for_test(pos, side):
+    x, y = pos
+    if pos not in palace_for(side):
+        return False
+    local_x = x - 3
+    local_y = y if side is Side.CHO else y - 7
+    return local_x == local_y or local_x + local_y == 4
 
 
 class JanggiCoreTests(unittest.TestCase):
@@ -8,9 +17,11 @@ class JanggiCoreTests(unittest.TestCase):
         state = GameState.initial()
         self.assertEqual(sum(piece is not None for piece in state.board), 32)
         self.assertEqual(state.turn, Side.CHO)
-        self.assertEqual(state.piece_at((4, 0)), Piece(Side.CHO, PieceType.GENERAL))
+        self.assertEqual(state.piece_at((4, 1)), Piece(Side.CHO, PieceType.GENERAL))
+        self.assertIsNone(state.piece_at((4, 0)))
         self.assertEqual(state.piece_at((3, 0)), Piece(Side.CHO, PieceType.GUARD))
-        self.assertEqual(state.piece_at((4, 9)), Piece(Side.HAN, PieceType.GENERAL))
+        self.assertEqual(state.piece_at((4, 8)), Piece(Side.HAN, PieceType.GENERAL))
+        self.assertIsNone(state.piece_at((4, 9)))
 
     def test_setup_variants_move_elephant_and_horse(self):
         classic = GameState.initial("classic")
@@ -79,6 +90,18 @@ class JanggiCoreTests(unittest.TestCase):
         guard_state = GameState(tuple(guard_board), Side.CHO)
         guard_moves = guard_state.pseudo_moves((3, 0))
         self.assertIn(Move((3, 0), (4, 1)), guard_moves)
+
+    def test_palace_diagonals_match_the_marked_x_lines(self):
+        cho_expected = {(3, 0), (4, 1), (5, 2), (5, 0), (3, 2)}
+        han_expected = {(3, 9), (4, 8), (5, 7), (5, 9), (3, 7)}
+        for y in range(3):
+            for x in range(3, 6):
+                pos = (x, y)
+                self.assertEqual(_on_palace_diagonal_for_test(pos, Side.CHO), pos in cho_expected)
+        for y in range(7, 10):
+            for x in range(3, 6):
+                pos = (x, y)
+                self.assertEqual(_on_palace_diagonal_for_test(pos, Side.HAN), pos in han_expected)
 
     def test_soldier_can_step_forward_diagonally_inside_enemy_palace(self):
         board = [None] * 90
