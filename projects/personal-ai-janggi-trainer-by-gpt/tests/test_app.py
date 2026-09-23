@@ -452,7 +452,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn('class="board-message"', html)
         self.assertIn('class="board-message-title"', html)
         self.assertIn('class="board-message-sub"', html)
-        self.assertIn("showBoardThinking", html)
+        self.assertIn("showBoardMessage(thinkingTitle, thinkingSubtitle", html)
         self.assertIn("thinking:true", html)
         self.assertIn("durationMs:2200", html)
         self.assertIn("durationMs:2600", html)
