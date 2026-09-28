@@ -76,6 +76,21 @@
     button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter:brightness(.98);transform:translateY(-1px)}
     button:disabled{opacity:.5;cursor:wait;transform:none!important}
     .status-bar{margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;background:#fff9efaa;border:1px solid #dccdb7}
+    .journey{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:9px}
+    .journey-step{padding:7px 5px;border:1px solid #dfd2c0;border-radius:9px;background:#f9f4eb;color:#8b8275;text-align:center;font-size:.7rem;font-weight:850;line-height:1.25}
+    .journey-step.done{color:#6b4a20;background:#f3e7d2;border-color:#d9be94}
+    .journey-step.active{color:#fff;background:var(--accent);border-color:var(--accent);box-shadow:0 4px 10px #b06d1f26}
+    .match-result{margin-top:10px;padding:14px;border:1px solid #bfa171;border-radius:15px;background:linear-gradient(180deg,#fff9ed,#f8eddb);box-shadow:0 8px 24px #5d442610}
+    .result-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .result-kicker{font-size:.73rem;font-weight:900;letter-spacing:.08em;color:var(--accent);text-transform:uppercase}
+    .match-result h2{margin:3px 0 0;font-size:1.25rem;letter-spacing:-.02em}
+    .result-badge{padding:6px 9px;border-radius:999px;background:#fff;border:1px solid #dbc9ad;font-size:.76rem;font-weight:900;white-space:nowrap}
+    .result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}
+    .result-stat{padding:9px 10px;border-radius:11px;background:#fffdf8;border:1px solid #e0d3bf}
+    .result-stat span{display:block;color:var(--muted);font-size:.7rem}
+    .result-stat strong{display:block;margin-top:3px;font-size:.96rem}
+    .result-note{margin:9px 0 0;color:#6f665a;font-size:.8rem;line-height:1.5}
+    .result-actions{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:7px;margin-top:11px}
     .status{margin:0;font-weight:800;min-height:1.5em}.status-turn{color:var(--muted);font-size:.82rem}
     .side-panel{display:flex;flex-direction:column;gap:12px}.card{background:var(--surface);border:1px solid #d4c6b2;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
     .card h2,.card h3{margin:0}.section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
@@ -104,6 +119,8 @@
       .board{width:min(96vw,560px);border-width:4px;border-radius:8px}.piece{font-size:clamp(20px,7.2vw,31px)}
       .game-controls{grid-template-columns:repeat(3,1fr);gap:7px}.game-controls button{min-height:42px;padding:8px 6px;font-size:.82rem}
       .game-controls #reset{grid-column:1 / -1}.status-bar{padding:8px 10px;display:block}.status-turn{margin-top:2px}
+      .journey{grid-template-columns:repeat(3,1fr);gap:5px}.journey-step{font-size:.68rem;padding:6px 4px}
+      .result-grid{grid-template-columns:1fr 1fr}.result-actions{grid-template-columns:1fr 1fr}.result-actions #postgame-reset{grid-column:1 / -1}
       .side-panel{gap:8px}.card{padding:11px;border-radius:14px}.setting-row{grid-template-columns:92px 1fr}.assessment-grid{gap:6px}.stat{padding:8px}
       .stat-value{font-size:1rem}.panel-stack{gap:8px}
     }
@@ -140,6 +157,36 @@
           <p class="status" id="status">현재 대국 상태를 불러오는 중입니다…</p>
           <div class="status-turn" id="status-context">내 차례를 기다리는 중</div>
         </div>
+
+        <div class="journey" aria-label="학습 진행 단계">
+          <span class="journey-step active" data-stage="match">1 대국</span>
+          <span class="journey-step" data-stage="analysis">2 착수 분석</span>
+          <span class="journey-step" data-stage="assessment">3 실전 평가</span>
+          <span class="journey-step" data-stage="review">4 복기</span>
+          <span class="journey-step" data-stage="training">5 훈련</span>
+          <span class="journey-step" data-stage="growth">6 성장 기록</span>
+        </div>
+
+        <section class="match-result" id="match-result" hidden aria-live="polite">
+          <div class="result-header">
+            <div>
+              <div class="result-kicker">대국 종료 · 실전 평가</div>
+              <h2 id="match-result-title">대국 결과</h2>
+            </div>
+            <div class="result-badge" id="match-result-badge">미평가</div>
+          </div>
+          <div class="result-grid">
+            <div class="result-stat"><span>내 Rating</span><strong id="match-result-rating">—</strong></div>
+            <div class="result-stat"><span>이번 대국 변화</span><strong id="match-result-delta">—</strong></div>
+            <div class="result-stat"><span>상대</span><strong id="match-result-opponent">—</strong></div>
+          </div>
+          <p class="result-note" id="match-result-note"></p>
+          <div class="result-actions">
+            <button class="primary" id="postgame-review">대국 복기 시작</button>
+            <button class="secondary" id="postgame-training">훈련 문제 만들기</button>
+            <button class="secondary" id="postgame-reset">새 대국 설정</button>
+          </div>
+        </section>
 
         <div class="game-controls">
           <button class="secondary" id="undo" disabled>한 턴 되돌리기</button>
@@ -286,6 +333,17 @@
     const analysisPanel = document.querySelector('#analysis');
     const matchBadge = document.querySelector('#match-badge');
     const statusContext = document.querySelector('#status-context');
+    const journeySteps = [...document.querySelectorAll('.journey-step')];
+    const matchResult = document.querySelector('#match-result');
+    const matchResultTitle = document.querySelector('#match-result-title');
+    const matchResultBadge = document.querySelector('#match-result-badge');
+    const matchResultRating = document.querySelector('#match-result-rating');
+    const matchResultDelta = document.querySelector('#match-result-delta');
+    const matchResultOpponent = document.querySelector('#match-result-opponent');
+    const matchResultNote = document.querySelector('#match-result-note');
+    const postgameReview = document.querySelector('#postgame-review');
+    const postgameTraining = document.querySelector('#postgame-training');
+    const postgameReset = document.querySelector('#postgame-reset');
     const opponentCard = document.querySelector('#opponent-card');
     const playerCard = document.querySelector('#player-card');
     const opponentName = document.querySelector('#opponent-name');
@@ -500,6 +558,10 @@
       setup.disabled = busy;
       playerSide.disabled = busy;
       aiLevel.disabled = busy;
+      const terminal = snapshot?.status && snapshot.status !== 'playing';
+      postgameReview.disabled = busy || !terminal || !reviewPanel.hidden;
+      postgameTraining.disabled = busy || !terminal || reviewPanel.hidden || !trainingPanel.hidden;
+      postgameReset.disabled = busy || !terminal;
     }
 
     function clearTrainingMode() {
@@ -606,6 +668,8 @@
         const result = await post('/api/training/problems', {review_limit: 20, problem_limit: 5});
         renderTrainingProblems(result);
         heading.textContent = '포지션 훈련 문제 준비 완료';
+        renderMatchResult();
+        renderJourney();
       } catch (error) {
         status.textContent = error.message;
       } finally {
@@ -713,6 +777,59 @@
       return Number.isFinite(value) ? Math.round(value * 100) + '%' : '0%';
     }
 
+    function playerResultLabel(state) {
+      const status = state?.status;
+      if (!status || status === 'playing') return '';
+      if (status.startsWith('draw_')) return '무승부';
+      if (status === 'cho_win') return state.player_side === 'cho' ? '승리' : '패배';
+      if (status === 'han_win') return state.player_side === 'han' ? '승리' : '패배';
+      return '대국 종료';
+    }
+
+    function renderJourney() {
+      if (!journeySteps.length) return;
+      let current = 'match';
+      if (trainingPosition || !trainingPanel.hidden) current = 'training';
+      else if (!reviewPanel.hidden) current = 'review';
+      else if (snapshot?.status && snapshot.status !== 'playing') current = 'assessment';
+      else if (!analysisPanel.hidden) current = 'analysis';
+      const order = ['match','analysis','assessment','review','training','growth'];
+      const currentIndex = order.indexOf(current);
+      journeySteps.forEach(step => {
+        const stage = step.dataset.stage;
+        const index = order.indexOf(stage);
+        step.classList.toggle('active', stage === current);
+        step.classList.toggle('done', index >= 0 && index < currentIndex);
+      });
+    }
+
+    function renderMatchResult() {
+      if (!snapshot || snapshot.status === 'playing') {
+        matchResult.hidden = true;
+        return;
+      }
+      matchResult.hidden = false;
+      const assessment = snapshot.assessment || {};
+      const opponent = snapshot.opponent || {};
+      const game = assessment.last_game || null;
+      const outcome = playerResultLabel(snapshot);
+      const modelName = opponent.model_id === 'baseline-search' ? '기준 AI' : (opponent.model_id || 'AI');
+      const modelVersion = opponent.model_version ? ' · ' + opponent.model_version : '';
+      matchResultTitle.textContent = outcome ? '내 기준 결과 · ' + outcome : '대국 종료';
+      matchResultBadge.textContent = game?.rating_eligible ? 'Rating 반영' : '결과만 기록';
+      matchResultRating.textContent = assessment.rating ?? '—';
+      matchResultDelta.textContent = game?.rating_eligible
+        ? (game.rating_delta > 0 ? '+' : '') + game.rating_delta
+        : '미평가';
+      matchResultOpponent.textContent = modelName + ' · Lv.' + (opponent.ai_level || snapshot.ai_level || '1');
+      matchResultNote.textContent = game?.rating_eligible
+        ? '상대 model/version' + modelVersion + '과 대국한 시점의 Rating으로 실전 평가에 반영했습니다.'
+        : '현재 AI는 강도 보정 전이므로 이번 결과는 승·무·패와 상대 model/version을 실력 증거로만 기록합니다. numeric Rating은 만들지 않습니다.';
+      postgameReview.textContent = reviewPanel.hidden ? '대국 복기 시작' : '복기 완료';
+      postgameTraining.textContent = trainingPanel.hidden ? '훈련 문제 만들기' : '훈련 진행 중';
+      renderJourney();
+    }
+
     function renderAssessment(assessment, opponent) {
       const a = assessment || {};
       const o = opponent || {};
@@ -741,7 +858,9 @@
       document.querySelector('#player-name').textContent = '나 · ' + (sideLabels[playerSideValue] || playerSideValue);
       opponentRating.textContent = o.rating === null || o.rating === undefined ? '—' : String(o.rating);
       opponentLevel.textContent = 'Lv.' + (o.ai_level || snapshot?.ai_level || '1') + ' ' + (snapshot?.ai_level_name || '입문');
-      opponentMeta.textContent = o.rating === null || o.rating === undefined ? '실력 보정 준비 중' : '보정된 상대 Rating';
+      opponentMeta.textContent = o.rating === null || o.rating === undefined
+        ? 'model_id: ' + (o.model_id || 'unknown') + (o.model_version ? ' · version: ' + o.model_version : ' · version 미지정') + ' · 실력 보정 준비 중'
+        : 'model_id: ' + (o.model_id || 'unknown') + (o.model_version ? ' · version: ' + o.model_version : '') + ' · 보정된 상대 Rating';
       const currentStatus = snapshot?.status || 'playing';
       matchBadge.textContent = currentStatus === 'playing' ? '대국 중' : '대국 종료';
       statusContext.textContent = snapshot?.state?.turn === snapshot?.player_side ? '내 차례' : 'AI 응수 중';
@@ -750,6 +869,7 @@
     function render() {
       const view = currentPosition();
       renderAssessment(snapshot?.assessment, snapshot?.opponent);
+      renderMatchResult();
       board.innerHTML = `
         <svg class="board-lines" viewBox="0 0 8 9" preserveAspectRatio="none" aria-hidden="true">
           <g stroke="var(--line)" stroke-width="0.035" fill="none">
@@ -814,17 +934,23 @@
       }
       renderBoardMessage();
       const turnSide = view.state.turn;
+      const terminal = snapshot?.status && snapshot.status !== 'playing';
       turn.textContent = trainingPosition
         ? '훈련 문제 차례: ' + (sideLabels[turnSide] || turnSide)
-        : '현재 차례: ' + (sideLabels[turnSide] || turnSide);
+        : (terminal ? '대국 종료' : '현재 차례: ' + (sideLabels[turnSide] || turnSide));
       status.textContent = trainingPosition
         ? '포지션 훈련 중'
-        : (view.state.turn === snapshot.player_side
-          ? '내 차례 · 말을 선택하세요'
-          : 'AI 차례 · 응수를 기다리는 중입니다');
+        : (terminal
+          ? terminalMessage(snapshot.status)
+          : (view.state.turn === snapshot.player_side
+            ? '내 차례 · 말을 선택하세요'
+            : 'AI 차례 · 응수를 기다리는 중입니다'));
       orientationNote.textContent = boardSide() === 'han'
         ? '한이 화면 아래쪽입니다.'
         : '초가 화면 아래쪽입니다.';
+      statusContext.textContent = trainingPosition
+        ? '훈련 문제'
+        : (terminal ? '대국 종료' : (view.state.turn === snapshot.player_side ? '내 차례' : 'AI 응수 중'));
       updateControls();
     }
 
@@ -918,6 +1044,7 @@
         snapshot = moveResult;
         clearTrainingMode();
         renderReview(null);
+        renderAnalysis(null, null);
         selected = null;
         render();
 
@@ -997,9 +1124,7 @@
       }
     }
 
-    training.addEventListener('click', startTrainingProblems);
-
-    review.addEventListener('click', async () => {
+    async function runReview() {
       if (busy || !snapshot?.state?.history?.length) return;
       busy = true;
       updateControls();
@@ -1009,13 +1134,21 @@
         const result = await post('/api/review', {limit: 20});
         renderReview(result);
         heading.textContent = '최근 대국 복기 완료';
+        renderMatchResult();
+        renderJourney();
       } catch (error) {
         status.textContent = error.message;
       } finally {
         busy = false;
         updateControls();
       }
-    });
+    }
+
+    training.addEventListener('click', startTrainingProblems);
+    review.addEventListener('click', runReview);
+    postgameReview.addEventListener('click', runReview);
+    postgameTraining.addEventListener('click', startTrainingProblems);
+    postgameReset.addEventListener('click', () => reset.click());
 
     playerSide.addEventListener('change', () => {
       orientationNote.innerHTML = playerSide.value === 'cho'
