@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from app import SESSION_COOKIE_NAME, RequestHandler, TrainerApplication, TrainerSessionStore
-from janggi import EngineAnalysis, FirstLegalEngine, GameStatus, Match, Move, RuleSet, Side
+from janggi import EngineAnalysis, FirstLegalEngine, GameStatus, Match, Move, Outcome, RuleSet, Side
 
 
 INDEX_HTML = Path(__file__).resolve().parents[1] / "index.html"
@@ -522,7 +522,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(assessment["games"], 1)
         self.assertEqual(assessment["unrated_games"], 1)
         self.assertIsNone(assessment["rating"])
-        self.assertEqual(assessment["last_game"]["outcome"], "draw")
+        self.assertEqual(assessment["last_game"]["outcome"], Outcome.DRAW.value)
         self.assertEqual(assessment["last_game"]["result_status"], "draw_consecutive_pass")
         self.assertFalse(assessment["last_game"]["rating_eligible"])
 
