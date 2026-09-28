@@ -668,6 +668,8 @@
         const result = await post('/api/training/problems', {review_limit: 20, problem_limit: 5});
         renderTrainingProblems(result);
         heading.textContent = '포지션 훈련 문제 준비 완료';
+        renderMatchResult();
+        renderJourney();
       } catch (error) {
         status.textContent = error.message;
       } finally {
@@ -1114,9 +1116,7 @@
       }
     }
 
-    training.addEventListener('click', startTrainingProblems);
-
-    review.addEventListener('click', async () => {
+    async function runReview() {
       if (busy || !snapshot?.state?.history?.length) return;
       busy = true;
       updateControls();
@@ -1126,13 +1126,21 @@
         const result = await post('/api/review', {limit: 20});
         renderReview(result);
         heading.textContent = '최근 대국 복기 완료';
+        renderMatchResult();
+        renderJourney();
       } catch (error) {
         status.textContent = error.message;
       } finally {
         busy = false;
         updateControls();
       }
-    });
+    }
+
+    training.addEventListener('click', startTrainingProblems);
+    review.addEventListener('click', runReview);
+    postgameReview.addEventListener('click', runReview);
+    postgameTraining.addEventListener('click', startTrainingProblems);
+    postgameReset.addEventListener('click', () => reset.click());
 
     playerSide.addEventListener('change', () => {
       orientationNote.innerHTML = playerSide.value === 'cho'
