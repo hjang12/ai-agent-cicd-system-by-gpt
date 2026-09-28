@@ -76,6 +76,21 @@
     button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter:brightness(.98);transform:translateY(-1px)}
     button:disabled{opacity:.5;cursor:wait;transform:none!important}
     .status-bar{margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;background:#fff9efaa;border:1px solid #dccdb7}
+    .journey{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:9px}
+    .journey-step{padding:7px 5px;border:1px solid #dfd2c0;border-radius:9px;background:#f9f4eb;color:#8b8275;text-align:center;font-size:.7rem;font-weight:850;line-height:1.25}
+    .journey-step.done{color:#6b4a20;background:#f3e7d2;border-color:#d9be94}
+    .journey-step.active{color:#fff;background:var(--accent);border-color:var(--accent);box-shadow:0 4px 10px #b06d1f26}
+    .match-result{margin-top:10px;padding:14px;border:1px solid #bfa171;border-radius:15px;background:linear-gradient(180deg,#fff9ed,#f8eddb);box-shadow:0 8px 24px #5d442610}
+    .result-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .result-kicker{font-size:.73rem;font-weight:900;letter-spacing:.08em;color:var(--accent);text-transform:uppercase}
+    .match-result h2{margin:3px 0 0;font-size:1.25rem;letter-spacing:-.02em}
+    .result-badge{padding:6px 9px;border-radius:999px;background:#fff;border:1px solid #dbc9ad;font-size:.76rem;font-weight:900;white-space:nowrap}
+    .result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px}
+    .result-stat{padding:9px 10px;border-radius:11px;background:#fffdf8;border:1px solid #e0d3bf}
+    .result-stat span{display:block;color:var(--muted);font-size:.7rem}
+    .result-stat strong{display:block;margin-top:3px;font-size:.96rem}
+    .result-note{margin:9px 0 0;color:#6f665a;font-size:.8rem;line-height:1.5}
+    .result-actions{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:7px;margin-top:11px}
     .status{margin:0;font-weight:800;min-height:1.5em}.status-turn{color:var(--muted);font-size:.82rem}
     .side-panel{display:flex;flex-direction:column;gap:12px}.card{background:var(--surface);border:1px solid #d4c6b2;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
     .card h2,.card h3{margin:0}.section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
@@ -104,6 +119,8 @@
       .board{width:min(96vw,560px);border-width:4px;border-radius:8px}.piece{font-size:clamp(20px,7.2vw,31px)}
       .game-controls{grid-template-columns:repeat(3,1fr);gap:7px}.game-controls button{min-height:42px;padding:8px 6px;font-size:.82rem}
       .game-controls #reset{grid-column:1 / -1}.status-bar{padding:8px 10px;display:block}.status-turn{margin-top:2px}
+      .journey{grid-template-columns:repeat(3,1fr);gap:5px}.journey-step{font-size:.68rem;padding:6px 4px}
+      .result-grid{grid-template-columns:1fr 1fr}.result-actions{grid-template-columns:1fr 1fr}.result-actions #postgame-reset{grid-column:1 / -1}
       .side-panel{gap:8px}.card{padding:11px;border-radius:14px}.setting-row{grid-template-columns:92px 1fr}.assessment-grid{gap:6px}.stat{padding:8px}
       .stat-value{font-size:1rem}.panel-stack{gap:8px}
     }
@@ -140,6 +157,36 @@
           <p class="status" id="status">현재 대국 상태를 불러오는 중입니다…</p>
           <div class="status-turn" id="status-context">내 차례를 기다리는 중</div>
         </div>
+
+        <div class="journey" aria-label="학습 진행 단계">
+          <span class="journey-step active" data-stage="match">1 대국</span>
+          <span class="journey-step" data-stage="analysis">2 착수 분석</span>
+          <span class="journey-step" data-stage="assessment">3 실전 평가</span>
+          <span class="journey-step" data-stage="review">4 복기</span>
+          <span class="journey-step" data-stage="training">5 훈련</span>
+          <span class="journey-step" data-stage="growth">6 성장 기록</span>
+        </div>
+
+        <section class="match-result" id="match-result" hidden aria-live="polite">
+          <div class="result-header">
+            <div>
+              <div class="result-kicker">대국 종료 · 실전 평가</div>
+              <h2 id="match-result-title">대국 결과</h2>
+            </div>
+            <div class="result-badge" id="match-result-badge">미평가</div>
+          </div>
+          <div class="result-grid">
+            <div class="result-stat"><span>내 Rating</span><strong id="match-result-rating">—</strong></div>
+            <div class="result-stat"><span>이번 대국 변화</span><strong id="match-result-delta">—</strong></div>
+            <div class="result-stat"><span>상대</span><strong id="match-result-opponent">—</strong></div>
+          </div>
+          <p class="result-note" id="match-result-note"></p>
+          <div class="result-actions">
+            <button class="primary" id="postgame-review">대국 복기 시작</button>
+            <button class="secondary" id="postgame-training">훈련 문제 만들기</button>
+            <button class="secondary" id="postgame-reset">새 대국 설정</button>
+          </div>
+        </section>
 
         <div class="game-controls">
           <button class="secondary" id="undo" disabled>한 턴 되돌리기</button>
@@ -286,6 +333,17 @@
     const analysisPanel = document.querySelector('#analysis');
     const matchBadge = document.querySelector('#match-badge');
     const statusContext = document.querySelector('#status-context');
+    const journeySteps = [...document.querySelectorAll('.journey-step')];
+    const matchResult = document.querySelector('#match-result');
+    const matchResultTitle = document.querySelector('#match-result-title');
+    const matchResultBadge = document.querySelector('#match-result-badge');
+    const matchResultRating = document.querySelector('#match-result-rating');
+    const matchResultDelta = document.querySelector('#match-result-delta');
+    const matchResultOpponent = document.querySelector('#match-result-opponent');
+    const matchResultNote = document.querySelector('#match-result-note');
+    const postgameReview = document.querySelector('#postgame-review');
+    const postgameTraining = document.querySelector('#postgame-training');
+    const postgameReset = document.querySelector('#postgame-reset');
     const opponentCard = document.querySelector('#opponent-card');
     const playerCard = document.querySelector('#player-card');
     const opponentName = document.querySelector('#opponent-name');
