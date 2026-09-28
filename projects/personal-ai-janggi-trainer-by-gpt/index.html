@@ -558,6 +558,10 @@
       setup.disabled = busy;
       playerSide.disabled = busy;
       aiLevel.disabled = busy;
+      const terminal = snapshot?.status && snapshot.status !== 'playing';
+      postgameReview.disabled = busy || !terminal || !reviewPanel.hidden;
+      postgameTraining.disabled = busy || !terminal || reviewPanel.hidden || !trainingPanel.hidden;
+      postgameReset.disabled = busy || !terminal;
     }
 
     function clearTrainingMode() {
@@ -771,6 +775,59 @@
       return Number.isFinite(value) ? Math.round(value * 100) + '%' : '0%';
     }
 
+    function playerResultLabel(state) {
+      const status = state?.status;
+      if (!status || status === 'playing') return '';
+      if (status.startsWith('draw_')) return '무승부';
+      if (status === 'cho_win') return state.player_side === 'cho' ? '승리' : '패배';
+      if (status === 'han_win') return state.player_side === 'han' ? '승리' : '패배';
+      return '대국 종료';
+    }
+
+    function renderJourney() {
+      if (!journeySteps.length) return;
+      let current = 'match';
+      if (trainingPosition || !trainingPanel.hidden) current = 'training';
+      else if (!reviewPanel.hidden) current = 'review';
+      else if (snapshot?.status && snapshot.status !== 'playing') current = 'assessment';
+      else if (!analysisPanel.hidden) current = 'analysis';
+      const order = ['match','analysis','assessment','review','training','growth'];
+      const currentIndex = order.indexOf(current);
+      journeySteps.forEach(step => {
+        const stage = step.dataset.stage;
+        const index = order.indexOf(stage);
+        step.classList.toggle('active', stage === current);
+        step.classList.toggle('done', index >= 0 && index < currentIndex);
+      });
+    }
+
+    function renderMatchResult() {
+      if (!snapshot || snapshot.status === 'playing') {
+        matchResult.hidden = true;
+        return;
+      }
+      matchResult.hidden = false;
+      const assessment = snapshot.assessment || {};
+      const opponent = snapshot.opponent || {};
+      const game = assessment.last_game || null;
+      const outcome = playerResultLabel(snapshot);
+      const modelName = opponent.model_id === 'baseline-search' ? '기준 AI' : (opponent.model_id || 'AI');
+      const modelVersion = opponent.model_version ? ' · ' + opponent.model_version : '';
+      matchResultTitle.textContent = outcome ? '내 기준 결과 · ' + outcome : '대국 종료';
+      matchResultBadge.textContent = game?.rating_eligible ? 'Rating 반영' : '결과만 기록';
+      matchResultRating.textContent = assessment.rating ?? '—';
+      matchResultDelta.textContent = game?.rating_eligible
+        ? (game.rating_delta > 0 ? '+' : '') + game.rating_delta
+        : '미평가';
+      matchResultOpponent.textContent = modelName + ' · Lv.' + (opponent.ai_level || snapshot.ai_level || '1');
+      matchResultNote.textContent = game?.rating_eligible
+        ? '상대 model/version' + modelVersion + '과 대국한 시점의 Rating으로 실전 평가에 반영했습니다.'
+        : '현재 AI는 강도 보정 전이므로 이번 결과는 승·무·패와 상대 model/version을 실력 증거로만 기록합니다. numeric Rating은 만들지 않습니다.';
+      postgameReview.textContent = reviewPanel.hidden ? '대국 복기 시작' : '복기 완료';
+      postgameTraining.textContent = trainingPanel.hidden ? '훈련 문제 만들기' : '훈련 진행 중';
+      renderJourney();
+    }
+
     function renderAssessment(assessment, opponent) {
       const a = assessment || {};
       const o = opponent || {};
@@ -808,6 +865,7 @@
     function render() {
       const view = currentPosition();
       renderAssessment(snapshot?.assessment, snapshot?.opponent);
+      renderMatchResult();
       board.innerHTML = `
         <svg class="board-lines" viewBox="0 0 8 9" preserveAspectRatio="none" aria-hidden="true">
           <g stroke="var(--line)" stroke-width="0.035" fill="none">
@@ -976,6 +1034,7 @@
         snapshot = moveResult;
         clearTrainingMode();
         renderReview(null);
+        renderAnalysis(null, null);
         selected = null;
         render();
 
