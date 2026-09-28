@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from app import SESSION_COOKIE_NAME, RequestHandler, TrainerApplication, TrainerSessionStore
-from janggi import EngineAnalysis, FirstLegalEngine, Move, Side
+from janggi import EngineAnalysis, FirstLegalEngine, GameStatus, Match, Move, RuleSet, Side
 
 
 INDEX_HTML = Path(__file__).resolve().parents[1] / "index.html"
@@ -487,6 +487,44 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("<strong>한 선택</strong>", html)
         self.assertIn("이 설정으로 새 대국을 시작하면 초가 먼저", html)
         self.assertIn("renderAssessment(snapshot?.assessment, snapshot?.opponent)", html)
+
+    def test_browser_postgame_learning_loop_contract(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn('class="journey"', html)
+        self.assertIn('data-stage="assessment"', html)
+        self.assertIn('id="match-result"', html)
+        self.assertIn("대국 종료 · 실전 평가", html)
+        self.assertIn("결과만 기록", html)
+        self.assertIn("playerResultLabel(snapshot)", html)
+        self.assertIn("renderMatchResult()", html)
+        self.assertIn("postgameReview.addEventListener('click', runReview)", html)
+        self.assertIn("postgameTraining.addEventListener('click', startTrainingProblems)", html)
+        self.assertIn("postgameReset.addEventListener('click', () => reset.click())", html)
+        self.assertIn("postgameTraining.disabled = busy || !terminal || reviewPanel.hidden || !trainingPanel.hidden;", html)
+        self.assertIn("최근 대국 복기 완료", html)
+
+    def test_browser_clears_previous_analysis_before_ai_thinking(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        human = html.index("const moveResult = await post('/api/move', move);")
+        clear_analysis = html.index("renderAnalysis(null, null)", human)
+        show_thinking = html.index("showBoardMessage(thinkingTitle, thinkingSubtitle", human)
+        self.assertLess(clear_analysis, show_thinking)
+
+    def test_terminal_match_records_unrated_assessment_evidence(self):
+        app = TrainerApplication()
+        app.match = Match.new(rules=RuleSet(consecutive_passes_for_draw=2))
+        app.match = app.match.play(Move.pass_move()).play(Move.pass_move())
+        self.assertEqual(app.match.status, GameStatus.DRAW_CONSECUTIVE_PASS)
+
+        app._finalize_assessment_if_terminal()
+        assessment = app.assessment_snapshot()
+
+        self.assertEqual(assessment["games"], 1)
+        self.assertEqual(assessment["unrated_games"], 1)
+        self.assertIsNone(assessment["rating"])
+        self.assertEqual(assessment["last_game"]["outcome"], "draw")
+        self.assertEqual(assessment["last_game"]["result_status"], "draw_consecutive_pass")
+        self.assertFalse(assessment["last_game"]["rating_eligible"])
 
     def test_browser_exposes_ai_level_selector_and_reset_contract(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
