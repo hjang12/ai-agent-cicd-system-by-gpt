@@ -72,6 +72,7 @@ class SearchConfig:
     time_limit_ms: Optional[int] = None
     adaptive_ordering: bool = True
     quiescence_check_extension: bool = True
+    principal_variation_search: bool = False
 
     def __post_init__(self) -> None:
         if self.depth < 1:
@@ -361,18 +362,20 @@ class NegamaxEngine:
         alpha = -MATE_SCORE * 2
         beta = MATE_SCORE * 2
 
+        first_move = True
         for move in ordered_moves:
             self._check_time_budget()
             child = state.apply(move)
             child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
-            child_score, child_pv = self._search(
+            child_score, child_pv = self._search_pvs_child(
                 child,
                 depth - 1,
-                -beta,
-                -alpha,
+                alpha,
+                beta,
                 child_noisy,
+                first_move=first_move,
             )
-            score = -child_score
+            score = child_score
             candidate_pv = (move,) + child_pv
             if score > best_score:
                 best_score = score
@@ -380,6 +383,7 @@ class NegamaxEngine:
             elif score == best_score:
                 best_results.append((move, candidate_pv))
             alpha = max(alpha, score)
+            first_move = False
 
         if self.config.random_ties and len(best_results) > 1:
             best_move, best_pv = self._rng.choice(best_results)
@@ -472,17 +476,18 @@ class NegamaxEngine:
 
         best_score = -MATE_SCORE * 2
         best_pv: tuple[Move, ...] = ()
+        first_move = True
         for move in moves:
             child = state.apply(move)
             child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
-            child_score, child_pv = self._search(
+            score, child_pv = self._search_pvs_child(
                 child,
                 depth - 1,
-                -beta,
-                -alpha,
+                alpha,
+                beta,
                 child_noisy,
+                first_move=first_move,
             )
-            score = -child_score
             if not best_pv or score > best_score:
                 best_score = score
                 best_pv = (move,) + child_pv
@@ -491,6 +496,7 @@ class NegamaxEngine:
             if alpha >= beta:
                 self._record_cutoff_heuristics(state, move, depth)
                 break
+            first_move = False
 
         bound = self._transposition_bound(best_score, original_alpha, original_beta)
         self._transposition[cache_key] = _TranspositionEntry(
@@ -499,6 +505,46 @@ class NegamaxEngine:
             bound=bound,
         )
         return best_score, best_pv
+
+    def _search_pvs_child(
+        self,
+        child: GameState,
+        depth: int,
+        alpha: int,
+        beta: int,
+        noisy: bool,
+        *,
+        first_move: bool,
+    ) -> tuple[int, tuple[Move, ...]]:
+        """Search one child in parent perspective, optionally using a null window."""
+        if not self.config.principal_variation_search or first_move:
+            child_score, child_pv = self._search(
+                child,
+                depth,
+                -beta,
+                -alpha,
+                noisy,
+            )
+            return -child_score, child_pv
+
+        child_score, child_pv = self._search(
+            child,
+            depth,
+            -alpha - 1,
+            -alpha,
+            noisy,
+        )
+        score = -child_score
+        if alpha < score < beta:
+            child_score, child_pv = self._search(
+                child,
+                depth,
+                -beta,
+                -alpha,
+                noisy,
+            )
+            score = -child_score
+        return score, child_pv
 
     @staticmethod
     def _transposition_bound(score: int, alpha: int, beta: int) -> str:
