@@ -7,6 +7,7 @@ from janggi import (
     LinearValueTrainer,
     Move,
     NegamaxEngine,
+    Outcome,
     SearchConfig,
     TrainingDataset,
     TrainingExample,
@@ -68,13 +69,13 @@ class LinearValueModelTests(unittest.TestCase):
                 TrainingExample(
                     state=state_a,
                     move=Move.pass_move(),
-                    outcome=__import__("janggi").Outcome.WIN,
+                    outcome=Outcome.WIN,
                     source="self-play",
                 ),
                 TrainingExample(
                     state=state_b,
                     move=Move.pass_move(),
-                    outcome=__import__("janggi").Outcome.LOSS,
+                    outcome=Outcome.LOSS,
                     source="self-play",
                 ),
             )
