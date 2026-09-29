@@ -2,7 +2,7 @@
 
 ## Governance
 
-- Governance Version: `1.2.1`
+- Governance Version: `1.3.0`
 - Status: Active baseline on `main`
 - Current canonical workspace repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Default / working branch: `main`
@@ -30,6 +30,7 @@ hjang12/ai-agent-cicd-system-by-gpt/
 - `GOVERNANCE/GOVERNANCE.md` — common operating rules
 - `GOVERNANCE/docs/CURRENT_STATUS.md` — this workspace status
 - `GOVERNANCE/docs/ACTIVE_ISSUES.md` — AI-managed current unresolved issue index
+- `GOVERNANCE/docs/DEVELOPMENT_TASKS.md` — Workspace Development Task Registry
 - `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md` — long-term governance/workspace history
 - `GOVERNANCE/docs/ADR/` — architecture and operating decisions
 - `projects/<project>/AGENT_START.md` — project Chat startup entrypoint
@@ -44,7 +45,7 @@ hjang12/ai-agent-cicd-system-by-gpt/
 This workspace uses ChatGPT + AI Agent as the primary interactive development interface.
 
 - Chat is a temporary working interface; GitHub and project Context documents remain the Source of Truth.
-- Current development continuity is managed through Development Task, Development Context, Checkpoint, and Context Recovery.
+- Current development continuity is managed through Development Task, Development Task Registry, Development Context, Checkpoint, and Context Recovery.
 - Chat transitions are allowed whenever platform/context constraints or work structure make a new Chat safer or more efficient.
 - No fixed time-based forced Chat cutoff is used. Checkpoints are state-based.
 - Interaction has no fixed maximum duration; an Interaction normally ends when a Response is returned, and a safe interruption may end it earlier after preserving recoverable state.
