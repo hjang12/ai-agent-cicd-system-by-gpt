@@ -418,3 +418,45 @@ Governance 변경은 의미상 Minor 변경 후보에 해당한다. 그러나 �
 ### Result
 
 향후 사용자가 먼저 제안하지 않아도 AI가 운영 구조를 지속적으로 검토하고 필요한 변경안을 먼저 제시한다. 단, 정책적 결정이나 Version 확정 등 사람의 결정이 필요한 부분은 제안과 실행 권한을 구분하여 처리한다.
+
+
+## 2026-09-29 — Add Chat-based Development Work Continuity
+
+### Requirement
+
+The workspace uses ChatGPT + AI Agent as the primary development interface. Long chats, interrupted Agent Work, platform limits, or the need to start a new Chat must not cause loss of development continuity.
+
+### Problem / Context
+
+Previous Governance already required Repository-based Context recovery, but it did not explicitly define the distinction between Chat, Agent Work, Development Task, Checkpoint, Context Recovery, and Development Work Continuity. It also did not specify how to handle long-running Agent Work without imposing an arbitrary time-based cutoff.
+
+### AI Proposal
+
+- Treat Chat as a temporary development interface rather than the project Source of Truth.
+- Define Development Task as the continuity unit above Chat.
+- Define Development Context, Checkpoint, Context Recovery, and Development Work Continuity as explicit operating concepts.
+- Use state-based Checkpoints instead of fixed time-based forced stops.
+- Define Long-running Agent Work handling so CI/benchmark waiting does not become indefinite Agent polling.
+- Treat ChatGPT plan/model/tool limitations as Platform Constraints, not immutable Governance assumptions.
+- Provide a reusable Checkpoint template.
+
+### User Decision
+
+Approved the full operating model and requested it to become part of Governance and to be continuously improved as new operational lessons emerge.
+
+### Implementation
+
+Governance Version 1.2.0 adds section 25-A and updates supporting templates and status documents.
+
+### Verification
+
+- Governance terminology and recovery workflow reviewed against the current Chat-based development model.
+- Governance version, changelog, status, README, and templates updated consistently.
+
+### Result
+
+Development Work Continuity is now a formal Governance objective. Chat changes are treated as normal transitions; development state is preserved through Repository-backed Context, Checkpoints, and recovery procedures.
+
+### Next Step
+
+Apply the new continuity model during subsequent development work and promote recurring continuity failures into future Governance improvements.
