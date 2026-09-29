@@ -1,3 +1,33 @@
+## 2026-09-30 — Governance v1.3.0 Development Task Registry
+
+### Requirement
+- Support multiple concurrent or paused Development Tasks across Governance and multiple projects without relying on a single global last-task pointer.
+- Allow a new Chat to identify the intended Development Task before reading project-specific Context.
+
+### Problem / Context
+v1.2.1 established Interaction boundaries and Context Recovery, but the Workspace did not yet have a canonical index connecting multiple Development Tasks to their respective Context and Checkpoint records. A new Chat could therefore recover a project Context but still lack a reliable way to determine which Task within the Workspace should be resumed.
+
+### Decision
+- Add the Workspace-level `GOVERNANCE/docs/DEVELOPMENT_TASKS.md` Registry.
+- Use immutable `TASK-YYYYMMDD-NNNN` IDs with a four-digit daily sequence.
+- Keep Task selection separate from recency; do not automatically restore the most recently updated Task.
+- Keep the Registry integrated for discovery while storing detailed Context / Checkpoints in the owning Workspace or Project area.
+- Ask only a minimal clarification when multiple relevant Tasks cannot be distinguished from the Request.
+
+### Implementation
+- Governance Version: `1.3.0`.
+- Added Development Task Registry and Task lifecycle rules.
+- Added initial registry entries for the active Governance continuity task and the ongoing Janggi AI development task.
+- Added Task-specific Checkpoint files and Task ID to the reusable checkpoint template.
+- Updated workspace/project startup instructions and validation requirements.
+- Synchronized project Context Governance versions.
+
+### Verification
+- Repository structure, Context Recovery terminology, Task Registry rules, and checkpoint paths were re-read together.
+- Existing Workspace validation remains the required CI gate for the new Registry path.
+
+### Next Step
+Use the Task Registry during the next Chat transition and create/update Task records as Development Tasks start, pause, resume, complete, or become blocked.
 # Development History
 
 ## 2026-09-15 — Governance v1.0.0 수립
