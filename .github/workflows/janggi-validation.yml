@@ -25,10 +25,14 @@ jobs:
         working-directory: projects/personal-ai-janggi-trainer-by-gpt
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Compile Python modules
         run: python -m compileall janggi tests tools
+      - name: Validate Requirement Contracts
+        run: python tools/validate_requirement_contracts.py
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
