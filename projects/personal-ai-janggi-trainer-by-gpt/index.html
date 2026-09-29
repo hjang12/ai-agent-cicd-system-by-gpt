@@ -397,14 +397,19 @@
     function pieceAt(index) {
       const view = currentPosition();
       const code = view.state.board[index];
-      if (!code) return null;
-      const [side, kind] = code.split(':');
       if (pendingPlayerMove && !trainingPosition) {
         const srcIndex = pendingPlayerMove.src[1] * 9 + pendingPlayerMove.src[0];
         const dstIndex = pendingPlayerMove.dst[1] * 9 + pendingPlayerMove.dst[0];
         if (index === srcIndex) return null;
-        if (index === dstIndex) return {side, kind: view.state.board[srcIndex]?.split(':')[1] || kind};
+        if (index === dstIndex) {
+          const sourceCode = view.state.board[srcIndex];
+          if (!sourceCode) return null;
+          const [pendingSide, pendingKind] = sourceCode.split(':');
+          return {side: pendingSide, kind: pendingKind};
+        }
       }
+      if (!code) return null;
+      const [side, kind] = code.split(':');
       return {side, kind};
     }
 
