@@ -77,12 +77,13 @@ def run_search_benchmark() -> None:
             )
 
 
-def run_adjacent_tournaments(games: int, max_plies: int) -> None:
+def run_adjacent_tournaments(games: int, max_plies: int) -> list[dict[str, object]]:
     print()
     print(f"Adjacent-level self-play benchmark: {games} games, {max_plies} plies cap")
-    print("Results are exploratory strength evidence, not a certified rating.")
-    print("lower_level,higher_level,lower_score,higher_score,draws,completed,unfinished")
+    print("Results are exploratory strength evidence, not a calibrated rating.")
+    print("lower_level,higher_level,lower_score,higher_score,lower_wins,higher_wins,draws,completed,unfinished")
 
+    rows: list[dict[str, object]] = []
     for lower, higher in zip(AI_LEVELS, AI_LEVELS[1:]):
         lower_engine = NegamaxEngine(lower.config)
         higher_engine = NegamaxEngine(higher.config)
@@ -96,11 +97,30 @@ def run_adjacent_tournaments(games: int, max_plies: int) -> None:
             games,
             alternate_colors=True,
         )
+        row = {
+            "lower_level": lower.level.value,
+            "lower_name": lower.name,
+            "higher_level": higher.level.value,
+            "higher_name": higher.name,
+            "games": games,
+            "max_plies": max_plies,
+            "lower_score": summary.first_score,
+            "higher_score": summary.second_score,
+            "lower_wins": summary.first_wins,
+            "higher_wins": summary.second_wins,
+            "draws": summary.draws,
+            "completed": summary.completed,
+            "unfinished": summary.unfinished,
+        }
+        rows.append(row)
         print(
             f"{lower.level.value},{higher.level.value},"
-            f"{summary.first_score},{summary.second_score},{summary.draws},"
+            f"{summary.first_score},{summary.second_score},"
+            f"{summary.first_wins},{summary.second_wins},{summary.draws},"
             f"{summary.completed},{summary.unfinished}"
         )
+    return rows
+
 
 
 def main() -> None:
