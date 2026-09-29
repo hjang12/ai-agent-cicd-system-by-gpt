@@ -348,6 +348,8 @@ class NegamaxEngine:
         moves: tuple[Move, ...],
         depth: int,
         preferred_move: Optional[Move],
+        alpha: Optional[int] = None,
+        beta: Optional[int] = None,
     ) -> tuple[int, Move, tuple[Move, ...]]:
         self._check_time_budget()
         ordered_moves = self._ordered_search_moves(
@@ -358,8 +360,8 @@ class NegamaxEngine:
         )
         best_score = -MATE_SCORE * 2
         best_results: list[tuple[Move, tuple[Move, ...]]] = []
-        alpha = -MATE_SCORE * 2
-        beta = MATE_SCORE * 2
+        alpha = -MATE_SCORE * 2 if alpha is None else alpha
+        beta = MATE_SCORE * 2 if beta is None else beta
 
         for move in ordered_moves:
             self._check_time_budget()
