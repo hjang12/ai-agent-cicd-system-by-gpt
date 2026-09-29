@@ -17,6 +17,7 @@ GOVERNANCE/
 ├── MIGRATION.md
 ├── docs/
 │   ├── CURRENT_STATUS.md
+│   ├── DEVELOPMENT_TASKS.md
 │   ├── DEVELOPMENT_HISTORY.md
 │   └── ADR/
 └── templates/
@@ -30,9 +31,9 @@ GOVERNANCE/
 
 1. `/AGENT_START.md`
 2. `/GOVERNANCE/GOVERNANCE.md`
-3. 작업 대상 `projects/<project>/AGENT_START.md`
-4. 작업 대상 `projects/<project>/AGENTS.md`
-5. 작업 대상 `projects/<project>/docs/CURRENT_STATUS.md`
+3. `/GOVERNANCE/docs/DEVELOPMENT_TASKS.md`에서 Request에 해당하는 Development Task를 식별
+4. 해당 Task의 Workspace / Project Context와 Checkpoint 확인
+5. 작업 대상 `projects/<project>/AGENT_START.md` / `AGENTS.md` / `docs/CURRENT_STATUS.md` 확인
 6. 실제 코드 / 테스트 / CI / Render 상태
 
 를 현재 Repository와 실행 결과를 기준으로 확인합니다.
@@ -54,6 +55,7 @@ GOVERNANCE/
 
 Chat이 변경되거나 Agent Work가 중단되어도 다음 기록을 통해 작업을 복구합니다.
 
+- DEVELOPMENT_TASKS.md — Development Task 식별과 Context / Checkpoint 경로 탐색
 - CURRENT_STATUS.md — 현재 상태
 - ACTIVE_ISSUES.md — 현재 미해결 이슈
 - Checkpoint — 단기 복구 기준점
