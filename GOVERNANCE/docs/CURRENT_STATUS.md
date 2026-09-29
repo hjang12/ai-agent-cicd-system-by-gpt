@@ -25,14 +25,14 @@ hjang12/ai-agent-cicd-system-by-gpt/
 
 ### Canonical paths
 
-- `AGENT_START.md` — workspace-level session entrypoint
+- `AGENT_START.md` — workspace-level agent startup entrypoint
 - `AGENTS.md` — workspace-level agent rules
 - `GOVERNANCE/GOVERNANCE.md` — common operating rules
 - `GOVERNANCE/docs/CURRENT_STATUS.md` — this workspace status
 - `GOVERNANCE/docs/ACTIVE_ISSUES.md` — AI-managed current unresolved issue index
 - `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md` — long-term governance/workspace history
 - `GOVERNANCE/docs/ADR/` — architecture and operating decisions
-- `projects/<project>/AGENT_START.md` — project session entrypoint
+- `projects/<project>/AGENT_START.md` — project Chat startup entrypoint
 - `projects/<project>/AGENTS.md` — project-specific agent rules
 - `projects/<project>/docs/CURRENT_STATUS.md` — project context
 - `.github/workflows/` — monorepo CI and benchmark workflows
