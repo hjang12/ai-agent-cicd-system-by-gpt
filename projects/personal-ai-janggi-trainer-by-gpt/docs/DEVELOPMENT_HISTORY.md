@@ -1,3 +1,31 @@
+## 46. 2026-09-29 — LinearValueModel strength benchmark harness
+
+### Requirement
+
+학습 후보 모델을 단순히 학습·직렬화하는 것만으로는 실제 AI 성능 개선 여부를 판단할 수 없으므로, 현재 heuristic evaluator와 동일한 검색 예산에서 직접 비교할 수 있어야 합니다.
+
+### Decision
+
+`benchmark_linear_value_model.py`를 추가해 serialized `LinearValueModel`과 현재 heuristic evaluator를 동일한 public AI level/search profile로 `HeadToHeadTournament`에 투입하고 색상을 교대합니다.
+
+- 미완료 대국은 score/rating에서 제외
+- 완료 대국만 승/무/패 및 Elo-style delta 계산
+- 동일한 legality validation 경계를 사용
+- 현재 단계에서는 evidence-only로 유지하고 public level/production evaluator를 변경하지 않음
+
+### Implementation
+
+- `tools/benchmark_linear_value_model.py`
+- `tests/test_linear_value_model_benchmark.py`
+- `janggi-train-linear-value-model.yml`에 candidate benchmark 단계 추가
+- `docs/AI_MODEL_ARCHITECTURE.md`, `CURRENT_STATUS.md` 동기화
+
+### Boundary
+
+소표본 benchmark는 pipeline 검증일 뿐 strength proof가 아닙니다. 반복 seed/충분한 completed-game sample과 deterministic fixture 결과가 확보되기 전에는 production promotion을 하지 않습니다.
+
+---
+
 ## 45. 2026-09-29 — Dependency-free LinearValueModel candidate
 
 ### Requirement
