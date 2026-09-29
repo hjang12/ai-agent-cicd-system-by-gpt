@@ -1,3 +1,31 @@
+## 47. 2026-09-29 — Bound AI-level calibration into adjacent-pair batches
+
+### Finding
+
+PR #55의 전체 calibration(5개 인접 쌍, 각 4게임, 64 ply cap)은 약 20분 실행 후 GitHub Actions timeout으로 취소되었고 결과 artifact를 남기지 못했습니다.
+
+### Decision
+
+전체 level ladder를 한 job에서 일괄 실행하지 않고 `1-2`, `2-3`, `3-4`, `4-5`, `5-6`의 인접 쌍을 각각 독립 실행하도록 benchmark CLI와 manual workflow를 변경했습니다.
+
+- 각 실행은 bounded games/ply cap을 가짐
+- 반복 실행으로 전체 ladder를 구성
+- 미완료 대국은 계속 별도 집계
+- cancelled run은 strength evidence로 취급하지 않음
+
+### Implementation
+
+- `tools/benchmark_ai_levels.py`에 `--pair` 추가
+- `.github/workflows/janggi-ai-level-strength.yml`에 pair selector 추가
+- `tests/test_ai_strength_benchmark.py`에 pair validation regression 추가
+- `docs/AI_LEVELS.md`에 calibration execution policy 기록
+
+### Boundary
+
+이 변경은 AI level의 search budget이나 public difficulty 자체를 변경하지 않습니다. 실행 안정성과 evidence collection 방식만 개선합니다.
+
+---
+
 ## 46. 2026-09-29 — LinearValueModel strength benchmark harness
 
 ### Requirement

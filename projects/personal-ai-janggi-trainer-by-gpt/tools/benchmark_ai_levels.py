@@ -79,7 +79,11 @@ def run_search_benchmark() -> None:
             )
 
 
-def run_adjacent_tournaments(games: int, max_plies: int) -> list[dict[str, object]]:
+def run_adjacent_tournaments(
+    games: int,
+    max_plies: int,
+    pair: str | None = None,
+) -> list[dict[str, object]]:
     print()
     print(f"Adjacent-level self-play benchmark: {games} games, {max_plies} plies cap")
     print("Results are exploratory strength evidence, not a calibrated rating.")
@@ -87,6 +91,9 @@ def run_adjacent_tournaments(games: int, max_plies: int) -> list[dict[str, objec
 
     rows: list[dict[str, object]] = []
     for lower, higher in zip(AI_LEVELS, AI_LEVELS[1:]):
+        pair_id = f"{lower.level.value}-{higher.level.value}"
+        if pair is not None and pair_id != pair:
+            continue
         lower_engine = NegamaxEngine(lower.config)
         higher_engine = NegamaxEngine(higher.config)
         summary = HeadToHeadTournament(
@@ -125,13 +132,19 @@ def run_adjacent_tournaments(games: int, max_plies: int) -> list[dict[str, objec
 
 
 
-def validate_benchmark_args(tournament_games: int, max_plies: int) -> None:
+def validate_benchmark_args(
+    tournament_games: int,
+    max_plies: int,
+    pair: str | None = None,
+) -> None:
     if tournament_games < 0:
         raise ValueError("tournament_games must be non-negative")
     if tournament_games == 1 or tournament_games % 2:
         raise ValueError("tournament_games must be 0 or an even integer of at least 2")
     if max_plies < 1:
         raise ValueError("max_plies must be at least 1")
+    if pair is not None and pair not in {"1-2", "2-3", "3-4", "4-5", "5-6"}:
+        raise ValueError("pair must be one of 1-2, 2-3, 3-4, 4-5, 5-6")
 
 
 def main() -> None:
@@ -149,6 +162,17 @@ def main() -> None:
         help="Maximum plies per tournament game.",
     )
     parser.add_argument(
+        "--pair",
+        choices=("1-2", "2-3", "3-4", "4-5", "5-6"),
+        default=None,
+        help="Run one adjacent-level pair only; useful for bounded repeated calibration runs.",
+    )
+    parser.add_argument(
+        "--skip-search-benchmark",
+        action="store_true",
+        help="Skip deterministic fixture search benchmarking and run only the tournament portion.",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=None,
@@ -157,13 +181,14 @@ def main() -> None:
     args = parser.parse_args()
 
     try:
-        validate_benchmark_args(args.tournament_games, args.max_plies)
+        validate_benchmark_args(args.tournament_games, args.max_plies, args.pair)
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
 
-    run_search_benchmark()
+    if not args.skip_search_benchmark:
+        run_search_benchmark()
     tournament_rows = (
-        run_adjacent_tournaments(args.tournament_games, args.max_plies)
+        run_adjacent_tournaments(args.tournament_games, args.max_plies, args.pair)
         if args.tournament_games
         else []
     )
@@ -174,6 +199,7 @@ def main() -> None:
                 "method": "HeadToHeadTournament with alternating colors",
                 "games_per_adjacent_pair": args.tournament_games,
                 "max_plies": args.max_plies,
+                "pair": args.pair,
                 "interpretation": "exploratory evidence only; not calibrated player or model rating",
             },
             "pairs": tournament_rows,

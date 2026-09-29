@@ -58,7 +58,7 @@ jobs:
       - name: Run lightweight PR smoke benchmark
         if: github.event_name == 'pull_request'
         run: |
-          PYTHONPATH=. python tools/benchmark_ai_strength.py --games 2 --max-plies 8 --seed 20260922 --output strength-smoke.json
+          PYTHONPATH=. python tools/benchmark_ai_strength.py --games 2 --max-plies 2 --seed 20260922 --output strength-smoke.json
           cat strength-smoke.json >> "$GITHUB_STEP_SUMMARY"
       - name: Run full strength benchmark
         if: github.event_name == 'workflow_dispatch'

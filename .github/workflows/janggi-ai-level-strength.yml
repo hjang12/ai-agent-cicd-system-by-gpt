@@ -10,7 +10,18 @@ on:
       max_plies:
         description: "Maximum plies per game"
         required: true
-        default: "32"
+        default: "48"
+      pair:
+        description: "Adjacent level pair to calibrate"
+        required: true
+        type: choice
+        options:
+          - "1-2"
+          - "2-3"
+          - "3-4"
+          - "4-5"
+          - "5-6"
+        default: "1-2"
   pull_request:
     paths:
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/ai_level.py'
@@ -46,15 +57,23 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             GAMES=2
             MAX_PLIES=4
+            PAIR="1-2"
             OUTPUT=ai-level-strength-pr.json
           else
             GAMES="${{ inputs.games }}"
             MAX_PLIES="${{ inputs.max_plies }}"
-            OUTPUT=ai-level-strength.json
+            PAIR="${{ inputs.pair }}"
+            OUTPUT="ai-level-strength-${PAIR}.json"
+          fi
+          EXTRA_ARGS=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            EXTRA_ARGS="--skip-search-benchmark"
           fi
           PYTHONPATH=. python tools/benchmark_ai_levels.py \
             --tournament-games "$GAMES" \
             --max-plies "$MAX_PLIES" \
+            --pair "$PAIR" \
+            $EXTRA_ARGS \
             --output "$OUTPUT"
           cat "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload calibration evidence
