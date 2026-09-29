@@ -1,3 +1,49 @@
+## 41. 2026-09-29 — Requirement Contract protection and change-control guard
+
+### Requirement
+
+사용자가 한 번 요청하고 구현·검증한 동작이 후속 개발 과정에서 새로운 작업의 부작용으로 원복되는 문제를 구조적으로 방지해야 합니다. 특히 최근 사람 수 즉시 표시 요구사항이 반복적으로 회귀했기 때문에, 채팅 Context가 아니라 Repository와 CI가 해당 결정을 기억해야 합니다.
+
+### Decision
+
+사용자 요청으로 확정된 유지 필요 동작을 project-level **Requirement Contract**로 등록하고 다음 규칙을 적용합니다.
+
+- `ACTIVE` Contract는 후속 작업에서 유지해야 하는 제품 계약입니다.
+- 내부 구현 리팩터링은 허용하되 사용자 관찰 가능 동작과 회귀 테스트는 유지합니다.
+- 기존 Contract와 새 요구사항이 충돌하면 조용히 원복하지 않고 충돌/영향/대안을 사용자에게 보고합니다.
+- Contract 정의나 회귀 테스트를 의도적으로 변경할 경우 `CONTRACT-CHANGE: <ID>` 선언을 요구합니다.
+- CI는 Contract Registry의 구조와 회귀 테스트 존재 여부를 자동 검사하고, 보호된 구현 경로가 변경되었음을 경고합니다.
+
+### Implementation
+
+- `docs/requirement_contracts.json` 추가
+- `docs/REQUIREMENT_CONTRACTS.md` 추가
+- `tools/validate_requirement_contracts.py` 추가
+- `tests/test_requirement_contracts.py` 추가
+- 필수 `janggi-validation.yml`에 Contract validation 추가
+- `AGENTS.md`, `AGENT_START.md`, `CURRENT_STATUS.md`에 Contract 확인 절차 추가
+- 공통 Governance를 `1.1.0`으로 올리고 Requirement Contract 보호 규칙 추가
+
+### Current protected contract
+
+`UX-001`: 사용자가 합법적인 수를 선택하면 AI 계산이 시작되기 전에 사용자 수가 장기판에 먼저 보입니다.
+
+### Verification
+
+- Contract Registry 자체 검증
+- 참조 회귀 테스트 존재 여부 AST 검증
+- Pull Request / direct push에서 Contract 변경 선언을 검사하도록 CI 경계 구성
+
+### Boundary
+
+모든 구현 파일 수정을 막는 것은 아닙니다. 보호 경로 내부의 리팩터링은 회귀 테스트가 Contract를 계속 증명하는 한 허용합니다. 실제 제품 동작을 변경해야 하는 경우에만 Contract change로 승격합니다.
+
+### Next Step
+
+향후 사용자가 새로운 핵심 요구사항을 확정할 때 동일한 Contract ID를 발급하고 회귀 테스트를 연결합니다.
+
+---
+
 ## 31. 2026-09-21 — Adaptive selection diversity bound
 
 ### Requirement
