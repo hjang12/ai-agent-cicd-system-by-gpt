@@ -12,6 +12,9 @@
 - Active PR:
 - Active Issue:
 - Current Status:
+- Current Interaction:
+- Current Agent Work Segment:
+- Execution Boundary / Pause Reason:
 
 ## Completed Work
 
