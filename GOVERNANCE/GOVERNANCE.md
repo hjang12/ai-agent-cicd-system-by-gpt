@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.1.0**
+**Governance Version: 1.2.0**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -1103,6 +1103,194 @@ Governance
 채팅과 Repository가 충돌하면 충돌 사실을 보고하고 공식 Repository와 프로젝트 문서를 기준으로 판단한다.
 
 ---
+
+
+## 25-A. Chat 기반 Agent 개발과 Development Work Continuity
+
+이 Workspace는 AI Coding Agent를 이용한 **대화형(Chat-based) 개발 방식**을 사용한다. 따라서 개발 작업이 특정 Chat 또는 특정 Agent 실행의 지속 여부에 종속되지 않도록 **Development Work Continuity(개발 작업 연속성)**를 Governance의 운영 목표로 관리한다.
+
+### 25-A-1. Canonical Terminology
+
+Governance에서는 다음 용어를 공식적으로 사용한다.
+
+| 용어 | 정의 |
+| --- | --- |
+| **Chat** | ChatGPT UI에서 하나의 독립적인 채팅방 또는 대화 단위 |
+| **Request** | 사용자가 Agent에 전달한 하나의 요청 |
+| **Agent Work** | Request를 해결하기 위해 Agent가 수행하는 실제 분석·수정·검증·기록 작업 |
+| **Response** | Agent Work 결과를 사용자에게 전달하는 답변 |
+| **Interaction** | Request → Agent Work → Response로 이루어진 하나의 상호작용 |
+| **Development Task** | 하나의 개발 목표를 달성하기 위해 하나 이상의 Chat과 Interaction에 걸쳐 수행될 수 있는 지속적인 개발 작업 단위 |
+| **Development Context** | Development Task를 현재 시점에서 이해하고 재개하는 데 필요한 상태 정보 |
+| **Checkpoint** | Development Context를 다른 Chat 또는 후속 Agent Work에서 복구할 수 있도록 기록한 특정 시점의 작업 상태 |
+| **Context Recovery** | 새 Chat 또는 중단된 Agent Work에서 Checkpoint와 Repository 상태를 기준으로 Development Context를 다시 확보하는 과정 |
+| **Development Work Continuity** | Chat 변경, Agent Work 중단, Context 제한 또는 플랫폼 제약이 발생해도 Development Task를 계속 수행할 수 있는 능력 |
+| **Long-running Agent Work** | 장시간 실행, 외부 CI/Benchmark 대기, 반복 검증 등으로 한 번의 Agent Work가 장시간 지속되는 상태 |
+
+Session과 Turn은 이 Governance의 canonical terminology로 사용하지 않는다. 외부 문서에서 해당 용어가 사용된 경우에도 실제 범위를 확인하여 Chat, Interaction, Agent Work 등 적절한 용어로 해석한다.
+
+### 25-A-2. Chat은 임시 작업 공간이다
+
+Chat은 개발 작업을 수행하는 인터페이스이며 프로젝트의 공식 Source of Truth가 아니다.
+
+다음 원칙을 적용한다.
+
+- Chat의 이전 내용만으로 장기 개발 상태를 보존하지 않는다.
+- Chat이 길어지거나, 플랫폼 제약이 발생하거나, 사용자가 새 Chat을 시작하거나, 현재 Chat/Agent Work를 계속하기 어려운 경우 **Chat Transition**을 정상적인 운영 방법으로 취급한다.
+- Chat이 변경되어도 Development Task 자체를 중단된 것으로 간주하지 않는다.
+- Repository와 프로젝트 Context 문서가 Chat보다 우선한다.
+- Chat의 세부 대화가 복구되지 않더라도 Development Context가 복구되면 작업을 계속할 수 있도록 설계한다.
+
+### 25-A-3. Development Work Continuity
+
+Development Work Continuity는 다음을 보장하는 것을 목표로 한다.
+
+Development Task
+    ↓
+현재 Chat에서 Agent Work 수행
+    ↓
+Checkpoint 기록
+    ↓
+Chat 변경 / 작업 중단 / 플랫폼 제약
+    ↓
+새 Chat
+    ↓
+Context Recovery
+    ↓
+동일 Development Task 재개
+
+Development Work Continuity의 성공 기준은 **같은 Chat의 대화 내용을 그대로 유지하는 것**이 아니라 **현재 Development Task를 필요한 상태와 근거를 잃지 않고 재개할 수 있는 것**이다.
+
+### 25-A-4. Development Context 최소 구성
+
+Development Task를 새 Chat에서 재개할 수 있도록 가능한 범위에서 다음 정보를 유지한다.
+
+- 현재 Development Task / 목표
+- Current Branch
+- Current Commit
+- Active PR 또는 관련 GitHub Issue
+- 완료된 작업
+- 진행 중인 작업
+- 실제 검증 결과
+- Active Issues / Blocker
+- 중요한 Requirement / Decision / Constraint
+- 현재 미확정 사항
+- 다음 작업(Next Action)
+- 필요한 경우 Deployment / CI / Benchmark 상태
+- 관련 Evidence / Artifact
+
+정보는 가능한 한 다음 저장소와 문서에 분산하여 기록하되, 현재 상태 판단은 CURRENT_STATUS.md, 미해결 문제는 ACTIVE_ISSUES.md, 상세 이력은 DEVELOPMENT_HISTORY.md / ADR / GitHub 기록을 기준으로 한다.
+
+### 25-A-5. Checkpoint 운영
+
+Checkpoint는 **고정된 시간 간격으로 강제 생성하지 않는다.** 특히 "10분마다 Chat을 종료한다"와 같은 시간 기반 강제 중단 규칙을 두지 않는다.
+
+대신 다음과 같은 의미 있는 상태 변화가 발생할 때 Checkpoint를 기록하거나 관련 Context 문서를 갱신한다.
+
+- 독립적인 개발 단계 또는 작업 목표가 완료됨
+- 주요 설계 또는 운영 결정이 내려짐
+- PR 생성, 갱신 또는 Merge
+- 중요한 Test / Benchmark / Deployment 검증이 완료됨
+- Long-running Agent Work를 일시 중단할 필요가 생김
+- 새 Chat으로 전환할 가능성이 높아짐
+- 사용자 요청으로 작업이 중단됨
+- 플랫폼 / 권한 / 실행 한계로 현재 작업을 직접 계속하기 어려움
+
+Checkpoint는 최소한 다음을 빠르게 확인할 수 있어야 한다.
+
+Current Development Task
+Current State
+Current Branch / Commit
+Active PR / Issue
+Completed Work
+Verification
+Active Issues / Blocker
+Important Decisions
+Next Action
+
+### 25-A-6. Context Recovery
+
+새 Chat 또는 중단 후 작업을 재개할 때 Agent는 기존 Chat의 기억을 추측하여 복구하지 않는다.
+
+기본 복구 순서는 다음과 같다.
+
+Governance
+→ AGENT_START / AGENTS
+→ CURRENT_STATUS
+→ ACTIVE_ISSUES
+→ Checkpoint가 있는 경우 Checkpoint
+→ README / ARCHITECTURE / Requirement Contracts
+→ DEVELOPMENT_HISTORY / ADR / Evidence
+→ Actual Repository Code
+→ GitHub PR / Issue / CI State
+→ Deployment State
+
+Repository와 기존 Chat 설명이 다르면 실제 Repository와 공식 Context 문서를 Source of Truth로 사용하고 차이를 보고한다.
+
+새 Chat에서 복구한 정보가 불충분하면 **추측으로 개발을 계속하지 않고**, 필요한 정보가 있는 범위에서 조사·검증한 뒤 Context를 갱신한다.
+
+### 25-A-7. Long-running Agent Work
+
+Long-running Agent Work 자체를 금지하지 않는다. Agent는 안전하고 승인된 범위에서 충분한 시간을 들여 하나의 개발 작업을 계속할 수 있다.
+
+다만 다음을 준수한다.
+
+- 장시간 CI / Benchmark / 외부 실행 결과만을 기다리며 전체 Agent Work를 무기한 붙잡지 않는다.
+- 장시간 대기와 독립적인 개발·분석 작업이 있으면 가능한 경우 분리하여 진행한다.
+- 장시간 작업 중 의미 있는 상태 변화가 발생하면 Checkpoint / Context를 갱신한다.
+- 외부 작업이 진행 중이더라도 이미 확인된 사실과 다음 Action을 기록하여 이후 Chat에서 재개할 수 있게 한다.
+- 실행이 중단되었다고 해서 미검증 결과를 성공으로 기록하지 않는다.
+- 사용자에게 중간 중단이 필요한 경우에도 작업을 버리는 것이 아니라 현재 상태를 Checkpoint로 남긴 후 종료한다.
+
+장시간 Agent Work의 종료 여부는 **경과 시간 자체가 아니라 현재 상태, 검증 가능성, 플랫폼 제약, 작업의 독립성 및 Development Context의 보존 여부**를 기준으로 판단한다.
+
+### 25-A-8. Chat Transition
+
+다음과 같은 경우 새 Chat으로 전환할 수 있으며, 이는 실패나 작업 초기화로 간주하지 않는다.
+
+- 현재 Chat의 맥락이 너무 커져 Context Recovery가 오히려 더 안전한 경우
+- Chat 또는 Agent Work가 플랫폼 제약으로 더 이상 안정적으로 진행되지 않는 경우
+- 사용자가 새 Chat을 시작한 경우
+- 현재 작업과 새로운 개발 주제가 명확히 분리되는 경우
+- 장기 작업의 Checkpoint가 충분히 축적되어 새 Chat에서 재개하는 편이 효율적인 경우
+
+새 Chat으로 전환하기 전 가능한 경우 Checkpoint / CURRENT_STATUS / DEVELOPMENT_HISTORY를 최신 상태로 정리한다.
+
+### 25-A-9. 플랫폼 및 요금제 제약
+
+ChatGPT Plan, Model, Context, Tool, Runtime 및 기타 플랫폼 특성으로 인해 Chat 또는 Agent Work에 제약이 발생할 수 있다.
+
+이 제약은 **Platform Constraint**로 취급한다.
+
+특정 현재 요금제(예: Free)의 구체적인 한계나 동작을 Governance의 불변 규칙으로 하드코딩하지 않는다. 현재 사용 중인 요금제, 모델 및 플랫폼 제약은 Workspace / Project의 CURRENT_STATUS.md 또는 관련 운영 기록에서 관리한다.
+
+플랫폼이 제공하는 Memory / Personalization은 개발 작업 연속성을 보조할 수 있지만 이를 유일한 보존 수단으로 사용하지 않는다.
+
+사용자 선호, 응답 스타일과 같은 **Personalization**은 Development Context와 구분한다. 개발 작업의 연속성은 Repository와 공식 Context 기록으로 보장한다.
+
+### 25-A-10. Continuity Failure
+
+다음 중 하나가 발생하면 이를 **Development Work Continuity 장애 또는 위험**으로 취급한다.
+
+- 새 Chat에서 현재 Development Task를 복구할 수 없음
+- Current State / Next Action / Active Issue가 불명확함
+- Chat 전환 후 중요한 사용자 요구사항 또는 결정이 사라짐
+- 실제 Git / CI / Deployment 상태와 Context 문서가 불일치함
+- Long-running Agent Work 중 중간 상태를 복구할 수 없음
+
+이 경우 Agent는 문제를 숨기지 않고:
+
+문제
+→ 영향
+→ 현재 확인 가능한 상태
+→ 복구를 위해 필요한 정보
+→ Context / Checkpoint 보강
+→ 재발 방지 제안
+
+순으로 처리한다.
+
+반복적으로 발생하는 Continuity 문제는 Governance 개선 대상으로 승격한다.
+
 
 ## 26. Evidence와 Traceability 관리
 
