@@ -6,6 +6,13 @@
 
 ### Problem / Context
 
+### Development Work Continuity
+
+- Development Task:
+- Checkpoint:
+- Context Recovery:
+- Chat Transition:
+
 ### Options Considered
 
 1.
