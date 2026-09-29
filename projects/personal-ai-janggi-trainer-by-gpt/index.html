@@ -386,8 +386,8 @@
     let trainingProblems = [];
     let activeTrainingProblem = null;
     let trainingPosition = null;
-    let boardMessage = {title:'', subtitle:'', thinking:false};
-    let boardMessageTimer = null;
+    let pendingPlayerMove = null;
+    let boardMessage = {title:'', subtitle:'', thinking:false};    let boardMessageTimer = null;
     let boardMessageToken = 0;
 
     function currentPosition() {
@@ -397,6 +397,17 @@
     function pieceAt(index) {
       const view = currentPosition();
       const code = view.state.board[index];
+      if (pendingPlayerMove && !trainingPosition) {
+        const srcIndex = pendingPlayerMove.src[1] * 9 + pendingPlayerMove.src[0];
+        const dstIndex = pendingPlayerMove.dst[1] * 9 + pendingPlayerMove.dst[0];
+        if (index === srcIndex) return null;
+        if (index === dstIndex) {
+          const sourceCode = view.state.board[srcIndex];
+          if (!sourceCode) return null;
+          const [pendingSide, pendingKind] = sourceCode.split(':');
+          return {side: pendingSide, kind: pendingKind};
+        }
+      }
       if (!code) return null;
       const [side, kind] = code.split(':');
       return {side, kind};
@@ -673,6 +684,7 @@
       } catch (error) {
         status.textContent = error.message;
       } finally {
+        pendingPlayerMove = null;
         busy = false;
         updateControls();
       }
@@ -904,7 +916,7 @@
         </div>`;
       const destinations = selected ? legalDestinations(selected) : new Set();
       const history = Array.isArray(view?.state?.history) ? view.state.history : [];
-      const lastMove = history.length ? history[history.length - 1] : null;
+      const lastMove = pendingPlayerMove || (history.length ? history[history.length - 1] : null);
       for (let y = 0; y < 10; y += 1) {
         for (let x = 0; x < 9; x += 1) {
           const [stateX, stateY] = displayToState(x, y);
@@ -957,6 +969,7 @@
     async function getState() {
       const response = await fetch('/api/state', {cache:'no-store'});
       snapshot = await readJsonResponse(response);
+      pendingPlayerMove = null;
       playerSide.value = snapshot.player_side || 'cho';
       aiLevel.value = snapshot.ai_level || '1';
       setup.value = snapshot.setup || 'classic';
@@ -999,6 +1012,11 @@
       return readJsonResponse(response);
     }
 
+    async function waitForPaint() {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    }
+
     async function clickCell(x, y) {
       const view = currentPosition();
       if (busy || view.status !== 'playing') return;
@@ -1039,13 +1057,18 @@
         }
 
         const beforeSnapshot = snapshot;
-        status.textContent = '내 수를 반영하는 중입니다…';
+        pendingPlayerMove = move;
+        selected = null;
+        status.textContent = '내 수를 먼저 반영했습니다 · AI를 기다리는 중입니다…';
+        render();
+        await waitForPaint();
+
         const moveResult = await post('/api/move', move);
         snapshot = moveResult;
+        pendingPlayerMove = null;
         clearTrainingMode();
         renderReview(null);
         renderAnalysis(null, null);
-        selected = null;
         render();
 
         const humanMessage = moveEventMessage(beforeSnapshot, snapshot, beforeSnapshot.state.turn);
@@ -1099,6 +1122,7 @@
         }
       } catch (error) {
         status.textContent = error.message;
+        pendingPlayerMove = null;
         selected = null;
         try {
           await getState();
@@ -1165,6 +1189,7 @@
       busy = true;
       updateControls();
       try {
+        pendingPlayerMove = null;
         snapshot = await post('/api/reset', {setup:setup.value, player_side:playerSide.value, ai_level:aiLevel.value});
         const startMessage = snapshot.player_side === 'han' && snapshot.state.history.length
           ? '한 선택 완료 · 초가 선공 후 내 차례입니다.'

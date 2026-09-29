@@ -1074,3 +1074,32 @@ Keep the existing two-request browser flow so the human board update can render 
 
 AI levels intentionally differ by search budget: Lv.1 uses depth 1, mobility weight 0, and no quiescence; Lv.6 uses depth 3, mobility weight 2, quiescence depth 1, and an 800 ms search budget. The levels therefore search different amounts, but identical selected moves on a given position are still possible; a level configuration is not itself an empirical guarantee of different move choices or playing strength.
 
+
+
+## 40. 2026-09-29 — Optimistic player move rendering regression guard
+
+### Finding
+
+The earlier immediate-human-move implementation rendered the authoritative board only after `POST /api/move` returned. Its regression test checked source-code ordering but did not guarantee that the browser had a visible player-move state before the AI request.
+
+In practice, the browser could still present the human move and AI reply together depending on network timing and rendering scheduling.
+
+### Decision
+
+Keep `GameState` / `Match` authoritative and keep the two-request gameplay flow, but introduce a display-only `pendingPlayerMove` state.
+
+The browser now:
+1. validates the selected move against the server-provided legal-move snapshot,
+2. renders the player move optimistically,
+3. waits across an explicit two-frame paint boundary,
+4. submits `POST /api/move`,
+5. replaces the optimistic display with the authoritative server snapshot,
+6. only then starts `POST /api/engine/move`.
+
+On failure, the optimistic state is discarded and the browser re-synchronizes from `GET /api/state`.
+
+### Regression protection
+
+Added browser contract tests that require the optimistic render and paint boundary to occur before the `/api/move` request, and require `pendingPlayerMove` to remain display-only until the authoritative snapshot arrives.
+
+This is a protected gameplay UX invariant, not an optional presentation detail.

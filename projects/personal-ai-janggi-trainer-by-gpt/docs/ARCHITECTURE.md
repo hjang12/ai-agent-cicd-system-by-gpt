@@ -179,3 +179,17 @@ Keeping these concepts separate prevents UI state, replay history, and training 
 Web/API, persistent storage, authentication, model downloads, and trained ML models are intentionally outside the current core. They should depend on these stable backend boundaries rather than moving rule logic into transport or UI modules.
 
 The next application layer should therefore expose domain and orchestration services without bypassing `GameState` legality checks.
+
+
+## Browser gameplay presentation contract
+
+The browser may use a short-lived optimistic presentation state for a player move, but it must not create a second rules engine or authoritative game state.
+
+- The browser validates the selected move against the current server-provided legal-move snapshot before sending it.
+- `pendingPlayerMove` is display-only: it relocates the already-selected piece for immediate visual feedback while the authoritative `POST /api/move` request is in flight.
+- The authoritative `snapshot` is never mutated by the optimistic UI layer.
+- On server response, the pending state is cleared and the returned snapshot becomes the sole rendered state.
+- On request failure, the pending state is cleared and the browser re-synchronizes from `GET /api/state`.
+- The AI request must not start until the browser has crossed an explicit paint boundary after the optimistic player move is rendered.
+
+This contract is intentionally UI-only. `GameState` / `Match` remain the single source of truth for legality and authoritative state.
