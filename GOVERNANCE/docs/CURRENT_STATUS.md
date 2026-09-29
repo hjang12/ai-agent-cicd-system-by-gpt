@@ -2,7 +2,7 @@
 
 ## Governance
 
-- Governance Version: `1.2.0`
+- Governance Version: `1.2.1`
 - Status: Active baseline on `main`
 - Current canonical workspace repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Default / working branch: `main`
@@ -47,7 +47,10 @@ This workspace uses ChatGPT + AI Agent as the primary interactive development in
 - Current development continuity is managed through Development Task, Development Context, Checkpoint, and Context Recovery.
 - Chat transitions are allowed whenever platform/context constraints or work structure make a new Chat safer or more efficient.
 - No fixed time-based forced Chat cutoff is used. Checkpoints are state-based.
-- Long-running Agent Work must preserve recoverable intermediate state and must not be reduced to indefinite polling of external CI/benchmark work.
+- Interaction has no fixed maximum duration; an Interaction normally ends when a Response is returned, and a safe interruption may end it earlier after preserving recoverable state.
+- Agent Work may be divided into Agent Work Segments when Context / Token / Tool / Runtime / external-work boundaries make continued execution unsafe or inefficient.
+- Long-running Agent Work is supported as part of long-running Development Tasks, but does not imply unbounded or uninterrupted execution.
+- User pause/stop requests are honored at the earliest safe interruption point, with Checkpoint / Context preservation when needed.
 - Current platform/plan/model limits are treated as Platform Constraints rather than hard-coded Governance invariants.
 
 Canonical continuity records:
