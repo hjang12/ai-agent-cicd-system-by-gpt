@@ -44,9 +44,11 @@ jobs:
       - name: Run adjacent-level benchmark
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            GAMES=2
-            MAX_PLIES=4
-            OUTPUT=ai-level-strength-pr.json
+            # Full evidence run for this calibration-only branch. Restore bounded
+            # smoke settings before any merge decision.
+            GAMES=4
+            MAX_PLIES=64
+            OUTPUT=ai-level-strength-pr-full.json
           else
             GAMES="${{ inputs.games }}"
             MAX_PLIES="${{ inputs.max_plies }}"
