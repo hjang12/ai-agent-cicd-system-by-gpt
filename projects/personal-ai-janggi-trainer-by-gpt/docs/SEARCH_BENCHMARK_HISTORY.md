@@ -1,3 +1,40 @@
+## 2026-09-29 — Aspiration-window iterative search probe
+
+### Method
+
+An isolated probe added optional root alpha/beta windows to iterative deepening. Each deeper iteration used the previous completed score as the center of a fixed window; a fail-low/fail-high triggered a full-window re-search. The production search configuration itself was not changed during the probe.
+
+Test deltas were 50, 100, and 200 score units across the initial, capture, double-attack, and endgame fixtures.
+
+### Deterministic result
+
+| Delta | Fixture | Full-window nodes | Aspiration nodes | Change | Same score | Same best move | Re-searches |
+| ---: | --- | ---: | ---: | ---: | :---: | :---: | ---: |
+| 50 | initial d2 | 136 | 170 | -25.00% | yes | yes | 1 |
+| 50 | capture d3 | 603 | 603 | 0.00% | yes | yes | 0 |
+| 50 | double_attack d3 | 1092 | 432 | 60.44% reduction | yes | yes | 1 |
+| 50 | endgame d3 | 883 | 836 | 5.32% reduction | yes | yes | 0 |
+| 100 | initial d2 | 136 | 136 | 0.00% | yes | yes | 0 |
+| 100 | capture d3 | 603 | 603 | 0.00% | yes | yes | 0 |
+| 100 | double_attack d3 | 1092 | 432 | 60.44% reduction | yes | yes | 1 |
+| 100 | endgame d3 | 883 | 859 | 2.72% reduction | yes | yes | 0 |
+| 200 | initial d2 | 136 | 136 | 0.00% | yes | yes | 0 |
+| 200 | capture d3 | 603 | 603 | 0.00% | yes | yes | 0 |
+| 200 | double_attack d3 | 1092 | 432 | 60.44% reduction | yes | yes | 1 |
+| 200 | endgame d3 | 883 | 859 | 2.72% reduction | yes | yes | 0 |
+
+### Decision
+
+Do not promote aspiration windows to the production iterative-deepening configuration yet.
+
+The probe is search-correct on the measured fixtures and shows a strong reduction on the double-attack position, but the benefit is position-dependent and one configuration increased work on the initial position. The remaining question is whether aspiration improves **completed depth under the real 800 ms Level-6 budget** across representative positions.
+
+### Boundary
+
+This remains search-work evidence, not playing-strength evidence. A future revisit should measure effective depth and timeout behavior under the actual Level-6 budget before changing public AI behavior.
+
+---
+
 ## 2026-09-29 — Principal Variation Search probe
 
 ### Method
