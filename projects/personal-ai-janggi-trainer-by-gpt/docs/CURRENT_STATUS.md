@@ -179,6 +179,13 @@ The bounded double-attack detector is explicitly oriented from the original move
 
 Engine analysis now has a single normalization boundary. Best-move recommendations and principal variations are checked against `GameState` before coaching, browser presentation, or the trainer's engine-move response consumes them. A non-empty principal variation must also begin with the normalized best move; inconsistent variations are suppressed. A backend result that is not an `EngineAnalysis` object, or has an invalid analysis perspective, is degraded to an empty analysis for the current side to move; invalid numeric metadata is cleared individually. Malformed analysis is therefore degraded to safe unavailable move data rather than being surfaced as if it were authoritative.
 
+## Actual level-strength calibration evidence
+
+- PR smoke calibration pipeline is operational.
+- Smoke configuration: 2 games per adjacent pair, 4 plies per game.
+- Smoke result: 10 unfinished games, 0 completed games; no playing-strength ordering is inferred.
+- Full adjacent-level evidence still requires a larger games/plies configuration outside the bounded PR smoke.
+
 ## Known Next Targets
 
 1. Exercise the human-vs-AI turn loop against the live service and close any gameplay/UX defects before increasing engine strength.
