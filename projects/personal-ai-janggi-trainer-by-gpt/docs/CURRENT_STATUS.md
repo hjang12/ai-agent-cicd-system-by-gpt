@@ -3,7 +3,7 @@
 ## Governance
 
 - Common Governance Repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Governance Version: `1.0.0`
+- Governance Version: `1.1.0`
 - Governance status: active baseline on `main`
 - Project context entrypoint: `AGENT_START.md`
 
@@ -182,7 +182,8 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 ## Known Next Targets
 
 1. Exercise the human-vs-AI turn loop against the live service and close any gameplay/UX defects before increasing engine strength.
-2. Upgrade baseline AI strength in measured stages, using the existing deterministic search benchmarks and keeping move legality as the authoritative boundary.
+2. Calibrate the six public AI levels with deterministic search evidence and adjacent-level self-play before changing their search budgets.
+3. Upgrade baseline AI strength in measured stages, using the existing deterministic search benchmarks and keeping move legality as the authoritative boundary.
 3. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
 4. Use player skill-assessment evidence together with adaptive position-training selection and ephemeral session metrics, while keeping match rating separate from coaching statistics and preventing uncalibrated AI levels from producing numeric player ratings.
 5. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
