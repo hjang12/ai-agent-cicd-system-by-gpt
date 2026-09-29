@@ -92,6 +92,17 @@ jobs:
             --output linear-value-model.json
           cat self-play-training.summary.json >> "$GITHUB_STEP_SUMMARY"
           cat linear-value-model.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Benchmark candidate against heuristic evaluator
+        run: |
+          PYTHONPATH=. python tools/benchmark_linear_value_model.py \
+            --model linear-value-model.json \
+            --games 4 \
+            --max-plies "${{ inputs.max_plies }}" \
+            --level "${{ inputs.level }}" \
+            --setup "${{ inputs.setup }}" \
+            --seed "${{ inputs.seed }}" \
+            --output linear-value-strength.json
+          cat linear-value-strength.json >> "$GITHUB_STEP_SUMMARY"
       - name: Upload model artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -100,3 +111,4 @@ jobs:
             projects/personal-ai-janggi-trainer-by-gpt/self-play-training.json
             projects/personal-ai-janggi-trainer-by-gpt/self-play-training.summary.json
             projects/personal-ai-janggi-trainer-by-gpt/linear-value-model.json
+            projects/personal-ai-janggi-trainer-by-gpt/linear-value-strength.json
