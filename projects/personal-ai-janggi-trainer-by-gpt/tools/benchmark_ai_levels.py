@@ -168,6 +168,11 @@ def main() -> None:
         help="Run one adjacent-level pair only; useful for bounded repeated calibration runs.",
     )
     parser.add_argument(
+        "--skip-search-benchmark",
+        action="store_true",
+        help="Skip deterministic fixture search benchmarking and run only the tournament portion.",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=None,
@@ -180,7 +185,8 @@ def main() -> None:
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
 
-    run_search_benchmark()
+    if not args.skip_search_benchmark:
+        run_search_benchmark()
     tournament_rows = (
         run_adjacent_tournaments(args.tournament_games, args.max_plies, args.pair)
         if args.tournament_games
