@@ -457,10 +457,13 @@ class TrainerApplicationTests(unittest.TestCase):
         html = INDEX_HTML.read_text(encoding="utf-8")
         piece_logic = html.index("function pieceAt(index)")
         pending_logic = html.index("if (pendingPlayerMove && !trainingPosition)", piece_logic)
+        empty_code = html.index("if (!code) return null;", pending_logic)
         network_apply = html.index("snapshot = moveResult;")
         self.assertLess(piece_logic, pending_logic)
-        self.assertLess(pending_logic, network_apply)
+        self.assertLess(pending_logic, empty_code)
+        self.assertLess(empty_code, network_apply)
         self.assertIn("const view = currentPosition();", html[piece_logic:pending_logic])
+        self.assertIn("const sourceCode = view.state.board[srcIndex];", html)
         self.assertIn("pendingPlayerMove = null;", html)
 
     def test_browser_board_message_contract_is_present(self):
