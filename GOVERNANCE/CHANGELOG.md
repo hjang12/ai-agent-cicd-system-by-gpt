@@ -15,8 +15,20 @@
 
 - Technically possible changes must not bypass Governance or project direction.
 - Current unresolved issues are maintained separately from historical development records.
-- Governance Version remains `1.0.0` until the version change is explicitly decided; the current changes are candidates for `1.1.0`.
 이 문서는 AI Agent CI/CD System 운영 규칙의 버전별 변경 이력을 기록합니다.
+
+## [1.1.0] - 2026-09-29
+
+### Added
+
+- Requirement Contract protection and change-control rules for user-requested behavior that must persist across later development.
+- CI expectations for protecting active regression contracts and requiring explicit CONTRACT-CHANGE: <ID> declarations when contract definitions or regression tests are intentionally changed.
+
+### Clarified
+
+- Implementations may be refactored while an active Contract remains behaviorally intact.
+- A later task must not silently revert an active user-requested behavior.
+- Conflicting requirements require an explicit report and user decision before the active Contract is superseded.
 
 ## [1.0.0] - 2026-09-15
 
