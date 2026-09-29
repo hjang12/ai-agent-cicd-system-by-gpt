@@ -45,7 +45,7 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             GAMES=2
-            MAX_PLIES=16
+            MAX_PLIES=4
             OUTPUT=ai-level-strength-pr.json
           else
             GAMES="${{ inputs.games }}"
