@@ -3,6 +3,7 @@ import unittest
 from janggi.evaluation import EvaluationGame
 from janggi.match import GameStatus
 from tools.benchmark_ai_strength import summarize_games
+from tools.benchmark_ai_levels import validate_benchmark_args
 
 
 class AiStrengthBenchmarkTests(unittest.TestCase):
@@ -26,6 +27,15 @@ class AiStrengthBenchmarkTests(unittest.TestCase):
         self.assertEqual(result["v1_score_pct"], 50.0)
         self.assertEqual(result["final_v1_rating"] + result["final_v2_rating"], 2000)
         self.assertIsNone(result["game_results"][-1]["rating_update"])
+
+
+    def test_level_calibration_accepts_only_known_adjacent_pairs(self):
+        for pair in ("1-2", "2-3", "3-4", "4-5", "5-6"):
+            validate_benchmark_args(2, 48, pair)
+
+        for pair in ("1-3", "0-1", "6-7"):
+            with self.assertRaises(ValueError):
+                validate_benchmark_args(2, 48, pair)
 
 
 if __name__ == "__main__":
