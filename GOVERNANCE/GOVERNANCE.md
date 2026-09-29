@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.2.0**
+**Governance Version: 1.2.1**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -1118,14 +1118,15 @@ Governance에서는 다음 용어를 공식적으로 사용한다.
 | **Chat** | ChatGPT UI에서 하나의 독립적인 채팅방 또는 대화 단위 |
 | **Request** | 사용자가 Agent에 전달한 하나의 요청 |
 | **Agent Work** | Request를 해결하기 위해 Agent가 수행하는 실제 분석·수정·검증·기록 작업 |
-| **Response** | Agent Work 결과를 사용자에게 전달하는 답변 |
-| **Interaction** | Request → Agent Work → Response로 이루어진 하나의 상호작용 |
+| **Agent Work Segment** | 하나의 Agent Work를 수행하는 동안 Context·Token·Tool·Runtime·외부 작업 대기 등의 실행 경계에 따라 구분되는 하나의 실행 구간. Agent Work의 논리적 연속성을 보존하면서 필요하면 여러 Segment로 분할할 수 있다. |
+| **Response** | Agent Work 결과 또는 안전한 중단 상태를 사용자에게 전달하는 답변 |
+| **Interaction** | 하나의 Request가 시작되어 Agent Work가 수행되고 하나의 Response가 반환되는 상호작용 단위. 고정된 최대 시간으로 정의하지 않는다. |
 | **Development Task** | 하나의 개발 목표를 달성하기 위해 하나 이상의 Chat과 Interaction에 걸쳐 수행될 수 있는 지속적인 개발 작업 단위 |
 | **Development Context** | Development Task를 현재 시점에서 이해하고 재개하는 데 필요한 상태 정보 |
 | **Checkpoint** | Development Context를 다른 Chat 또는 후속 Agent Work에서 복구할 수 있도록 기록한 특정 시점의 작업 상태 |
 | **Context Recovery** | 새 Chat 또는 중단된 Agent Work에서 Checkpoint와 Repository 상태를 기준으로 Development Context를 다시 확보하는 과정 |
 | **Development Work Continuity** | Chat 변경, Agent Work 중단, Context 제한 또는 플랫폼 제약이 발생해도 Development Task를 계속 수행할 수 있는 능력 |
-| **Long-running Agent Work** | 장시간 실행, 외부 CI/Benchmark 대기, 반복 검증 등으로 한 번의 Agent Work가 장시간 지속되는 상태 |
+| **Long-running Agent Work** | 하나의 Development Task를 위해 Agent Work가 장시간 지속되는 상태. 장시간 지속은 무제한 또는 무중단 실행을 의미하지 않으며, 필요하면 여러 Agent Work Segment / Interaction / Checkpoint로 나눌 수 있다. |
 
 Session과 Turn은 이 Governance의 canonical terminology로 사용하지 않는다. 외부 문서에서 해당 용어가 사용된 경우에도 실제 범위를 확인하여 Chat, Interaction, Agent Work 등 적절한 용어로 해석한다.
 
@@ -1229,22 +1230,40 @@ Repository와 기존 Chat 설명이 다르면 실제 Repository와 공식 Contex
 
 새 Chat에서 복구한 정보가 불충분하면 **추측으로 개발을 계속하지 않고**, 필요한 정보가 있는 범위에서 조사·검증한 뒤 Context를 갱신한다.
 
-### 25-A-7. Long-running Agent Work
+### 25-A-7. Interaction 및 Agent Work 실행 경계
 
-Long-running Agent Work 자체를 금지하지 않는다. Agent는 안전하고 승인된 범위에서 충분한 시간을 들여 하나의 개발 작업을 계속할 수 있다.
+Interaction에는 **고정된 최대 시간 제한을 두지 않는다.** Interaction의 정상 종료 기준은 경과 시간이 아니라 `Response`가 반환되는 것이다.
 
-다만 다음을 준수한다.
+Agent Work가 하나의 Interaction 안에서 수행되더라도 다음과 같은 실행 경계가 존재할 수 있다.
+
+- Context 또는 Token 여유가 부족해져 현재 상태를 안전하게 계속 유지하기 어려워짐
+- Tool 또는 Runtime 실행 제한에 접근함
+- 외부 CI / Benchmark / 배포 작업이 장시간 대기를 요구함
+- 추가 진행에 사용자 또는 Human Decision이 필요함
+- 안전한 Checkpoint 지점에 도달함
+- 사용자가 일시정지 또는 중단을 요청함
+
+이 경우 Agent는 가능한 가장 안전한 중단 지점에서 현재 상태를 보존하고 필요한 Checkpoint / Context를 기록한 뒤 `Response`를 반환하여 해당 Interaction을 종료할 수 있다.
+
+사용자의 일시정지 또는 중단 요청은 작업의 우선 종료 신호로 취급한다. 즉시 중단이 기술적으로 불가능한 외부 Tool / 실행이 진행 중인 경우에는 **현재 실행을 안전하게 정리할 수 있는 최초의 지점에서 중단하고**, 확인된 상태와 다음 Action을 기록한다.
+
+하나의 Interaction 또는 Agent Work를 더 오래 수행할 수 있다는 사실을 이유로 무기한 실행하거나, 고정된 시간 동안만 실행하기 위해 작업을 강제로 잘라내지 않는다.
+
+### 25-A-8. Long-running Agent Work
+
+Long-running Agent Work 자체를 금지하지 않는다. 다만 이는 **장기적인 Development Task를 지원하는 운영 방식**이지, 하나의 Agent Work가 플랫폼 한계를 무시한 채 무제한으로 실행되어야 한다는 의미가 아니다.
 
 - 장시간 CI / Benchmark / 외부 실행 결과만을 기다리며 전체 Agent Work를 무기한 붙잡지 않는다.
 - 장시간 대기와 독립적인 개발·분석 작업이 있으면 가능한 경우 분리하여 진행한다.
-- 장시간 작업 중 의미 있는 상태 변화가 발생하면 Checkpoint / Context를 갱신한다.
+- Context / Token / Tool / Runtime 제약에 접근하면 안전한 Agent Work Segment에서 Checkpoint를 남기고 종료할 수 있다.
+- 하나의 Agent Work가 길어지는 경우에도 필요한 상태를 Segment 단위로 보존하여 후속 Interaction에서 재개할 수 있어야 한다.
 - 외부 작업이 진행 중이더라도 이미 확인된 사실과 다음 Action을 기록하여 이후 Chat에서 재개할 수 있게 한다.
 - 실행이 중단되었다고 해서 미검증 결과를 성공으로 기록하지 않는다.
 - 사용자에게 중간 중단이 필요한 경우에도 작업을 버리는 것이 아니라 현재 상태를 Checkpoint로 남긴 후 종료한다.
 
-장시간 Agent Work의 종료 여부는 **경과 시간 자체가 아니라 현재 상태, 검증 가능성, 플랫폼 제약, 작업의 독립성 및 Development Context의 보존 여부**를 기준으로 판단한다.
+장시간 Agent Work의 종료 여부는 **경과 시간 자체가 아니라 현재 상태, Context / Token 여유, 검증 가능성, Tool / Runtime 제약, 외부 작업 상태, 작업의 독립성 및 Development Context의 보존 여부**를 기준으로 판단한다.
 
-### 25-A-8. Chat Transition
+### 25-A-9. Chat Transition
 
 다음과 같은 경우 새 Chat으로 전환할 수 있으며, 이는 실패나 작업 초기화로 간주하지 않는다.
 
@@ -1256,7 +1275,7 @@ Long-running Agent Work 자체를 금지하지 않는다. Agent는 안전하고 
 
 새 Chat으로 전환하기 전 가능한 경우 Checkpoint / CURRENT_STATUS / DEVELOPMENT_HISTORY를 최신 상태로 정리한다.
 
-### 25-A-9. 플랫폼 및 요금제 제약
+### 25-A-10. 플랫폼 및 요금제 제약
 
 ChatGPT Plan, Model, Context, Tool, Runtime 및 기타 플랫폼 특성으로 인해 Chat 또는 Agent Work에 제약이 발생할 수 있다.
 
@@ -1268,7 +1287,7 @@ ChatGPT Plan, Model, Context, Tool, Runtime 및 기타 플랫폼 특성으로 �
 
 사용자 선호, 응답 스타일과 같은 **Personalization**은 Development Context와 구분한다. 개발 작업의 연속성은 Repository와 공식 Context 기록으로 보장한다.
 
-### 25-A-10. Continuity Failure
+### 25-A-11. Continuity Failure
 
 다음 중 하나가 발생하면 이를 **Development Work Continuity 장애 또는 위험**으로 취급한다.
 
