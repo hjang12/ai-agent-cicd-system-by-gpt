@@ -45,3 +45,14 @@
 - Test:
 - Result:
 - Evidence:
+
+
+## Development Work Continuity
+
+- Development Task:
+- Current Checkpoint:
+- Current State:
+- Next Action:
+- Active PR / Issue:
+- Last Context Recovery:
+- Long-running Work State:

@@ -1,6 +1,25 @@
 # Changelog
 
-## [Unreleased]
+## [1.2.0] - 2026-09-29
+
+### Added
+
+- Chat-based Agent development operating model with canonical terminology for Chat, Request, Agent Work, Response, Interaction, Development Task, Development Context, Checkpoint, Context Recovery, Development Work Continuity, and Long-running Agent Work.
+- Explicit Development Work Continuity policy so a Development Task can continue across Chat changes, Agent Work interruption, Context limits, or platform constraints.
+- State-based Checkpoint rules without a fixed time-based forced-stop interval.
+- Context Recovery procedure and minimum recovery-state requirements for new Chat / resumed Agent Work.
+- Long-running Agent Work guidance separating development work from indefinite waiting on CI, benchmark, or other external execution.
+- Platform Constraint guidance separating ChatGPT/plan/model limitations and Personalization from project Development Context.
+- GOVERNANCE/templates/CONTEXT_CHECKPOINT.md as a reusable Checkpoint template.
+
+### Clarified
+
+- Chat is a temporary development interface, not a project Source of Truth.
+- Chat transition is a normal operational mechanism, not a loss of the Development Task.
+- Session and Turn are not canonical Governance terms; concrete terms such as Chat, Interaction, and Agent Work are used instead.
+- Development Work Continuity is the operational goal; Context Recovery and Checkpoints are mechanisms for achieving it.
+- Continuity problems are treated as Governance improvement signals when they recur.
+
 
 ### Added
 

@@ -2,7 +2,7 @@
 
 ## Governance
 
-- Governance Version: `1.0.0`
+- Governance Version: `1.2.0`
 - Status: Active baseline on `main`
 - Current canonical workspace repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Default / working branch: `main`
@@ -25,18 +25,37 @@ hjang12/ai-agent-cicd-system-by-gpt/
 
 ### Canonical paths
 
-- `AGENT_START.md` — workspace-level session entrypoint
+- `AGENT_START.md` — workspace-level agent startup entrypoint
 - `AGENTS.md` — workspace-level agent rules
 - `GOVERNANCE/GOVERNANCE.md` — common operating rules
 - `GOVERNANCE/docs/CURRENT_STATUS.md` — this workspace status
 - `GOVERNANCE/docs/ACTIVE_ISSUES.md` — AI-managed current unresolved issue index
 - `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md` — long-term governance/workspace history
 - `GOVERNANCE/docs/ADR/` — architecture and operating decisions
-- `projects/<project>/AGENT_START.md` — project session entrypoint
+- `projects/<project>/AGENT_START.md` — project Chat startup entrypoint
 - `projects/<project>/AGENTS.md` — project-specific agent rules
 - `projects/<project>/docs/CURRENT_STATUS.md` — project context
 - `.github/workflows/` — monorepo CI and benchmark workflows
 - `render.yaml` — monorepo Render Blueprint
+
+
+## Development Work Continuity
+
+This workspace uses ChatGPT + AI Agent as the primary interactive development interface.
+
+- Chat is a temporary working interface; GitHub and project Context documents remain the Source of Truth.
+- Current development continuity is managed through Development Task, Development Context, Checkpoint, and Context Recovery.
+- Chat transitions are allowed whenever platform/context constraints or work structure make a new Chat safer or more efficient.
+- No fixed time-based forced Chat cutoff is used. Checkpoints are state-based.
+- Long-running Agent Work must preserve recoverable intermediate state and must not be reduced to indefinite polling of external CI/benchmark work.
+- Current platform/plan/model limits are treated as Platform Constraints rather than hard-coded Governance invariants.
+
+Canonical continuity records:
+- projects/<project>/docs/CURRENT_STATUS.md
+- GOVERNANCE/docs/ACTIVE_ISSUES.md
+- DEVELOPMENT_HISTORY.md
+- ADR / Requirement Contract / evidence records
+- GitHub Commit / PR / CI state
 
 ## Active Issues
 

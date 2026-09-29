@@ -26,7 +26,7 @@ GOVERNANCE/
 
 ## Agent startup
 
-새 Agent 또는 새 ChatGPT 세션에서는 전체 Repository를 대화 기록으로 복원하려 하지 않습니다.
+새 Agent 또는 새 Chat에서는 전체 Repository를 대화 기록으로 복원하려 하지 않습니다.
 
 1. `/AGENT_START.md`
 2. `/GOVERNANCE/GOVERNANCE.md`
@@ -47,3 +47,17 @@ GOVERNANCE/
 - 특정 AI 제품이나 IDE에 종속되는 개발 구조를 Governance에 포함하지 않습니다.
 
 세부 규칙은 `GOVERNANCE/GOVERNANCE.md`가 공식 기준입니다.
+
+## Development Work Continuity
+
+이 Governance의 장기 개발 단위는 **Development Task**입니다. 특정 Chat이 장기 작업의 보존 단위가 되지 않도록 합니다.
+
+Chat이 변경되거나 Agent Work가 중단되어도 다음 기록을 통해 작업을 복구합니다.
+
+- CURRENT_STATUS.md — 현재 상태
+- ACTIVE_ISSUES.md — 현재 미해결 이슈
+- Checkpoint — 단기 복구 기준점
+- DEVELOPMENT_HISTORY.md / ADR / Evidence — 결정과 장기 이력
+- GitHub Commit / PR / CI / Deployment — 실제 실행 상태
+
+새 Chat에서 작업을 재개할 때는 **Context Recovery**를 수행하고, 이전 Chat의 기억을 추측하여 상태를 복원하지 않습니다.
