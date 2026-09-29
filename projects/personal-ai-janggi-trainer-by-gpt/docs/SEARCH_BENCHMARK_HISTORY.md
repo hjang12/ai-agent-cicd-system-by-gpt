@@ -1,3 +1,40 @@
+## 2026-09-29 — Principal Variation Search probe
+
+### Method
+
+The search engine was extended on an isolated branch with an optional `principal_variation_search` flag. The option used a full-window search for the first child and null-window searches for later children, with a full re-search when a later move exceeded the current alpha bound.
+
+The option remained **disabled by default** throughout the experiment. Representative fixtures were compared against the existing production search and the independent coordinate-order reference.
+
+### Deterministic result
+
+| Fixture | Depth | Current nodes | PVS nodes | PVS node change vs current | Same minimax score |
+| --- | ---: | ---: | ---: | ---: | :--- |
+| initial | 2 | 166 | 168 | +1.20% | yes |
+| capture | 2 | 68 | 69 | +1.47% | yes |
+| capture | 3 | 511 | 546 | +6.85% | yes |
+| check | 2 | 39 | 39 | 0.00% | yes |
+| check | 3 | 449 | 452 | +0.67% | yes |
+| double_attack | 2 | 117 | 117 | 0.00% | yes |
+| double_attack | 3 | 931 | 934 | +0.32% | yes |
+| midgame | 2 | 164 | 167 | +1.83% | yes |
+| endgame | 2 | 117 | 117 | 0.00% | yes |
+| endgame | 3 | 792 | 796 | +0.51% | yes |
+
+### Decision
+
+Do **not** promote PVS to the production search configuration.
+
+The probe preserved minimax scores on all measured fixtures, so the implementation was search-correct for the tested matrix. However, it did not reduce deterministic search work relative to the current bound-aware transposition/capture-check/adaptive-ordering stack and increased nodes on most fixtures.
+
+The production `SearchConfig` therefore remains unchanged. The optional PVS implementation is not retained in main.
+
+### Boundary
+
+These measurements are deterministic search-work evidence only. They are not a playing-strength result. Any future PVS revisit should be tied to a different search architecture or a concrete time-budget target where the null-window behavior can interact with additional pruning opportunities.
+
+---
+
 # Search Benchmark History
 
 ## 2026-09-23 — Correct initial general placement and palace-diagonal geometry
