@@ -80,3 +80,11 @@ The default target scale is 3000 centipawn-like units and the default ridge regu
 The manual workflow `.github/workflows/janggi-train-linear-value-model.yml` can generate self-play data and fit a candidate model in one reproducible run.
 
 The candidate model is deliberately not registered as the production engine and is not wired into the public six-level ladder. A promotion decision requires deterministic fixture checks, head-to-head strength evidence against the current evaluator, and regression coverage for legality/terminal behavior.
+
+## Candidate strength evaluation
+
+`tools/benchmark_linear_value_model.py` compares a serialized linear candidate directly against the current heuristic evaluator using the same public AI search level, alternating colors through `HeadToHeadTournament`.
+
+The manual training workflow now produces three artifacts together: validated self-play data, the trained linear model, and the candidate-vs-heuristic strength result. The strength result keeps unfinished games separate and only computes score/rating from completed games.
+
+A single small benchmark is evidence that the pipeline works; it is not sufficient to promote the candidate. Larger repeated runs and deterministic fixture checks are still required before any production replacement.
