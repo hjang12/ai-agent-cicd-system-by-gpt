@@ -1,3 +1,33 @@
+## 43. 2026-09-29 — Pluggable Value Model boundary
+
+### Requirement
+
+학습 기반 평가 모델을 향후 도입하더라도 장기판 규칙, 검색 알고리즘, 대국/UI 계층을 모델 실험 때문에 다시 바꾸지 않도록 평가 모델 교체 경계를 먼저 고정해야 합니다.
+
+### Decision
+
+기존 휴리스틱 평가를 기본값으로 유지하면서 NegamaxEngine이 선택적인 ValueModel을 주입받을 수 있도록 했습니다.
+
+- ValueModel은 `predict_cp(state)` 인터페이스만 요구
+- 모델 입력은 검색 position key와 동일한 board + side-to-move 의미를 유지하도록 history-free snapshot을 사용
+- 모델 점수는 `[-100000, 100000]` 밖으로 나갈 수 없으며 mate score 영역은 검색/terminal 로직이 소유
+- public 6-level 설정과 UI/API는 변경하지 않음
+- 학습 모델 자체의 성능 검증 및 production promotion은 다음 단계로 분리
+
+### Implementation
+
+- `janggi/value_model.py` 추가
+- `NegamaxEngine(..., value_model=...)` 확장
+- `tests/test_value_model.py` 추가
+- `docs/AI_MODEL_ARCHITECTURE.md` 추가
+- `docs/CURRENT_STATUS.md` 동기화
+
+### Boundary
+
+이 변경은 learned model이 더 강하다는 증거가 아닙니다. 기존 휴리스틱 evaluator는 그대로 production default이며, 다음 단계에서 self-play 데이터와 deterministic benchmark를 이용해 실제 model을 학습·평가한 뒤에만 promotion합니다.
+
+---
+
 ## 42. 2026-09-29 — Six-level strength calibration harness
 
 ### Requirement

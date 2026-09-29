@@ -7,6 +7,7 @@ from typing import Optional
 
 from .core import GameState, Move, PieceType, Side, palace_for
 from .engine import EngineAnalysis, EngineInfo, validate_engine_move
+from .value_model import ValueModel, validate_value_score
 
 
 # Reference material ordering is calibrated to common Janggi point systems:
@@ -104,8 +105,14 @@ class NegamaxEngine:
     changing the default deterministic behavior.
     """
 
-    def __init__(self, config: Optional[SearchConfig] = None) -> None:
+    def __init__(
+        self,
+        config: Optional[SearchConfig] = None,
+        *,
+        value_model: Optional[ValueModel] = None,
+    ) -> None:
         self.config = config or SearchConfig()
+        self.value_model = value_model
         self._nodes = 0
         self._rng = random.Random(self.config.seed)
         self._transposition: dict[
@@ -697,6 +704,15 @@ class NegamaxEngine:
         cached = self._evaluation_cache.get(position_key)
         if cached is not None:
             return cached
+
+        if self.value_model is not None:
+            # Search values are cached by board + side-to-move. Remove move
+            # history before model prediction so the pluggable model follows
+            # the same semantic identity as the cache key.
+            model_state = GameState(board=state.board, turn=state.turn)
+            score = validate_value_score(self.value_model.predict_cp(model_state))
+            self._evaluation_cache[position_key] = score
+            return score
 
         own_material = 0
         opp_material = 0
