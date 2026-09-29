@@ -12,6 +12,7 @@ REQUIRED_PATHS = (
     Path("AGENTS.md"),
     Path("GOVERNANCE/GOVERNANCE.md"),
     Path("GOVERNANCE/docs/CURRENT_STATUS.md"),
+    Path("GOVERNANCE/docs/DEVELOPMENT_TASKS.md"),
     Path("GOVERNANCE/docs/DEVELOPMENT_HISTORY.md"),
     Path("GOVERNANCE/docs/ADR/0002-ai-workspace-monorepo.md"),
     Path("projects/personal-ai-janggi-trainer-by-gpt/AGENT_START.md"),

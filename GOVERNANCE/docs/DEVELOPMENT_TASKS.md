@@ -1,0 +1,46 @@
+# Development Task Registry
+
+이 문서는 Workspace 전체의 Development Task를 식별하고 Context Recovery를 시작하기 위한 통합 Registry입니다.
+
+상세 개발 내용과 장기 이력은 Registry에 중복 저장하지 않고 각 Task가 속한 Workspace / Project의 공식 Context, Checkpoint, History에서 관리합니다.
+
+## Task ID
+
+형식: TASK-YYYYMMDD-NNNN
+
+- YYYYMMDD: Task가 Registry에 처음 등록된 날짜
+- NNNN: 해당 날짜의 4자리 일련번호
+- Task ID는 생성 후 변경하지 않습니다.
+- Project 이름, 상태, Chat 이름은 Task ID에 포함하지 않습니다.
+
+## Status
+
+| Status | 의미 |
+| --- | --- |
+| ACTIVE | 현재 진행 대상 |
+| PAUSED | 상태를 보존한 채 의도적으로 일시정지 |
+| BLOCKED | 외부 제약 또는 결정 대기로 진행 불가 |
+| COMPLETED | 목표 달성 및 검증 완료 |
+| ARCHIVED | 완료/취소 후 장기 보관 |
+
+현재 작업 대상 탐색에서는 기본적으로 ACTIVE, PAUSED, BLOCKED를 사용합니다. 완료/보관 Task의 ID와 이력은 유지합니다.
+
+## Current Task Registry
+
+| Task ID | Scope | Project / Area | Goal | Status | Context | Current Checkpoint | Active PR / Issue | Next Action | Last Updated |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| TASK-20260930-0001 | Workspace | Governance | Development Work Continuity와 Task Recovery 구조를 완성하고 새 Chat에서 자동 복구 가능한 운영 구조를 구축 | ACTIVE | GOVERNANCE/docs/CURRENT_STATUS.md | GOVERNANCE/docs/checkpoints/TASK-20260930-0001.md | PR #63 | CI 검증 확인 → PR #63 merge → Task 완료 처리 → Janggi Task 재개 | 2026-09-30 |
+| TASK-20260930-0002 | Project | personal-ai-janggi-trainer-by-gpt | 검색/평가/학습 구조를 기반으로 6개 공개 AI level의 측정 가능한 강도 차이를 확립하고 AI 성능을 단계적으로 강화 | ACTIVE | projects/personal-ai-janggi-trainer-by-gpt/docs/CURRENT_STATUS.md | projects/personal-ai-janggi-trainer-by-gpt/docs/checkpoints/TASK-20260930-0002.md | PR #60 merged | 불완전한 calibration evidence를 강도 결론으로 사용하지 않고, 인접 level calibration 및 measured AI improvement를 계속 진행 | 2026-09-30 |
+
+## Operating Rules
+
+1. Registry는 통합 탐색/선택 인덱스이며 상세 Source of Truth가 아닙니다.
+2. Task의 상세 Context와 Checkpoint는 해당 Workspace/Project 영역에 저장합니다.
+3. 같은 Project에 여러 Development Task가 존재할 수 있습니다.
+4. Last Updated가 가장 최근이라는 이유만으로 해당 Task를 자동 선택하지 않습니다.
+5. Request에서 Project, 작업 목적 또는 Task ID가 명확하면 그 Task를 선택합니다.
+6. 관련 Task가 하나뿐이면 해당 Task를 복구합니다.
+7. 여러 Task가 후보이고 Request로 구분할 수 없으면 최소한의 사용자 확인을 받습니다.
+8. 기존 Task가 없고 새로운 개발 목표를 시작하는 경우 새 Task ID를 생성하고 Registry에 등록합니다.
+9. Task가 완료되면 Registry에서 상태를 COMPLETED로 기록하고 상세 결과는 History에 남깁니다.
+10. Task를 재개할 때는 Registry → Context → Checkpoint → 실제 GitHub/CI/Deployment 순으로 현재 상태를 검증합니다.
