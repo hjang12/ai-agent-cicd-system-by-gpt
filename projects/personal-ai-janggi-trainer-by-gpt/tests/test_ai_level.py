@@ -1,9 +1,22 @@
 import unittest
 
 from janggi.ai_level import AI_LEVELS, AILevel, ai_level_payload, get_ai_level
+from tools.benchmark_ai_levels import validate_benchmark_args
 
 
 class AILevelTests(unittest.TestCase):
+    def test_level_benchmark_requires_balanced_game_count(self):
+        validate_benchmark_args(0, 16)
+        validate_benchmark_args(2, 16)
+        validate_benchmark_args(4, 32)
+
+        with self.assertRaises(ValueError):
+            validate_benchmark_args(1, 16)
+        with self.assertRaises(ValueError):
+            validate_benchmark_args(3, 16)
+        with self.assertRaises(ValueError):
+            validate_benchmark_args(2, 0)
+
     def test_all_levels_have_unique_order_and_metadata(self):
         self.assertEqual([spec.level for spec in AI_LEVELS], list(AILevel))
         self.assertEqual(len({spec.name for spec in AI_LEVELS}), len(AI_LEVELS))
