@@ -420,6 +420,37 @@ Governance 변경은 의미상 Minor 변경 후보에 해당한다. 그러나 �
 향후 사용자가 먼저 제안하지 않아도 AI가 운영 구조를 지속적으로 검토하고 필요한 변경안을 먼저 제시한다. 단, 정책적 결정이나 Version 확정 등 사람의 결정이 필요한 부분은 제안과 실행 권한을 구분하여 처리한다.
 
 
+## 2026-09-29 — Governance v1.2.1 Interaction / Execution Boundary Refinement
+
+### Requirement
+- Prevent canonical Interaction terminology from being mixed with non-canonical Session terminology.
+- Clarify that Interaction does not use an arbitrary fixed time limit.
+- Distinguish long-running Development Tasks from unbounded single Agent execution.
+- Account for Context / Token / Tool / Runtime / external-job limits and user-requested pauses.
+
+### Problem / Context
+v1.2.0 established Development Work Continuity, Checkpoints, Context Recovery, and Long-running Agent Work, but the execution boundary of one Interaction was not explicit enough. A fixed Interaction time limit would introduce arbitrary forced stops, while an unlimited interpretation could ignore model/context/tool/runtime constraints. The canonical terminology also explicitly excludes Session and Turn.
+
+### Decision
+- Keep Interaction as the canonical unit `Request → Agent Work → Response`.
+- Do not impose a fixed maximum duration on Interaction or Agent Work.
+- Add Agent Work Segment as an execution-boundary concept for splitting long-running Agent Work safely.
+- Treat Context / Token / Tool / Runtime / external-job limits as Platform Constraints.
+- Treat user pause/stop as an explicit interruption signal, ending the current Interaction at the earliest safe point after state preservation.
+- Continue Development Tasks across multiple Interaction / Agent Work Segment / Checkpoint cycles.
+
+### Implementation
+- Governance Version: `1.2.1`
+- Updated `GOVERNANCE.md`, `CHANGELOG.md`, `VERSION`, Current Status, History, and Checkpoint template.
+- Updated the Janggi project Current Status to the current Governance version.
+
+### Verification
+- Canonical terminology re-read against the implemented Governance text.
+- Confirmed that `Session` and `Turn` remain explicitly non-canonical in Governance.
+- Confirmed no fixed Interaction duration was introduced.
+
+### Next Step
+Use the refined boundary rules during the next Janggi development cycle and treat repeated continuity failures as evidence for further Governance improvements.
 ## 2026-09-29 — Add Chat-based Development Work Continuity
 
 ### Requirement
