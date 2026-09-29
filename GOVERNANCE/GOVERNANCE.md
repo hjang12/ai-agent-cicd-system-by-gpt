@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.2.1**
+**Governance Version: 1.3.0**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -1162,10 +1162,75 @@ Context Recovery
 
 Development Work Continuity의 성공 기준은 **같은 Chat의 대화 내용을 그대로 유지하는 것**이 아니라 **현재 Development Task를 필요한 상태와 근거를 잃지 않고 재개할 수 있는 것**이다.
 
-### 25-A-4. Development Context 최소 구성
+### 25-A-4. Development Task Registry
 
-Development Task를 새 Chat에서 재개할 수 있도록 가능한 범위에서 다음 정보를 유지한다.
+Workspace에는 하나 이상의 Development Task가 동시에 존재할 수 있다. 따라서 Context Recovery는 단순히 "마지막으로 작업한 프로젝트"를 복구하는 방식으로 수행하지 않는다.
 
+현재 Development Task의 식별과 탐색을 위해 다음 Registry를 사용한다.
+
+`GOVERNANCE/docs/DEVELOPMENT_TASKS.md`
+
+Development Task Registry는 다음 역할을 한다.
+
+- 현재 Workspace에서 관리 중인 Development Task의 목록과 상태를 제공한다.
+- Task ID와 Project / Workspace 범위를 연결한다.
+- 각 Task의 공식 Context와 현재 Checkpoint 위치를 제공한다.
+- Active PR / Issue, Next Action, 마지막 상태 갱신 시점을 빠르게 확인할 수 있게 한다.
+- 상세 구현 내용이나 장기 이력을 저장하는 문서가 아니라 **Task 선택과 Context Recovery를 위한 navigation index**로 사용한다.
+
+#### Task ID
+
+Task ID는 다음 형식을 사용한다.
+
+`TASK-YYYYMMDD-NNNN`
+
+- 날짜는 Task가 Registry에 처음 등록된 날짜를 사용한다.
+- `NNNN`은 해당 날짜의 4자리 일련번호다.
+- Task ID는 생성 후 변경하지 않는다.
+- Project 이름이나 상태를 Task ID에 넣지 않는다.
+- Task가 프로젝트나 범위를 변경하더라도 기존 Task ID를 유지한다.
+
+#### Task Status
+
+Registry의 기본 상태는 다음과 같다.
+
+- `ACTIVE` — 현재 작업 대상으로 유지되는 Task
+- `PAUSED` — 상태를 보존한 채 의도적으로 일시정지된 Task
+- `BLOCKED` — 외부 제약 또는 결정 대기로 진행할 수 없는 Task
+- `COMPLETED` — 목표 달성 및 검증이 완료된 Task
+- `ARCHIVED` — 완료/취소 후 장기 보관만 필요한 Task
+
+Completed / Archived Task는 Task ID와 이력을 보존한다. 현재 작업 대상 탐색에서는 기본적으로 ACTIVE / PAUSED / BLOCKED Task를 우선한다.
+
+#### Task 선택 원칙
+
+Context Recovery에서는 다음 순서로 복구 대상 Task를 결정한다.
+
+1. 사용자가 Task ID를 직접 지정한 경우 해당 Task를 사용한다.
+2. 사용자가 프로젝트 또는 작업 주제를 명확하게 지정한 경우 Registry에서 해당 범위의 관련 Task를 탐색한다.
+3. 관련 범위에서 복구 가능한 Task가 하나뿐이면 그 Task를 선택한다.
+4. 여러 Task가 후보이고 Request만으로 구분할 수 없으면 임의로 "가장 최근 Task"를 선택하지 않는다. 필요한 최소 범위만 사용자에게 확인한다.
+5. 기존 Task가 없고 Request가 새로운 개발 목표를 시작하는 경우 새로운 Task ID를 생성하여 Registry에 등록한 후 작업을 시작한다.
+
+시간순의 Last Task는 **자동 복구 기준이 아니다.** Registry의 Updated 시간은 탐색을 돕기 위한 정보일 뿐 Task 선택을 결정하지 않는다.
+
+#### Task와 Context의 저장 위치
+
+Registry는 Workspace에 통합하여 관리하지만 상세 Context와 Checkpoint는 Task가 속한 영역에 보존한다.
+
+- Workspace / Governance Task → `GOVERNANCE/docs/`
+- Project Task → 해당 `projects/<project>/docs/`
+- Task별 상세 Checkpoint는 해당 영역의 `checkpoints/` 아래에 저장한다.
+- Registry에는 해당 Context / Checkpoint 경로만 기록한다.
+
+따라서 여러 프로젝트의 Task는 하나의 Registry에서 식별할 수 있지만, 프로젝트별 상세 Context가 하나의 통합 파일에 섞이지 않는다.
+
+### 25-A-5. Development Context 최소 구성
+
+
+Development Task를 새 Chat에서 재개할 수 있도록 가능한 범위에서 다음 정보를 유지한다. Task Registry의 Task ID를 함께 유지하며, Task Registry가 지정한 Context / Checkpoint 경로를 사용한다.
+
+- Task ID
 - 현재 Development Task / 목표
 - Current Branch
 - Current Commit
@@ -1182,7 +1247,7 @@ Development Task를 새 Chat에서 재개할 수 있도록 가능한 범위에�
 
 정보는 가능한 한 다음 저장소와 문서에 분산하여 기록하되, 현재 상태 판단은 CURRENT_STATUS.md, 미해결 문제는 ACTIVE_ISSUES.md, 상세 이력은 DEVELOPMENT_HISTORY.md / ADR / GitHub 기록을 기준으로 한다.
 
-### 25-A-5. Checkpoint 운영
+### 25-A-6. Checkpoint 운영
 
 Checkpoint는 **고정된 시간 간격으로 강제 생성하지 않는다.** 특히 "10분마다 Chat을 종료한다"와 같은 시간 기반 강제 중단 규칙을 두지 않는다.
 
@@ -1209,17 +1274,20 @@ Active Issues / Blocker
 Important Decisions
 Next Action
 
-### 25-A-6. Context Recovery
+### 25-A-7. Context Recovery
 
 새 Chat 또는 중단 후 작업을 재개할 때 Agent는 기존 Chat의 기억을 추측하여 복구하지 않는다.
 
 기본 복구 순서는 다음과 같다.
 
 Governance
+→ DEVELOPMENT_TASKS
+→ ACTIVE_ISSUES
 → AGENT_START / AGENTS
+→ Task가 지정한 Project / Workspace Context
 → CURRENT_STATUS
 → ACTIVE_ISSUES
-→ Checkpoint가 있는 경우 Checkpoint
+→ Checkpoint가 있는 경우 Task Registry가 지정한 Checkpoint
 → README / ARCHITECTURE / Requirement Contracts
 → DEVELOPMENT_HISTORY / ADR / Evidence
 → Actual Repository Code
@@ -1228,9 +1296,9 @@ Governance
 
 Repository와 기존 Chat 설명이 다르면 실제 Repository와 공식 Context 문서를 Source of Truth로 사용하고 차이를 보고한다.
 
-새 Chat에서 복구한 정보가 불충분하면 **추측으로 개발을 계속하지 않고**, 필요한 정보가 있는 범위에서 조사·검증한 뒤 Context를 갱신한다.
+새 Chat에서 복구한 정보가 불충분하면 **추측으로 개발을 계속하지 않고**, 필요한 정보가 있는 범위에서 조사·검증한 뒤 Context를 갱신한다. Task 후보가 여러 개이고 Request만으로 선택할 수 없으면 필요한 최소 범위만 사용자에게 확인한다.
 
-### 25-A-7. Interaction 및 Agent Work 실행 경계
+### 25-A-8. Interaction 및 Agent Work 실행 경계
 
 Interaction에는 **고정된 최대 시간 제한을 두지 않는다.** Interaction의 정상 종료 기준은 경과 시간이 아니라 `Response`가 반환되는 것이다.
 
@@ -1249,7 +1317,7 @@ Agent Work가 하나의 Interaction 안에서 수행되더라도 다음과 같�
 
 하나의 Interaction 또는 Agent Work를 더 오래 수행할 수 있다는 사실을 이유로 무기한 실행하거나, 고정된 시간 동안만 실행하기 위해 작업을 강제로 잘라내지 않는다.
 
-### 25-A-8. Long-running Agent Work
+### 25-A-9. Long-running Agent Work
 
 Long-running Agent Work 자체를 금지하지 않는다. 다만 이는 **장기적인 Development Task를 지원하는 운영 방식**이지, 하나의 Agent Work가 플랫폼 한계를 무시한 채 무제한으로 실행되어야 한다는 의미가 아니다.
 
@@ -1263,7 +1331,7 @@ Long-running Agent Work 자체를 금지하지 않는다. 다만 이는 **장기
 
 장시간 Agent Work의 종료 여부는 **경과 시간 자체가 아니라 현재 상태, Context / Token 여유, 검증 가능성, Tool / Runtime 제약, 외부 작업 상태, 작업의 독립성 및 Development Context의 보존 여부**를 기준으로 판단한다.
 
-### 25-A-9. Chat Transition
+### 25-A-10. Chat Transition
 
 다음과 같은 경우 새 Chat으로 전환할 수 있으며, 이는 실패나 작업 초기화로 간주하지 않는다.
 
@@ -1275,7 +1343,7 @@ Long-running Agent Work 자체를 금지하지 않는다. 다만 이는 **장기
 
 새 Chat으로 전환하기 전 가능한 경우 Checkpoint / CURRENT_STATUS / DEVELOPMENT_HISTORY를 최신 상태로 정리한다.
 
-### 25-A-10. 플랫폼 및 요금제 제약
+### 25-A-11. 플랫폼 및 요금제 제약
 
 ChatGPT Plan, Model, Context, Tool, Runtime 및 기타 플랫폼 특성으로 인해 Chat 또는 Agent Work에 제약이 발생할 수 있다.
 
@@ -1287,7 +1355,7 @@ ChatGPT Plan, Model, Context, Tool, Runtime 및 기타 플랫폼 특성으로 �
 
 사용자 선호, 응답 스타일과 같은 **Personalization**은 Development Context와 구분한다. 개발 작업의 연속성은 Repository와 공식 Context 기록으로 보장한다.
 
-### 25-A-11. Continuity Failure
+### 25-A-12. Continuity Failure
 
 다음 중 하나가 발생하면 이를 **Development Work Continuity 장애 또는 위험**으로 취급한다.
 
