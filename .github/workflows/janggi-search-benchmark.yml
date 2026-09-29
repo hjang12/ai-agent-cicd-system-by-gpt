@@ -7,6 +7,7 @@ on:
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/core.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_search_ordering.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_aspiration_window.py'
       - 'GOVERNANCE/**'
       - '.github/workflows/janggi-search-benchmark.yml'
   pull_request:
@@ -41,3 +42,5 @@ jobs:
         run: PYTHONPATH=. python tools/benchmark_search_ordering.py
       - name: Run selective deepening probe
         run: PYTHONPATH=. python tools/benchmark_selective_deepening.py
+      - name: Run aspiration-window probe
+        run: PYTHONPATH=. python tools/benchmark_aspiration_window.py
