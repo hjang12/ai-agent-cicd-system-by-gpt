@@ -38,7 +38,7 @@
 
 | ID | Status | Priority | Scope | Summary | Impact | Next Action | Blocker | Last Verified | Related |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ISSUE-001` | `BLOCKED` | `P1` | `CI/CD` | CI 성공을 Render 배포의 필수 선행조건으로 강제하는 strict gate 미구현 | CI 실패와 Render auto deploy가 독립적으로 발생할 수 있어 배포 신뢰성 경계가 완전하지 않음 | GitHub branch protection / ruleset 및 Render deployment policy의 자동화 가능 범위를 재검토하고 가능한 경로 설계 | 현재 연결된 GitHub/Render 도구에서 필요한 기존 설정 mutation을 제공하지 않음 | 2026-09-18 | `GOVERNANCE/docs/CURRENT_STATUS.md`, `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md` |
+| `ISSUE-001` | `BLOCKED` | `P1` | `CI/CD` | CI 성공을 Render 배포의 필수 선행조건으로 강제하는 strict gate 미구현 | CI 실패와 Render auto deploy가 독립적으로 발생할 수 있어 배포 신뢰성 경계가 완전하지 않음. Requirement Contract CI guard는 추가했지만, main branch protection이 꺼져 있어 직접 push를 merge 전 차단하지는 못함 | GitHub branch protection / ruleset 및 Render deployment policy의 자동화 가능 범위를 재검토하고 가능한 경로 설계 | 현재 연결된 GitHub/Render 도구에서 필요한 기존 설정 mutation을 제공하지 않음 | 2026-09-29 | `GOVERNANCE/docs/CURRENT_STATUS.md`, PR #50, `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md` |
 | `ISSUE-002` | `BLOCKED` | `P2` | `Platform` | Render live `healthCheckPath`와 repository Blueprint의 명시적 health check 설정이 불일치 | 서비스가 현재 동작하더라도 platform-level health monitoring이 의도한 HTTP endpoint를 직접 사용하지 않음 | 기존 Render Service의 `healthCheckPath` 설정 변경 가능 경로 조사 및 `/api/health` 적용 후 검증 | 현재 연결된 Render 도구에서 기존 Service healthCheckPath mutation을 제공하지 않음 | 2026-09-18 | `render.yaml`, `GOVERNANCE/docs/CURRENT_STATUS.md`, `GOVERNANCE/docs/ADR/0002-ai-workspace-monorepo.md` |
 
 ## Operating Rules
