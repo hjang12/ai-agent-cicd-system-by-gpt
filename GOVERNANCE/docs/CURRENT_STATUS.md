@@ -2,7 +2,7 @@
 
 ## Governance
 
-- Governance Version: `1.3.0`
+- Governance Version: `1.3.1`
 - Status: Active baseline on `main`
 - Current canonical workspace repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Default / working branch: `main`
@@ -55,6 +55,7 @@ This workspace uses ChatGPT + AI Agent as the primary interactive development in
 - Current platform/plan/model limits are treated as Platform Constraints rather than hard-coded Governance invariants.
 
 Canonical continuity records:
+- GOVERNANCE/docs/DEVELOPMENT_TASKS.md
 - projects/<project>/docs/CURRENT_STATUS.md
 - GOVERNANCE/docs/ACTIVE_ISSUES.md
 - DEVELOPMENT_HISTORY.md
@@ -65,10 +66,10 @@ Canonical continuity records:
 
 Current Active Issue Index: `GOVERNANCE/docs/ACTIVE_ISSUES.md`
 
-Current active items verified on 2026-09-18:
+Current active items are maintained in `GOVERNANCE/docs/ACTIVE_ISSUES.md`:
 
-- `ISSUE-001` — CI-success-before-deploy strict gate is not enforced; blocked by current GitHub/Render platform controls.
-- `ISSUE-002` — Render live `healthCheckPath` is empty while repository Blueprint declares an explicit health endpoint; blocked by current Render service mutation availability.
+- `ISSUE-001` — CI-success-before-deploy strict gate is not enforced; the current verification date is maintained in the Active Issue Index.
+- `ISSUE-002` — Render live `healthCheckPath` is empty while repository Blueprint declares an explicit health endpoint; the current verification date is maintained in the Active Issue Index.
 
 This section is only a navigation summary. The authoritative current status, priority, next action, blocker, and verification date are maintained in `ACTIVE_ISSUES.md`.
 

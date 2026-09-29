@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.3.0**
+**Governance Version: 1.3.1**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -1200,7 +1200,13 @@ Registry의 기본 상태는 다음과 같다.
 - `COMPLETED` — 목표 달성 및 검증이 완료된 Task
 - `ARCHIVED` — 완료/취소 후 장기 보관만 필요한 Task
 
-Completed / Archived Task는 Task ID와 이력을 보존한다. 현재 작업 대상 탐색에서는 기본적으로 ACTIVE / PAUSED / BLOCKED Task를 우선한다.
+Completed / Archived Task는 Task ID와 이력을 보존한다.
+
+현재 작업 후보를 탐색할 때는 ACTIVE / PAUSED / BLOCKED 상태를 확인할 수 있지만, **자동으로 재개할 수 있는 상태는 ACTIVE뿐이다.**
+- ACTIVE: Request가 해당 Task로 식별되면 자동으로 복구·재개할 수 있다.
+- PAUSED: 의도적으로 일시정지된 상태이므로 명시적인 재개 의도가 확인될 때까지 자동으로 실행 Task로 선택하지 않는다.
+- BLOCKED: 현재 진행할 수 없는 상태이므로 일반적인 "계속해" 요청만으로 실행 Task로 재개하지 않는다. Blocker 해소 여부를 확인한다.
+- COMPLETED / ARCHIVED: 기본 작업 후보에서 제외하며 명시적인 이력 조회 또는 후속 작업 요청이 있을 때만 참조한다.
 
 #### Task 선택 원칙
 
@@ -1208,9 +1214,10 @@ Context Recovery에서는 다음 순서로 복구 대상 Task를 결정한다.
 
 1. 사용자가 Task ID를 직접 지정한 경우 해당 Task를 사용한다.
 2. 사용자가 프로젝트 또는 작업 주제를 명확하게 지정한 경우 Registry에서 해당 범위의 관련 Task를 탐색한다.
-3. 관련 범위에서 복구 가능한 Task가 하나뿐이면 그 Task를 선택한다.
-4. 여러 Task가 후보이고 Request만으로 구분할 수 없으면 임의로 "가장 최근 Task"를 선택하지 않는다. 필요한 최소 범위만 사용자에게 확인한다.
-5. 기존 Task가 없고 Request가 새로운 개발 목표를 시작하는 경우 새로운 Task ID를 생성하여 Registry에 등록한 후 작업을 시작한다.
+3. 관련 범위에서 ACTIVE Task가 하나뿐이면 해당 Task를 선택한다.
+4. 관련 후보가 PAUSED 또는 BLOCKED뿐이라면 상태를 무시하고 자동 실행하지 않는다. 사용자의 재개 의도 또는 Blocker 해소 여부를 확인한다.
+5. 여러 개의 실행 가능한 ACTIVE Task가 후보이고 Request만으로 구분할 수 없으면 임의로 "가장 최근 Task"를 선택하지 않는다. 필요한 최소 범위만 사용자에게 확인한다.
+6. 기존 Task가 없고 Request가 새로운 개발 목표를 시작하는 경우 새로운 Task ID를 생성하여 Registry에 등록한 후 작업을 시작한다.
 
 시간순의 Last Task는 **자동 복구 기준이 아니다.** Registry의 Updated 시간은 탐색을 돕기 위한 정보일 뿐 Task 선택을 결정하지 않는다.
 

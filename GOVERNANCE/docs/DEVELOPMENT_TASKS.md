@@ -23,13 +23,19 @@
 | COMPLETED | 목표 달성 및 검증 완료 |
 | ARCHIVED | 완료/취소 후 장기 보관 |
 
-현재 작업 대상 탐색에서는 기본적으로 ACTIVE, PAUSED, BLOCKED를 사용합니다. 완료/보관 Task의 ID와 이력은 유지합니다.
+현재 작업 후보를 탐색할 때는 ACTIVE / PAUSED / BLOCKED 상태를 확인할 수 있지만, **자동으로 재개할 수 있는 상태는 ACTIVE뿐입니다.**
+- ACTIVE: Request가 해당 Task로 식별되면 자동으로 복구·재개할 수 있습니다.
+- PAUSED: 의도적으로 일시정지된 상태이므로 명시적인 재개 의도가 확인될 때까지 자동으로 실행 Task로 선택하지 않습니다.
+- BLOCKED: 현재 진행할 수 없는 상태이므로 일반적인 "계속해" 요청만으로 실행 Task로 재개하지 않습니다. Blocker 해소 여부를 확인합니다.
+- COMPLETED / ARCHIVED: 기본 작업 후보에서 제외하며 명시적인 이력 조회 또는 후속 작업 요청이 있을 때만 참조합니다.
+
+완료/보관 Task의 ID와 이력은 유지합니다.
 
 ## Current Task Registry
 
 | Task ID | Scope | Project / Area | Goal | Status | Context | Current Checkpoint | Active PR / Issue | Next Action | Last Updated |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TASK-20260930-0001 | Workspace | Governance | Development Work Continuity와 Task Recovery 구조를 완성하고 새 Chat에서 자동 복구 가능한 운영 구조를 구축 | COMPLETED | GOVERNANCE/docs/CURRENT_STATUS.md | GOVERNANCE/docs/checkpoints/TASK-20260930-0001.md | PR #63 merged | Governance 1.3.0 반영 완료. 다음 활성 Task는 TASK-20260930-0002 | 2026-09-30 |
+| TASK-20260930-0001 | Workspace | Governance | Development Work Continuity와 Task Recovery 구조를 완성하고 새 Chat에서도 정확한 Task와 Context를 복구할 수 있는 운영 구조를 구축 | COMPLETED | GOVERNANCE/docs/CURRENT_STATUS.md | GOVERNANCE/docs/checkpoints/TASK-20260930-0001.md | PR #63 merged | Governance 1.3.1 반영 완료. 다음 활성 Task는 TASK-20260930-0002 | 2026-09-30 |
 | TASK-20260930-0002 | Project | personal-ai-janggi-trainer-by-gpt | 검색/평가/학습 구조를 기반으로 6개 공개 AI level의 측정 가능한 강도 차이를 확립하고 AI 성능을 단계적으로 강화 | ACTIVE | projects/personal-ai-janggi-trainer-by-gpt/docs/CURRENT_STATUS.md | projects/personal-ai-janggi-trainer-by-gpt/docs/checkpoints/TASK-20260930-0002.md | PR #60 merged | 불완전한 calibration evidence를 강도 결론으로 사용하지 않고, 인접 level calibration 및 measured AI improvement를 계속 진행 | 2026-09-30 |
 
 ## Operating Rules
