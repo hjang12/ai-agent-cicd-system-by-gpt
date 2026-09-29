@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "contracts": [
+    {
+      "id": "UX-001",
+      "status": "ACTIVE",
+      "title": "Human move is visibly rendered before AI calculation begins",
+      "requirement": "When the learner selects a legal move, the board must visibly show that player move before the AI calculation starts.",
+      "source": "User-requested gameplay requirement, captured after repeated rendering regressions on 2026-09-29.",
+      "protected_paths": [
+        "index.html",
+        "tests/test_app.py",
+        "docs/ARCHITECTURE.md",
+        "docs/DEVELOPMENT_HISTORY.md"
+      ],
+      "regression_tests": [
+        {
+          "file": "tests/test_app.py",
+          "symbol": "test_browser_turn_flow_renders_optimistic_human_move_before_network_request"
+        },
+        {
+          "file": "tests/test_app.py",
+          "symbol": "test_browser_pending_move_is_display_only_until_server_snapshot_arrives"
+        },
+        {
+          "file": "tests/test_app.py",
+          "symbol": "test_browser_pending_move_is_processed_before_empty_cell_fallback"
+        }
+      ],
+      "change_policy": "INTENTIONAL_CHANGE_REQUIRES_REPORT"
+    }
+  ]
+}
