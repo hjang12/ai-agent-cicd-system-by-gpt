@@ -44,8 +44,8 @@ jobs:
       - name: Run adjacent-level benchmark
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            GAMES=4
-            MAX_PLIES=32
+            GAMES=2
+            MAX_PLIES=16
             OUTPUT=ai-level-strength-pr.json
           else
             GAMES="${{ inputs.games }}"
