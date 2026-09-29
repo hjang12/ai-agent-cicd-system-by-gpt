@@ -75,3 +75,11 @@ The current validation path is:
 5. only then consider changing level search budgets or evaluation parameters.
 
 The machine-readable evidence tool is `tools/benchmark_ai_levels.py`. CI treats the benchmark as evidence collection, not as a pass/fail strength gate. A benchmark result cannot by itself justify changing the public level ladder; changes must be supported by the measured results and regression tests.
+
+## Calibration execution policy
+
+A full six-level calibration is executed as five bounded adjacent-pair runs (`1-2`, `2-3`, `3-4`, `4-5`, `5-6`) rather than one long all-pairs job. The workflow accepts one pair, an even game count, and a ply cap. This avoids a single runner timeout hiding partial evidence.
+
+The 2026-09-29 experiment that attempted 4 games × 64 plies across all five pairs was cancelled by the 20-minute GitHub Actions timeout before producing an artifact. It is treated as an incomplete experiment, not as a strength result.
+
+Future calibration evidence should record the pair, seed, requested games, completed games, unfinished games, and repeated-run seed where applicable.
