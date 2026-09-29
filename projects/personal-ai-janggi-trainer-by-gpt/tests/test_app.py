@@ -480,7 +480,7 @@ class TrainerApplicationTests(unittest.TestCase):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("last-move-from", html)
         self.assertIn("last-move-to", html)
-        self.assertIn("const lastMove = history.length ? history[history.length - 1] : null;", html)
+        self.assertIn("const lastMove = pendingPlayerMove || (history.length ? history[history.length - 1] : null);", html)
         self.assertIn("aspect-ratio:8/9", html)
         self.assertIn('viewBox="0 0 8 9"', html)
         self.assertIn('x1="4" y1="0" x2="4" y2="9"', html)
