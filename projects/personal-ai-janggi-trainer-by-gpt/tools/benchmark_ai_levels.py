@@ -149,6 +149,8 @@ def main() -> None:
 
     if args.tournament_games < 0:
         raise SystemExit("--tournament-games must be non-negative")
+    if args.tournament_games == 1 or args.tournament_games % 2:
+        raise SystemExit("--tournament-games must be 0 or an even integer of at least 2")
     if args.max_plies < 1:
         raise SystemExit("--max-plies must be at least 1")
 
