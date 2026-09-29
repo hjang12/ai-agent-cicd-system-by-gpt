@@ -112,7 +112,9 @@ def validate_registry(project_root: Path, registry_path: Path, contract_doc: Pat
                 except (OSError, SyntaxError) as exc:
                     errors.append(f"{cid}: cannot parse regression test file {rel}: {exc}")
                     continue
-                if symbol not in symbols:
+                if symbol not in symbols and not any(
+                    name.endswith("." + symbol) for name in symbols
+                ):
                     errors.append(f"{cid}: regression test symbol not found: {rel}:{symbol}")
 
         if status == "ACTIVE" and contract.get("change_policy") != "INTENTIONAL_CHANGE_REQUIRES_REPORT":
