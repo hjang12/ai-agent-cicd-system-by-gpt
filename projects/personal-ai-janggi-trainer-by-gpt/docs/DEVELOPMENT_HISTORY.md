@@ -1,3 +1,19 @@
+## 48. 2026-09-29 — Synchronize calibration and TT documentation
+
+### Finding
+
+Merged level-calibration batching left two historical descriptions that could be misread as current behavior, and `CURRENT_STATUS.md` still described the transposition table as exact-only even though the implementation uses bound-aware entries.
+
+### Decision
+
+Mark the 2026-09-29 all-pairs smoke as pre-batch historical evidence, state the current pair-scoped PR smoke policy, and document the implemented EXACT/LOWER/UPPER transposition bounds accurately.
+
+### Boundary
+
+Documentation only; no engine, public AI level, or gameplay behavior changed.
+
+---
+
 ## 47. 2026-09-29 — Bound AI-level calibration into adjacent-pair batches
 
 ### Finding
