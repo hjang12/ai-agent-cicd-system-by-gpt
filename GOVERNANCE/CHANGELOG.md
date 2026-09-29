@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.1] - 2026-09-29
+
+### Clarified
+
+- `Session`과 `Turn`은 비정식 용어로 유지하고 Governance의 canonical terminology에서 사용하지 않는다.
+- `Interaction`은 `Request → Agent Work → Response`의 상호작용 단위이며 고정된 최대 시간으로 제한하지 않는다.
+- `Agent Work Segment`를 정의하여 하나의 Agent Work가 Context / Token / Tool / Runtime / 외부 작업 대기 등의 실행 경계에 따라 안전하게 분할될 수 있도록 했다.
+- Long-running Agent Work는 장기적인 Development Task를 지원하는 방식이며 무제한 또는 무중단 실행을 의미하지 않는다.
+- 사용자의 일시정지/중단 요청과 플랫폼 실행 경계를 안전한 Checkpoint 및 후속 Interaction으로 연결하는 운영 규칙을 명문화했다.
+
+
 ## [1.2.0] - 2026-09-29
 
 ### Added
