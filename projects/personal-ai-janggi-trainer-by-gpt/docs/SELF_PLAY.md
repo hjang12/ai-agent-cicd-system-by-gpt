@@ -56,3 +56,16 @@ A generation result contains both:
 - the `RecordValidation` returned by the human-record pipeline.
 
 Consumers should use `validation.training_eligible` rather than assuming that every generated game is suitable for training.
+## Training-data generation CLI
+
+`tools/generate_self_play_dataset.py` provides a reproducible bridge from the self-play boundary to the existing `janggi-training-v1` dataset format.
+
+Example:
+
+```text
+PYTHONPATH=. python tools/generate_self_play_dataset.py --games 8 --max-plies 128 --level 4 --setup classic --seed 20260929
+```
+
+The command writes the raw training dataset plus a sidecar summary. Only records accepted as training-eligible by `RecordValidator` enter the dataset; incomplete games remain visible in the summary and are excluded from training labels.
+
+For larger experiments, use the manual `.github/workflows/janggi-self-play-dataset.yml` workflow. The workflow is artifact-only and does not change the production engine or browser path.

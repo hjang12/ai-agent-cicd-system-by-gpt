@@ -1,0 +1,85 @@
+name: Janggi self-play training dataset
+
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: "Number of self-play games"
+        required: true
+        default: "8"
+      max_plies:
+        description: "Maximum plies per game"
+        required: true
+        default: "128"
+      level:
+        description: "Public AI level used by both sides"
+        required: true
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+          - "5"
+          - "6"
+        default: "4"
+      setup:
+        description: "Starting arrangement"
+        required: true
+        type: choice
+        options:
+          - classic
+          - left
+          - right
+          - both
+        default: classic
+      seed:
+        description: "Cho seed; Han uses seed+1"
+        required: true
+        default: "20260929"
+      random_ties:
+        description: "Enable fixed-seed random tie-breaking"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: projects/personal-ai-janggi-trainer-by-gpt
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Compile project
+        run: python -m compileall janggi tests tools
+      - name: Generate self-play dataset
+        run: |
+          EXTRA_ARGS=""
+          if [ "${{ inputs.random_ties }}" = "true" ]; then
+            EXTRA_ARGS="--random-ties"
+          fi
+          PYTHONPATH=. python tools/generate_self_play_dataset.py \
+            --games "${{ inputs.games }}" \
+            --max-plies "${{ inputs.max_plies }}" \
+            --level "${{ inputs.level }}" \
+            --setup "${{ inputs.setup }}" \
+            --seed "${{ inputs.seed }}" \
+            $EXTRA_ARGS \
+            --output self-play-training.json \
+            --summary-output self-play-training.summary.json
+          cat self-play-training.summary.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload training dataset artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: janggi-self-play-training-dataset
+          path: |
+            projects/personal-ai-janggi-trainer-by-gpt/self-play-training.json
+            projects/personal-ai-janggi-trainer-by-gpt/self-play-training.summary.json

@@ -50,3 +50,18 @@ future model training infrastructure
 ## Dataset boundaries
 
 `TrainingDatasetBuilder` is intentionally a pure conversion layer. It does not train a model, shuffle samples, split train/validation sets, or choose a model architecture. Those concerns belong to the later model/data infrastructure layer.
+## Self-play dataset artifact
+
+The reproducible CLI `tools/generate_self_play_dataset.py` bridges validated self-play records into the existing `janggi-training-v1` JSON format.
+
+Default collection settings are intentionally bounded and deterministic:
+
+- 8 games
+- 128 plies per game
+- public AI level 4
+- classic setup
+- deterministic tie-breaking
+
+The CLI also writes a sidecar summary containing the selected level/search profile, seeds, terminal vs unfinished games, training-eligible game count, and final example count. Unfinished games are never converted into value labels.
+
+A manual GitHub Actions workflow, `.github/workflows/janggi-self-play-dataset.yml`, can generate larger artifacts without changing the production game path. Random fixed-seed tie-breaking is an explicit opt-in for dataset diversity experiments.

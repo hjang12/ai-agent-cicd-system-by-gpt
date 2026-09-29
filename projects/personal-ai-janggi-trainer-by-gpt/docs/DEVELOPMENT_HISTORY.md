@@ -1,3 +1,32 @@
+## 44. 2026-09-29 — Reproducible self-play training dataset pipeline
+
+### Requirement
+
+향후 ValueModel을 실제 학습하려면 현재 self-play/record validation/training conversion 경계를 재사용하면서도, 학습 데이터 수집을 production 대국 코드와 분리된 재현 가능한 작업으로 실행할 수 있어야 합니다.
+
+### Decision
+
+`generate_self_play_dataset.py`를 통해 public AI level을 선택해 self-play를 생성하고, 기존 `RecordValidator`와 `TrainingDatasetBuilder`를 통과한 `janggi-training-v1` JSON만 학습 데이터 artifact로 저장하도록 했습니다.
+
+- 기본값은 8게임/128 ply/Level 4/classic/deterministic tie-breaking
+- Cho/Han은 재현 가능한 seed 스트림을 사용
+- 미완료 대국은 summary에 남기되 training example로 변환하지 않음
+- random tie-breaking은 데이터 다양성 실험용 opt-in
+- manual GitHub Actions workflow는 artifact 생성만 수행하며 production 대국/UI를 변경하지 않음
+
+### Implementation
+
+- `tools/generate_self_play_dataset.py`
+- `.github/workflows/janggi-self-play-dataset.yml`
+- `tests/test_generate_self_play_dataset.py`
+- `docs/TRAINING_DATA.md` / `docs/SELF_PLAY.md` / `docs/CURRENT_STATUS.md` 동기화
+
+### Boundary
+
+이 변경은 learned model 자체를 학습하거나 production evaluator를 변경하지 않습니다. 다음 단계에서 이 artifact를 사용해 ValueModel 학습 및 current heuristic 대비 strength evaluation을 수행합니다.
+
+---
+
 ## 43. 2026-09-29 — Pluggable Value Model boundary
 
 ### Requirement

@@ -154,7 +154,7 @@ The service is now running from the canonical monorepo. Live Render `healthCheck
 - Persistent player rating/history storage and cross-device skill profiles
 - Persistent or cross-instance session storage; current browser sessions live only in one server process and are lost on process restart or replacement
 - Database-backed game history
-- Trained neural/learned policy or value model (training/promotion remains deferred; the dependency-free ValueModel search interface is now in place)
+- Trained neural/learned policy or value model (training/promotion remains deferred; the dependency-free ValueModel interface and self-play dataset generator are now in place)
 - Production model hosting/model serving
 - Full mobile UX and accessibility audit
 - Multi-user/social features and monetization
@@ -168,6 +168,8 @@ The service is now running from the canonical monorepo. Live Render `healthCheck
 The domain model remains authoritative for legality and terminal state. HTTP/browser layers must not duplicate those rules. Engine output must be validated before application. The HTTP layer resolves each browser request to an isolated `TrainerApplication` session before invoking the domain/match layer.
 
 Tactical analysis is intentionally kept at the analysis layer and does not assume a particular engine strength. Immediate tactical risk is one-ply deep. The bounded `double_attack` motif allows one opponent reply and then checks whether the original mover would have legal captures against at least two opposing non-general pieces of at least guard value, while explicitly ignoring the mover's intervening defense. It is therefore a forward-looking warning, not proof of a forced win or loss. Coaching keeps tactical signals separate from score-based severity. Representative fixtures are documented in `docs/TACTICAL_ANALYSIS.md`.
+
+A reproducible self-play dataset path is now available through `tools/generate_self_play_dataset.py` and the manual `janggi-self-play-dataset.yml` workflow. It reuses the authoritative self-play/record-validation/training-data pipeline and keeps incomplete games out of value labels.
 
 The search engine now also has an optional ValueModel boundary. A model receives a history-free GameState and returns an integer centipawn-like value while the search retains ownership of terminal mate scoring. The default heuristic path remains unchanged, so learned-value experiments can be isolated from the browser, match, coaching, and public AI-level layers.
 
