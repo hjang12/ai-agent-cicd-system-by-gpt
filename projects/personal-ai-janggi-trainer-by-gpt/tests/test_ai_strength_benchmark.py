@@ -3,9 +3,22 @@ import unittest
 from janggi.evaluation import EvaluationGame
 from janggi.match import GameStatus
 from tools.benchmark_ai_strength import summarize_games
+from tools.benchmark_ai_levels import validate_benchmark_args
 
 
 class AiStrengthBenchmarkTests(unittest.TestCase):
+    def test_level_benchmark_requires_balanced_game_count(self):
+        validate_benchmark_args(0, 16)
+        validate_benchmark_args(2, 16)
+        validate_benchmark_args(4, 32)
+
+        with self.assertRaises(ValueError):
+            validate_benchmark_args(1, 16)
+        with self.assertRaises(ValueError):
+            validate_benchmark_args(3, 16)
+        with self.assertRaises(ValueError):
+            validate_benchmark_args(2, 0)
+
     def test_unfinished_games_do_not_change_strength_statistics(self):
         games = (
             EvaluationGame("ai-v1", "ai-v2", (), GameStatus.CHO_WIN),
