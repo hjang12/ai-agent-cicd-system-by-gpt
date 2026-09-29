@@ -1,0 +1,102 @@
+name: Janggi linear value model training
+
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: "Number of self-play games for training data"
+        required: true
+        default: "8"
+      max_plies:
+        description: "Maximum plies per game"
+        required: true
+        default: "128"
+      level:
+        description: "Public AI level used by both self-play sides"
+        required: true
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+          - "5"
+          - "6"
+        default: "4"
+      setup:
+        description: "Starting arrangement"
+        required: true
+        type: choice
+        options:
+          - classic
+          - left
+          - right
+          - both
+        default: classic
+      seed:
+        description: "Cho seed; Han uses seed+1"
+        required: true
+        default: "20260929"
+      random_ties:
+        description: "Enable fixed-seed random tie-breaking"
+        required: true
+        type: boolean
+        default: false
+      ridge:
+        description: "Ridge regularization strength"
+        required: true
+        default: "1.0"
+      target_scale_cp:
+        description: "Absolute WIN/LOSS training target"
+        required: true
+        default: "3000.0"
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: projects/personal-ai-janggi-trainer-by-gpt
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Compile project
+        run: python -m compileall janggi tests tools
+      - name: Generate training dataset
+        run: |
+          EXTRA_ARGS=""
+          if [ "${{ inputs.random_ties }}" = "true" ]; then
+            EXTRA_ARGS="--random-ties"
+          fi
+          PYTHONPATH=. python tools/generate_self_play_dataset.py \
+            --games "${{ inputs.games }}" \
+            --max-plies "${{ inputs.max_plies }}" \
+            --level "${{ inputs.level }}" \
+            --setup "${{ inputs.setup }}" \
+            --seed "${{ inputs.seed }}" \
+            $EXTRA_ARGS \
+            --output self-play-training.json \
+            --summary-output self-play-training.summary.json
+      - name: Train linear value model
+        run: |
+          PYTHONPATH=. python tools/train_linear_value_model.py \
+            --dataset self-play-training.json \
+            --ridge "${{ inputs.ridge }}" \
+            --target-scale-cp "${{ inputs.target_scale_cp }}" \
+            --output linear-value-model.json
+          cat self-play-training.summary.json >> "$GITHUB_STEP_SUMMARY"
+          cat linear-value-model.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload model artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: janggi-linear-value-model
+          path: |
+            projects/personal-ai-janggi-trainer-by-gpt/self-play-training.json
+            projects/personal-ai-janggi-trainer-by-gpt/self-play-training.summary.json
+            projects/personal-ai-janggi-trainer-by-gpt/linear-value-model.json
