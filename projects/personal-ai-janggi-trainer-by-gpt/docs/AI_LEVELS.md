@@ -47,3 +47,18 @@ The evaluation/tournament pipeline should decide whether a new version is strong
 ## Expert search budget
 
 Lv6 Expert uses iterative deepening with a maximum depth of 3 and an 800 ms wall-clock budget. The effective depth can be lower when a position is computationally expensive.
+
+
+## Strength calibration workflow
+
+The six public levels are not promoted to a calibrated strength ladder solely from search configuration.
+
+The current validation path is:
+
+1. deterministic fixture search benchmark for every level;
+2. adjacent-level self-play with alternating colors;
+3. repeat the comparison with enough completed games to reduce outcome noise;
+4. record unfinished games separately rather than treating them as draws;
+5. only then consider changing level search budgets or evaluation parameters.
+
+The machine-readable evidence tool is `tools/benchmark_ai_levels.py`. CI treats the benchmark as evidence collection, not as a pass/fail strength gate. A benchmark result cannot by itself justify changing the public level ladder; changes must be supported by the measured results and regression tests.
