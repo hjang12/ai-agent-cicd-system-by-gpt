@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.1] - 2026-09-30
+
+### Clarified
+
+- `PAUSED` Task는 명시적인 재개 의도 없이 자동으로 재개하지 않으며, `BLOCKED` Task도 일반적인 작업 재개 요청만으로 실행 대상으로 선택하지 않는다.
+- `ACTIVE` Task만 하나의 후보일 때 자동 복구·재개 대상으로 사용할 수 있도록 Task 선택 규칙을 명확히 했다.
+- Context Checkpoint template에 immutable Task ID 필드를 명시했다.
+- 완료된 Governance Task의 Checkpoint가 완료 상태와 일치하도록 정리했다.
+
 ## [1.3.0] - 2026-09-30
 
 ### Added
