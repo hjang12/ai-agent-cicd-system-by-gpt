@@ -84,6 +84,14 @@
 - Position-training problems preserve the original pre-move state, hide the target move by default, and reuse the existing coaching reason/severity contract
 - Training metrics reset with the match and are never promoted to persistent user or model-training data; problem-level repeated-mistake counts and reason-specific accuracy are derived from the same ephemeral counts, and adaptive selection uses those counts only for the current session
 
+## Development Safety
+
+- Requirement Contract Registry: `docs/requirement_contracts.json`
+- Human-readable contract context: `docs/REQUIREMENT_CONTRACTS.md`
+- Current protected product invariant: `UX-001` — human move must be visibly rendered before AI calculation begins
+- Contract validation: `tools/validate_requirement_contracts.py` runs in the mandatory Janggi validation workflow
+- Contract rule: existing `ACTIVE` user requirements are preserved across later implementation/refactoring work; intentional behavior changes require explicit declaration and user-facing report before superseding the Contract
+
 ## CI/CD
 
 GitHub Actions workflow: `../../.github/workflows/janggi-validation.yml` (repository-root path `.github/workflows/janggi-validation.yml`)

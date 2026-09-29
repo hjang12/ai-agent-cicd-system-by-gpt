@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.0.0**
+**Governance Version: 1.1.0**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -767,6 +767,50 @@ DATASET-003
 처음부터 모든 변경에 강제하지 않는다. 추적성의 필요성이 증가할 때 도입한다.
 
 ---
+
+
+### 20-A. 사용자 요구사항 Contract 보호와 변경 통제
+
+사용자가 요청하고 AI가 구현·검증을 완료한 동작 중 후속 개발에서도 유지해야 하는 요구사항은 가능한 경우 **Requirement Contract**로 등록한다. 이는 단순한 메모가 아니라 후속 변경에서 보존해야 하는 검증 가능한 제품 계약이다.
+
+각 Project는 다음 정보를 가진 기계 판독 가능한 Contract Registry를 둘 수 있다.
+
+- `ID`: 영구 식별자
+- `Status`: `ACTIVE` / `SUPERSEDED` / `RETIRED`
+- `Requirement`: 사용자가 기대하는 동작
+- `Protected Paths`: 해당 계약과 직접 관련된 구현/문서/회귀검증 경계
+- `Regression Tests`: 계약을 실제로 검증하는 테스트
+- `Change Policy`: 기존 동작을 바꾸려 할 때의 처리 규칙
+
+`ACTIVE` Contract는 기본적으로 **유지해야 하는 현재 제품 요구사항**으로 취급한다.
+
+### 후속 변경 시 규칙
+
+1. 작업 시작 전에 관련 `ACTIVE` Contract를 확인한다.
+2. 구현을 수정하더라도 Contract의 사용자 관찰 가능 동작과 회귀 테스트는 유지한다.
+3. 새 요구사항이 기존 Contract와 충돌하면 기존 동작을 조용히 원복하거나 덮어쓰지 않는다.
+4. 동작 변경이 정말 필요한 경우 다음을 사용자에게 보고한다.
+   - 변경하려는 기존 Contract
+   - 충돌하는 새 요구사항
+   - 현재 동작을 유지할 수 없는 이유
+   - 영향 범위
+   - 대안과 회귀 위험
+5. 사용자가 변경 방향을 결정한 뒤에만 기존 Contract를 `SUPERSEDED` 또는 `RETIRED`로 변경하고, 변경 이유와 검증 결과를 History/Change Notice에 남긴다.
+
+### 자동 검증
+
+Requirement Contract가 등록된 Project의 CI는 가능한 범위에서 다음을 자동 검증한다.
+
+- Contract ID 중복 여부
+- `ACTIVE` Contract의 보호 경로 존재 여부
+- `ACTIVE` Contract가 가리키는 회귀 테스트 존재 여부
+- 기계 판독 Registry와 사람이 읽는 Contract 문서의 기본 동기화 여부
+- Pull Request에서 Contract 정의 또는 회귀 테스트를 약화시키는 변경이 발생한 경우 명시적인 `CONTRACT-CHANGE: <ID>` 선언 여부
+- 보호된 구현 경로가 변경된 경우 해당 Contract가 영향 범위에 있음을 CI 로그에 명시
+
+CI는 구현 경로가 변경되었다는 사실만으로 모든 리팩터링을 막지 않는다. **동작 보존은 회귀 테스트가 판단하고, 계약 자체를 변경하거나 계약 검증을 약화하는 변경은 명시적으로 보고하도록 분리한다.**
+
+이 규칙의 목적은 사용자의 한 번의 요청을 채팅 Context에만 남겨두지 않고 Repository와 CI가 기억하도록 만드는 것이다.
 
 ## 21. 개발 과정에서의 지속적인 개선 제안
 
