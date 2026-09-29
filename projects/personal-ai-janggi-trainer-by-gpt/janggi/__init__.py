@@ -25,6 +25,7 @@ from .search import NegamaxEngine, SearchConfig
 from .self_play import SelfPlayGenerator, SelfPlayResult, generate_self_play_game, generate_self_play_games
 from .tournament import EvaluationSummary, HeadToHeadTournament
 from .training import Outcome, TrainingDataset, TrainingDatasetBuilder, TrainingExample
+from .value_model import ValueModel, validate_value_score
 
 __all__ = [
     "AI_LEVELS",
@@ -79,6 +80,8 @@ __all__ = [
     "TrainingDatasetBuilder",
     "TrainingDisposition",
     "TrainingExample",
+    "ValueModel",
+    "validate_value_score",
     "ValidationStatus",
     "ai_level_payload",
     "get_ai_level",
