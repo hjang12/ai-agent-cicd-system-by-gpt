@@ -1,3 +1,34 @@
+## 45. 2026-09-29 — Dependency-free LinearValueModel candidate
+
+### Requirement
+
+self-play에서 생성한 `janggi-training-v1` 데이터를 실제 평가 모델로 학습할 수 있는 첫 후보가 필요하지만, 외부 ML 프레임워크를 production 경로에 바로 결합해서는 안 됩니다.
+
+### Decision
+
+표준 라이브러리만 사용하는 `LinearValueModel`과 `LinearValueTrainer`를 추가했습니다.
+
+- 13개 고정 feature를 side-to-move 관점에서 추출
+- WIN/DRAW/LOSS를 configurable centipawn-like target으로 변환
+- ridge regularized Gaussian elimination으로 결정적 선형 회귀 학습
+- `janggi-linear-value-v1` JSON 직렬화 지원
+- 기존 `ValueModel` interface에 그대로 주입 가능
+- production heuristic와 public AI level은 변경하지 않음
+
+### Implementation
+
+- `janggi/value_model.py` 확장
+- `tools/train_linear_value_model.py` 추가
+- `.github/workflows/janggi-train-linear-value-model.yml` 추가
+- `tests/test_linear_value_model.py` 추가
+- `docs/AI_MODEL_ARCHITECTURE.md`, `CURRENT_STATUS.md` 동기화
+
+### Boundary
+
+LinearValueModel은 학습 인프라의 첫 baseline일 뿐 playing-strength 향상의 증거가 아닙니다. deterministic fixture, current heuristic 대비 head-to-head, 완료/미완료 대국 분리, legality/terminal regression을 통과하기 전에는 production evaluator 또는 public level에 연결하지 않습니다.
+
+---
+
 ## 44. 2026-09-29 — Reproducible self-play training dataset pipeline
 
 ### Requirement
