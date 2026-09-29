@@ -94,6 +94,8 @@ class SearchConfig:
             raise ValueError("adaptive_ordering must be a boolean")
         if not isinstance(self.quiescence_check_extension, bool):
             raise ValueError("quiescence_check_extension must be a boolean")
+        if not isinstance(self.principal_variation_search, bool):
+            raise ValueError("principal_variation_search must be a boolean")
 
 
 class NegamaxEngine:
