@@ -1,7 +1,7 @@
 import unittest
 from types import SimpleNamespace
 
-from janggi import FEATURE_NAMES, LinearValueModel, get_ai_level
+from janggi import FEATURE_NAMES, LinearValueModel, Outcome, get_ai_level
 from janggi.match import GameStatus
 from tools.benchmark_linear_value_model import summarize_games
 
@@ -10,12 +10,12 @@ class LinearValueBenchmarkTests(unittest.TestCase):
     def test_summary_excludes_unfinished_games(self):
         completed_win = SimpleNamespace(
             status=GameStatus.CHO_WIN,
-            outcome_for_first=__import__("janggi").Outcome.WIN,
+            outcome_for_first=Outcome.WIN,
             moves=(1, 2, 3),
         )
         completed_draw = SimpleNamespace(
             status=GameStatus.DRAW_BIKJANG,
-            outcome_for_first=__import__("janggi").Outcome.DRAW,
+            outcome_for_first=Outcome.DRAW,
             moves=(1, 2),
         )
         unfinished = SimpleNamespace(
