@@ -44,9 +44,9 @@ A version change may improve evaluation, move ordering, search, or learned param
 The evaluation/tournament pipeline should decide whether a new version is strong enough to replace the previous one; the browser level should remain the user's difficulty control.
 
 
-## 2026-09-29 PR smoke calibration result
+## 2026-09-29 pre-batch PR smoke calibration result
 
-The automated PR smoke used 2 games per adjacent pair with a 4-ply cap. All five adjacent pairs completed the benchmark harness successfully, but every game remained unfinished because the cap was intentionally short.
+Before calibration was changed to pair-scoped runs, the automated PR smoke used 2 games per adjacent pair with a 4-ply cap. All five adjacent pairs completed the benchmark harness successfully, but every game remained unfinished because the cap was intentionally short.
 
 Therefore:
 
@@ -54,6 +54,8 @@ Therefore:
 - unfinished games: 10
 - no win/loss/draw strength conclusion is drawn
 - the result validates the calibration pipeline only
+
+The current PR smoke is intentionally narrower: it validates one adjacent pair with 2 games and a 4-ply cap. Full calibration is performed through the manual pair-scoped workflow.
 
 A larger game/ply configuration remains required for actual level-strength evidence.
 
