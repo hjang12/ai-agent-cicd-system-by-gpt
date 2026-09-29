@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 from dataclasses import dataclass
+from pathlib import Path
 from time import perf_counter
 
 from janggi import AI_LEVELS, GameState, HeadToHeadTournament, Move, NegamaxEngine, Piece, PieceType, Side
@@ -137,6 +139,12 @@ def main() -> None:
         default=128,
         help="Maximum plies per tournament game.",
     )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Optional JSON evidence output path.",
+    )
     args = parser.parse_args()
 
     if args.tournament_games < 0:
@@ -145,8 +153,27 @@ def main() -> None:
         raise SystemExit("--max-plies must be at least 1")
 
     run_search_benchmark()
-    if args.tournament_games:
+    tournament_rows = (
         run_adjacent_tournaments(args.tournament_games, args.max_plies)
+        if args.tournament_games
+        else []
+    )
+    if args.output is not None:
+        payload = {
+            "experiment": {
+                "name": "adjacent AI level strength benchmark",
+                "method": "HeadToHeadTournament with alternating colors",
+                "games_per_adjacent_pair": args.tournament_games,
+                "max_plies": args.max_plies,
+                "interpretation": "exploratory evidence only; not calibrated player or model rating",
+            },
+            "pairs": tournament_rows,
+        }
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
 
 
 if __name__ == "__main__":
