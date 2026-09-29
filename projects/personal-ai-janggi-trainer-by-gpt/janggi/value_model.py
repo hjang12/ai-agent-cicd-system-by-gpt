@@ -151,8 +151,8 @@ def extract_value_features(state: GameState) -> tuple[float, ...]:
 
     own_general = state.find_general(state.turn)
     opp_general = state.find_general(state.turn.opponent)
-    own_general_moves = _count_general_moves(state, own_general)
-    opp_general_moves = _count_general_moves(opponent_state, opp_general)
+    own_general_moves = _count_general_moves(own_moves, own_general)
+    opp_general_moves = _count_general_moves(opp_moves, opp_general)
     general_mobility = _clip((own_general_moves - opp_general_moves) / 8.0, -1.0, 1.0)
 
     opponent_palace = palace_for(state.turn.opponent)
@@ -277,12 +277,17 @@ class LinearValueTrainer:
         ridge: float = DEFAULT_RIDGE,
         target_scale_cp: float = DEFAULT_TARGET_SCALE_CP,
     ) -> None:
-        if ridge < 0 or not isfinite(float(ridge)):
+        try:
+            ridge_value = float(ridge)
+            target_scale_value = float(target_scale_cp)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("ridge and target_scale_cp must be numeric") from exc
+        if ridge_value < 0 or not isfinite(ridge_value):
             raise ValueError("ridge must be a non-negative finite number")
-        if target_scale_cp <= 0 or not isfinite(float(target_scale_cp)):
+        if target_scale_value <= 0 or not isfinite(target_scale_value):
             raise ValueError("target_scale_cp must be a positive finite number")
-        self.ridge = float(ridge)
-        self.target_scale_cp = float(target_scale_cp)
+        self.ridge = ridge_value
+        self.target_scale_cp = target_scale_value
 
     def fit(self, dataset: TrainingDataset) -> LinearValueModel:
         if not isinstance(dataset, TrainingDataset):
@@ -314,14 +319,13 @@ class LinearValueTrainer:
         )
 
 
-def _count_general_moves(state: GameState, position: tuple[int, int] | None) -> int:
+def _count_general_moves(
+    moves: Sequence[Move],
+    position: tuple[int, int] | None,
+) -> int:
     if position is None:
         return 0
-    return sum(
-        1
-        for move in state.legal_moves(include_pass=False)
-        if move.src == position
-    )
+    return sum(1 for move in moves if move.src == position)
 
 
 def _clip(value: float, low: float, high: float) -> float:
