@@ -192,11 +192,11 @@ def main() -> None:
         ("endgame", 3): 792,
     }
 
-    print("Search benchmark: reference vs current vs check-first vs capture-check-first")
+    print("Search benchmark: reference vs current vs PVS vs check-first vs capture-check-first")
     print("All measurements use the same evaluation, caches, depth, and fixtures.")
     print("Depth 3 is limited to compact tactical/endgame fixtures to keep CI bounded.")
     print()
-    print("fixture,depth,reference_nodes,current_nodes,check_first_nodes,capture_check_nodes,current_reduction_pct,check_first_reduction_pct,capture_check_reduction_pct,current_same_score,check_first_same_score,capture_check_same_score,current_same_best_move,check_first_same_best_move,capture_check_same_best_move")
+    print("fixture,depth,reference_nodes,current_nodes,pvs_nodes,check_first_nodes,capture_check_nodes,current_reduction_pct,pvs_vs_current_reduction_pct,check_first_reduction_pct,capture_check_reduction_pct,current_same_score,pvs_same_score,check_first_same_score,capture_check_same_score,current_same_best_move,pvs_same_best_move,check_first_same_best_move,capture_check_same_best_move")
 
     baseline_mismatches: list[str] = []
     current_depth_probe: dict[str, dict[int, object]] = {}
@@ -205,15 +205,24 @@ def main() -> None:
         for depth in depths:
             _, reference = _run(CoordinateOrderedEngine, fixture, depth)
             _, current = _run(NegamaxEngine, fixture, depth)
+            pvs_config = SearchConfig(
+                depth=depth,
+                mobility_weight=2,
+                principal_variation_search=True,
+            )
+            pvs_engine = NegamaxEngine(pvs_config)
+            pvs = pvs_engine.analyze(fixture.state)
             if fixture.name in {"capture", "check", "double_attack", "endgame"}:
                 current_depth_probe.setdefault(fixture.name, {})[depth] = current
             _, check_first = _run(StrongForcingOrderedEngine, fixture, depth)
             _, capture_check = _run(CaptureCheckOrderedEngine, fixture, depth)
             current_reduction = 0.0
+            pvs_vs_current_reduction = 0.0
             check_first_reduction = 0.0
             capture_check_reduction = 0.0
             if reference.nodes:
                 current_reduction = 100.0 * (reference.nodes - current.nodes) / reference.nodes
+                pvs_vs_current_reduction = 100.0 * (current.nodes - pvs.nodes) / current.nodes
                 check_first_reduction = 100.0 * (reference.nodes - check_first.nodes) / reference.nodes
                 capture_check_reduction = 100.0 * (reference.nodes - capture_check.nodes) / reference.nodes
             expected_nodes = expected_current_nodes.get((fixture.name, depth))
@@ -223,6 +232,8 @@ def main() -> None:
                 )
             if current.score_cp != reference.score_cp:
                 raise AssertionError(f"current ordering changed minimax score for {fixture.name} depth {depth}")
+            if pvs.score_cp != reference.score_cp:
+                raise AssertionError(f"PVS changed minimax score for {fixture.name} depth {depth}")
             # Equal-scored moves can legitimately differ between orderings because
             # alpha-beta pruning preserves score correctness, not a unique tie-break.
             if check_first.score_cp != reference.score_cp:
@@ -230,10 +241,11 @@ def main() -> None:
             if capture_check.score_cp != reference.score_cp:
                 raise AssertionError(f"capture-check ordering changed minimax score for {fixture.name} depth {depth}")
             print(
-                f"{fixture.name},{depth},{reference.nodes},{current.nodes},{check_first.nodes},{capture_check.nodes},"
-                f"{current_reduction:.2f},{check_first_reduction:.2f},{capture_check_reduction:.2f},"
-                f"{current.score_cp == reference.score_cp},{check_first.score_cp == reference.score_cp},"
-                f"{capture_check.score_cp == reference.score_cp},{current.best_move == reference.best_move},"
+                f"{fixture.name},{depth},{reference.nodes},{current.nodes},{pvs.nodes},{check_first.nodes},{capture_check.nodes},"
+                f"{current_reduction:.2f},{pvs_vs_current_reduction:.2f},{check_first_reduction:.2f},{capture_check_reduction:.2f},"
+                f"{current.score_cp == reference.score_cp},{pvs.score_cp == reference.score_cp},"
+                f"{check_first.score_cp == reference.score_cp},{capture_check.score_cp == reference.score_cp},"
+                f"{current.best_move == reference.best_move},{pvs.best_move == reference.best_move},"
                 f"{check_first.best_move == reference.best_move},{capture_check.best_move == reference.best_move}"
             )
 
