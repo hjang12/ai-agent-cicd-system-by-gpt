@@ -70,10 +70,13 @@ class SearchEngineTests(unittest.TestCase):
             SearchConfig(adaptive_ordering=1)
         with self.assertRaises(ValueError):
             SearchConfig(quiescence_check_extension=0)
+        with self.assertRaises(ValueError):
+            SearchConfig(principal_variation_search=1)
 
         current = SearchConfig()
         self.assertTrue(current.adaptive_ordering)
         self.assertTrue(current.quiescence_check_extension)
+        self.assertFalse(current.principal_variation_search)
 
     def test_piece_values_follow_janggi_material_order(self):
         self.assertEqual(PIECE_VALUES[PieceType.CHARIOT], 1300)
@@ -344,6 +347,30 @@ class SearchEngineTests(unittest.TestCase):
         self.assertEqual(refined_analysis.depth, 3)
         self.assertGreater(refined_analysis.nodes, shallow_analysis.nodes)
         self.assertLess(refined_analysis.nodes, deep_analysis.nodes)
+
+    def test_principal_variation_search_preserves_score_and_legal_move(self):
+        board = [None] * 90
+        board[4] = Piece(Side.CHO, PieceType.GENERAL)
+        board[85] = Piece(Side.HAN, PieceType.GENERAL)
+        board[36] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[46] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[35] = Piece(Side.CHO, PieceType.SOLDIER)
+        board[81] = Piece(Side.HAN, PieceType.CHARIOT)
+        state = GameState(tuple(board), turn=Side.CHO)
+
+        baseline = NegamaxEngine(
+            SearchConfig(depth=3, mobility_weight=2, principal_variation_search=False)
+        ).analyze(state)
+        pvs = NegamaxEngine(
+            SearchConfig(depth=3, mobility_weight=2, principal_variation_search=True)
+        ).analyze(state)
+
+        self.assertEqual(pvs.score_cp, baseline.score_cp)
+        self.assertEqual(pvs.score_cp, 99997)
+        self.assertIsNotNone(pvs.best_move)
+        self.assertTrue(state.is_legal(pvs.best_move))
+        self.assertTrue(pvs.principal_variation)
+        self.assertEqual(pvs.principal_variation[0], pvs.best_move)
 
     def test_root_refinement_zero_preserves_base_depth(self):
         state = GameState.initial()
