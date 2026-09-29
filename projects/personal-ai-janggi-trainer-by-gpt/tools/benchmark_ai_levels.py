@@ -125,6 +125,15 @@ def run_adjacent_tournaments(games: int, max_plies: int) -> list[dict[str, objec
 
 
 
+def validate_benchmark_args(tournament_games: int, max_plies: int) -> None:
+    if tournament_games < 0:
+        raise ValueError("tournament_games must be non-negative")
+    if tournament_games == 1 or tournament_games % 2:
+        raise ValueError("tournament_games must be 0 or an even integer of at least 2")
+    if max_plies < 1:
+        raise ValueError("max_plies must be at least 1")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Benchmark configured Janggi AI levels.")
     parser.add_argument(
@@ -147,12 +156,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if args.tournament_games < 0:
-        raise SystemExit("--tournament-games must be non-negative")
-    if args.tournament_games == 1 or args.tournament_games % 2:
-        raise SystemExit("--tournament-games must be 0 or an even integer of at least 2")
-    if args.max_plies < 1:
-        raise SystemExit("--max-plies must be at least 1")
+    try:
+        validate_benchmark_args(args.tournament_games, args.max_plies)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
 
     run_search_benchmark()
     tournament_rows = (
