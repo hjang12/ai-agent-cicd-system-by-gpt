@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import json
 from dataclasses import dataclass
+from pathlib import Path
 from time import perf_counter
 
 from janggi import AI_LEVELS, GameState, HeadToHeadTournament, Move, NegamaxEngine, Piece, PieceType, Side
@@ -77,12 +79,13 @@ def run_search_benchmark() -> None:
             )
 
 
-def run_adjacent_tournaments(games: int, max_plies: int) -> None:
+def run_adjacent_tournaments(games: int, max_plies: int) -> list[dict[str, object]]:
     print()
     print(f"Adjacent-level self-play benchmark: {games} games, {max_plies} plies cap")
-    print("Results are exploratory strength evidence, not a certified rating.")
-    print("lower_level,higher_level,lower_score,higher_score,draws,completed,unfinished")
+    print("Results are exploratory strength evidence, not a calibrated rating.")
+    print("lower_level,higher_level,lower_score,higher_score,lower_wins,higher_wins,draws,completed,unfinished")
 
+    rows: list[dict[str, object]] = []
     for lower, higher in zip(AI_LEVELS, AI_LEVELS[1:]):
         lower_engine = NegamaxEngine(lower.config)
         higher_engine = NegamaxEngine(higher.config)
@@ -96,11 +99,39 @@ def run_adjacent_tournaments(games: int, max_plies: int) -> None:
             games,
             alternate_colors=True,
         )
+        row = {
+            "lower_level": lower.level.value,
+            "lower_name": lower.name,
+            "higher_level": higher.level.value,
+            "higher_name": higher.name,
+            "games": games,
+            "max_plies": max_plies,
+            "lower_score": summary.first_score,
+            "higher_score": summary.second_score,
+            "lower_wins": summary.first_wins,
+            "higher_wins": summary.second_wins,
+            "draws": summary.draws,
+            "completed": summary.completed,
+            "unfinished": summary.unfinished,
+        }
+        rows.append(row)
         print(
             f"{lower.level.value},{higher.level.value},"
-            f"{summary.first_score},{summary.second_score},{summary.draws},"
+            f"{summary.first_score},{summary.second_score},"
+            f"{summary.first_wins},{summary.second_wins},{summary.draws},"
             f"{summary.completed},{summary.unfinished}"
         )
+    return rows
+
+
+
+def validate_benchmark_args(tournament_games: int, max_plies: int) -> None:
+    if tournament_games < 0:
+        raise ValueError("tournament_games must be non-negative")
+    if tournament_games == 1 or tournament_games % 2:
+        raise ValueError("tournament_games must be 0 or an even integer of at least 2")
+    if max_plies < 1:
+        raise ValueError("max_plies must be at least 1")
 
 
 def main() -> None:
@@ -117,16 +148,41 @@ def main() -> None:
         default=128,
         help="Maximum plies per tournament game.",
     )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Optional JSON evidence output path.",
+    )
     args = parser.parse_args()
 
-    if args.tournament_games < 0:
-        raise SystemExit("--tournament-games must be non-negative")
-    if args.max_plies < 1:
-        raise SystemExit("--max-plies must be at least 1")
+    try:
+        validate_benchmark_args(args.tournament_games, args.max_plies)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
 
     run_search_benchmark()
-    if args.tournament_games:
+    tournament_rows = (
         run_adjacent_tournaments(args.tournament_games, args.max_plies)
+        if args.tournament_games
+        else []
+    )
+    if args.output is not None:
+        payload = {
+            "experiment": {
+                "name": "adjacent AI level strength benchmark",
+                "method": "HeadToHeadTournament with alternating colors",
+                "games_per_adjacent_pair": args.tournament_games,
+                "max_plies": args.max_plies,
+                "interpretation": "exploratory evidence only; not calibrated player or model rating",
+            },
+            "pairs": tournament_rows,
+        }
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
 
 
 if __name__ == "__main__":

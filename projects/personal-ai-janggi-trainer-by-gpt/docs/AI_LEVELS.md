@@ -44,6 +44,34 @@ A version change may improve evaluation, move ordering, search, or learned param
 The evaluation/tournament pipeline should decide whether a new version is strong enough to replace the previous one; the browser level should remain the user's difficulty control.
 
 
+## 2026-09-29 PR smoke calibration result
+
+The automated PR smoke used 2 games per adjacent pair with a 4-ply cap. All five adjacent pairs completed the benchmark harness successfully, but every game remained unfinished because the cap was intentionally short.
+
+Therefore:
+
+- completed games: 0
+- unfinished games: 10
+- no win/loss/draw strength conclusion is drawn
+- the result validates the calibration pipeline only
+
+A larger game/ply configuration remains required for actual level-strength evidence.
+
 ## Expert search budget
 
 Lv6 Expert uses iterative deepening with a maximum depth of 3 and an 800 ms wall-clock budget. The effective depth can be lower when a position is computationally expensive.
+
+
+## Strength calibration workflow
+
+The six public levels are not promoted to a calibrated strength ladder solely from search configuration.
+
+The current validation path is:
+
+1. deterministic fixture search benchmark for every level;
+2. adjacent-level self-play with alternating colors;
+3. repeat the comparison with enough completed games to reduce outcome noise;
+4. record unfinished games separately rather than treating them as draws;
+5. only then consider changing level search budgets or evaluation parameters.
+
+The machine-readable evidence tool is `tools/benchmark_ai_levels.py`. CI treats the benchmark as evidence collection, not as a pass/fail strength gate. A benchmark result cannot by itself justify changing the public level ladder; changes must be supported by the measured results and regression tests.

@@ -3,7 +3,7 @@
 ## Governance
 
 - Common Governance Repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Governance Version: `1.0.0`
+- Governance Version: `1.1.0`
 - Governance status: active baseline on `main`
 - Project context entrypoint: `AGENT_START.md`
 
@@ -179,10 +179,18 @@ The bounded double-attack detector is explicitly oriented from the original move
 
 Engine analysis now has a single normalization boundary. Best-move recommendations and principal variations are checked against `GameState` before coaching, browser presentation, or the trainer's engine-move response consumes them. A non-empty principal variation must also begin with the normalized best move; inconsistent variations are suppressed. A backend result that is not an `EngineAnalysis` object, or has an invalid analysis perspective, is degraded to an empty analysis for the current side to move; invalid numeric metadata is cleared individually. Malformed analysis is therefore degraded to safe unavailable move data rather than being surfaced as if it were authoritative.
 
+## Actual level-strength calibration evidence
+
+- PR smoke calibration pipeline is operational.
+- Smoke configuration: 2 games per adjacent pair, 4 plies per game.
+- Smoke result: 10 unfinished games, 0 completed games; no playing-strength ordering is inferred.
+- Full adjacent-level evidence still requires a larger games/plies configuration outside the bounded PR smoke.
+
 ## Known Next Targets
 
 1. Exercise the human-vs-AI turn loop against the live service and close any gameplay/UX defects before increasing engine strength.
-2. Upgrade baseline AI strength in measured stages, using the existing deterministic search benchmarks and keeping move legality as the authoritative boundary.
+2. Calibrate the six public AI levels with deterministic search evidence and adjacent-level self-play before changing their search budgets.
+3. Upgrade baseline AI strength in measured stages, using the existing deterministic search benchmarks and keeping move legality as the authoritative boundary.
 3. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
 4. Use player skill-assessment evidence together with adaptive position-training selection and ephemeral session metrics, while keeping match rating separate from coaching statistics and preventing uncalibrated AI levels from producing numeric player ratings.
 5. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.

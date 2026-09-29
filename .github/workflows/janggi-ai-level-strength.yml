@@ -1,0 +1,66 @@
+name: Janggi AI level strength calibration
+
+on:
+  workflow_dispatch:
+    inputs:
+      games:
+        description: "Number of games per adjacent level pair (must be even)"
+        required: true
+        default: "4"
+      max_plies:
+        description: "Maximum plies per game"
+        required: true
+        default: "32"
+  pull_request:
+    paths:
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/ai_level.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/tournament.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/rating.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_levels.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/docs/AI_LEVELS.md'
+      - 'GOVERNANCE/**'
+      - '.github/workflows/janggi-ai-level-strength.yml'
+
+concurrency:
+  group: janggi-ai-level-strength-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: projects/personal-ai-janggi-trainer-by-gpt
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Run adjacent-level benchmark
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            GAMES=2
+            MAX_PLIES=4
+            OUTPUT=ai-level-strength-pr.json
+          else
+            GAMES="${{ inputs.games }}"
+            MAX_PLIES="${{ inputs.max_plies }}"
+            OUTPUT=ai-level-strength.json
+          fi
+          PYTHONPATH=. python tools/benchmark_ai_levels.py \
+            --tournament-games "$GAMES" \
+            --max-plies "$MAX_PLIES" \
+            --output "$OUTPUT"
+          cat "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload calibration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janggi-ai-level-strength-calibration
+          path: projects/personal-ai-janggi-trainer-by-gpt/ai-level-strength*.json
+          if-no-files-found: ignore

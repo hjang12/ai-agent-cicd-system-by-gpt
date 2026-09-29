@@ -24,6 +24,34 @@
         }
       ],
       "change_policy": "INTENTIONAL_CHANGE_REQUIRES_REPORT"
+    },
+    {
+      "id": "AI-001",
+      "status": "ACTIVE",
+      "title": "Six public AI levels remain selectable with distinct search profiles",
+      "requirement": "The browser trainer must continue exposing six selectable AI levels whose documented search profiles remain materially different; actual playing-strength ordering is validated separately through the calibration benchmark.",
+      "source": "User-requested AI level progression requirement, preserved for future engine-strength work.",
+      "protected_paths": [
+        "janggi/ai_level.py",
+        "tests/test_ai_level.py",
+        "docs/AI_LEVELS.md",
+        "tools/benchmark_ai_levels.py"
+      ],
+      "regression_tests": [
+        {
+          "file": "tests/test_ai_level.py",
+          "symbol": "test_all_levels_have_unique_order_and_metadata"
+        },
+        {
+          "file": "tests/test_ai_level.py",
+          "symbol": "test_beginner_and_expert_use_materially_different_search_budgets"
+        },
+        {
+          "file": "tests/test_ai_level.py",
+          "symbol": "test_levels_progress_through_search_complexity"
+        }
+      ],
+      "change_policy": "INTENTIONAL_CHANGE_REQUIRES_REPORT"
     }
   ]
 }

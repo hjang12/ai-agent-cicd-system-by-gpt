@@ -1,3 +1,49 @@
+## 42. 2026-09-29 — Six-level strength calibration harness
+
+### Requirement
+
+6개 AI 레벨은 현재 검색 복잡도 차이만 정의되어 있으므로, 실제 대국 전력 차이를 별도 측정할 수 있는 반복 가능한 검증 루프가 필요합니다.
+
+### Decision
+
+인접 레벨(1→2→3→4→5→6)을 색상을 교대하는 `HeadToHeadTournament`으로 비교하는 calibration harness를 추가했습니다.
+
+- PR에서는 bounded smoke만 실행
+- 결과는 machine-readable JSON artifact로 저장
+- 미완료 대국을 무승부로 간주하지 않음
+- benchmark 결과만으로 public level을 변경하지 않음
+- 실제 level tuning은 더 큰 표본의 별도 strength evidence를 근거로 수행
+
+### Implementation
+
+- `.github/workflows/janggi-ai-level-strength.yml`
+- `tools/benchmark_ai_levels.py` JSON evidence output
+- `tests/test_ai_level.py` benchmark 입력 검증
+- `docs/AI_LEVELS.md` calibration 정책/경계
+- `docs/CURRENT_STATUS.md` 현재 calibration 상태
+- `AI-001` Requirement Contract
+
+### Smoke Verification
+
+- Python compile/test: **262 tests, OK**
+- Requirement Contract validation: **PASS**
+- Workspace validation: **PASS**
+- AI level calibration workflow: **PASS**
+- Smoke configuration: 2 games per adjacent pair, 4 plies
+- 5 adjacent pairs × 2 games = 10 games
+- completed: **0**
+- unfinished: **10**
+
+### Interpretation
+
+4-ply smoke는 calibration pipeline의 실행 여부를 검증하는 용도이며 실제 playing strength를 판단할 표본으로 사용하지 않습니다.
+
+### Next Step
+
+충분한 completed game sample을 사용하는 full adjacent-level evaluation을 수행한 뒤, 실제 필요성이 확인된 레벨의 search budget/evaluation만 별도 변경합니다.
+
+---
+
 ## 41. 2026-09-29 — Requirement Contract protection and change-control guard
 
 ### Requirement

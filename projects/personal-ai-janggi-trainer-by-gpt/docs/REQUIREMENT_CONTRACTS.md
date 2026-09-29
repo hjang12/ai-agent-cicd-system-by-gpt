@@ -37,6 +37,22 @@
 
 이 동작을 없애거나 다시 "AI 응답까지 한 번에 보이는 방식"으로 바꾸는 것은 단순 리팩터링이 아니라 Contract 변경이다. 새로운 요구사항 때문에 변경이 필요하면 현재 Contract와 충돌한다고 사용자에게 보고하고, 사용자 결정 이후 변경한다.
 
+### AI-001 — Six public AI levels remain selectable with distinct search profiles
+
+**Requirement**
+
+브라우저 트레이너는 6개 AI 레벨을 계속 제공해야 하며, 각 레벨의 문서화된 검색 프로파일은 실질적으로 구분되어야 한다. 실제 대국 전력의 순서는 설정만으로 간주하지 않고 별도 calibration benchmark로 검증한다.
+
+**Protection**
+
+- Public level configuration: `janggi/ai_level.py`
+- AI level regression coverage: `tests/test_ai_level.py`
+- Level methodology/evidence: `docs/AI_LEVELS.md`, `tools/benchmark_ai_levels.py`
+
+**Change rule**
+
+레벨 수를 줄이거나 검색 프로파일 차이를 제거하려면 Contract 변경으로 취급하고 사용자에게 변경 이유와 영향을 보고한다.
+
 ## 운영 원칙
 
 - 보호 대상은 구현 코드 전체가 아니라 **사용자 관찰 가능 동작 + 그 동작을 보호하는 회귀 테스트**다.
