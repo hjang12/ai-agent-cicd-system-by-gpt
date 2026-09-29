@@ -47,3 +47,36 @@ A future model promotion must provide:
 5. recorded model metadata/version and reproducible parameters.
 
 Until those checks are satisfied, the production engine remains on the existing heuristic evaluator.
+
+## Dependency-free linear baseline
+
+`janggi.value_model.LinearValueModel` is the first concrete implementation of the ValueModel boundary.
+
+It uses a fixed, history-independent feature vector covering:
+
+- material balance;
+- per-piece balance;
+- soldier progress;
+- center control;
+- legal-move mobility;
+- general mobility;
+- palace pressure;
+- check pressure.
+
+`LinearValueTrainer` fits the weights with deterministic ridge regression using only the standard library. This keeps the first learned-value experiment reproducible without coupling the project to NumPy, PyTorch, or another ML runtime.
+
+The training target is side-to-move outcome:
+
+- WIN → `+target_scale_cp`
+- DRAW → `0`
+- LOSS → `-target_scale_cp`
+
+The default target scale is 3000 centipawn-like units and the default ridge regularization is 1.0.
+
+## Training flow
+
+`janggi-training-v1` JSON → `TrainingDataset.from_json()` → `LinearValueTrainer.fit()` → `LinearValueModel` JSON.
+
+The manual workflow `.github/workflows/janggi-train-linear-value-model.yml` can generate self-play data and fit a candidate model in one reproducible run.
+
+The candidate model is deliberately not registered as the production engine and is not wired into the public six-level ladder. A promotion decision requires deterministic fixture checks, head-to-head strength evidence against the current evaluator, and regression coverage for legality/terminal behavior.
