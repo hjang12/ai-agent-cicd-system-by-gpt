@@ -65,10 +65,15 @@ jobs:
             PAIR="${{ inputs.pair }}"
             OUTPUT="ai-level-strength-${PAIR}.json"
           fi
+          EXTRA_ARGS=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            EXTRA_ARGS="--skip-search-benchmark"
+          fi
           PYTHONPATH=. python tools/benchmark_ai_levels.py \
             --tournament-games "$GAMES" \
             --max-plies "$MAX_PLIES" \
             --pair "$PAIR" \
+            $EXTRA_ARGS \
             --output "$OUTPUT"
           cat "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload calibration evidence
