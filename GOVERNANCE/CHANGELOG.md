@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.3.0] - 2026-09-30
+
+### Added
+
+- Workspace-level `GOVERNANCE/docs/DEVELOPMENT_TASKS.md` Development Task Registry.
+- Immutable Task ID format `TASK-YYYYMMDD-NNNN` with 4-digit daily sequence.
+- Task status model and explicit Task → Context → Checkpoint references.
+- Context Recovery rules for selecting a Development Task across multiple projects/tasks.
+
+### Clarified
+
+- Development Tasks are not identified by a global "last task" pointer.
+- The Registry is an integrated navigation/index layer, while detailed Context and Checkpoints remain in the Workspace/Project area that owns the Task.
+- New development goals create a new Task entry when no existing Task matches.
+- Ambiguous multiple Task candidates are not resolved by recency; only the minimum necessary user clarification is requested.
+
+
 ## [1.2.1] - 2026-09-29
 
 ### Clarified
