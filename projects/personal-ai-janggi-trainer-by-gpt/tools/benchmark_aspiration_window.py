@@ -103,54 +103,55 @@ def _run_iterative(
 
 
 def main() -> None:
-    aspiration_delta = 50
+    aspiration_deltas = (50, 100, 200)
     print("Aspiration-window probe")
     print("Production engine behavior is unchanged; this benchmark only probes iterative root windows.")
-    print(f"Aspiration delta: ±{aspiration_delta} centipawn-equivalent")
+    print("Deltas are tested in centipawn-equivalent units.")
     print()
-    print("fixture,max_depth,full_nodes,aspiration_nodes,node_change_pct,full_score,aspiration_score,same_score,same_best_move,retries")
+    print("delta,fixture,max_depth,full_nodes,aspiration_nodes,node_change_pct,full_score,aspiration_score,same_score,same_best_move,retries")
 
-    for fixture in (
+    for aspiration_delta in aspiration_deltas:
+        for fixture in (
         _initial_fixture(),
         _capture_fixture(),
         _double_attack_fixture(),
         _endgame_fixture(),
     ):
-        full_engine = NegamaxEngine(SearchConfig(depth=fixture.max_depth, mobility_weight=2))
-        aspiration_engine = NegamaxEngine(SearchConfig(depth=fixture.max_depth, mobility_weight=2))
+            full_engine = NegamaxEngine(SearchConfig(depth=fixture.max_depth, mobility_weight=2))
+            aspiration_engine = NegamaxEngine(SearchConfig(depth=fixture.max_depth, mobility_weight=2))
 
-        full_score, full_move, full_nodes, _ = _run_iterative(
-            full_engine,
-            fixture.state,
-            fixture.max_depth,
-            aspiration_delta=None,
-        )
-        aspiration_score, aspiration_move, aspiration_nodes, retries = _run_iterative(
-            aspiration_engine,
-            fixture.state,
-            fixture.max_depth,
-            aspiration_delta=aspiration_delta,
-        )
-
-        if aspiration_score != full_score:
-            raise AssertionError(
-                f"aspiration window changed final score for {fixture.name}: "
-                f"full={full_score}, aspiration={aspiration_score}"
+            full_score, full_move, full_nodes, _ = _run_iterative(
+                full_engine,
+                fixture.state,
+                fixture.max_depth,
+                aspiration_delta=None,
             )
-        if full_move is None or aspiration_move is None:
-            raise AssertionError(f"missing best move for {fixture.name}")
-        if not fixture.state.is_legal(aspiration_move):
-            raise AssertionError(f"aspiration move is illegal for {fixture.name}")
+            aspiration_score, aspiration_move, aspiration_nodes, retries = _run_iterative(
+                aspiration_engine,
+                fixture.state,
+                fixture.max_depth,
+                aspiration_delta=aspiration_delta,
+            )
 
-        change_pct = 0.0
-        if full_nodes:
-            change_pct = 100.0 * (full_nodes - aspiration_nodes) / full_nodes
+            if aspiration_score != full_score:
+                raise AssertionError(
+                    f"aspiration window changed final score for {fixture.name}: "
+                    f"full={full_score}, aspiration={aspiration_score}"
+                )
+            if full_move is None or aspiration_move is None:
+                raise AssertionError(f"missing best move for {fixture.name}")
+            if not fixture.state.is_legal(aspiration_move):
+                raise AssertionError(f"aspiration move is illegal for {fixture.name}")
 
-        print(
-            f"{fixture.name},{fixture.max_depth},{full_nodes},{aspiration_nodes},"
-            f"{change_pct:.2f},{full_score},{aspiration_score},"
-            f"{aspiration_score == full_score},{aspiration_move == full_move},{retries}"
-        )
+            change_pct = 0.0
+            if full_nodes:
+                change_pct = 100.0 * (full_nodes - aspiration_nodes) / full_nodes
+
+            print(
+                f"{aspiration_delta},{fixture.name},{fixture.max_depth},{full_nodes},{aspiration_nodes},"
+                f"{change_pct:.2f},{full_score},{aspiration_score},"
+                f"{aspiration_score == full_score},{aspiration_move == full_move},{retries}"
+            )
 
 
 if __name__ == "__main__":
