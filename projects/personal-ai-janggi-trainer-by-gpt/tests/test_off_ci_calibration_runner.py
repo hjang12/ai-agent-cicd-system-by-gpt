@@ -32,23 +32,17 @@ class OffCiCalibrationRunnerTests(unittest.TestCase):
             "ai-level-strength-2-3-seed-20261002-classic.json",
         )
 
-    def test_existing_artifact_is_not_overwritten(self) -> None:
+    def test_existing_artifact_is_skipped_and_not_overwritten(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
-            tools_dir = project_root / "tools"
-            tools_dir.mkdir()
-            script_path = tools_dir / "run_ai_level_calibration.py"
-            script_path.write_text(MODULE_PATH.read_text(encoding="utf-8"), encoding="utf-8")
-
-            artifact_dir = project_root / "artifacts"
-            artifact_dir.mkdir()
-            artifact = artifact_dir / "ai-level-strength-2-3-seed-20261002-classic.json"
+            artifact = project_root / "ai-level-strength-2-3-seed-20261002-classic.json"
             original = {
                 "experiment": {
                     "pair": "2-3",
                     "seed": 20261002,
                     "setup": "classic",
-                }
+                },
+                "pairs": [],
             }
             artifact.write_text(
                 json.dumps(original, ensure_ascii=False),
@@ -56,17 +50,47 @@ class OffCiCalibrationRunnerTests(unittest.TestCase):
             )
 
             with patch.object(runner, "_run") as run:
-                # The repository root is derived from __file__, so exercise the
-                # skip rule directly through the identity function rather than
-                # spawning a full benchmark subprocess.
-                derived = runner._artifact_path(
-                    artifact_dir,
-                    "2-3",
-                    20261002,
-                    "classic",
+                runner._run_experiment(
+                    project_root=project_root,
+                    artifact=artifact,
+                    pair="2-3",
+                    seed=20261002,
+                    setup="classic",
+                    games=12,
+                    max_plies=96,
                 )
-                self.assertEqual(derived.read_text(encoding="utf-8"), artifact.read_text(encoding="utf-8"))
+                self.assertEqual(
+                    artifact.read_text(encoding="utf-8"),
+                    json.dumps(original, ensure_ascii=False),
+                )
                 run.assert_not_called()
+
+    def test_existing_artifact_identity_mismatch_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            artifact = Path(tmp) / "ai-level-strength-2-3-seed-20261002-classic.json"
+            artifact.write_text(
+                json.dumps(
+                    {
+                        "experiment": {
+                            "pair": "2-3",
+                            "seed": 20261003,
+                            "setup": "classic",
+                        }
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "identity mismatch"):
+                runner._run_experiment(
+                    project_root=Path(tmp),
+                    artifact=artifact,
+                    pair="2-3",
+                    seed=20261002,
+                    setup="classic",
+                    games=12,
+                    max_plies=96,
+                )
 
 
 if __name__ == "__main__":
