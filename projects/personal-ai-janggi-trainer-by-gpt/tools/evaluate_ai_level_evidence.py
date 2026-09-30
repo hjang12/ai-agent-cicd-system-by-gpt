@@ -124,6 +124,8 @@ def aggregate_evidence(
             "config_fingerprints": set(),
             "engine_versions": set(),
             "source_revisions": set(),
+            "config_context_presence": set(),
+            "engine_context_presence": set(),
         }
     )
 
@@ -176,6 +178,8 @@ def aggregate_evidence(
         lower_score = lower_wins + draws * 0.5
 
         bucket = pair_buckets[pair_id]
+        bucket["config_context_presence"].add(config_fingerprint is not None)
+        bucket["engine_context_presence"].add(engine_version is not None)
         bucket["experiments"] = int(bucket["experiments"]) + 1
         bucket["games"] = int(bucket["games"]) + len(pair["game_results"])
         bucket["completed"] = int(bucket["completed"]) + completed
@@ -225,6 +229,10 @@ def aggregate_evidence(
         engine_versions = sorted(bucket["engine_versions"])
         source_revisions = sorted(bucket["source_revisions"])
 
+        if bucket["config_context_presence"] == {False, True}:
+            raise ValueError(f"{pair_id}: mixed legacy and provenance-aware calibration artifacts")
+        if bucket["engine_context_presence"] == {False, True}:
+            raise ValueError(f"{pair_id}: mixed legacy and provenance-aware engine metadata")
         if len(config_fingerprints) > 1:
             raise ValueError(
                 f"{pair_id}: incompatible AI level configuration fingerprints: "
