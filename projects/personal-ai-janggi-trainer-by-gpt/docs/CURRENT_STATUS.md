@@ -187,6 +187,10 @@ The bounded double-attack detector is explicitly oriented from the original move
 
 Engine analysis now has a single normalization boundary. Best-move recommendations and principal variations are checked against `GameState` before coaching, browser presentation, or the trainer's engine-move response consumes them. A non-empty principal variation must also begin with the normalized best move; inconsistent variations are suppressed. A backend result that is not an `EngineAnalysis` object, or has an invalid analysis perspective, is degraded to an empty analysis for the current side to move; invalid numeric metadata is cleared individually. Malformed analysis is therefore degraded to safe unavailable move data rather than being surfaced as if it were authoritative.
 
+## Calibration operations boundary
+
+Long-running adjacent-level self-play calibration is treated as evidence generation rather than CI validation. GitHub Actions quota exhaustion does not block repository development or storage; remaining calibration runs are to be executed through the existing pair-scoped CLI outside Actions and then committed as versioned evidence. See `docs/CALIBRATION_OPERATIONS.md`.
+
 ## Actual level-strength calibration evidence
 
 - PR smoke calibration pipeline remains operational for bounded validation only.
