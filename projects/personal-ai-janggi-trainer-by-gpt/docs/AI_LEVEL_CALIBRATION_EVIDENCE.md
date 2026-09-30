@@ -40,9 +40,10 @@ New calibration artifacts record:
 
 - public AI-level configuration fingerprint for the calibrated pair;
 - engine version;
-- source revision when available.
+- source revision when available;
+- calibration protocol version.
 
-The evaluator rejects incompatible AI-level configuration fingerprints or engine versions within the same adjacent pair. It also rejects mixing legacy artifacts without provenance metadata with provenance-aware artifacts.
+The evaluator rejects incompatible AI-level configuration fingerprints, engine versions, or calibration protocol versions within the same adjacent pair. It also rejects mixing legacy artifacts without provenance metadata with provenance-aware artifacts, or mixing legacy artifacts with protocol-aware artifacts.
 
 Legacy 1-2 evidence remains valid as a historical evidence set because both artifacts share the same legacy schema. New calibration runs should use provenance-aware artifacts.
 
