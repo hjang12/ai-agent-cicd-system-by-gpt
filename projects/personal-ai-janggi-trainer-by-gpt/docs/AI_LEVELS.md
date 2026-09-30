@@ -85,3 +85,5 @@ A full six-level calibration is executed as five bounded adjacent-pair runs (`1-
 The 2026-09-29 experiment that attempted 4 games × 64 plies across all five pairs was cancelled by the 20-minute GitHub Actions timeout before producing an artifact. It is treated as an incomplete experiment, not as a strength result.
 
 Future calibration evidence should record the pair, seed, requested games, completed games, unfinished games, and repeated-run seed where applicable.
+
+Calibration runs use benchmark-only fixed-seed tie randomization by default. This does not change the public AI level configuration; it only varies equal-score move choices during self-play so repeated games are not forced to follow the same deterministic trajectory. The starting arrangement can also be selected explicitly (classic, left, right, or both) and is recorded in the evidence artifact.

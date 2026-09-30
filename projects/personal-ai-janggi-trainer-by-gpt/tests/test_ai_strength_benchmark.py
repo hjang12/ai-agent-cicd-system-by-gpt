@@ -31,12 +31,21 @@ class AiStrengthBenchmarkTests(unittest.TestCase):
 
     def test_level_calibration_accepts_only_known_adjacent_pairs(self):
         for pair in ("1-2", "2-3", "3-4", "4-5", "5-6"):
-            validate_benchmark_args(2, 48, pair)
+            validate_benchmark_args(2, 48, pair, "classic")
 
         for pair in ("1-3", "0-1", "6-7"):
             with self.assertRaises(ValueError):
-                validate_benchmark_args(2, 48, pair)
+                validate_benchmark_args(2, 48, pair, "classic")
+
+
+    def test_level_calibration_accepts_supported_starting_arrangements(self):
+        for setup in ("classic", "left", "right", "both"):
+            validate_benchmark_args(2, 48, "1-2", setup)
+
+        with self.assertRaises(ValueError):
+            validate_benchmark_args(2, 48, "1-2", "unknown")
 
 
 if __name__ == "__main__":
     unittest.main()
+
