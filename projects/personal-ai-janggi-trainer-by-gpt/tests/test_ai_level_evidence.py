@@ -41,8 +41,12 @@ def _write_fixture(path: Path, *, pair: str, seed: int, outcomes: list[int | Non
                 "lower_level": lower,
                 "higher_level": higher,
                 "game_results": games,
+                "games": len(outcomes),
                 "completed": sum(value is not None for value in outcomes),
                 "unfinished": sum(value is None for value in outcomes),
+                "lower_wins": sum(value == 1 for value in outcomes),
+                "higher_wins": sum(value == -1 for value in outcomes),
+                "draws": sum(value == 0 for value in outcomes),
             }
         ],
     }
