@@ -1,9 +1,9 @@
 {
-  "games": 10,
+  "games": 12,
   "max_plies": 96,
   "pair": "1-2",
-  "seed": 20260930,
+  "seed": 20261001,
   "setup": "classic",
   "purpose": "evidence-only adjacent level calibration",
-  "request_revision": 3
+  "request_revision": 4
 }
