@@ -1,3 +1,31 @@
+## 54. 2026-09-30 — Add resumable off-CI calibration runner
+
+### Finding
+
+Separating calibration from GitHub Actions is only useful if an interrupted multi-seed run can resume without losing experiment identity or evidence history.
+
+### Decision
+
+Add a repository-local runner that executes the existing pair-scoped benchmark CLI outside CI, reuses existing raw artifacts, and aggregates only the artifacts belonging to each requested adjacent pair.
+
+### Implementation
+
+- Added `tools/run_ai_level_calibration.py`.
+- Default operating point: 12 games, 96 plies, pair 2-3, two distinct seeds.
+- Existing artifacts are never overwritten; the runner skips them and records a manifest.
+- Pair-level aggregation continues to use `tools/evaluate_ai_level_evidence.py`.
+- No public AI level configuration is changed by the runner.
+
+### Boundary
+
+This is execution/reproducibility infrastructure. It does not constitute new playing-strength evidence until an actual off-CI run produces and preserves raw JSON artifacts.
+
+### Next Step
+
+Execute the 2-3 pair outside GitHub Actions, then review the resulting completion rate and evidence status before selecting the next adjacent pair.
+
+---
+
 ## 53. 2026-09-30 — Separate long-running calibration from GitHub Actions quota
 
 ### Finding
