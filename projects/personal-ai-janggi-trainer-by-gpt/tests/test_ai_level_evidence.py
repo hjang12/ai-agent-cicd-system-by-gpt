@@ -90,6 +90,15 @@ class AiLevelEvidenceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "configuration fingerprints"):
                 aggregate_evidence((first, second), min_completed=6, min_unique_seeds=2)
 
+    def test_aggregate_rejects_mixed_legacy_and_provenance_artifacts(self):
+        with tempfile.TemporaryDirectory() as temp:
+            legacy = Path(temp) / "legacy.json"
+            current = Path(temp) / "current.json"
+            _write_fixture(legacy, pair="1-2", seed=1, outcomes=[-1, -1, 0])
+            _write_fixture(current, pair="1-2", seed=2, outcomes=[-1, -1, 0], config_fingerprint="same", engine_version="7")
+            with self.assertRaisesRegex(ValueError, "mixed legacy"):
+                aggregate_evidence((legacy, current), min_completed=6, min_unique_seeds=2)
+
     def test_aggregate_reports_provenance_context(self):
         with tempfile.TemporaryDirectory() as temp:
             first = Path(temp) / "first.json"
