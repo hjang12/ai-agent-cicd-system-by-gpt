@@ -191,13 +191,14 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 - Smoke configuration: 2 games per adjacent pair, 4 plies per game.
 - Smoke result: 10 unfinished games, 0 completed games; no playing-strength ordering is inferred.
 - Full adjacent-level evidence still requires a larger games/plies configuration outside the bounded PR smoke.
+- The pair-scoped calibration harness now uses fixed-seed benchmark-only tie randomization by default and records the starting arrangement, seed, and tie policy in evidence artifacts. This increases repeatable self-play diversity without changing the public six-level search configurations.
 
 ## Known Next Targets
 
 1. Exercise the human-vs-AI turn loop against the live service and close any gameplay/UX defects before increasing engine strength.
 2. Calibrate the six public AI levels with deterministic search evidence and adjacent-level self-play before changing their search budgets.
 3. Upgrade baseline AI strength in measured stages, using the existing deterministic search benchmarks and keeping move legality as the authoritative boundary.
-3. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
-4. Use player skill-assessment evidence together with adaptive position-training selection and ephemeral session metrics, while keeping match rating separate from coaching statistics and preventing uncalibrated AI levels from producing numeric player ratings.
-5. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
-6. Keep training/evaluation interfaces stable while AI strategy evolves.
+4. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
+5. Use player skill-assessment evidence together with adaptive position-training selection and ephemeral session metrics, while keeping match rating separate from coaching statistics and preventing uncalibrated AI levels from producing numeric player ratings.
+6. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
+7. Keep training/evaluation interfaces stable while AI strategy evolves.
