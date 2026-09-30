@@ -5,12 +5,10 @@ on:
     branches: [main]
     paths:
       - 'projects/personal-ai-janggi-trainer-by-gpt/**'
-      - 'GOVERNANCE/**'
       - '.github/workflows/janggi-validation.yml'
   pull_request:
     paths:
       - 'projects/personal-ai-janggi-trainer-by-gpt/**'
-      - 'GOVERNANCE/**'
       - '.github/workflows/janggi-validation.yml'
 
 permissions:
