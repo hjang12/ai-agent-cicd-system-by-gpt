@@ -121,6 +121,9 @@ def aggregate_evidence(
             "lower_score": 0.0,
             "seeds": set(),
             "setups": set(),
+            "config_fingerprints": set(),
+            "engine_versions": set(),
+            "source_revisions": set(),
         }
     )
 
@@ -141,6 +144,16 @@ def aggregate_evidence(
         if not isinstance(setup, str) or not setup:
             raise ValueError(f"{path}: setup must be a non-empty string")
 
+        config_fingerprint = experiment.get("ai_level_config_fingerprint")
+        engine_version = experiment.get("engine_version")
+        source_revision = experiment.get("source_revision")
+        for field_name, value in (
+            ("ai_level_config_fingerprint", config_fingerprint),
+            ("engine_version", engine_version),
+            ("source_revision", source_revision),
+        ):
+            if value is not None and not isinstance(value, str):
+                raise ValueError(f"{path}: {field_name} must be a string when present")
         identity = (pair_id, seed, setup)
         if identity in seen_experiments:
             raise ValueError(
@@ -171,6 +184,18 @@ def aggregate_evidence(
         bucket["higher_wins"] = int(bucket["higher_wins"]) + higher_wins
         bucket["draws"] = int(bucket["draws"]) + draws
         bucket["lower_score"] = float(bucket["lower_score"]) + lower_score
+        if config_fingerprint is not None:
+            cast_fingerprints = bucket["config_fingerprints"]
+            assert isinstance(cast_fingerprints, set)
+            cast_fingerprints.add(config_fingerprint)
+        if engine_version is not None:
+            cast_engine_versions = bucket["engine_versions"]
+            assert isinstance(cast_engine_versions, set)
+            cast_engine_versions.add(engine_version)
+        if source_revision is not None:
+            cast_revisions = bucket["source_revisions"]
+            assert isinstance(cast_revisions, set)
+            cast_revisions.add(source_revision)
         cast_seeds = bucket["seeds"]
         cast_setups = bucket["setups"]
         assert isinstance(cast_seeds, set)
@@ -196,6 +221,19 @@ def aggregate_evidence(
         unfinished_rate = unfinished / games if games else 1.0
         decisive = lower_wins + higher_wins
         seeds = sorted(bucket["seeds"])
+        config_fingerprints = sorted(bucket["config_fingerprints"])
+        engine_versions = sorted(bucket["engine_versions"])
+        source_revisions = sorted(bucket["source_revisions"])
+
+        if len(config_fingerprints) > 1:
+            raise ValueError(
+                f"{pair_id}: incompatible AI level configuration fingerprints: "
+                f"{config_fingerprints}"
+            )
+        if len(engine_versions) > 1:
+            raise ValueError(
+                f"{pair_id}: incompatible engine versions: {engine_versions}"
+            )
         setups = sorted(bucket["setups"])
 
         sufficient = (
@@ -231,6 +269,9 @@ def aggregate_evidence(
                 "higher_score_pct": (100.0 * higher_score / completed) if completed else None,
                 "seeds": seeds,
                 "setups": setups,
+                "ai_level_config_fingerprints": config_fingerprints,
+                "engine_versions": engine_versions,
+                "source_revisions": source_revisions,
             }
         )
 
