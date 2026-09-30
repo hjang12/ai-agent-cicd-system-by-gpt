@@ -189,6 +189,8 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 
 ## Calibration operations boundary
 
+- Resumable off-CI calibration runner: `tools/run_ai_level_calibration.py`, preserving raw artifacts and pair-level aggregate reports across interrupted runs.
+
 Long-running adjacent-level self-play calibration is treated as evidence generation rather than CI validation. GitHub Actions quota exhaustion does not block repository development or storage; remaining calibration runs are to be executed through the existing pair-scoped CLI outside Actions and then committed as versioned evidence. See `docs/CALIBRATION_OPERATIONS.md`.
 
 ## Actual level-strength calibration evidence
