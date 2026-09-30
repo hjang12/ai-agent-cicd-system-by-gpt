@@ -2,7 +2,7 @@
 
 ## Governance
 
-- Governance Version: `1.3.1`
+- Governance Version: `1.3.2`
 - Status: Active baseline on `main`
 - Current canonical workspace repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Default / working branch: `main`
@@ -61,6 +61,16 @@ Canonical continuity records:
 - DEVELOPMENT_HISTORY.md
 - ADR / Requirement Contract / evidence records
 - GitHub Commit / PR / CI state
+
+## Development Execution Paths
+
+The workspace separates short validation from long-running computation.
+
+- Fast CI is the default path for bounded, repeatable Build / Test / Regression / structural validation.
+- Long-running work such as Janggi AI level calibration, large benchmarks, self-play, and training/data generation uses a separate execution path when CI runtime/quota is not appropriate.
+- Long-running execution results are recorded as Evidence / Checkpoint / Context with execution conditions and version metadata.
+- A prepared runner or workflow is not treated as executed computation until actual results are produced.
+- Continuation across Chat changes is Repository-based; a long manual Continuation Prompt is not required for normal recovery.
 
 ## Active Issues
 
