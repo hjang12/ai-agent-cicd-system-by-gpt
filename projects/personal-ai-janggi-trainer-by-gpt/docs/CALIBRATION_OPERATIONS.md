@@ -1,0 +1,74 @@
+# Calibration Operations
+
+## Purpose
+
+Long-running adjacent AI-level self-play calibration is an evidence-generation workload, not a CI correctness gate.
+
+GitHub Actions remains the path for fast deterministic validation and ordinary pull-request checks. Calibration compute must be executable without consuming the CI quota.
+
+## Current boundary
+
+- GitHub Actions quota is currently exhausted.
+- Do not launch additional long-running calibration workflows through Actions while the quota is exhausted.
+- Existing valid evidence remains authoritative as recorded in `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md`.
+- The 1-2 pair is evidence-sufficient: 21/22 games completed, 4.545% unfinished, 2 seeds.
+- Pairs 2-3, 3-4, 4-5, and 5-6 remain uncalibrated.
+
+## Local/off-CI execution
+
+The existing benchmark CLI can run the same adjacent-pair experiment outside GitHub Actions:
+
+```bash
+cd projects/personal-ai-janggi-trainer-by-gpt
+
+python tools/benchmark_ai_levels.py \
+  --tournament-games 12 \
+  --max-plies 96 \
+  --pair 2-3 \
+  --seed 20261002 \
+  --setup classic \
+  --skip-search-benchmark \
+  --output artifacts/ai-level-strength-2-3-seed-20261002.json
+```
+
+Use a second distinct seed for the same pair, then aggregate both artifacts:
+
+```bash
+python tools/evaluate_ai_level_evidence.py \
+  artifacts/ai-level-strength-2-3-seed-20261002.json \
+  artifacts/ai-level-strength-2-3-seed-20261003.json
+```
+
+The same pattern applies to 3-4, 4-5, and 5-6.
+
+## Review rule
+
+An adjacent pair is evidence-sufficient only when all default evidence-review thresholds are met:
+
+- at least 20 completed games;
+- unfinished rate at or below 25%;
+- at least 2 distinct seeds.
+
+An unfinished game is retained as experiment evidence but does not contribute to a completed-game strength score.
+
+The evaluator's result is descriptive evidence only. It does not authorize changing public AI-level search budgets or difficulty behavior.
+
+## Artifact handling
+
+For every off-CI run, preserve:
+
+1. the raw calibration JSON artifact;
+2. its experiment identity (pair + seed + setup);
+3. the aggregation output used for review;
+4. the resulting status in `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md`;
+5. a checkpoint/history entry describing the run and decision boundary.
+
+Do not rewrite or discard previously collected evidence. New runs must remain independently identifiable.
+
+## Separation principle
+
+The project should continue to treat:
+
+`fast CI validation` != `long-running strength calibration`
+
+This separation prevents experimental workload from consuming the quota required for normal regression checks and keeps calibration results reproducible and reviewable as versioned evidence.
