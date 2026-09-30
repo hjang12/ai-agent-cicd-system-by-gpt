@@ -1,3 +1,27 @@
+## 55. 2026-09-30 — Add calibration evidence provenance compatibility
+
+### Finding
+
+Calibration evidence must remain comparable not only by pair/seed/setup but also by the exact public level/search configuration and calibration protocol used to generate it. Otherwise a later AI-level change or benchmark-method change could be silently aggregated with older results.
+
+### Decision
+
+- Record a stable public AI-level configuration fingerprint for every new calibration artifact.
+- Record Engine version, source revision when available, and calibration protocol version.
+- Reject incompatible fingerprints, Engine versions, and protocol versions during pair-level aggregation.
+- Reject mixing legacy artifacts without provenance with provenance-aware artifacts.
+- Keep the existing 1-2 legacy evidence set valid as a historical set; future calibration runs use the provenance-aware format.
+
+### Boundary
+
+This change strengthens evidence integrity only. It does not change public AI levels, search budgets, Janggi rules, or product behavior.
+
+### Next Step
+
+Use provenance-aware artifacts for 2-3 through 5-6 calibration and require a fresh evidence set whenever public search profiles or calibration protocol semantics materially change.
+
+---
+
 ## 54. 2026-09-30 — Add resumable off-CI calibration runner
 
 ### Finding
