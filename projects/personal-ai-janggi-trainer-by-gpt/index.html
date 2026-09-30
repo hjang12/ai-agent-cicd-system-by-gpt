@@ -1100,7 +1100,6 @@
           ? humanMessage
           : '내 수 완료 · AI가 생각하는 중';
         status.textContent = 'AI가 수를 계산하는 중입니다…';
-        showBoardMessage('AI 생각 중…', 'AI가 다음 수를 계산하고 있습니다.', {thinking:true, durationMs:0});
         await new Promise(resolve => requestAnimationFrame(resolve));
         const engineResult = await post('/api/engine/move', {});
         const aiBeforeSnapshot = snapshot;
