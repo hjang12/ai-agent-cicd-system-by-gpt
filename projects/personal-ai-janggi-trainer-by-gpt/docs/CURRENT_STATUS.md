@@ -192,6 +192,7 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 - Smoke result: 10 unfinished games, 0 completed games; no playing-strength ordering is inferred.
 - Full adjacent-level evidence still requires a larger games/plies configuration outside the bounded PR smoke.
 - The pair-scoped calibration harness now uses fixed-seed benchmark-only tie randomization by default and records the starting arrangement, seed, and tie policy in evidence artifacts. This increases repeatable self-play diversity without changing the public six-level search configurations.
+- Calibration artifacts now retain per-game terminal status/outcome/ply evidence, and `tools/evaluate_ai_level_evidence.py` aggregates multiple seeded runs while rejecting duplicate experiment identities and inconsistent summaries. Default evidence-review thresholds are 20 completed games/pair, <=25% unfinished, and at least 2 seeds; these are review defaults, not automatic level-promotion rules.
 
 ## Known Next Targets
 
