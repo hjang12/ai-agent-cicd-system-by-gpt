@@ -92,8 +92,6 @@ def ai_level_payload() -> list[dict[str, object]]:
     return [
         {
             "level": spec.level.value,
-            "name": spec.name,
-            "description": spec.description,
             "depth": spec.config.depth,
             "mobility_weight": spec.config.mobility_weight,
             "quiescence_depth": spec.config.quiescence_depth,
