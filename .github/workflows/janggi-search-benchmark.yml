@@ -7,7 +7,6 @@ on:
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/core.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_search_ordering.py'
-      - 'GOVERNANCE/**'
       - '.github/workflows/janggi-search-benchmark.yml'
   pull_request:
     paths:
@@ -15,7 +14,6 @@ on:
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/core.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_search_ordering.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_versions.py'
-      - 'GOVERNANCE/**'
       - '.github/workflows/janggi-search-benchmark.yml'
 
 concurrency:
