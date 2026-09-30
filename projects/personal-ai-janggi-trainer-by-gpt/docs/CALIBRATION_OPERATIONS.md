@@ -72,3 +72,26 @@ Do not rewrite or discard previously collected evidence. New runs must remain in
 `fast CI validation` != `long-running strength calibration`
 
 This separation prevents experimental workload from consuming the quota required for normal regression checks and keeps calibration results reproducible and reviewable as versioned evidence.
+
+
+## Resumable runner
+
+Use `tools/run_ai_level_calibration.py` when several experiments must be executed outside CI:
+
+```bash
+python tools/run_ai_level_calibration.py \
+  --pair 2-3 \
+  --seed 20261002,20261003 \
+  --games 12 \
+  --max-plies 96
+```
+
+The runner:
+
+- skips an existing raw artifact by default, so interrupted work can resume;
+- keeps each experiment uniquely identified by pair, seed, and setup;
+- aggregates each requested pair after the raw runs;
+- writes a `manifest.json` describing the execution set and any failures;
+- never changes public AI level configuration.
+
+Use `--force` only when an existing experiment is intentionally being repeated with the same identity.
