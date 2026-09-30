@@ -73,13 +73,14 @@ jobs:
           python-version: '3.12'
       - name: Run adjacent-level benchmark
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ -f .github/calibration/level-request.json ]; then
-            REQUEST=$(python -c 'import json; print(json.dumps(json.load(open(".github/calibration/level-request.json"))))')
-            GAMES=$(python -c 'import json; print(json.load(open(".github/calibration/level-request.json"))["games"])')
-            MAX_PLIES=$(python -c 'import json; print(json.load(open(".github/calibration/level-request.json"))["max_plies"])')
-            PAIR=$(python -c 'import json; print(json.load(open(".github/calibration/level-request.json"))["pair"])')
-            SEED=$(python -c 'import json; print(json.load(open(".github/calibration/level-request.json"))["seed"])')
-            SETUP=$(python -c 'import json; print(json.load(open(".github/calibration/level-request.json"))["setup"])')
+          REQUEST_FILE="${GITHUB_WORKSPACE}/.github/calibration/level-request.json"
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ -f "$REQUEST_FILE" ]; then
+            REQUEST=$(python -c 'import json,sys; print(json.dumps(json.load(open(sys.argv[1]))))' "$REQUEST_FILE")
+            GAMES=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["games"])' "$REQUEST_FILE")
+            MAX_PLIES=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["max_plies"])' "$REQUEST_FILE")
+            PAIR=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["pair"])' "$REQUEST_FILE")
+            SEED=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["seed"])' "$REQUEST_FILE")
+            SETUP=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["setup"])' "$REQUEST_FILE")
             RUN_SEARCH=false
             OUTPUT="ai-level-strength-${PAIR}-seed-${SEED}.json"
             echo "Calibration request: $REQUEST"
