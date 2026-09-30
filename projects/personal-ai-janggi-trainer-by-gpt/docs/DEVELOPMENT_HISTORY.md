@@ -1,3 +1,57 @@
+## 54. 2026-09-30 — Add resumable off-CI calibration runner
+
+### Finding
+
+Separating calibration from GitHub Actions is only useful if an interrupted multi-seed run can resume without losing experiment identity or evidence history.
+
+### Decision
+
+Add a repository-local runner that executes the existing pair-scoped benchmark CLI outside CI, reuses existing raw artifacts, and aggregates only the artifacts belonging to each requested adjacent pair.
+
+### Implementation
+
+- Added `tools/run_ai_level_calibration.py`.
+- Default operating point: 12 games, 96 plies, pair 2-3, two distinct seeds.
+- Existing artifacts are never overwritten; the runner skips them and records a manifest.
+- Pair-level aggregation continues to use `tools/evaluate_ai_level_evidence.py`.
+- No public AI level configuration is changed by the runner.
+
+### Boundary
+
+This is execution/reproducibility infrastructure. It does not constitute new playing-strength evidence until an actual off-CI run produces and preserves raw JSON artifacts.
+
+### Next Step
+
+Execute the 2-3 pair outside GitHub Actions, then review the resulting completion rate and evidence status before selecting the next adjacent pair.
+
+---
+
+## 53. 2026-09-30 — Separate long-running calibration from GitHub Actions quota
+
+### Finding
+
+The 1-2 adjacent-level calibration evidence is sufficient, but GitHub Actions quota is exhausted before the remaining adjacent pairs can be measured.
+
+### Decision
+
+Keep GitHub Actions focused on fast correctness/regression validation and move long-running self-play calibration outside Actions. The existing pair-scoped benchmark CLI and evidence aggregator remain the execution/review boundary.
+
+### Implementation
+
+- Added `docs/CALIBRATION_OPERATIONS.md` with the off-CI execution contract and example commands.
+- Updated the Task checkpoint so the remaining 2-3, 3-4, 4-5, and 5-6 calibration work no longer depends on an Actions-minute reset.
+- Preserved the rule that calibration evidence is descriptive and does not directly authorize public level/search-budget changes.
+
+### Boundary
+
+No engine rules, search configuration, UI/API behavior, or public AI-level budgets were changed. This is an operations/documentation change only.
+
+### Next Step
+
+Run 2-3 with a bounded 96-ply operating point and a distinct seed outside Actions, preserve the JSON artifact, aggregate it, and continue through the remaining adjacent pairs.
+
+---
+
 ## 52. 2026-09-30 — Collect completed 1-2 adjacent-level calibration evidence
 
 ### Finding
