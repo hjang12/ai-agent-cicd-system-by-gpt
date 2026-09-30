@@ -11,6 +11,7 @@ from time import perf_counter
 from janggi import AI_LEVELS, GameState, HeadToHeadTournament, Move, NegamaxEngine, Piece, PieceType, Side, ai_level_configuration_fingerprint
 from janggi.match import GameStatus
 
+CALIBRATION_PROTOCOL_VERSION = 1
 
 @dataclass(frozen=True)
 class Fixture:
@@ -309,6 +310,7 @@ def main() -> None:
                 "search_benchmark_included": not args.skip_search_benchmark,
                 "engine_version": NegamaxEngine().info.version,
                 "source_revision": _source_revision(),
+                "calibration_protocol_version": CALIBRATION_PROTOCOL_VERSION,
                 "ai_level_config_fingerprint": (
                     ai_level_configuration_fingerprint(*pair_specs)
                     if pair_specs is not None
