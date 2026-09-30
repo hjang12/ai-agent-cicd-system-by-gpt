@@ -1,3 +1,45 @@
+## 52. 2026-09-30 — Collect completed 1-2 adjacent-level calibration evidence
+
+### Finding
+
+The calibration workflow was operational but the new PR-triggered request path initially fell back to the bounded smoke configuration because the workflow job runs from the project directory while the request file lives at repository root. After hardening the runner path, the requested evidence run executed with the intended games/plies settings.
+
+The first 1-2 experiment at 48 plies demonstrated that the cap was too small for evidence collection: 1 of 10 games completed and 9 remained unfinished.
+
+### Decision
+
+- Merge the isolated calibration-request execution path (PR #76) and workspace-root request-file resolution fix (PR #78).
+- Use 96 plies for the 1-2 evidence run after the 48-ply completion-rate observation.
+- Collect a second seeded experiment before interpreting the pair-level result.
+- Keep benchmark random tie-breaking and calibration outputs evidence-only; do not alter public level configurations from the results.
+
+### Evidence
+
+| Pair | Seed | Games | Max plies | Completed | Unfinished | Lower score | Higher score |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1-2 | 20260930 | 10 | 96 | 9 | 1 | 4.0 | 5.0 |
+| 1-2 | 20261001 | 12 | 96 | 12 | 0 | 5.5 | 6.5 |
+| **1-2 aggregate** | **2 seeds** | **22** | **96** | **21** | **1** | **9.5** | **11.5** |
+
+Aggregate unfinished rate is 4.545%. The evidence review thresholds are satisfied: at least 20 completed games, unfinished rate at or below 25%, and at least 2 seeds. The descriptive aggregate score favors the higher-numbered level (11.5 vs 9.5), but this does not authorize public level promotion or search-budget changes.
+
+### Verification
+
+- PR #76 merged successfully.
+- PR #78 merged successfully after Workspace validation and calibration workflow validation.
+- PR #77 was used only to trigger/collect calibration artifacts and was closed without merge.
+- Two calibration workflow runs completed successfully: run 44 (seed 20260930) and run 45 (seed 20261001).
+
+### Boundary
+
+No Janggi rules, engine API, browser/UI behavior, public AI level search budget, or production evaluation semantics were changed by the calibration evidence collection.
+
+### Next Step
+
+Proceed to adjacent pair 2-3 with the same evidence-review discipline; choose the games/seed count and ply cap based on measured runtime and completion behavior.
+
+---
+
 ## 51. 2026-09-30 — Restore missing Janggi board feedback and formalize UX-002
 
 ### Finding
