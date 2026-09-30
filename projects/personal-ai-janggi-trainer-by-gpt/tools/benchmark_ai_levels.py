@@ -59,7 +59,7 @@ def _move_label(move: Move | None) -> str:
     return f"{move.src}->{move.dst}"
 
 
-def run_search_benchmark() -> None:
+def run_search_benchmark() -> list[dict[str, object]]:
     fixtures = (_initial_fixture(), _capture_fixture(), _check_fixture(), _endgame_fixture())
 
     print("AI level search benchmark")
@@ -67,17 +67,30 @@ def run_search_benchmark() -> None:
     print()
     print("level,name,fixture,depth,nodes,score_cp,best_move,elapsed_ms")
 
+    rows: list[dict[str, object]] = []
     for spec in AI_LEVELS:
         engine = NegamaxEngine(spec.config)
         for fixture in fixtures:
             started = perf_counter()
             analysis = engine.analyze(fixture.state)
             elapsed_ms = (perf_counter() - started) * 1000.0
+            row = {
+                "level": spec.level.value,
+                "name": spec.name,
+                "fixture": fixture.name,
+                "depth": analysis.depth,
+                "nodes": analysis.nodes,
+                "score_cp": analysis.score_cp,
+                "best_move": _move_label(analysis.best_move),
+                "elapsed_ms": round(elapsed_ms, 2),
+            }
+            rows.append(row)
             print(
                 f"{spec.level.value},{spec.name},{fixture.name},"
                 f"{analysis.depth},{analysis.nodes},{analysis.score_cp},"
                 f"{_move_label(analysis.best_move)},{elapsed_ms:.2f}"
             )
+    return rows
 
 
 def run_adjacent_tournaments(
@@ -237,8 +250,7 @@ def main() -> None:
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
 
-    if not args.skip_search_benchmark:
-        run_search_benchmark()
+    search_rows = run_search_benchmark() if not args.skip_search_benchmark else []
     tournament_rows = (
         run_adjacent_tournaments(
             args.tournament_games,
@@ -266,8 +278,10 @@ def main() -> None:
                 "seeded_experiment": True,
                 "runtime_reproducibility": "wall_clock_sensitive_for_time_bounded_levels",
                 "benchmark_only_random_ties": True,
+                "search_benchmark_included": not args.skip_search_benchmark,
             },
             "pairs": tournament_rows,
+            "search_fixtures": search_rows,
         }
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(
