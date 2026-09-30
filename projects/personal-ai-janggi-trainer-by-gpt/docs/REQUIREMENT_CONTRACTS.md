@@ -37,6 +37,24 @@
 
 이 동작을 없애거나 다시 "AI 응답까지 한 번에 보이는 방식"으로 바꾸는 것은 단순 리팩터링이 아니라 Contract 변경이다. 새로운 요구사항 때문에 변경이 필요하면 현재 Contract와 충돌한다고 사용자에게 보고하고, 사용자 결정 이후 변경한다.
 
+### UX-002 — Selected piece and AI thinking state are visibly indicated
+
+**Requirement**
+
+사용자가 합법적인 기물을 선택하면 선택된 칸이 명확한 시각적 표시를 가져야 하고 이동 가능한 칸도 구분되어야 합니다. 사용자의 수가 제출된 뒤에는 AI 응수가 끝나거나 오류 상태가 복구될 때까지 장기판 위에 명확한 **AI 생각 중** 오버레이가 표시되어야 합니다.
+
+**Protection**
+
+- Selected cell styling: `.cell.selected`
+- Legal destination styling: `.cell.legal`
+- Pending move state: `pendingPlayerMove`
+- Board thinking overlay: `.board-message` / `.board-message.thinking`
+- Regression tests remain in `tests/test_app.py`
+
+**Change rule**
+
+이 피드백을 제거하거나 AI 계산 중 상태를 숨기는 것은 단순 리팩터링이 아니라 Contract 변경입니다. 새로운 요구사항 때문에 변경이 필요하면 현재 Contract와 충돌한다고 사용자에게 보고하고, 사용자 결정 이후 변경합니다.
+
 ### AI-001 — Six public AI levels remain selectable with distinct search profiles
 
 **Requirement**

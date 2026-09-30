@@ -1,3 +1,36 @@
+## 51. 2026-09-30 — Restore missing Janggi board feedback and formalize UX-002
+
+### Finding
+
+Live gameplay reproduced two user-visible failures: selecting a legal piece did not reliably show selection feedback, and after the first move the UI could remain in an apparent AI-thinking state without completing the normal browser turn flow.
+
+Repository review found the immediate front-end defect: JavaScript referenced `#game-message` and `#heading`, but those DOM nodes were absent from `index.html`. The resulting null-reference exception could interrupt the click/response flow before the AI request was reached or before board feedback could be rendered.
+
+The board-thinking overlay implementation itself already existed, but it was not protected by a requirement contract, and the missing DOM dependencies made it unreliable in the deployed UI.
+
+### Decision
+
+- Restore the missing `#game-message` and `#heading` nodes.
+- Strengthen the selected-piece visual marker so the chosen piece and legal destinations are clearly distinguishable.
+- Formalize `UX-002` for selected-piece feedback and the persistent AI-thinking board overlay.
+- Add regression tests that verify the required DOM nodes, visual selectors, and interaction code remain present.
+
+### Boundary
+
+No Janggi rules, AI search configuration, public AI level budgets, or engine/evaluation semantics are changed.
+
+### Verification
+
+- Current Render service is live on commit `ca10d1a95c40312e0083bc37f7cf5991605bb4d4`.
+- Live log retrieval was attempted but Render's log backend returned a temporary 503/502 error, so the exact runtime exception was not directly extracted from service logs.
+- Static source inspection identifies the missing DOM references and matches the reported symptom sequence.
+
+### Next Step
+
+Deploy the fix, then re-test: (1) select a piece and verify the selection marker/legal destinations, (2) make a move and verify the board shows **AI 생각 중…** until the AI response completes, and (3) confirm normal turn handoff.
+
+---
+
 ## 50. 2026-09-30 — Separate deterministic search work from routine calibration
 
 ### Finding

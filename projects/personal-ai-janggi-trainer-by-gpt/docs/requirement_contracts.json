@@ -26,6 +26,29 @@
       "change_policy": "INTENTIONAL_CHANGE_REQUIRES_REPORT"
     },
     {
+      "id": "UX-002",
+      "status": "ACTIVE",
+      "title": "Selected piece and AI thinking state are visibly indicated",
+      "requirement": "When the learner selects a legal piece, the selected cell must have a clear visual marker and legal destination cells must be distinguishable. After the learner's move is submitted, the board must show an explicit AI-thinking overlay until the AI response completes or an error state is recovered.",
+      "source": "User-requested gameplay feedback requirement, reconfirmed after live verification on 2026-09-30.",
+      "protected_paths": [
+        "index.html",
+        "tests/test_app.py",
+        "docs/DEVELOPMENT_HISTORY.md"
+      ],
+      "regression_tests": [
+        {
+          "file": "tests/test_app.py",
+          "symbol": "test_browser_selected_piece_has_explicit_visual_feedback"
+        },
+        {
+          "file": "tests/test_app.py",
+          "symbol": "test_browser_ai_thinking_overlay_contract_is_backed_by_real_dom_nodes"
+        }
+      ],
+      "change_policy": "INTENTIONAL_CHANGE_REQUIRES_REPORT"
+    },
+    {
       "id": "AI-001",
       "status": "ACTIVE",
       "title": "Six public AI levels remain selectable with distinct search profiles",
