@@ -1,3 +1,38 @@
+## 49. 2026-09-30 — Harden AI calibration evidence and CI cost boundaries
+
+### Finding
+
+Governance-only changes could previously trigger unrelated project workflows because several project workflows included `GOVERNANCE/**` in their path filters. Separately, the six-level calibration harness needed stronger evidence provenance before full adjacent-level runs could be interpreted.
+
+### Decision
+
+Split CI responsibility so Workspace validation handles Governance-only changes while project workflows run from project-relevant paths. Harden level calibration evidence so each experiment records its seed/setup and every game's terminal status, outcome, and ply count. Add an evidence aggregation tool that rejects duplicate experiment identities and summary/game mismatches before producing descriptive pair-level evidence.
+
+The calibration controls are intentionally benchmark-only:
+
+- public AI level search profiles are unchanged;
+- benchmark tie randomization is seeded but not assumed bit-for-bit reproducible for wall-clock-limited Level 6;
+- incomplete games remain excluded from playing-strength calculations;
+- evidence thresholds are review defaults, not automatic public-level promotion rules.
+
+### Implementation
+
+- PR #65: remove Governance-only triggers from project workflows.
+- PR #66: add seeded tie-diversity and setup controls for adjacent-level calibration.
+- PR #68: expose calibration seed/setup as manual workflow inputs.
+- PR #69: preserve per-game calibration evidence and document Level 6 wall-clock sensitivity.
+- PR #70: add `tools/evaluate_ai_level_evidence.py`, evidence tests, and `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md`.
+
+### Verification Boundary
+
+No public AI level budget, evaluator, UI/API, or gameplay behavior was changed. Current six-level playing-strength ordering remains unconfirmed.
+
+### Next Step
+
+After Actions minutes reset, collect completed games for each adjacent pair across at least two seeded experiments, aggregate the artifacts, and only then decide whether any level profile actually requires tuning.
+
+---
+
 ## 48. 2026-09-29 — Synchronize calibration and TT documentation
 
 ### Finding
