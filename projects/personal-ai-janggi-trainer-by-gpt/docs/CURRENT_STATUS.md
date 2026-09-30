@@ -189,17 +189,20 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 
 ## Actual level-strength calibration evidence
 
-- PR smoke calibration pipeline is operational.
-- Smoke configuration: 2 games per adjacent pair, 4 plies per game.
-- Smoke result: 10 unfinished games, 0 completed games; no playing-strength ordering is inferred.
-- Full adjacent-level evidence still requires a larger games/plies configuration outside the bounded PR smoke.
-- The pair-scoped calibration harness now uses fixed-seed benchmark-only tie randomization by default and records the starting arrangement, seed, and tie policy in evidence artifacts. This increases repeatable self-play diversity without changing the public six-level search configurations.
-- Calibration artifacts now retain per-game terminal status/outcome/ply evidence, and `tools/evaluate_ai_level_evidence.py` aggregates multiple seeded runs while rejecting duplicate experiment identities and inconsistent summaries. Default evidence-review thresholds are 20 completed games/pair, <=25% unfinished, and at least 2 seeds; these are review defaults, not automatic level-promotion rules.
+- PR smoke calibration pipeline remains operational for bounded validation only.
+- Smoke configuration remains: 2 games per adjacent pair, 4 plies per game; its 0/10 completed result is not playing-strength evidence.
+- The calibration request runner now supports repository-root request files through `GITHUB_WORKSPACE`; PR #76 added the request path and PR #78 corrected the working-directory path resolution.
+- First 1-2 evidence run at 48 plies was insufficient (1/10 completed, 9 unfinished), so the evidence run was raised to 96 plies.
+- 1-2 seed 20260930 at 96 plies: 9/10 completed, 1 unfinished, score 4.0 vs 5.0.
+- 1-2 seed 20261001 at 96 plies: 12/12 completed, score 5.5 vs 6.5.
+- 1-2 aggregate: 21/22 completed, 1 unfinished, 4.545% unfinished, 2 seeds; the evidence thresholds are satisfied and the higher-numbered level scored higher descriptively (11.5 vs 9.5).
+- These results do not authorize public level promotion, search-budget changes, or a six-level ordering conclusion. Adjacent pairs 2-3 through 5-6 remain uncalibrated.
+- Calibration artifacts retain per-game terminal status/outcome/ply evidence, and `tools/evaluate_ai_level_evidence.py` remains the review gate. Default review thresholds are 20 completed games/pair, <=25% unfinished, and at least 2 seeds.
 
 ## Known Next Targets
 
 1. Exercise the human-vs-AI turn loop against the live service and close any gameplay/UX defects before increasing engine strength.
-2. Calibrate the six public AI levels with deterministic search evidence and adjacent-level self-play before changing their search budgets.
+2. Calibrate adjacent pairs 2-3, 3-4, 4-5, and 5-6 with sufficient seeded completed-game evidence before changing public AI level search budgets.
 3. Upgrade baseline AI strength in measured stages, using the existing deterministic search benchmarks and keeping move legality as the authoritative boundary.
 4. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
 5. Use player skill-assessment evidence together with adaptive position-training selection and ephemeral session metrics, while keeping match rating separate from coaching statistics and preventing uncalibrated AI levels from producing numeric player ratings.
