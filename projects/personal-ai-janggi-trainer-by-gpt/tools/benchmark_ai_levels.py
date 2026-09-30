@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import subprocess
 from dataclasses import dataclass, replace
 from pathlib import Path
 from time import perf_counter
 
-from janggi import AI_LEVELS, GameState, HeadToHeadTournament, Move, NegamaxEngine, Piece, PieceType, Side
+from janggi import AI_LEVELS, GameState, HeadToHeadTournament, Move, NegamaxEngine, Piece, PieceType, Side, ai_level_configuration_fingerprint
 from janggi.match import GameStatus
 
 
@@ -50,6 +52,31 @@ def _endgame_fixture() -> Fixture:
     board[3 + 9 * 9] = Piece(Side.HAN, PieceType.GUARD)
     return Fixture("endgame", GameState(tuple(board), turn=Side.CHO))
 
+
+
+
+def _source_revision() -> str | None:
+    revision = os.environ.get("GITHUB_SHA")
+    if revision:
+        return revision
+
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    revision = result.stdout.strip()
+    return revision or None
+
+
+def _pair_specs(pair: str | None):
+    if pair is None:
+        return None
+    lower_id, higher_id = pair.split("-")
+    lower = next(spec for spec in AI_LEVELS if spec.level.value == lower_id)
+    higher = next(spec for spec in AI_LEVELS if spec.level.value == higher_id)
+    return lower, higher
 
 def _move_label(move: Move | None) -> str:
     if move is None:
@@ -264,6 +291,7 @@ def main() -> None:
         else []
     )
     if args.output is not None:
+        pair_specs = _pair_specs(args.pair)
         payload = {
             "experiment": {
                 "name": "adjacent AI level strength benchmark",
@@ -279,6 +307,13 @@ def main() -> None:
                 "runtime_reproducibility": "wall_clock_sensitive_for_time_bounded_levels",
                 "benchmark_only_random_ties": True,
                 "search_benchmark_included": not args.skip_search_benchmark,
+                "engine_version": NegamaxEngine().info.version,
+                "source_revision": _source_revision(),
+                "ai_level_config_fingerprint": (
+                    ai_level_configuration_fingerprint(*pair_specs)
+                    if pair_specs is not None
+                    else None
+                ),
             },
             "pairs": tournament_rows,
             "search_fixtures": search_rows,
