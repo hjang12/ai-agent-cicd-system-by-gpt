@@ -54,6 +54,16 @@ def _validate_game_results(path: Path, pair: dict[str, object]) -> tuple[int, in
 
     expected_completed = pair.get("completed")
     expected_unfinished = pair.get("unfinished")
+    expected_games = pair.get("games")
+    expected_lower_wins = pair.get("lower_wins")
+    expected_higher_wins = pair.get("higher_wins")
+    expected_draws = pair.get("draws")
+
+    if expected_games != len(results):
+        raise ValueError(
+            f"{path}: pair {_pair_id(pair)} games mismatch: "
+            f"summary={expected_games}, games={len(results)}"
+        )
     if expected_completed != completed:
         raise ValueError(
             f"{path}: pair {_pair_id(pair)} completed mismatch: "
@@ -63,6 +73,22 @@ def _validate_game_results(path: Path, pair: dict[str, object]) -> tuple[int, in
         raise ValueError(
             f"{path}: pair {_pair_id(pair)} unfinished mismatch: "
             f"summary={expected_unfinished}, games={unfinished}"
+        )
+    if expected_lower_wins != lower_wins:
+        raise ValueError(
+            f"{path}: pair {_pair_id(pair)} lower_wins mismatch: "
+            f"summary={expected_lower_wins}, games={lower_wins}"
+        )
+    if expected_higher_wins != higher_wins:
+        raise ValueError(
+            f"{path}: pair {_pair_id(pair)} higher_wins mismatch: "
+            f"summary={expected_higher_wins}, games={higher_wins}"
+        )
+    actual_draws = completed - lower_wins - higher_wins
+    if expected_draws != actual_draws:
+        raise ValueError(
+            f"{path}: pair {_pair_id(pair)} draws mismatch: "
+            f"summary={expected_draws}, games={actual_draws}"
         )
 
     return completed, unfinished, lower_wins, higher_wins
