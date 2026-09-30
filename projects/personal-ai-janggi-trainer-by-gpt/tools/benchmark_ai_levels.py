@@ -263,6 +263,8 @@ def main() -> None:
                 "seed": args.seed,
                 "random_ties": not args.deterministic_ties,
                 "interpretation": "exploratory evidence only; not calibrated player or model rating",
+                "seeded_experiment": True,
+                "runtime_reproducibility": "wall_clock_sensitive_for_time_bounded_levels",
                 "benchmark_only_random_ties": True,
             },
             "pairs": tournament_rows,
