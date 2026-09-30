@@ -33,7 +33,6 @@ on:
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_versions.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_strength.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/tests/test_ai_strength_benchmark.py'
-      - 'GOVERNANCE/**'
       - '.github/workflows/janggi-ai-strength-benchmark.yml'
 
 concurrency:
