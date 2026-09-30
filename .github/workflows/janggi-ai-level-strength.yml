@@ -30,7 +30,6 @@ on:
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/rating.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_levels.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/docs/AI_LEVELS.md'
-      - 'GOVERNANCE/**'
       - '.github/workflows/janggi-ai-level-strength.yml'
 
 concurrency:
