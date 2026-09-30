@@ -28,20 +28,20 @@ python tools/benchmark_ai_levels.py \
   --seed 20261002 \
   --setup classic \
   --skip-search-benchmark \
-  --output artifacts/ai-level-strength-2-3-seed-20261002.json
+  --output artifacts/ai-level-strength-2-3-seed-20261002-classic.json
 ```
 
 Run a second distinct seed for the same pair, then aggregate both artifacts:
 
 ```bash
 python tools/evaluate_ai_level_evidence.py \
-  artifacts/ai-level-strength-2-3-seed-20261002.json \
-  artifacts/ai-level-strength-2-3-seed-20261003.json
+  artifacts/ai-level-strength-2-3-seed-20261002-classic.json \
+  artifacts/ai-level-strength-2-3-seed-20261003-classic.json
 ```
 
 The same pattern applies to 3-4, 4-5, and 5-6.
 
-The 12-games-per-run value is an initial bounded operating point, not a fixed requirement. Review completion rate first; add another run when the pair has not yet reached the evidence threshold.
+The 12-games-per-run value is an initial bounded operating point, not a fixed requirement. A calibration artifact is uniquely identified by pair + seed + setup; existing artifacts are validated and reused rather than overwritten. Review completion rate first; add another run when the pair has not yet reached the evidence threshold.
 
 ## Review rule
 
