@@ -84,11 +84,6 @@ def main() -> int:
         help="Directory for raw evidence artifacts and aggregate reports.",
     )
     parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Rerun experiments even when the expected artifact already exists.",
-    )
-    parser.add_argument(
         "--keep-going",
         action="store_true",
         help="Continue to the next experiment after a failed subprocess.",
@@ -116,7 +111,7 @@ def main() -> int:
     for pair in pairs:
         for seed in seeds:
             artifact = _artifact_path(output_dir, pair, seed, args.setup)
-            if artifact.exists() and not args.force:
+            if artifact.exists():
                 print(f"SKIP existing artifact: {artifact}")
             else:
                 command = [
@@ -184,7 +179,7 @@ def main() -> int:
         "aggregate_reports": aggregate_reports,
         "failures": failures,
         "resume_rule": (
-            "Existing raw evidence artifacts are reused unless --force is supplied. "
+            "Existing raw evidence artifacts are reused and never overwritten. "
             "Each experiment remains uniquely identified by pair, seed, and setup."
         ),
     }
