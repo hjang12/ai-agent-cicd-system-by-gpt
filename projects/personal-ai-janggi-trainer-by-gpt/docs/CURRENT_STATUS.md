@@ -187,6 +187,12 @@ The bounded double-attack detector is explicitly oriented from the original move
 
 Engine analysis now has a single normalization boundary. Best-move recommendations and principal variations are checked against `GameState` before coaching, browser presentation, or the trainer's engine-move response consumes them. A non-empty principal variation must also begin with the normalized best move; inconsistent variations are suppressed. A backend result that is not an `EngineAnalysis` object, or has an invalid analysis perspective, is degraded to an empty analysis for the current side to move; invalid numeric metadata is cleared individually. Malformed analysis is therefore degraded to safe unavailable move data rather than being surfaced as if it were authoritative.
 
+## Calibration Evidence Integrity
+
+- New calibration artifacts include public AI-level configuration fingerprint, Engine version, source revision when available, and calibration protocol version.
+- The evaluator rejects incompatible calibration context and prevents mixed legacy/provenance aggregation.
+- Existing 1-2 legacy evidence remains preserved as historical evidence; new 2-3 through 5-6 evidence will use the provenance-aware format.
+
 ## Current Calibration Execution State
 
 - Long-running AI level calibration is intentionally separated from GitHub Actions.
