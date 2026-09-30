@@ -88,10 +88,11 @@ python tools/run_ai_level_calibration.py \
 
 The runner:
 
-- skips an existing raw artifact by default, so interrupted work can resume;
+- skips an existing raw artifact so interrupted work can resume;
+- never overwrites an existing experiment artifact, preserving evidence history;
 - keeps each experiment uniquely identified by pair, seed, and setup;
 - aggregates each requested pair after the raw runs;
 - writes a `manifest.json` describing the execution set and any failures;
 - never changes public AI level configuration.
 
-Use `--force` only when an existing experiment is intentionally being repeated with the same identity.
+Changing the game-count or ply-cap for an already-used `pair + seed + setup` identity requires a separately reviewed experiment policy; do not overwrite the existing artifact.
