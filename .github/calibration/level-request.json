@@ -4,5 +4,6 @@
   "pair": "1-2",
   "seed": 20260930,
   "setup": "classic",
-  "purpose": "evidence-only adjacent level calibration"
+  "purpose": "evidence-only adjacent level calibration",
+  "request_revision": 2
 }
