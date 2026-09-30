@@ -34,6 +34,18 @@ HIGHER_SCORED, LOWER_SCORED, and EQUAL_SCORE describe the completed-game score r
 
 candidate_monotonic_higher_levels=true means every adjacent pair with the required evidence is currently HIGHER_SCORED. It is a descriptive evidence flag only. Public AI level search budgets, evaluation parameters, and difficulty behavior must not be changed solely because this flag is true.
 
+## Provenance compatibility
+
+New calibration artifacts record:
+
+- public AI-level configuration fingerprint for the calibrated pair;
+- engine version;
+- source revision when available.
+
+The evaluator rejects incompatible AI-level configuration fingerprints or engine versions within the same adjacent pair. It also rejects mixing legacy artifacts without provenance metadata with provenance-aware artifacts.
+
+Legacy 1-2 evidence remains valid as a historical evidence set because both artifacts share the same legacy schema. New calibration runs should use provenance-aware artifacts.
+
 ## Collected evidence
 
 ### Adjacent pair 1-2
