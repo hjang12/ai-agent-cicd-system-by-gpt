@@ -34,6 +34,20 @@ HIGHER_SCORED, LOWER_SCORED, and EQUAL_SCORE describe the completed-game score r
 
 candidate_monotonic_higher_levels=true means every adjacent pair with the required evidence is currently HIGHER_SCORED. It is a descriptive evidence flag only. Public AI level search budgets, evaluation parameters, and difficulty behavior must not be changed solely because this flag is true.
 
+## Collected evidence
+
+### Adjacent pair 1-2
+
+The first bounded evidence attempt at 48 plies was insufficient (1 completed / 9 unfinished). A 96-ply cap was then used for the evidence runs.
+
+| Seed | Games | Completed | Unfinished | Lower score | Higher score |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 20260930 | 10 | 9 | 1 | 4.0 | 5.0 |
+| 20261001 | 12 | 12 | 0 | 5.5 | 6.5 |
+| **Aggregate** | **22** | **21** | **1** | **9.5** | **11.5** |
+
+The aggregate meets the default evidence thresholds (21 completed games, 4.545% unfinished, 2 seeds). The score relationship is descriptive evidence only: it does not authorize public level promotion or search-budget changes. Adjacent pairs 2-3 through 5-6 have not yet met the evidence threshold.
+
 ## Important limitation
 
 Level 6 uses an 800 ms wall-clock search budget. Seeded experiments are therefore configuration-repeatable but not guaranteed to be bit-for-bit identical across different runner environments.
