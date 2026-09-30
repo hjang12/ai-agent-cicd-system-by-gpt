@@ -1417,6 +1417,29 @@ ChatGPT Plan, Model, Context, Tool, Runtime 및 기타 플랫폼 특성으로 �
 반복적으로 발생하는 Continuity 문제는 Governance 개선 대상으로 승격한다.
 
 
+### 25-A-13. Continuation Prompt와 Repository 기반 복구
+
+새 Chat에서 Development Task를 이어가기 위해 **긴 수동 Continuation Prompt를 필수 보존 수단으로 사용하지 않는다.**
+
+기본 복구 경로는 다음과 같다.
+
+```text
+새 Chat
+→ Development Task Registry
+→ Project / Workspace Context
+→ Checkpoint
+→ 실제 Git / CI / Deployment 상태 검증
+→ Agent Work 재개
+```
+
+Continuation Prompt는 현재 Request의 즉시 작업 의도를 전달하거나 Repository에 아직 기록되지 않은 일시적인 사용자 지시를 전달하는 등 보조적인 경우에만 사용한다.
+
+Continuation Prompt가 Repository / Context / Checkpoint에 기록된 공식 상태를 대체해서는 안 된다.
+
+새 Chat에서 사용자가 단순히 **“계속 진행해”**, **“이어서 해”**와 같이 요청한 경우, Agent는 가능한 범위에서 현재 ACTIVE Development Task를 Repository 기반으로 자동 복구하고 작업을 계속한다. 긴 이전 Chat 전문이나 별도의 대형 시작 프롬프트를 사용자에게 다시 요구하는 것을 기본 절차로 삼지 않는다.
+
+동일한 Continuity 문제가 반복되어 매번 긴 수동 Prompt가 필요해진다면 이를 개인 대화의 불편으로만 처리하지 않고 **Governance / Context 구조의 결함 가능성**으로 검토한다.
+
 ## 26. Evidence와 Traceability 관리
 
 중요한 변경은 가능한 범위에서 다음 흐름을 추적할 수 있도록 한다.
@@ -1628,30 +1651,3 @@ Review Condition
 13. **AI가 자율적으로 완료할 수 없는 기술적 한계 또는 중요한 규정·기획 충돌은 숨기지 않고 근거와 영향과 함께 보고한다.**
 14. **Governance, Version, Branch, CI/CD 및 프로젝트 운영 구조의 개선 필요성을 AI가 선제적으로 점검하고 먼저 제안한다.**
 15. **현재 미해결 이슈는 Active Issue로 별도 관리하고, 해결 여부를 Development History 전체를 다시 읽어 판단하게 만들지 않는다.**
-
-
-
-
-### 25-A-13. Continuation Prompt와 Repository 기반 복구
-
-새 Chat에서 Development Task를 이어가기 위해 **긴 수동 Continuation Prompt를 필수 보존 수단으로 사용하지 않는다.**
-
-기본 복구 경로는 다음과 같다.
-
-```text
-새 Chat
-→ Development Task Registry
-→ Project / Workspace Context
-→ Checkpoint
-→ 실제 Git / CI / Deployment 상태 검증
-→ Agent Work 재개
-```
-
-Continuation Prompt는 현재 Request의 즉시 작업 의도를 전달하거나 Repository에 아직 기록되지 않은 일시적인 사용자 지시를 전달하는 등 보조적인 경우에만 사용한다.
-
-Continuation Prompt가 Repository / Context / Checkpoint에 기록된 공식 상태를 대체해서는 안 된다.
-
-새 Chat에서 사용자가 단순히 **“계속 진행해”**, **“이어서 해”**와 같이 요청한 경우, Agent는 가능한 범위에서 현재 ACTIVE Development Task를 Repository 기반으로 자동 복구하고 작업을 계속한다. 긴 이전 Chat 전문이나 별도의 대형 시작 프롬프트를 사용자에게 다시 요구하는 것을 기본 절차로 삼지 않는다.
-
-동일한 Continuity 문제가 반복되어 매번 긴 수동 Prompt가 필요해진다면 이를 개인 대화의 불편으로만 처리하지 않고 **Governance / Context 구조의 결함 가능성**으로 검토한다.
-
