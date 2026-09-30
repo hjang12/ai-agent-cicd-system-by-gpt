@@ -36,6 +36,11 @@ on:
           - right
           - both
         default: classic
+      run_search_benchmark:
+        description: "Also run deterministic search fixture benchmark"
+        required: true
+        type: boolean
+        default: false
   pull_request:
     paths:
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/ai_level.py'
@@ -73,6 +78,7 @@ jobs:
             PAIR="1-2"
             SEED=20260930
             SETUP=classic
+            RUN_SEARCH=false
             OUTPUT=ai-level-strength-pr.json
           else
             GAMES="${{ inputs.games }}"
@@ -80,10 +86,11 @@ jobs:
             PAIR="${{ inputs.pair }}"
             SEED="${{ inputs.seed }}"
             SETUP="${{ inputs.setup }}"
+            RUN_SEARCH="${{ inputs.run_search_benchmark }}"
             OUTPUT="ai-level-strength-${PAIR}.json"
           fi
           EXTRA_ARGS=""
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ] || [ "$RUN_SEARCH" != "true" ]; then
             EXTRA_ARGS="--skip-search-benchmark"
           fi
           PYTHONPATH=. python tools/benchmark_ai_levels.py \
