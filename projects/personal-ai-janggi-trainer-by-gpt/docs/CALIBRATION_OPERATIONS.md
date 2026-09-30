@@ -42,6 +42,11 @@ python tools/evaluate_ai_level_evidence.py \
 The same pattern applies to 3-4, 4-5, and 5-6.
 
 The 12-games-per-run value is an initial bounded operating point, not a fixed requirement. A calibration artifact is uniquely identified by pair + seed + setup; existing artifacts are validated and reused rather than overwritten. Review completion rate first; add another run when the pair has not yet reached the evidence threshold.
+## Provenance and compatibility
+
+Every new artifact records the calibrated pair's public AI-level configuration fingerprint, Engine version, source revision when available, and calibration protocol version.
+
+The evaluator uses these fields to prevent incompatible experiments from being aggregated. Changing public search configuration or calibration protocol therefore requires a fresh evidence set rather than silently extending an old one.
 
 ## Review rule
 
