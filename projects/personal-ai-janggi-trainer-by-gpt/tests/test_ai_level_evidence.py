@@ -14,6 +14,7 @@ def _write_fixture(
     outcomes: list[int | None],
     config_fingerprint: str | None = None,
     engine_version: str | None = None,
+    protocol_version: str | None = None,
 ) -> None:
     lower, higher = pair.split("-")
     games = []
@@ -45,6 +46,7 @@ def _write_fixture(
             "setup": "classic",
             "ai_level_config_fingerprint": config_fingerprint,
             "engine_version": engine_version,
+            "calibration_protocol_version": protocol_version,
         },
         "pairs": [
             {
@@ -99,16 +101,26 @@ class AiLevelEvidenceTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "mixed legacy"):
                 aggregate_evidence((legacy, current), min_completed=6, min_unique_seeds=2)
 
+    def test_aggregate_rejects_incompatible_protocol_versions(self):
+        with tempfile.TemporaryDirectory() as temp:
+            first = Path(temp) / "first.json"
+            second = Path(temp) / "second.json"
+            _write_fixture(first, pair="1-2", seed=1, outcomes=[-1, -1, 0], config_fingerprint="same", engine_version="7", protocol_version="1")
+            _write_fixture(second, pair="1-2", seed=2, outcomes=[-1, -1, 0], config_fingerprint="same", engine_version="7", protocol_version="2")
+            with self.assertRaisesRegex(ValueError, "calibration protocol versions"):
+                aggregate_evidence((first, second), min_completed=6, min_unique_seeds=2)
+
     def test_aggregate_reports_provenance_context(self):
         with tempfile.TemporaryDirectory() as temp:
             first = Path(temp) / "first.json"
             second = Path(temp) / "second.json"
             for seed, path in ((1, first), (2, second)):
-                _write_fixture(path, pair="1-2", seed=seed, outcomes=[-1, -1, 0], config_fingerprint="same", engine_version="7")
+                _write_fixture(path, pair="1-2", seed=seed, outcomes=[-1, -1, 0], config_fingerprint="same", engine_version="7", protocol_version="1")
             result = aggregate_evidence((first, second), min_completed=6, min_unique_seeds=2)
             report = result["pairs"][0]
             self.assertEqual(report["ai_level_config_fingerprints"], ["same"])
             self.assertEqual(report["engine_versions"], ["7"])
+            self.assertEqual(report["calibration_protocol_versions"], ["1"])
 
     def test_aggregate_reports_higher_scored_pair(self):
         with tempfile.TemporaryDirectory() as temp:
