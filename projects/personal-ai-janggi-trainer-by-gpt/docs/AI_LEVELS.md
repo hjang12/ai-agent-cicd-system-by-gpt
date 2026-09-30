@@ -70,7 +70,7 @@ The six public levels are not promoted to a calibrated strength ladder solely fr
 
 The current validation path is:
 
-1. deterministic fixture search benchmark for every level;
+1. deterministic fixture search benchmark for every level, maintained by the dedicated search benchmark workflow;
 2. adjacent-level self-play with alternating colors;
 3. repeat the comparison with enough completed games to reduce outcome noise;
 4. record unfinished games separately rather than treating them as draws;
