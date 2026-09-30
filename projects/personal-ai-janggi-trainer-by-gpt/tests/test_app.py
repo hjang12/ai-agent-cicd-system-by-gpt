@@ -466,6 +466,22 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("const sourceCode = view.state.board[srcIndex];", html)
         self.assertIn("pendingPlayerMove = null;", html)
 
+    def test_browser_selected_piece_has_explicit_visual_feedback(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn(".cell.selected", html)
+        self.assertIn(".cell.selected .piece", html)
+        self.assertIn(".cell.legal", html)
+        self.assertIn("selected = [stateX, stateY];", html)
+        self.assertIn("render();", html[html.index("selected = [stateX, stateY];"):])
+
+    def test_browser_ai_thinking_overlay_contract_is_backed_by_real_dom_nodes(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn('id="heading"', html)
+        self.assertIn('id="game-message"', html)
+        self.assertIn('class="board-message"', html)
+        self.assertIn("showBoardMessage(thinkingTitle, thinkingSubtitle", html)
+        self.assertIn("thinking:true", html)
+
     def test_browser_board_message_contract_is_present(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn('class="board-message"', html)
