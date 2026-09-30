@@ -1,3 +1,29 @@
+## 53. 2026-09-30 — Separate long-running calibration from GitHub Actions quota
+
+### Finding
+
+The 1-2 adjacent-level calibration evidence is sufficient, but GitHub Actions quota is exhausted before the remaining adjacent pairs can be measured.
+
+### Decision
+
+Keep GitHub Actions focused on fast correctness/regression validation and move long-running self-play calibration outside Actions. The existing pair-scoped benchmark CLI and evidence aggregator remain the execution/review boundary.
+
+### Implementation
+
+- Added `docs/CALIBRATION_OPERATIONS.md` with the off-CI execution contract and example commands.
+- Updated the Task checkpoint so the remaining 2-3, 3-4, 4-5, and 5-6 calibration work no longer depends on an Actions-minute reset.
+- Preserved the rule that calibration evidence is descriptive and does not directly authorize public level/search-budget changes.
+
+### Boundary
+
+No engine rules, search configuration, UI/API behavior, or public AI-level budgets were changed. This is an operations/documentation change only.
+
+### Next Step
+
+Run 2-3 with a bounded 96-ply operating point and a distinct seed outside Actions, preserve the JSON artifact, aggregate it, and continue through the remaining adjacent pairs.
+
+---
+
 ## 52. 2026-09-30 — Collect completed 1-2 adjacent-level calibration evidence
 
 ### Finding
