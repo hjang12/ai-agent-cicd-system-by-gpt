@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.3.1**
+**Governance Version: 1.3.2**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -400,6 +400,37 @@ CI는 단순한 자동 테스트가 아니라 **Agent와 개발자의 변경을 
 - Post-deployment pass/fail
 
 ---
+
+### 10-A. Fast CI와 Long-running Execution의 역할 분리
+
+CI는 가능한 한 **bounded, repeatable, 빠르게 종료되는 검증**을 기본 역할로 한다.
+
+다음과 같은 장시간 실행 작업은 일반 Fast CI와 동일한 실행 경로로 취급하지 않는다.
+
+- 대규모 Benchmark
+- AI level strength calibration
+- 대규모 Self-play
+- Training / Data generation
+- 기타 장시간 계산 또는 외부 실행 대기가 필요한 작업
+
+장시간 실행이 필요한 작업은 가능한 경우 별도의 **Long-running Execution Path**에서 수행하고, 최종 결과는 Repository의 Evidence / Checkpoint / Context에 귀속한다.
+
+```text
+Fast CI
+→ 빠른 Build / Test / Regression / Structural Validation
+
+Long-running Execution
+→ Benchmark / Calibration / Self-play / Training
+
+Evidence
+→ 실행 조건 / 결과 / Code·Model·Dataset Version / Configuration 기록
+```
+
+Fast CI의 quota, timeout 또는 플랫폼 실행 한계 때문에 장시간 계산 작업 전체가 막히지 않도록 **검증 경로와 장시간 계산 경로를 분리**한다.
+
+Fast CI는 PR/Commit의 기본 무결성을 검증하고, 장시간 실행 결과는 별도 Evidence로 관리한다. Long-running Execution을 CI의 기본 Quality Gate로 대체하지 않는다.
+
+실행 환경이 없어 실제 계산을 수행할 수 없는 경우에는 계산을 수행한 것으로 기록하지 않는다. 준비된 Runner, Script, Configuration 및 명령만 존재하는 상태는 **Execution Infrastructure Ready / Computation Not Executed**로 구분한다.
 
 ## 11. 검증과 Evidence
 
@@ -1599,4 +1630,28 @@ Review Condition
 15. **현재 미해결 이슈는 Active Issue로 별도 관리하고, 해결 여부를 Development History 전체를 다시 읽어 판단하게 만들지 않는다.**
 
 
+
+
+### 25-A-13. Continuation Prompt와 Repository 기반 복구
+
+새 Chat에서 Development Task를 이어가기 위해 **긴 수동 Continuation Prompt를 필수 보존 수단으로 사용하지 않는다.**
+
+기본 복구 경로는 다음과 같다.
+
+```text
+새 Chat
+→ Development Task Registry
+→ Project / Workspace Context
+→ Checkpoint
+→ 실제 Git / CI / Deployment 상태 검증
+→ Agent Work 재개
+```
+
+Continuation Prompt는 현재 Request의 즉시 작업 의도를 전달하거나 Repository에 아직 기록되지 않은 일시적인 사용자 지시를 전달하는 등 보조적인 경우에만 사용한다.
+
+Continuation Prompt가 Repository / Context / Checkpoint에 기록된 공식 상태를 대체해서는 안 된다.
+
+새 Chat에서 사용자가 단순히 **“계속 진행해”**, **“이어서 해”**와 같이 요청한 경우, Agent는 가능한 범위에서 현재 ACTIVE Development Task를 Repository 기반으로 자동 복구하고 작업을 계속한다. 긴 이전 Chat 전문이나 별도의 대형 시작 프롬프트를 사용자에게 다시 요구하는 것을 기본 절차로 삼지 않는다.
+
+동일한 Continuity 문제가 반복되어 매번 긴 수동 Prompt가 필요해진다면 이를 개인 대화의 불편으로만 처리하지 않고 **Governance / Context 구조의 결함 가능성**으로 검토한다.
 
