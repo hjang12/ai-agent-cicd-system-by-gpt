@@ -59,6 +59,7 @@
 - Browser analysis panel shows tactical risk, bounded tactical warnings, recommendation principal variation, and structured next-action coaching; principal variations use learner-facing board notation (`a1`–`i10`) with numbered plies and side labels, terminal results are localized, and turn handoff is explicit in the heading
 - Browser engine-move result also shows the engine principal variation, normalized evaluation score, search depth, and visited-node count as learning aids
 - Browser UI redesigned around a board-first, mobile-friendly game screen with explicit new-game settings, side/opponent cards, player assessment summary, and compact action controls
+- Browser board selection now has an explicit selected-piece marker and legal-destination highlight, and the board shows a persistent AI-thinking overlay during the `/api/engine/move` request.
 - Browser match flow renders the human move immediately through `/api/move`, then starts the AI calculation through `/api/engine/move`; the UI exposes check-state feedback (`장군`/`멍군`) and localized terminal results. The previously available `/api/player/turn` remains an atomic server-side transaction for callers that need the combined turn contract. Browser requests validate JSON responses and resynchronize from `/api/state` after request-format/server errors. Undo restores the previous human decision point by removing the AI response plus the preceding human move when applicable
 
 ## Web/API
@@ -89,6 +90,7 @@
 - Requirement Contract Registry: `docs/requirement_contracts.json`
 - Human-readable contract context: `docs/REQUIREMENT_CONTRACTS.md`
 - Current protected product invariant: `UX-001` — human move must be visibly rendered before AI calculation begins
+- Current protected gameplay feedback invariant: `UX-002` — selected piece / legal destinations are visibly marked and AI thinking is explicitly shown on-board until response completion or recovery
 - Contract validation: `tools/validate_requirement_contracts.py` runs in the mandatory Janggi validation workflow
 - Contract rule: existing `ACTIVE` user requirements are preserved across later implementation/refactoring work; intentional behavior changes require explicit declaration and user-facing report before superseding the Contract
 
