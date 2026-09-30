@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from time import perf_counter
 
@@ -83,6 +83,10 @@ def run_adjacent_tournaments(
     games: int,
     max_plies: int,
     pair: str | None = None,
+    *,
+    seed: int = 20260930,
+    setup: str = "classic",
+    random_ties: bool = True,
 ) -> list[dict[str, object]]:
     print()
     print(f"Adjacent-level self-play benchmark: {games} games, {max_plies} plies cap")
@@ -94,8 +98,20 @@ def run_adjacent_tournaments(
         pair_id = f"{lower.level.value}-{higher.level.value}"
         if pair is not None and pair_id != pair:
             continue
-        lower_engine = NegamaxEngine(lower.config)
-        higher_engine = NegamaxEngine(higher.config)
+        lower_engine = NegamaxEngine(
+            replace(
+                lower.config,
+                random_ties=random_ties,
+                seed=seed + int(lower.level.value),
+            )
+        )
+        higher_engine = NegamaxEngine(
+            replace(
+                higher.config,
+                random_ties=random_ties,
+                seed=seed + int(higher.level.value),
+            )
+        )
         summary = HeadToHeadTournament(
             lower_engine,
             higher_engine,
@@ -105,6 +121,7 @@ def run_adjacent_tournaments(
         ).run(
             games,
             alternate_colors=True,
+            setup=setup,
         )
         row = {
             "lower_level": lower.level.value,
@@ -136,6 +153,7 @@ def validate_benchmark_args(
     tournament_games: int,
     max_plies: int,
     pair: str | None = None,
+    setup: str = "classic",
 ) -> None:
     if tournament_games < 0:
         raise ValueError("tournament_games must be non-negative")
@@ -145,6 +163,8 @@ def validate_benchmark_args(
         raise ValueError("max_plies must be at least 1")
     if pair is not None and pair not in {"1-2", "2-3", "3-4", "4-5", "5-6"}:
         raise ValueError("pair must be one of 1-2, 2-3, 3-4, 4-5, 5-6")
+    if setup not in {"classic", "left", "right", "both"}:
+        raise ValueError("setup must be one of classic, left, right, both")
 
 
 def main() -> None:
@@ -173,6 +193,23 @@ def main() -> None:
         help="Skip deterministic fixture search benchmarking and run only the tournament portion.",
     )
     parser.add_argument(
+        "--seed",
+        type=int,
+        default=20260930,
+        help="Master seed for reproducible calibration tie-breaking.",
+    )
+    parser.add_argument(
+        "--setup",
+        choices=("classic", "left", "right", "both"),
+        default="classic",
+        help="Starting arrangement used for every calibration game.",
+    )
+    parser.add_argument(
+        "--deterministic-ties",
+        action="store_true",
+        help="Disable benchmark-only random tie-breaking. The default uses fixed-seed tie-breaking for game diversity.",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=None,
@@ -181,14 +218,21 @@ def main() -> None:
     args = parser.parse_args()
 
     try:
-        validate_benchmark_args(args.tournament_games, args.max_plies, args.pair)
+        validate_benchmark_args(args.tournament_games, args.max_plies, args.pair, args.setup)
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
 
     if not args.skip_search_benchmark:
         run_search_benchmark()
     tournament_rows = (
-        run_adjacent_tournaments(args.tournament_games, args.max_plies, args.pair)
+        run_adjacent_tournaments(
+            args.tournament_games,
+            args.max_plies,
+            args.pair,
+            seed=args.seed,
+            setup=args.setup,
+            random_ties=not args.deterministic_ties,
+        )
         if args.tournament_games
         else []
     )
@@ -200,7 +244,11 @@ def main() -> None:
                 "games_per_adjacent_pair": args.tournament_games,
                 "max_plies": args.max_plies,
                 "pair": args.pair,
+                "setup": args.setup,
+                "seed": args.seed,
+                "random_ties": not args.deterministic_ties,
                 "interpretation": "exploratory evidence only; not calibrated player or model rating",
+                "benchmark_only_random_ties": True,
             },
             "pairs": tournament_rows,
         }
