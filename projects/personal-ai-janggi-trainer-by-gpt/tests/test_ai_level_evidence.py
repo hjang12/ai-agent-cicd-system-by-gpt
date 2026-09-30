@@ -6,7 +6,15 @@ from pathlib import Path
 from tools.evaluate_ai_level_evidence import aggregate_evidence
 
 
-def _write_fixture(path: Path, *, pair: str, seed: int, outcomes: list[int | None]) -> None:
+def _write_fixture(
+    path: Path,
+    *,
+    pair: str,
+    seed: int,
+    outcomes: list[int | None],
+    config_fingerprint: str | None = None,
+    engine_version: str | None = None,
+) -> None:
     lower, higher = pair.split("-")
     games = []
     for index, outcome in enumerate(outcomes, start=1):
@@ -35,6 +43,8 @@ def _write_fixture(path: Path, *, pair: str, seed: int, outcomes: list[int | Non
             "pair": pair,
             "seed": seed,
             "setup": "classic",
+            "ai_level_config_fingerprint": config_fingerprint,
+            "engine_version": engine_version,
         },
         "pairs": [
             {
@@ -70,6 +80,26 @@ class AiLevelEvidenceTests(unittest.TestCase):
             result = aggregate_evidence((path,), min_completed=4, min_unique_seeds=1)
             report = result["pairs"][0]
             self.assertEqual(report["status"], "INSUFFICIENT")
+
+    def test_aggregate_rejects_incompatible_config_fingerprints(self):
+        with tempfile.TemporaryDirectory() as temp:
+            first = Path(temp) / "first.json"
+            second = Path(temp) / "second.json"
+            _write_fixture(first, pair="1-2", seed=1, outcomes=[-1, -1, 0], config_fingerprint="aaa")
+            _write_fixture(second, pair="1-2", seed=2, outcomes=[-1, -1, 0], config_fingerprint="bbb")
+            with self.assertRaisesRegex(ValueError, "configuration fingerprints"):
+                aggregate_evidence((first, second), min_completed=6, min_unique_seeds=2)
+
+    def test_aggregate_reports_provenance_context(self):
+        with tempfile.TemporaryDirectory() as temp:
+            first = Path(temp) / "first.json"
+            second = Path(temp) / "second.json"
+            for seed, path in ((1, first), (2, second)):
+                _write_fixture(path, pair="1-2", seed=seed, outcomes=[-1, -1, 0], config_fingerprint="same", engine_version="7")
+            result = aggregate_evidence((first, second), min_completed=6, min_unique_seeds=2)
+            report = result["pairs"][0]
+            self.assertEqual(report["ai_level_config_fingerprints"], ["same"])
+            self.assertEqual(report["engine_versions"], ["7"])
 
     def test_aggregate_reports_higher_scored_pair(self):
         with tempfile.TemporaryDirectory() as temp:
