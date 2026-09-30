@@ -187,6 +187,20 @@ The bounded double-attack detector is explicitly oriented from the original move
 
 Engine analysis now has a single normalization boundary. Best-move recommendations and principal variations are checked against `GameState` before coaching, browser presentation, or the trainer's engine-move response consumes them. A non-empty principal variation must also begin with the normalized best move; inconsistent variations are suppressed. A backend result that is not an `EngineAnalysis` object, or has an invalid analysis perspective, is degraded to an empty analysis for the current side to move; invalid numeric metadata is cleared individually. Malformed analysis is therefore degraded to safe unavailable move data rather than being surfaced as if it were authoritative.
 
+## Current Calibration Execution State
+
+- Long-running AI level calibration is intentionally separated from GitHub Actions.
+- Active implementation PR: #81 (Calibration: move long-running AI level evidence off GitHub Actions).
+- PR #81 is not merged yet; its dedicated runner tests were validated in an isolated Python harness, while normal project CI is unavailable on the PR head because the Actions execution path is currently exhausted.
+- The off-CI runner now validates existing artifact identity and avoids cross-setup aggregation.
+- Actual 2-3 / 3-4 / 4-5 / 5-6 calibration computation has not been executed; no strength result is inferred from infrastructure readiness alone.
+
+## Calibration operations boundary
+
+- Resumable off-CI calibration runner: `tools/run_ai_level_calibration.py`, preserving raw artifacts and pair-level aggregate reports across interrupted runs.
+
+Long-running adjacent-level self-play calibration is treated as evidence generation rather than CI validation. GitHub Actions quota exhaustion does not block repository development or storage; remaining calibration runs are to be executed through the existing pair-scoped CLI outside Actions and then committed as versioned evidence. See `docs/CALIBRATION_OPERATIONS.md`.
+
 ## Actual level-strength calibration evidence
 
 - PR smoke calibration pipeline remains operational for bounded validation only.
