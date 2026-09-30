@@ -38,6 +38,12 @@ class AiStrengthBenchmarkTests(unittest.TestCase):
                 validate_benchmark_args(2, 48, pair, "classic")
 
 
+
+
+    def test_level_calibration_setup_validation_rejects_unknown_setup(self):
+        with self.assertRaises(ValueError):
+            validate_benchmark_args(2, 48, "1-2", "unknown")
+
     def test_level_calibration_accepts_supported_starting_arrangements(self):
         for setup in ("classic", "left", "right", "both"):
             validate_benchmark_args(2, 48, "1-2", setup)
