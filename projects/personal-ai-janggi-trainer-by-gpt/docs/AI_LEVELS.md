@@ -86,4 +86,6 @@ The 2026-09-29 experiment that attempted 4 games × 64 plies across all five pai
 
 Future calibration evidence should record the pair, seed, requested games, completed games, unfinished games, and repeated-run seed where applicable.
 
+Each calibration artifact also records per-game terminal status, lower-level outcome, and ply count. This keeps completed-game evidence auditable instead of relying only on the aggregate pair summary.
+
 Calibration runs use benchmark-only fixed-seed tie randomization by default. This does not change the public AI level configuration; it only varies equal-score move choices during self-play so repeated games are not forced to follow the same deterministic trajectory. The starting arrangement can also be selected explicitly (classic, left, right, or both) and is recorded in the evidence artifact.
