@@ -7,6 +7,7 @@ from pathlib import Path
 from time import perf_counter
 
 from janggi import AI_LEVELS, GameState, HeadToHeadTournament, Move, NegamaxEngine, Piece, PieceType, Side
+from janggi.match import GameStatus
 
 
 @dataclass(frozen=True)
@@ -123,6 +124,19 @@ def run_adjacent_tournaments(
             alternate_colors=True,
             setup=setup,
         )
+        game_results = []
+        for index, game in enumerate(summary.games, start=1):
+            game_results.append(
+                {
+                    "game": index,
+                    "status": game.status.value,
+                    "outcome_for_lower": (
+                        None if game.status is GameStatus.PLAYING else game.outcome_for_first.value
+                    ),
+                    "plies": len(game.moves),
+                }
+            )
+
         row = {
             "lower_level": lower.level.value,
             "lower_name": lower.name,
@@ -137,6 +151,7 @@ def run_adjacent_tournaments(
             "draws": summary.draws,
             "completed": summary.completed,
             "unfinished": summary.unfinished,
+            "game_results": game_results,
         }
         rows.append(row)
         print(
