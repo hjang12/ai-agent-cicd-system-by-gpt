@@ -50,6 +50,7 @@ on:
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_levels.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/docs/AI_LEVELS.md'
       - '.github/workflows/janggi-ai-level-strength.yml'
+      - '.github/calibration/level-request.json'
 
 concurrency:
   group: janggi-ai-level-strength-${{ github.ref }}
@@ -72,7 +73,17 @@ jobs:
           python-version: '3.12'
       - name: Run adjacent-level benchmark
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ -f .github/calibration/level-request.json ]; then
+            REQUEST=$(python -c 'import json; print(json.dumps(json.load(open(".github/calibration/level-request.json"))))')
+            GAMES=$(python -c 'import json; print(json.load(open(".github/calibration/level-request.json"))["games"])')
+            MAX_PLIES=$(python -c 'import json; print(json.load(open(".github/calibration/level-request.json"))["max_plies"])')
+            PAIR=$(python -c 'import json; print(json.load(open(".github/calibration/level-request.json"))["pair"])')
+            SEED=$(python -c 'import json; print(json.load(open(".github/calibration/level-request.json"))["seed"])')
+            SETUP=$(python -c 'import json; print(json.load(open(".github/calibration/level-request.json"))["setup"])')
+            RUN_SEARCH=false
+            OUTPUT="ai-level-strength-${PAIR}-seed-${SEED}.json"
+            echo "Calibration request: $REQUEST"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
             GAMES=2
             MAX_PLIES=4
             PAIR="1-2"
