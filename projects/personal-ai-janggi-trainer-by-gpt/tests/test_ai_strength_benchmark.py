@@ -38,13 +38,14 @@ class AiStrengthBenchmarkTests(unittest.TestCase):
                 validate_benchmark_args(2, 48, pair, "classic")
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
     def test_level_calibration_accepts_supported_starting_arrangements(self):
         for setup in ("classic", "left", "right", "both"):
             validate_benchmark_args(2, 48, "1-2", setup)
 
         with self.assertRaises(ValueError):
             validate_benchmark_args(2, 48, "1-2", "unknown")
+
+
+if __name__ == "__main__":
+    unittest.main()
+
