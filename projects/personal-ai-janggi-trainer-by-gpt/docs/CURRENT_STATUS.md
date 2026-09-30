@@ -3,7 +3,7 @@
 ## Governance
 
 - Common Governance Repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Governance Version: `1.3.1`
+- Governance Version: `1.3.2`
 - Governance status: active baseline on `main`
 - Project context entrypoint: `AGENT_START.md`
 
@@ -214,3 +214,12 @@ Long-running adjacent-level self-play calibration is treated as evidence generat
 5. Use player skill-assessment evidence together with adaptive position-training selection and ephemeral session metrics, while keeping match rating separate from coaching statistics and preventing uncalibrated AI levels from producing numeric player ratings.
 6. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
 7. Keep training/evaluation interfaces stable while AI strategy evolves.
+
+
+## Current Calibration Execution State
+
+- Long-running calibration is intentionally separated from GitHub Actions.
+- Active infrastructure PR: #81.
+- Current PR head has fast CI failures caused by the exhausted GitHub Actions execution quota; these failures do not represent a project test failure and no calibration computation ran.
+- The off-CI runner has been hardened to validate experiment identity and prevent cross-setup aggregation.
+- Actual 2-3 / 3-4 / 4-5 / 5-6 calibration computation remains unexecuted; no result is inferred from the runner infrastructure.
