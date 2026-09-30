@@ -22,6 +22,20 @@ on:
           - "4-5"
           - "5-6"
         default: "1-2"
+      seed:
+        description: "Master RNG seed for reproducible tie-breaking"
+        required: true
+        default: "20260930"
+      setup:
+        description: "Starting arrangement"
+        required: true
+        type: choice
+        options:
+          - classic
+          - left
+          - right
+          - both
+        default: classic
   pull_request:
     paths:
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/ai_level.py'
@@ -57,11 +71,15 @@ jobs:
             GAMES=2
             MAX_PLIES=4
             PAIR="1-2"
+            SEED=20260930
+            SETUP=classic
             OUTPUT=ai-level-strength-pr.json
           else
             GAMES="${{ inputs.games }}"
             MAX_PLIES="${{ inputs.max_plies }}"
             PAIR="${{ inputs.pair }}"
+            SEED="${{ inputs.seed }}"
+            SETUP="${{ inputs.setup }}"
             OUTPUT="ai-level-strength-${PAIR}.json"
           fi
           EXTRA_ARGS=""
@@ -72,6 +90,8 @@ jobs:
             --tournament-games "$GAMES" \
             --max-plies "$MAX_PLIES" \
             --pair "$PAIR" \
+            --seed "$SEED" \
+            --setup "$SETUP" \
             $EXTRA_ARGS \
             --output "$OUTPUT"
           cat "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
