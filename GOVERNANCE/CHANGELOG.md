@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.2] - 2026-09-30
+
+### Added
+
+- Repository 기반 Context Recovery를 Continuation Prompt보다 우선하는 운영 원칙을 명문화.
+- 새 Chat에서 단순한 재개 요청이 들어오면 ACTIVE Development Task를 Registry / Context / Checkpoint / 실제 상태 검증을 통해 복구하는 기본 절차를 명문화.
+- Fast CI와 Long-running Execution을 분리하고, Benchmark / Calibration / Self-play / Training 같은 장시간 계산을 별도 실행 경로에서 수행할 수 있도록 했다.
+- 장시간 계산 결과를 Evidence / Checkpoint / Context에 귀속하고, 실제 계산 미수행 상태를 성공 결과와 구분하도록 했다.
+
+### Clarified
+
+- 긴 수동 Continuation Prompt는 필수 보존 수단이 아니며 보조적인 작업 전달 수단으로만 사용한다.
+- CI quota / timeout / platform execution limit 때문에 장시간 계산이 전체 개발 흐름을 불필요하게 막지 않도록 실행 경로를 분리한다.
+- Fast CI는 bounded / repeatable validation을 담당하며, 장시간 실행 결과는 별도 Evidence로 관리한다.
+
 ## [1.3.1] - 2026-09-30
 
 ### Clarified
