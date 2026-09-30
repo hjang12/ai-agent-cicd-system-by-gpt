@@ -45,6 +45,83 @@ def _run(
     subprocess.run(command, cwd=cwd, check=True)
 
 
+
+def _validate_artifact_identity(
+    artifact: Path,
+    *,
+    pair: str,
+    seed: int,
+    setup: str,
+) -> None:
+    try:
+        payload = json.loads(artifact.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"{artifact}: existing artifact is not valid JSON") from exc
+
+    experiment = payload.get("experiment")
+    if not isinstance(experiment, dict):
+        raise ValueError(f"{artifact}: existing artifact has no experiment metadata")
+
+    expected = {"pair": pair, "seed": seed, "setup": setup}
+    actual = {key: experiment.get(key) for key in expected}
+    if actual != expected:
+        raise ValueError(
+            f"{artifact}: experiment identity mismatch: "
+            f"expected={expected}, actual={actual}"
+        )
+
+
+def _run_experiment(
+    *,
+    project_root: Path,
+    artifact: Path,
+    pair: str,
+    seed: int,
+    setup: str,
+    games: int,
+    max_plies: int,
+) -> None:
+    if artifact.exists():
+        _validate_artifact_identity(
+            artifact,
+            pair=pair,
+            seed=seed,
+            setup=setup,
+        )
+        print(f"SKIP existing artifact: {artifact}")
+        return
+
+    command = [
+        sys.executable,
+        "tools/benchmark_ai_levels.py",
+        "--tournament-games",
+        str(games),
+        "--max-plies",
+        str(max_plies),
+        "--pair",
+        pair,
+        "--seed",
+        str(seed),
+        "--setup",
+        setup,
+        "--skip-search-benchmark",
+        "--output",
+        str(artifact),
+    ]
+    _run(command, cwd=project_root)
+
+    if not artifact.exists():
+        raise RuntimeError(
+            f"Calibration command completed without producing expected artifact: {artifact}"
+        )
+
+    _validate_artifact_identity(
+        artifact,
+        pair=pair,
+        seed=seed,
+        setup=setup,
+    )
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Run resumable off-CI adjacent-level calibration experiments."
@@ -111,48 +188,41 @@ def main() -> int:
     for pair in pairs:
         for seed in seeds:
             artifact = _artifact_path(output_dir, pair, seed, args.setup)
-            if artifact.exists():
-                print(f"SKIP existing artifact: {artifact}")
-            else:
-                command = [
-                    sys.executable,
-                    "tools/benchmark_ai_levels.py",
-                    "--tournament-games",
-                    str(args.games),
-                    "--max-plies",
-                    str(args.max_plies),
-                    "--pair",
-                    pair,
-                    "--seed",
-                    str(seed),
-                    "--setup",
-                    args.setup,
-                    "--skip-search-benchmark",
-                    "--output",
-                    str(artifact),
-                ]
-                try:
-                    _run(command, cwd=project_root)
-                except subprocess.CalledProcessError as exc:
-                    failure = {
-                        "pair": pair,
-                        "seed": seed,
-                        "setup": args.setup,
-                        "returncode": exc.returncode,
-                        "artifact": str(artifact),
-                    }
-                    failures.append(failure)
-                    if not args.keep_going:
-                        raise
+            try:
+                _run_experiment(
+                    project_root=project_root,
+                    artifact=artifact,
+                    pair=pair,
+                    seed=seed,
+                    setup=args.setup,
+                    games=args.games,
+                    max_plies=args.max_plies,
+                )
+            except (subprocess.CalledProcessError, ValueError, RuntimeError) as exc:
+                failure = {
+                    "pair": pair,
+                    "seed": seed,
+                    "setup": args.setup,
+                    "returncode": (
+                        exc.returncode
+                        if isinstance(exc, subprocess.CalledProcessError)
+                        else 1
+                    ),
+                    "artifact": str(artifact),
+                    "error": str(exc),
+                }
+                failures.append(failure)
+                if not args.keep_going:
+                    raise
             if artifact.exists():
                 completed_artifacts.append(artifact)
 
     aggregate_reports: dict[str, str] = {}
     for pair in pairs:
         pair_artifacts = [
-            path
-            for path in completed_artifacts
-            if f"ai-level-strength-{pair}-" in path.name
+            _artifact_path(output_dir, pair, seed, args.setup)
+            for seed in seeds
+            if _artifact_path(output_dir, pair, seed, args.setup).exists()
         ]
         if not pair_artifacts:
             continue
