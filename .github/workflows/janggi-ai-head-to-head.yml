@@ -7,7 +7,6 @@ on:
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/tournament.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_versions.py'
-      - 'GOVERNANCE/**'
       - '.github/workflows/janggi-ai-head-to-head.yml'
 
 concurrency:
