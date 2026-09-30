@@ -1,3 +1,40 @@
+# Development History
+
+## 2026-09-30 — Governance v1.3.2 Continuity / Execution Path Refinement
+
+### Requirement
+
+반복되는 Chat 전환마다 긴 Continuation Prompt를 수동으로 복사하는 방식과, GitHub Actions 같은 Fast CI에서 장시간 AI calibration을 직접 수행하는 방식이 개발 연속성과 실행 안정성 측면에서 비효율적인 것으로 확인되었다.
+
+### Observation
+
+- Repository에는 Development Task / Context / Checkpoint / History가 이미 존재하므로 장기 상태의 공식 보존 수단은 Chat Prompt일 필요가 없다.
+- 단순한 “계속 진행해” 요청에도 이전 Chat 내용을 다시 긴 Prompt로 전달해야 하는 운영은 Context 구조가 정상적으로 동작하는지 확인하는 기준을 흐린다.
+- AI level calibration과 같은 장시간 계산은 Fast CI의 quota / timeout / execution constraints와 운영 목적이 다르다.
+- 이번 Janggi calibration 작업에서 GitHub Actions quota가 장시간 계산의 실행 경로와 충돌하는 실제 사례가 확인되었다.
+
+### Decision
+
+1. Repository 기반 Context Recovery를 정상적인 Chat Continuity 경로로 확정하고, Continuation Prompt는 선택적 보조 수단으로만 취급한다.
+2. 새 Chat에서 단순 재개 요청이 들어오면 ACTIVE Development Task를 Registry → Context → Checkpoint → 실제 Git / CI / Deployment 상태 순으로 복구하여 계속한다.
+3. Fast CI는 bounded / repeatable validation에 집중하고, Benchmark / Calibration / Self-play / Training 등 장시간 실행은 별도의 Long-running Execution Path로 분리한다.
+4. 실제 계산이 수행되지 않은 준비 상태는 성공 결과로 기록하지 않고, Execution Infrastructure Ready와 Computation Not Executed를 구분한다.
+5. 장시간 실행 결과는 Evidence / Checkpoint / Context에 귀속하여 Repository를 Source of Truth로 유지한다.
+
+### Result
+
+Governance Version `1.3.2`에서 Chat Continuity와 장시간 실행의 운영 경계를 명문화했다. 향후 새 Chat 시작과 장시간 AI 평가 작업을 특정 Chat 또는 특정 CI 실행환경에 종속시키지 않도록 한다.
+
+### Verification
+
+- `GOVERNANCE/GOVERNANCE.md`에 Continuation Prompt 및 Fast CI / Long-running Execution 운영 규칙 반영
+- `GOVERNANCE/CHANGELOG.md` 및 `GOVERNANCE/VERSION` 동기화
+- `GOVERNANCE/docs/CURRENT_STATUS.md`에 현재 실행 모델 반영
+
+### Next Step
+
+실제 Janggi calibration 작업에서 Repository 기반 복구와 별도 Long-running Execution Path를 사용하고, 반복적인 Continuity 실패가 발견될 경우 추가 Governance 개선 근거로 승격한다.
+
 ## 2026-09-30 — Governance v1.3.0 Development Task Registry
 
 ### Requirement
