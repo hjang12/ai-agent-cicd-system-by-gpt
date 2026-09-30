@@ -1,3 +1,29 @@
+## 50. 2026-09-30 — Separate deterministic search work from routine calibration
+
+### Finding
+
+The level calibration workflow could repeat the same deterministic search-fixture benchmark for every adjacent-level pair even though a dedicated search benchmark workflow already owns that verification.
+
+### Decision
+
+Make calibration self-play the default workload and skip deterministic search fixtures unless explicitly requested. When enabled, fixture results are preserved under `search_fixtures` in the calibration artifact.
+
+### Implementation
+
+- PR #72 adds a manual `run_search_benchmark` workflow input, defaulting to false.
+- `tools/benchmark_ai_levels.py` now returns structured search-fixture rows and includes them in evidence artifacts when requested.
+- The dedicated search benchmark remains the authoritative routine path for deterministic node/move evidence.
+
+### Boundary
+
+This reduces redundant Actions usage without changing public AI level search profiles, evaluator semantics, or gameplay behavior.
+
+### Next Step
+
+After the Actions-minute reset, collect seeded completed-game evidence pair by pair and aggregate it with `tools/evaluate_ai_level_evidence.py`.
+
+---
+
 ## 49. 2026-09-30 — Harden AI calibration evidence and CI cost boundaries
 
 ### Finding
