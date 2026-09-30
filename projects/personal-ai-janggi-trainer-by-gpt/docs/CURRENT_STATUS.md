@@ -190,8 +190,8 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 ## Current Calibration Execution State
 
 - Long-running AI level calibration is intentionally separated from GitHub Actions.
-- Active implementation PR: #82 (Calibration: move long-running AI level evidence off GitHub Actions).
-- PR #82 is not merged yet; its dedicated runner tests were validated in an isolated Python harness, while normal project CI is unavailable on the PR head because the Actions execution path is currently exhausted.
+- Active implementation PR: #83 (Calibration: move long-running AI level evidence off GitHub Actions).
+- PR #83 is not merged yet; its dedicated runner tests were validated in an isolated Python harness, while normal project CI is unavailable on the PR head because the Actions execution path is currently exhausted.
 - The off-CI runner now validates existing artifact identity and avoids cross-setup aggregation.
 - Actual 2-3 / 3-4 / 4-5 / 5-6 calibration computation has not been executed; no strength result is inferred from infrastructure readiness alone.
 
