@@ -45,7 +45,6 @@ def _run(
     subprocess.run(command, cwd=cwd, check=True)
 
 
-
 def _validate_artifact_identity(
     artifact: Path,
     *,
@@ -188,6 +187,7 @@ def main() -> int:
     for pair in pairs:
         for seed in seeds:
             artifact = _artifact_path(output_dir, pair, seed, args.setup)
+            experiment_succeeded = False
             try:
                 _run_experiment(
                     project_root=project_root,
@@ -198,6 +198,7 @@ def main() -> int:
                     games=args.games,
                     max_plies=args.max_plies,
                 )
+                experiment_succeeded = True
             except (subprocess.CalledProcessError, ValueError, RuntimeError) as exc:
                 failure = {
                     "pair": pair,
@@ -214,7 +215,7 @@ def main() -> int:
                 failures.append(failure)
                 if not args.keep_going:
                     raise
-            if artifact.exists():
+            if experiment_succeeded and artifact.exists():
                 completed_artifacts.append(artifact)
 
     aggregate_reports: dict[str, str] = {}
