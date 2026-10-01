@@ -514,7 +514,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn('class="app-shell"', html)
         self.assertIn('class="players"', html)
         self.assertIn('class="game-stage"', html)
-        self.assertIn('class="side-panel"', html)
+        self.assertIn('class="rail rail-right side-panel"', html)
         self.assertIn('class="card"', html)
         self.assertIn("새 대국 설정", html)
         self.assertIn("현재 대국과 분리", html)
