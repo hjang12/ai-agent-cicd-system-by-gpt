@@ -92,6 +92,13 @@ def click_first_player_piece_and_move(page):
     page.locator(".cell.legal").first.click()
 
 
+def wait_ui_idle(page, timeout=15000):
+    page.wait_for_function(
+        """() => !document.querySelector('#player-side')?.disabled""",
+        timeout=timeout,
+    )
+
+
 def wait_player_turn(page, timeout=15000):
     page.wait_for_function(
         """() => {
@@ -135,7 +142,7 @@ def main():
                 page.select_option("#player-side", "han")
                 page.select_option("#ai-level", "6")
                 page.click("#reset")
-                page.wait_for_timeout(300)
+                wait_ui_idle(page)
                 s = state(page)
                 assert s["player_side"] == "han"
                 assert s["ai_side"] == "cho"
@@ -152,7 +159,7 @@ def main():
                 page.select_option("#player-side", "cho")
                 page.select_option("#ai-level", "2")
                 page.click("#reset")
-                page.wait_for_timeout(250)
+                wait_ui_idle(page)
                 s = state(page)
                 assert s["player_side"] == "cho" and s["ai_level"] == "2"
                 assert len(s["state"]["history"]) == 0
@@ -216,14 +223,18 @@ def main():
                 assert_no_viewport_overflow(page, "learning desktop")
 
                 # Review then training; both panels becoming visible would be a likely clipping risk.
-                page.click("#review")
-                expect(page.locator("#review-panel")).to_be_visible()
-                page.click("#training")
-                expect(page.locator("#training-panel")).to_be_visible()
+                expect(page.locator("#learning-review")).to_be_visible()
+                expect(page.locator("#learning-training")).to_be_visible()
+                expect(page.locator("#learning-review")).to_be_enabled()
+                page.click("#learning-review")
+                expect(page.locator("#review-panel")).to_be_visible(timeout=15000)
+                expect(page.locator("#learning-training")).to_be_enabled()
+                page.click("#learning-training")
+                expect(page.locator("#training-panel")).to_be_visible(timeout=15000)
                 g = geometry(page)
                 right = g["right"]
                 if right:
-                    visible_panels = page.locator(".rail-right > section:not([hidden])").count()
+                    visible_panels = page.locator(".rail-right > .analysis:not([hidden]), .rail-right > .review:not([hidden]), .rail-right > .training:not([hidden])").count()
                     assert visible_panels <= 1, (
                         "learning rail exposes multiple stacked panels; likely clipping",
                         visible_panels,
