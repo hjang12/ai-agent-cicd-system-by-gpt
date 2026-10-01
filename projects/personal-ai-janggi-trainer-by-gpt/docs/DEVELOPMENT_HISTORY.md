@@ -1,3 +1,29 @@
+## 62. 2026-10-02 — Setup-first UI merged to main
+
+### Verification
+
+- PR #97 merged to `main` as `218e0bb9ba3065b2b733f2c420d1c560a6f0df6b`.
+- Main post-merge `validate` and `test` checks passed.
+- The setup-first browser scenario suite had already passed on the final pre-merge product UI.
+
+### Product Flow
+
+The browser trainer now uses:
+
+`대국 준비 → 대국 → 재대국 modal → 대국 종료 → 복기/훈련`
+
+During play, persistent visible UI is intentionally limited to player/turn context, the Janggi board, compact move evaluation, undo, and replay. Detailed settings/analysis/review/training surfaces are not persistent in the game screen.
+
+### Boundary
+
+No Janggi rules, Engine/search configuration, HTTP/API contracts, player-assessment semantics, or training-data model were changed.
+
+### Next Step
+
+Resume the existing provenance-aware AI-level calibration task from the remaining 2-3 pair.
+
+---
+
 ## 61. 2026-10-02 — Replace UI drawers with setup-first game flow
 
 ### Requirement
