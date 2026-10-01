@@ -505,7 +505,8 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("cell.style.left = (5 + x * 11.25) + '%'", html)
         self.assertIn("cell.style.top = (5 + y * 10) + '%'", html)
         self.assertIn(".board{", html)
-        self.assertIn("width:min(100%,62vh)", html)
+        self.assertIn("height:min(100%,68dvh)", html)
+        self.assertIn("max-width:min(88vw,860px)", html)
         self.assertIn("board-wrap", html)
         self.assertIn('stroke-width="0.035" fill="none">', html)
 
