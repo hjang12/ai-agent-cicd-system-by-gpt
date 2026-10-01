@@ -178,11 +178,11 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 
 ## Current Priority
 
-1. Keep Render repository/root-directory mapping synchronized with the canonical monorepo.
-2. Keep post-deployment health/smoke verification synchronized with live services.
-3. Synchronize project Context documents with the final live deployment state.
-4. Monitor and improve CI/CD gating and live health-check configuration as tracked Active Issues.
-5. Continue future development only under `projects/<project>/`.
+1. Complete Governance quality review and keep the common operating rules simple, evidence-based, and reusable across projects.
+2. Verify Governance 1.3.3 in CI and record the review result.
+3. Keep Repository / CI / Render state verification grounded in directly observed evidence; do not infer omitted platform fields.
+4. Resume product Development Tasks only after the Governance review reaches a stable checkpoint.
+5. Continue future development under `projects/<project>/` using the finalized common Governance.
 
 ## Next Development Candidates
 
