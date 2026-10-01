@@ -94,7 +94,7 @@ This section is only a navigation summary. The authoritative current status, pri
 - Current CI: `.github/workflows/janggi-validation.yml`
 - Search benchmark: `.github/workflows/janggi-search-benchmark.yml`
 - Workspace validation: `.github/workflows/workspace-validation.yml`
-- Latest Janggi validation: success on `44c67cc` (run #27).
+- Latest Janggi validation: success on run #360 for code-bearing main commit `05ebd5098e11e2a4c74a6475dbe079f77b7062de`; the current main tip is later documentation-only work.
 - Render cutover is complete: the existing service now points to the canonical monorepo and the project Root Directory.
 
 ### Time Dashboard
@@ -104,7 +104,7 @@ This section is only a navigation summary. The authoritative current status, pri
 - Primary server: `timefolio_server.py`
 - Backend regression test suite is preserved under `tests/`.
 - Current CI: `.github/workflows/time-dashboard-ci.yml`
-- Latest Time Dashboard CI: success on `44c67cc` (run #27).
+- Time Dashboard CI remains configured separately; no current review change was made to that project.
 - Render cutover is complete: the existing service now points to the canonical monorepo and the project Root Directory.
 
 ## Migration Record
@@ -130,7 +130,7 @@ Current root workflows:
 
 The first monorepo Janggi validation/benchmark runs failed because the migrated test/benchmark files still reflected pre-monorepo assumptions. The subsequent fixes are now green. The actual current GitHub Actions result, not the historical failure, is the operative state.
 
-## Render State — Verified 2026-09-18
+## Render State — Verified 2026-10-01
 
 Render workspace: `My Workspace` (`tea-da7sjdgu01pc73bsno6g`).
 
@@ -138,13 +138,13 @@ Render service cutover is complete. Both existing services now use the canonical
 
 | Service | Repository | Root Directory | Branch | Auto Deploy | Latest Live Deploy |
 | --- | --- | --- | --- | --- | --- |
-| `personal-ai-janggi-trainer-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/personal-ai-janggi-trainer-by-gpt` | `main` | yes | `f07095ca8f86d7376e925b22e8801f8dfc7522f4` |
+| `personal-ai-janggi-trainer-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/personal-ai-janggi-trainer-by-gpt` | `main` | yes | `05ebd5098e11e2a4c74a6475dbe079f77b7062de` |
 | `time-dashboard-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/time-dashboard-by-gpt` | `main` | yes | `7a7cd7636e50f69deccb4928db1dd20dd4344c77` |
 
 Both services are active and their latest cutover deployments are `live`.
 
 Deployment verification:
-- Janggi deploy `dep-damckfad0e5s73eu325g`: `live`; build succeeded; `python app.py` started; Render reported the service live at its primary URL.
+- Janggi deploy `dep-dauttlhsrm7s73be8qb0`: `live`; build succeeded; `python app.py` started; Render reported the service live at its primary URL.
 - Time Dashboard deploy `dep-damckue7bikc73b4p7ng`: `live`; build succeeded; `python timefolio_server.py` started; a `HEAD /` request returned HTTP 200; Render reported the service live at its primary URL.
 - Time Dashboard had one immediate cutover build failure because `requirements.txt` was not found, followed by a successful retry after the service Root Directory was correctly applied.
 - Current Render service `healthCheckPath` remains empty for both services. The applications expose Janggi `/api/health`; Time Dashboard has a root endpoint returning HTTP 200. Explicit Render health-check configuration is therefore still a platform-setting improvement, not a deployment blocker.
