@@ -173,7 +173,7 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 - Destructive cleanup is complete; future development must target the canonical monorepo only.
 - Pre-deletion gate verification completed on 2026-09-18: both Render services pointed to the canonical monorepo, latest relevant CI runs were green, and no duplicate Render services existed.
 - A strict CI-success-before-deploy gate is not currently enforced. Render remains commit-triggered auto deploy, so CI and deployment are independently triggered.
-- Live Render `healthCheckPath` is still empty for both services even though the repository Blueprint declares `/api/health`; this is a platform-setting hardening item.
+- Connected Render service metadata does not expose the live `healthCheckPath` field; this remains an observability limitation. The repository Blueprint and Janggi application both declare/provide `/api/health`, and no live outage is inferred from the missing metadata.
 - The connected GitHub repository list currently exposes the GPT monorepo and the two historical project repositories; no active `personal-mcp-server` repository was present in that current list, so older documentation referring to it is treated as stale.
 
 ## Current Priority
