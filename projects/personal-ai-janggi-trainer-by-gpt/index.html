@@ -367,15 +367,6 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
         <div class="assessment-note" id="player-assessment-note">AI 보정 전에는 Rating을 산출하지 않습니다.</div>
       </section>
 
-      <section class="card">
-        <div class="section-title"><h3>대국 도구</h3><small>현재 판</small></div>
-        <div class="tool-grid">
-          <button class="secondary" id="undo" disabled>한 턴 되돌리기</button>
-          <button class="secondary" id="engine">AI 수 다시 두기</button>
-          <button class="secondary" id="review" disabled>최근 복기</button>
-          <button class="secondary" id="training" disabled>훈련 문제</button>
-        </div>
-      </section>
     </aside>
 
     <section class="game-stage" aria-label="대국">
@@ -448,11 +439,11 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
       </section>
 
       <div class="game-controls">
-        <button class="secondary" id="review-inline" disabled>최근 복기</button>
-        <button class="secondary" id="training-inline" disabled>훈련 문제</button>
-        <button class="secondary" id="engine-inline" disabled>AI 다시 두기</button>
-        <button class="secondary" id="undo-inline" disabled>되돌리기</button>
-        <button class="primary" id="reset-inline" disabled>새 대국은 왼쪽 설정에서 시작</button>
+        <button class="secondary" id="undo" disabled>한 턴 되돌리기</button>
+        <button class="secondary" id="review" disabled>최근 복기</button>
+        <button class="secondary" id="training" disabled>훈련 문제</button>
+        <button class="secondary" id="engine">AI 수 다시 두기</button>
+        <button class="primary" id="reset">이 설정으로 새 대국 시작</button>
       </div>
     </section>
 
