@@ -1,4 +1,4 @@
-from .ai_level import AI_LEVELS, AILevel, AILevelSpec, ai_level_payload, get_ai_level
+from .ai_level import AI_LEVELS, AILevel, AILevelSpec, ai_level_configuration_fingerprint, ai_level_payload, get_ai_level
 from .analysis import Analyzer, MoveAnalysis, TacticalMotif, TacticalRisk
 from .coaching import CoachingInsight, CoachingReason, CoachingSeverity, coach_move
 from .core import GameState, Move, Piece, PieceType, Side
@@ -94,6 +94,7 @@ __all__ = [
     "extract_value_features",
     "validate_value_score",
     "ValidationStatus",
+    "ai_level_configuration_fingerprint",
     "ai_level_payload",
     "get_ai_level",
     "coach_move",
