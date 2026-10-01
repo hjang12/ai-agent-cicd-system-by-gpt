@@ -239,6 +239,7 @@ select{
 .game-actions{display:flex;gap:7px}
 .game-actions .secondary{min-height:40px}
 #engine{display:none}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .match-result{
   position:absolute;z-index:20;left:50%;top:50%;transform:translate(-50%,-50%);
   width:min(520px,calc(100vw - 28px));padding:18px;
@@ -395,6 +396,7 @@ select{
   <div id="heading" class="sr-only" aria-live="polite"></div>
   <div id="game-message" class="sr-only" aria-live="polite"></div>
 
+  <div class="dashboard" id="compat-dashboard" hidden></div>
   <div id="runtime-compat" hidden aria-hidden="true">
     <button id="settings-toggle" type="button"></button>
     <button id="learning-toggle" type="button"></button>
