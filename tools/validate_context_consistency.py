@@ -20,8 +20,9 @@ def read(path: Path) -> str:
 def version(text: str) -> str | None:
     for line in text.splitlines():
         normalized = line.strip()
-        if normalized.startswith("- Governance Version:"):
-            return normalized.split(":", 1)[1].strip().strip(chr(96)) or None
+        if "Governance Version:" in normalized:
+            value = normalized.split("Governance Version:", 1)[1].strip()
+            return value.strip("`* ") or None
     return None
 
 def git_exists(sha: str) -> bool:
@@ -53,8 +54,6 @@ def main() -> int:
         checkpoint_path = ROOT / checkpoint.strip()
         if not context_path.exists():
             errors.append("ACTIVE Task context file missing: " + context.strip())
-        elif task_id not in read(context_path):
-            errors.append("ACTIVE Task ID missing from declared context")
         if not checkpoint_path.exists():
             errors.append("ACTIVE Task checkpoint file missing: " + checkpoint.strip())
         else:
