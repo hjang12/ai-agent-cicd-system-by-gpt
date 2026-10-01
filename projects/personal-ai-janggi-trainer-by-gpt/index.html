@@ -51,7 +51,9 @@ button:focus-visible,select:focus-visible{outline:3px solid #3158d455;outline-of
 .topbar-actions{display:flex;align-items:center;gap:5px;min-width:0}
 .header-action{height:34px;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font-size:.72rem;font-weight:900;white-space:nowrap;box-shadow:0 2px 6px #19233208}
 .header-action:hover:not(:disabled){border-color:var(--line-strong);background:#fbfcfd}
-.header-action.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.header-action{color:var(--ink)}
+.header-action.active{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+
 .dashboard{min-width:0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
 .dashboard.settings-open{grid-template-columns:minmax(280px,320px) minmax(0,1fr)}
 .dashboard.learning-open{grid-template-columns:minmax(0,1fr) minmax(320px,390px)}
@@ -170,7 +172,9 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
   .brand-mark{width:32px;height:32px;border-radius:9px}
   .brand-title{font-size:.88rem}
   .turn-indicator{display:none}
-  .header-action{height:32px;padding:0 8px;font-size:.67rem}
+  .header-action{height:32px;padding:0 8px;font-size:.67rem;min-width:0}
+  .topbar-actions #learning-toggle{min-width:64px}
+
   .dashboard{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr)}
   .dashboard.settings-open,.dashboard.learning-open{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
   .game-stage{grid-row:1}
@@ -1175,6 +1179,7 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
       const current = pieceAt(stateY * 9 + stateX);
       if (!selected) {
         if (current && current.side === snapshot.state.turn) {
+          clearBoardMessage();
           selected = [stateX, stateY];
           showGameMessage('');
           status.textContent = '이동할 수 있는 칸을 선택하세요.';
@@ -1210,7 +1215,9 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
         const beforeSnapshot = snapshot;
         pendingPlayerMove = move;
         selected = null;
-        status.textContent = '내 수를 먼저 반영했습니다 · AI를 기다리는 중입니다…';
+        clearBoardMessage();
+        status.textContent = '내 수가 먼저 반영되었습니다 · AI를 기다리는 중입니다…';
+        showBoardMessage('내 수 반영 · AI 응수 준비 중…', '잠시만 기다려 주세요.', {thinking:true, durationMs:0});
         render();
         await waitForPaint();
 
