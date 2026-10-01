@@ -167,14 +167,23 @@ def main():
                 assert not page.locator("#settings-toggle").get_attribute("aria-expanded") == "true"
 
                 # Scenario 4: human move rendering before AI computation.
-                # Slow only /api/move to force the pending-player-move render to be observable.
-                page.route("**/api/move", lambda route: (time.sleep(0.8), route.continue_())[1])
+                # Delay the browser fetch asynchronously so the DOM can render the pending move
+                # before the API response arrives.
+                page.evaluate("""() => {
+                  const originalFetch = window.fetch;
+                  window.fetch = async (...args) => {
+                    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
+                    if (url.endsWith('/api/move')) {
+                      await new Promise(resolve => setTimeout(resolve, 900));
+                    }
+                    return originalFetch(...args);
+                  };
+                }""")
                 click_first_player_piece_and_move(page)
                 page.wait_for_timeout(120)
                 pending_status = page.locator("#status").text_content() or ""
                 assert "내 수를 먼저 반영했습니다" in pending_status, pending_status
                 page.screenshot(path=screenshots / "03-pending-human-move.png", full_page=False)
-                page.unroute("**/api/move")
                 def delayed_move(route):
                     import time as _time
                     request = route.request
