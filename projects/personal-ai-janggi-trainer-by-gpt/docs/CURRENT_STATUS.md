@@ -129,7 +129,7 @@ GitHub Actions workflow: `../../.github/workflows/janggi-validation.yml` (reposi
 - Python: `3.12`
 - Compile: `python -m compileall janggi tests tools`
 - Test: `python -m unittest discover -s tests -v`
-- Workspace gate: `tools/validate_workspace.py` also runs `tools/validate_context_consistency.py`.
+- Workspace validation runs `tools/validate_workspace.py`; no separate context-consistency parser is part of the current Governance validation path.
 
 Search benchmark workflow: `../../.github/workflows/janggi-search-benchmark.yml` (repository-root path `.github/workflows/janggi-search-benchmark.yml`)
 
