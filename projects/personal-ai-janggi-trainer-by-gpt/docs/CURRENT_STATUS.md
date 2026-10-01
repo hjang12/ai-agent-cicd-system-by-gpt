@@ -175,7 +175,7 @@ Verified live Render state on 2026-10-01:
 - Start: `python app.py`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`
 
-Later main commits through the documentation review are documentation-only and are outside the service build filter, so the live service remains on the last code-bearing deployment without implying code drift. The Render Blueprint declares `/api/health`. The connected Render service metadata currently does not expose a mutable health-check field through the available toolset; this is tracked as the existing workspace platform hardening item, not as a user action or application outage.
+Later main commits through the documentation review are documentation-only but are inside the Janggi service build filter, so Render can legitimately redeploy them. They do not change application code or the application runtime behavior. The Render Blueprint declares `/api/health`. The connected Render service metadata currently does not expose a mutable health-check field through the available toolset; this is tracked as the existing workspace platform hardening item, not as a user action or application outage.
 
 ## Explicitly Deferred
 
