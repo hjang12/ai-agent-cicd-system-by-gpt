@@ -94,7 +94,7 @@ This section is only a navigation summary. The authoritative current status, pri
 - Current CI: `.github/workflows/janggi-validation.yml`
 - Search benchmark: `.github/workflows/janggi-search-benchmark.yml`
 - Workspace validation: `.github/workflows/workspace-validation.yml`
-- Latest Janggi validation: success on run #360 for code-bearing main commit `05ebd5098e11e2a4c74a6475dbe079f77b7062de`; the current main tip is later documentation-only work.
+- Fast Janggi validation is maintained by `.github/workflows/janggi-validation.yml`; exact run IDs and result snapshots belong in dated verification/history records.
 - Render cutover is complete: the existing service now points to the canonical monorepo and the project Root Directory.
 
 ### Time Dashboard
@@ -123,7 +123,7 @@ The former project repositories were deleted after the pre-deletion verification
 
 Current root workflows:
 
-- Janggi validation — success on current `main`
+- Janggi validation — governed by the mandatory fast CI workflow; exact execution snapshots are recorded with the relevant commit.
 - Janggi search benchmark — success on current `main` (run #20)
 - Time Dashboard CI — success on current `main` (run #27)
 - Workspace structure validation — success on current `main` (run #6)
@@ -144,7 +144,7 @@ Render service cutover is complete. Both existing services now use the canonical
 Both services are active and their latest cutover deployments are `live`.
 
 Deployment verification:
-- Janggi deploy `dep-dauttlhsrm7s73be8qb0`: `live`; build succeeded; `python app.py` started; Render reported the service live at its primary URL.
+- The Janggi Render service has been independently verified live; exact deployment IDs and runtime snapshots belong in dated verification/history records.
 - Time Dashboard deploy `dep-damckue7bikc73b4p7ng`: `live`; build succeeded; `python timefolio_server.py` started; a `HEAD /` request returned HTTP 200; Render reported the service live at its primary URL.
 - Time Dashboard had one immediate cutover build failure because `requirements.txt` was not found, followed by a successful retry after the service Root Directory was correctly applied.
 - Current Render service `healthCheckPath` remains empty for both services. The applications expose Janggi `/api/health`; Time Dashboard has a root endpoint returning HTTP 200. Explicit Render health-check configuration is therefore still a platform-setting improvement, not a deployment blocker.
