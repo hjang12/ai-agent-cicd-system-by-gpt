@@ -3,7 +3,7 @@
 ## Governance
 
 - Common Governance Repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Governance Version: `1.3.1`
+- Governance Version: `1.3.2`
 - Governance status: active baseline on `main`
 - Project context entrypoint: `AGENT_START.md`
 
@@ -99,15 +99,18 @@
 ## Latest Verification (2026-10-01)
 
 - UI redesign merged to `main` as PR #89, merge commit `2886a0d940f951929edc6d53f501e1133018cc44`.
-- Post-merge Workspace validation run #358 completed successfully.
-- Post-merge Janggi validation run #358 completed successfully after compile, Requirement Contract validation, and the full unit-test suite (`303` tests) passed.
+- Post-merge Janggi validation run #360 completed successfully on the code-bearing main commit `05ebd5098e11e2a4c74a6475dbe079f77b7062de`; compile, Requirement Contract validation, and the full unit-test suite (`303` tests) passed.
+- Post-merge Workspace validation run #361 completed successfully on the same code-bearing main commit.
 - The PR initially exposed one stale browser regression assertion for the removed v2 board-width rule; that assertion was updated and the rerun passed. No product logic failure was identified.
 - Static main verification confirms UX-004 layout rules are present and the former fixed-drawer / full-screen overlay CSS is absent.
-- Render Blueprint is still canonical; live production verification for this commit could not be completed from the current agent session because the connected Render workspace is not selected and the public service URL is not accessible through the available web verifier.
+- Render workspace access is restored. The current Render service is confirmed `live` on the code-bearing main commit `05ebd5098e11e2a4c74a6475dbe079f77b7062de`; build and `python app.py` startup logs are normal.
+- External browser/UI smoke verification is still unavailable from this agent runtime because the available web verifier rejects the public Render URL and the runtime cannot resolve the public hostname. This is a verification-environment limitation, not a confirmed product or Render outage.
 
 ## Active Execution Constraints
 
-- `ACTIVE_ISSUES.md` records the two unresolved environment-level blockers: Render dashboard/live verification access and off-CI calibration execution access.
+- The authoritative workspace issue index is `../../../GOVERNANCE/docs/ACTIVE_ISSUES.md`.
+- Off-CI provenance-aware calibration for 2-3 through 5-6 still requires an execution environment capable of running the private repository outside the fast CI path.
+- Live Render deployment state is verified through Render tooling, but direct browser/UI smoke verification remains unavailable from this agent runtime.
 
 ## Development Safety
 
@@ -159,20 +162,20 @@ Render target Blueprint:
 - Start: `python app.py`
 - Desired health check: `/api/health`
 
-Verified live Render state on 2026-09-21:
+Verified live Render state on 2026-10-01:
 - Service: `personal-ai-janggi-trainer-by-gpt`
 - Repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
 - Branch: `main`
 - Auto Deploy: enabled
-- Latest live deployment commit: `f3d2f49dedb6ff1dba70fcc09f5307b04e2822f1`
-- Deployment: `dep-dao9rseq1p3s73d3aeq0`
+- Latest code-bearing live deployment commit: `05ebd5098e11e2a4c74a6475dbe079f77b7062de`
+- Deployment: `dep-dauttlhsrm7s73be8qb0`
 - Deployment status: `live`
 - Build: succeeded (`python -m compileall janggi tests`)
 - Start: `python app.py`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`
 
-The service is now running from the canonical monorepo. Render Blueprint currently configures `/api/health` as the platform health check. The last independently recorded live verification remains the 2026-09-21 deployment; current-commit live verification is tracked as an environment-access blocker.
+Later main commits through the documentation review are documentation-only and are outside the service build filter, so the live service remains on the last code-bearing deployment without implying code drift. The Render Blueprint declares `/api/health`. The connected Render service metadata currently does not expose a mutable health-check field through the available toolset; this is tracked as the existing workspace platform hardening item, not as a user action or application outage.
 
 ## Explicitly Deferred
 
