@@ -153,6 +153,7 @@ def main():
                 assert len(s["state"]["history"]) >= 1
                 assert s["state"]["turn"] == "han"
                 assert "한" in page.locator("#player-name").text_content()
+                assert "한 선택 완료" in page.locator(".board-message-title").text_content()
                 page.screenshot(path=screenshots / "02-han-lv6.png", full_page=False)
                 assert_no_viewport_overflow(page, "Han Lv6 desktop")
 
@@ -161,10 +162,12 @@ def main():
                 page.click("#settings-toggle")
                 page.select_option("#player-side", "cho")
                 page.select_option("#ai-level", "2")
+                page.select_option("#setup", "left")
                 page.click("#reset")
                 wait_ui_idle(page)
                 s = state(page)
                 assert s["player_side"] == "cho" and s["ai_level"] == "2"
+                assert s["setup"] == "left"
                 assert len(s["state"]["history"]) == 0
                 assert s["state"]["turn"] == "cho"
                 assert not page.locator("#settings-toggle").get_attribute("aria-expanded") == "true"
@@ -186,7 +189,7 @@ def main():
                 click_first_player_piece_and_move(page)
                 page.wait_for_timeout(120)
                 pending_status = page.locator("#status").text_content() or ""
-                assert "내 수를 먼저 반영했습니다" in pending_status, pending_status
+                assert "내 수가 먼저 반영되었습니다" in pending_status, pending_status
                 assert page.locator(".cell.last-move-from").count() == 1
                 assert page.locator(".cell.last-move-to").count() == 1
                 page.screenshot(path=screenshots / "03-pending-human-move.png", full_page=False)
