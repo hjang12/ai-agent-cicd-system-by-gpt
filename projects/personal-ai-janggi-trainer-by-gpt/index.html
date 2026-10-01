@@ -1059,9 +1059,14 @@ select{
         status.textContent = fallback;
         return;
       }
-      const label = severityLabels[coaching.severity] || coaching.severity || '착수 평가';
-      const message = coaching.message || '';
-      status.textContent = message ? label + ' · ' + message : label;
+      const compact = {
+        recommended: '좋은 수입니다.',
+        acceptable: '괜찮은 수입니다.',
+        inaccuracy: '조금 부정확한 수입니다.',
+        major_mistake: '주의가 필요한 수입니다.',
+        unavailable: '간단한 평가를 확인하기 어렵습니다.'
+      };
+      status.textContent = compact[coaching.severity] || '착수를 확인했습니다.';
     }
 
     function syncSetupOptions() {
