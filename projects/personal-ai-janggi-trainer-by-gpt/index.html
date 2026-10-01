@@ -1169,7 +1169,7 @@ select{
         : (terminal
           ? terminalMessage(snapshot.status)
           : (waitingForAi
-            ? '내 수가 먼저 반영되었습니다 · AI를 기다리는 중입니다…'
+            ? '내 수가 반영되었습니다 · 착수를 평가하는 중입니다…'
             : (view.state.turn === snapshot.player_side
               ? '내 차례 · 말을 선택하세요'
               : 'AI 차례 · 응수를 기다리는 중입니다')));
@@ -1340,7 +1340,7 @@ select{
           showGameMessage('AI의 응수가 완료되었습니다.');
           clearBoardMessage();
           heading.textContent = 'AI가 응수했습니다 · 내 차례';
-          setMoveComment(null, lastMoveCoaching ? status.textContent : 'AI가 응수했습니다 · 내 차례입니다.');
+          setMoveComment(lastMoveCoaching, 'AI가 응수했습니다 · 내 차례입니다.');
         }
       } catch (error) {
         status.textContent = error.message;
