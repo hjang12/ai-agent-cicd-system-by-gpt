@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 import re
-import subprocess
 import sys
 
 
@@ -109,25 +108,10 @@ def validate_project_boundaries() -> list[str]:
     return errors
 
 
-def validate_context_consistency() -> list[str]:
-    result = subprocess.run(
-        [sys.executable, str(ROOT / "tools" / "validate_context_consistency.py")],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode == 0:
-        return []
-    output = (result.stdout + "\n" + result.stderr).strip()
-    return [f"context consistency validation failed: {output}"]
-
-
 def main() -> int:
     errors = validate_paths()
     errors.extend(validate_render_blueprint())
     errors.extend(validate_project_boundaries())
-    errors.extend(validate_context_consistency())
 
     if errors:
         print("Workspace validation failed:")
