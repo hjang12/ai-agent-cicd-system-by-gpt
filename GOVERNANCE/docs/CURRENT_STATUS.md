@@ -79,7 +79,7 @@ Current Active Issue Index: `GOVERNANCE/docs/ACTIVE_ISSUES.md`
 Current active items are maintained in `GOVERNANCE/docs/ACTIVE_ISSUES.md`:
 
 - `ISSUE-001` — CI-success-before-deploy strict gate is not enforced; the current verification date is maintained in the Active Issue Index.
-- `ISSUE-002` — Render live `healthCheckPath` is empty while repository Blueprint declares an explicit health endpoint; the current verification date is maintained in the Active Issue Index.
+- `ISSUE-002` — Render live `healthCheckPath` is not independently exposed by the current connected service metadata; repository Blueprint and application health endpoint remain aligned.
 
 This section is only a navigation summary. The authoritative current status, priority, next action, blocker, and verification date are maintained in `ACTIVE_ISSUES.md`.
 
