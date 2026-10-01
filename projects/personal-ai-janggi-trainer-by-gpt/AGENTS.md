@@ -16,3 +16,5 @@
 - 새 요구사항이 기존 `ACTIVE` Contract와 충돌하면 조용히 기존 동작을 변경하지 말고 충돌·영향·대안을 사용자에게 보고한 후 Contract 상태 변경을 진행한다.
 - Contract의 회귀 테스트나 정의를 의도적으로 변경할 때는 CI 변경 통제 규칙에 맞춰 `CONTRACT-CHANGE: <ID>`를 명시하고 History를 남긴다.
 - 불확실한 부분은 추측하지 말고 실제 구현/테스트 결과를 확인한다.
+
+- `docs/CURRENT_STATUS.md`는 durable product/context 상태만 보존한다. 정확한 CI run ID, Render deployment ID, 현재 live commit처럼 빠르게 변하는 telemetry는 Current Status에 누적하지 않고 날짜가 있는 Verification / History / Checkpoint 기록에 남긴다.
