@@ -63,6 +63,7 @@ button:focus-visible,select:focus-visible{outline:3px solid #3158d455;outline-of
 .card{padding:12px}
 .analysis,.review,.training{padding:12px;overflow:auto}
 .rail-right > .analysis[hidden],.rail-right > .review[hidden],.rail-right > .training[hidden]{display:none}
+.learning-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:none}
 .rail-right > .analysis:not([hidden]),.rail-right > .review:not([hidden]),.rail-right > .training:not([hidden]){flex:0 0 auto;max-height:100%}
 .section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
 .section-title h2,.section-title h3,.analysis h3,.review h3,.training h3{margin:0}
@@ -347,6 +348,11 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
     </section>
 
     <aside class="rail rail-right side-panel" aria-label="분석과 학습">
+      <div class="learning-actions" aria-label="분석과 학습 작업">
+        <button class="secondary" id="learning-review" type="button" disabled>최근 대국 복기</button>
+        <button class="secondary" id="learning-training" type="button" disabled>훈련 문제 만들기</button>
+      </div>
+
       <div class="analysis" id="analysis" hidden>
         <div class="section-title"><h3>착수 분석</h3><small>현재 수</small></div>
         <div class="analysis-row"><span>평가</span><strong id="severity" class="severity"></strong></div>
@@ -507,6 +513,8 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
     const dashboard = document.querySelector('.dashboard');
     const settingsToggle = document.querySelector('#settings-toggle');
     const learningToggle = document.querySelector('#learning-toggle');
+    const learningReview = document.querySelector('#learning-review');
+    const learningTraining = document.querySelector('#learning-training');
     const trainingAccuracy = document.querySelector('#training-accuracy');
     const reasonAccuracySummary = document.querySelector('#reason-accuracy-summary');
     const trainingList = document.querySelector('#training-list');
@@ -694,9 +702,12 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
       const canUndo = Boolean(snapshot?.can_undo);
       reset.disabled = busy;
       undo.disabled = busy || !canUndo;
+      const hasHistory = Boolean(snapshot?.state?.history?.length);
       engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== snapshot?.ai_side;
       review.disabled = busy || !hasHistory;
       training.disabled = busy || !hasHistory;
+      learningReview.disabled = busy || !hasHistory;
+      learningTraining.disabled = busy || !hasHistory;
       setup.disabled = busy;
       playerSide.disabled = busy;
       aiLevel.disabled = busy;
@@ -809,6 +820,9 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
       busy = true;
       updateControls();
       try {
+        analysisPanel.hidden = true;
+        nextAction.hidden = true;
+        reviewPanel.hidden = true;
         status.textContent = '복기에서 훈련 문제를 만드는 중입니다…';
         const result = await post('/api/training/problems', {review_limit: 20, problem_limit: 5});
         renderTrainingProblems(result);
@@ -1291,6 +1305,8 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
       updateControls();
       try {
         clearTrainingMode();
+        analysisPanel.hidden = true;
+        nextAction.hidden = true;
         status.textContent = '최근 대국을 복기하는 중입니다…';
         const result = await post('/api/review', {limit: 20});
         renderReview(result);
@@ -1330,11 +1346,14 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
         dashboard.classList.add('learning-open');
         learningToggle.classList.add('active');
         learningToggle.setAttribute('aria-expanded', 'true');
+        updateControls();
       }
     });
 
     training.addEventListener('click', startTrainingProblems);
     review.addEventListener('click', runReview);
+    learningReview.addEventListener('click', runReview);
+    learningTraining.addEventListener('click', startTrainingProblems);
     postgameReview.addEventListener('click', runReview);
     postgameTraining.addEventListener('click', startTrainingProblems);
     postgameReset.addEventListener('click', () => reset.click());
