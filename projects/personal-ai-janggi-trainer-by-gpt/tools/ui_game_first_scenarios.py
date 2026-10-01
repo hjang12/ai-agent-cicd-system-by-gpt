@@ -168,7 +168,7 @@ def main():
                   };
                 }""")
                 move_one_piece(page, "초")
-                await page.wait_for_timeout(120)
+                page.wait_for_timeout(120)
                 assert "착수 평가 중" in (page.locator("#status").text_content() or ""), page.locator("#status").text_content()
                 page.screenshot(path=artifact_dir / "05-move-evaluation-pending.png", full_page=False)
                 page.evaluate("() => { window.fetch = window.__origFetch; }")
