@@ -85,6 +85,14 @@
 - Position-training problems preserve the original pre-move state, hide the target move by default, and reuse the existing coaching reason/severity contract
 - Training metrics reset with the match and are never promoted to persistent user or model-training data; problem-level repeated-mistake counts and reason-specific accuracy are derived from the same ephemeral counts, and adaptive selection uses those counts only for the current session
 
+## Current UI Direction
+
+- Primary trainer screen is being rebuilt as a scroll-free single-screen web app.
+- The board is the visual center; settings/assessment are grouped on the left rail and analysis/review/training on the right rail.
+- The browser viewport is the application boundary: page overflow is disabled and the main shell uses 100dvh with fixed grid regions and min-height: 0.
+- Existing UX-001 and UX-002 gameplay feedback contracts remain protected. The new UX-003 contract protects the single-screen/no-page-scroll behavior.
+- This UI redesign is independent from Engine/search implementation so the later AI-strength review can evaluate the product as a whole on the new screen structure.
+
 ## Development Safety
 
 - Requirement Contract Registry: `docs/requirement_contracts.json`
