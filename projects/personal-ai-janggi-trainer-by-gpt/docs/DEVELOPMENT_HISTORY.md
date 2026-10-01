@@ -1,3 +1,31 @@
+## 60. 2026-10-01 — Scenario-based browser UI verification and responsive hardening
+
+### Finding
+
+A real-user scenario pass exposed several concrete UI defects that static inspection did not reveal: an undefined `hasHistory` runtime reference, stale status text during the human-to-AI handoff, the initial board message persisting over a later move, mobile board aspect-ratio distortion at narrow widths, a small mobile settings-rail overflow, and the analysis/learning header control rendering without a usable visual state at narrow widths.
+
+### Decision
+
+Keep the existing game-first architecture and fix only the user-flow/state-rendering and responsive layout defects. Do not add new UI state layers or change the API/engine boundaries.
+
+### Verification
+
+- Chromium browser scenarios were executed on test commit `444ba1b63ceaefa3fb054c2e270e7a83e25bd1fc`.
+- Final run `36833490291` passed the browser UI job, the existing Janggi test job, and validation.
+- Scenarios covered initial launch, side/difficulty selection, mid-game reset, alternate setup, pending human-move rendering, undo, review/training access, session isolation, and responsive states.
+- Responsive checkpoints: 1280×720, 1024×768, 821×700, 820×1180, 390×844, 360×800, and 320×568.
+- Final screenshots were reviewed for desktop, pending-move, 820×1180, and narrow-mobile states.
+
+### Product Boundary
+
+No Janggi rules, API contracts, session-isolation semantics, engine/search configuration, public AI-level budgets, player-assessment semantics, or training-model boundaries were changed.
+
+### Next Step
+
+Merge the production UI-only fix branch after the normal main validation gate, then resume the existing AI-level calibration task.
+
+---
+
 ## 59. 2026-10-01 — Post-merge UI verification and calibration handoff
 
 ### Verification
