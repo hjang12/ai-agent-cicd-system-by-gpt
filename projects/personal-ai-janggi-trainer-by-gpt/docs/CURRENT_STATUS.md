@@ -99,8 +99,8 @@
 ## Latest Verification (2026-10-01)
 
 - UI redesign merged to `main` as PR #89, merge commit `2886a0d940f951929edc6d53f501e1133018cc44`.
-- Post-merge Janggi validation run #360 completed successfully on the code-bearing main commit `05ebd5098e11e2a4c74a6475dbe079f77b7062de`; compile, Requirement Contract validation, and the full unit-test suite (`303` tests) passed.
-- Post-merge Workspace validation run #361 completed successfully on the same code-bearing main commit.
+- The last verified code-bearing Janggi validation passed compile, Requirement Contract validation, and the full unit-test suite; exact run/commit identifiers are preserved in dated verification/history records.
+- The last verified Workspace validation passed; exact run/commit identifiers are preserved in dated verification/history records.
 - The PR initially exposed one stale browser regression assertion for the removed v2 board-width rule; that assertion was updated and the rerun passed. No product logic failure was identified.
 - Static main verification confirms UX-004 layout rules are present and the former fixed-drawer / full-screen overlay CSS is absent.
 - Render workspace access is restored. The current Render service is confirmed `live` on the code-bearing main commit `05ebd5098e11e2a4c74a6475dbe079f77b7062de`; build and `python app.py` startup logs are normal.
