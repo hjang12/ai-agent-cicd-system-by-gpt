@@ -1098,7 +1098,7 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
       const waitingForAi = Boolean(pendingPlayerMove) && !trainingPosition && !terminal;
       turn.textContent = trainingPosition
         ? '훈련 문제 차례: ' + (sideLabels[turnSide] || turnSide)
-        : (terminal ? '대국 종료' : (waitingForAi ? 'AI 응수 중' : '현재 차례: ' + (sideLabels[turnSide] || turnSide))));
+        : (terminal ? '대국 종료' : (waitingForAi ? 'AI 응수 중' : '현재 차례: ' + (sideLabels[turnSide] || turnSide)));
       status.textContent = trainingPosition
         ? '포지션 훈련 중'
         : (terminal
