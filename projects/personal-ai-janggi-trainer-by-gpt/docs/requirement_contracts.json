@@ -75,6 +75,25 @@
         }
       ],
       "change_policy": "INTENTIONAL_CHANGE_REQUIRES_REPORT"
+    },
+    {
+      "id": "UX-003",
+      "status": "ACTIVE",
+      "title": "Trainer is a scroll-free single-screen web app",
+      "requirement": "The primary trainer experience must fit within the browser viewport without page scrolling. The match board remains the visual center, while settings, assessment, analysis, review, and training stay within fixed-height application regions.",
+      "source": "User-requested product UI direction, confirmed on 2026-10-01.",
+      "protected_paths": [
+        "index.html",
+        "tests/test_app.py",
+        "docs/DEVELOPMENT_HISTORY.md"
+      ],
+      "regression_tests": [
+        {
+          "file": "tests/test_app.py",
+          "symbol": "test_browser_single_screen_layout_contract"
+        }
+      ],
+      "change_policy": "INTENTIONAL_CHANGE_REQUIRES_REPORT"
     }
   ]
 }
