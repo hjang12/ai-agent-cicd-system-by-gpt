@@ -24,6 +24,7 @@
   --radius:16px;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{width:100%;height:100%;margin:0;overflow:hidden}
 body{
   background:linear-gradient(180deg,#f6f8fb 0%,var(--bg) 100%);
@@ -405,7 +406,7 @@ select{
     <button id="review" type="button"></button>
     <button id="training" type="button"></button>
     <button id="engine" type="button"></button>
-    <span id="match-badge"></span>
+    <span id="match-badge"></span><span id="opponent-rating"></span>
     <span id="player-record"></span><span id="player-rating-status"></span>
     <span id="player-rating-card"></span><span id="player-games"></span><span id="player-win-rate"></span>
     <span id="player-assessment-state"></span><span id="player-assessment-note"></span>
