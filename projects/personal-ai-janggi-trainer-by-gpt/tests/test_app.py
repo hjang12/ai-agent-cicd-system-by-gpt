@@ -505,7 +505,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("cell.style.left = (5 + x * 11.25) + '%'", html)
         self.assertIn("cell.style.top = (5 + y * 10) + '%'", html)
         self.assertIn(".board{", html)
-        self.assertIn("width:min(100%,660px)", html)
+        self.assertIn("width:min(100%,62vh)", html)
         self.assertIn("board-wrap", html)
         self.assertIn('stroke-width="0.035" fill="none">', html)
 
@@ -522,6 +522,16 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("<strong>한 선택</strong>", html)
         self.assertIn("이 설정으로 새 대국을 시작하면 초가 먼저", html)
         self.assertIn("renderAssessment(snapshot?.assessment, snapshot?.opponent)", html)
+
+    def test_browser_single_screen_layout_contract(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("html,body{width:100%;height:100%;margin:0;overflow:hidden}", html)
+        self.assertIn("height:100dvh", html)
+        self.assertIn("grid-template-rows:56px minmax(0,1fr)", html)
+        self.assertIn("grid-template-columns:260px minmax(0,1fr) 318px", html)
+        self.assertIn("min-height:0", html)
+        self.assertIn("class="rail rail-right side-panel"", html)
+        self.assertIn("viewport", html)
 
     def test_browser_postgame_learning_loop_contract(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
