@@ -98,10 +98,11 @@
 
 ## Latest Verification (2026-10-02)
 
-- A dedicated Chromium scenario suite validated the new setup-first game flow on commit `b86d9d2e517fe1942042dd4dde43c6346a39b648`.
-- Verified: setup-only initial view, Lv.6/Han start, replay modal open/cancel, Cho/Lv.2 replay start, immediate human-move presentation, compact move evaluation, AI handoff, and single-screen responsive layout at 1024×768, 820×1180, 390×844, 360×800, and 320×568.
-- The final scenario run passed after correcting hidden-state CSS, runtime compatibility elements, compact evaluation wording, and test harness assumptions.
-- Screenshots were reviewed for setup, active game, replay modal, move-evaluation state, desktop response, and narrow mobile states.
+- PR #97 (`feat: replace Janggi UI with setup-first game flow`) merged to `main` as `218e0bb9ba3065b2b733f2c420d1c560a6f0df6b`.
+- The final Chromium scenario suite passed for the setup-first UI before merge. It covered setup-only initial entry, Lv.6/Han start, replay modal open/cancel, Cho/Lv.2 replay start, human move before AI, compact move evaluation, and responsive single-screen states at 1024×768, 820×1180, 390×844, 360×800, and 320×568.
+- Post-merge main `validate` and `test` checks both passed.
+- The visible product flow is now: `대국 준비 → 대국 → 재대국(동일 설정 modal) → 대국 종료 후 복기/훈련`.
+- UX-004 is superseded and UX-005 is the active UI contract.
 
 ## Active Execution Constraints
 
