@@ -1,3 +1,30 @@
+## 57. 2026-10-01 — Rebuild trainer as a scroll-free single-screen web app
+
+### Requirement
+
+The browser trainer needs a product-like fixed viewport instead of a document page that grows vertically. The board should remain the visual center while the configuration, assessment, analysis, review, and training surfaces stay accessible in the same screen.
+
+### Decision
+
+Rebuild the existing browser shell without changing the HTTP/API or game-engine contract. Use a fixed 100dvh application shell, a three-region desktop layout, compact player/status bars, and constrained analysis/review/training regions. Preserve the existing board interaction and gameplay feedback contracts.
+
+### Implementation
+
+- Replaced the previous document-style dashboard CSS/layout in index.html with a viewport-bound application shell.
+- Kept all existing browser element IDs and interaction script logic so API behavior and protected UX-001/UX-002 flows remain intact.
+- Added UX-003 to the Requirement Contract Registry for the no-page-scroll single-screen rule.
+- Updated browser regression coverage to protect the new viewport/layout contract.
+
+### Verification Boundary
+
+Static repository verification confirms every JavaScript-referenced DOM id is present exactly once, the document has no overflow:auto/overflow:scroll rule, and the new 100dvh/overflow:hidden shell is present. Full browser/runtime validation remains subject to the current GitHub Actions execution blocker.
+
+### Next Step
+
+Finish this UI pass, then use the resulting product screen as the baseline for the first whole-product review after the six-level calibration evidence is available.
+
+---
+
 ## 52. 2026-09-30 — Collect completed 1-2 adjacent-level calibration evidence
 
 ### Finding
