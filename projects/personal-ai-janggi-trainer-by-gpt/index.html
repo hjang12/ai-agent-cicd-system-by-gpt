@@ -174,7 +174,7 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
   .dashboard{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr)}
   .dashboard.settings-open,.dashboard.learning-open{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
   .game-stage{grid-row:1}
-  .dashboard.settings-open .rail-left,.dashboard.learning-open .rail-right{grid-column:1;grid-row:2;display:flex;max-height:34dvh}
+  .dashboard.settings-open .rail-left,.dashboard.learning-open .rail-right{grid-column:1;grid-row:2;display:flex;max-height:34dvh;overflow:hidden}
   .dashboard.learning-open .rail-right{max-height:42dvh}
   .rail-left .card,.rail-right > .analysis,.rail-right > .review,.rail-right > .training{box-shadow:0 -10px 30px #19233218}
   .players{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
