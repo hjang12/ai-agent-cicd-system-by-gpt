@@ -36,7 +36,7 @@
 | Task ID | Scope | Project / Area | Goal | Status | Context | Current Checkpoint | Active PR / Issue | Next Action | Last Updated |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | TASK-20260930-0001 | Workspace | Governance | Development Work Continuity와 Task Recovery 구조를 완성하고 새 Chat에서도 정확한 Task와 Context를 복구할 수 있는 운영 구조를 구축 | COMPLETED | GOVERNANCE/docs/CURRENT_STATUS.md | GOVERNANCE/docs/checkpoints/TASK-20260930-0001.md | PR #63 merged | Governance 1.3.1 반영 완료. 다음 활성 Task는 TASK-20260930-0002 | 2026-09-30 |
-| TASK-20260930-0002 | Project | personal-ai-janggi-trainer-by-gpt | 검색/평가/학습 구조를 기반으로 6개 공개 AI level의 측정 가능한 강도 차이를 확립하고 AI 성능을 단계적으로 강화 | ACTIVE | projects/personal-ai-janggi-trainer-by-gpt/docs/CURRENT_STATUS.md | projects/personal-ai-janggi-trainer-by-gpt/docs/checkpoints/TASK-20260930-0002.md | PR #83 open | 1-2 evidence is sufficient; complete off-CI runner verification, then execute 2-3, 3-4, 4-5, and 5-6 calibration with sufficient seeded evidence before changing public level profiles | 2026-09-30 |
+| TASK-20260930-0002 | Project | personal-ai-janggi-trainer-by-gpt | 검색/평가/학습 구조를 기반으로 6개 공개 AI level의 측정 가능한 강도 차이를 확립하고 AI 성능을 단계적으로 강화 | ACTIVE | projects/personal-ai-janggi-trainer-by-gpt/docs/CURRENT_STATUS.md | projects/personal-ai-janggi-trainer-by-gpt/docs/checkpoints/TASK-20260930-0002.md | PR #84 open / UI PR pending | Complete the scroll-free UI pass first; keep calibration off-CI, then execute 2-3, 3-4, 4-5, and 5-6 with sufficient seeded evidence; after both the UI pass and full-ladder evidence, hold the whole-product review before further engine tuning | 2026-10-01 |
 
 ## Operating Rules
 
