@@ -532,6 +532,12 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("min-height:0", html)
         self.assertIn('class="rail rail-right side-panel"', html)
         self.assertIn("viewport", html)
+        self.assertIn("height:min(100%,72vh)", html)
+        self.assertIn("dashboard.settings-open .rail-left", html)
+        self.assertIn("dashboard.learning-open .rail-right", html)
+        self.assertIn('id="settings-toggle"', html)
+        self.assertIn('id="learning-toggle"', html)
+        self.assertIn(".journey{display:none}", html)
 
     def test_browser_postgame_learning_loop_contract(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
