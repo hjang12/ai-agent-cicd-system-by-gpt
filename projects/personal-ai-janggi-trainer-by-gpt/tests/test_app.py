@@ -530,7 +530,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("grid-template-rows:56px minmax(0,1fr)", html)
         self.assertIn("grid-template-columns:260px minmax(0,1fr) 318px", html)
         self.assertIn("min-height:0", html)
-        self.assertIn("class="rail rail-right side-panel"", html)
+        self.assertIn('class="rail rail-right side-panel"', html)
         self.assertIn("viewport", html)
 
     def test_browser_postgame_learning_loop_contract(self):
