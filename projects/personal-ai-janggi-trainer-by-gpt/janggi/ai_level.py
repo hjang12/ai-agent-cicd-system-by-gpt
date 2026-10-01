@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass
 from enum import Enum
 
@@ -100,3 +102,28 @@ def ai_level_payload() -> list[dict[str, object]]:
         }
         for spec in AI_LEVELS
     ]
+
+
+def ai_level_configuration_fingerprint(*specs: AILevelSpec) -> str:
+    """Return a stable fingerprint for public search-budget configuration."""
+
+    payload = [
+        {
+            "level": spec.level.value,
+            "depth": spec.config.depth,
+            "mobility_weight": spec.config.mobility_weight,
+            "quiescence_depth": spec.config.quiescence_depth,
+            "root_refinement_count": spec.config.root_refinement_count,
+            "time_limit_ms": spec.config.time_limit_ms,
+            "adaptive_ordering": spec.config.adaptive_ordering,
+            "quiescence_check_extension": spec.config.quiescence_check_extension,
+        }
+        for spec in specs
+    ]
+    canonical = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
