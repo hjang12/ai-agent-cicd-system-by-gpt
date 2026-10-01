@@ -1,3 +1,29 @@
+## 59. 2026-10-01 — Post-merge UI verification and calibration handoff
+
+### Verification
+
+- PR #89 (`UX: make trainer genuinely game-first and non-overlapping`) merged to `main` as `2886a0d940f951929edc6d53f501e1133018cc44`.
+- The first PR Janggi validation exposed one stale browser sizing assertion from the superseded v2 CSS; compile and contract validation already passed.
+- After updating that assertion, the rerun passed. The post-merge Janggi validation run #358 then passed the full 303-test suite, and Workspace validation also passed.
+- Static main inspection confirms the game-first desktop/mobile layout contract: secondary surfaces consume layout space rather than covering the board; the former fixed drawer and full-screen overlay rules are absent.
+
+### Product Boundary
+
+No Janggi rules, HTTP/API contracts, session-isolation behavior, engine/search configuration, public AI-level budget, or player-evaluation semantics were changed by the UI pass.
+
+### Calibration Handoff
+
+The UI baseline is now merged and independently CI-verified, so the next product workstream is provenance-aware adjacent calibration in the requested order `2-3 → 3-4 → 4-5 → 5-6`.
+
+### Execution Boundary
+
+Actual long-running calibration remains intentionally off GitHub Actions. The repository contains the resumable runner and evidence aggregator, but this agent runtime cannot check out/execute the private repository outside GitHub Actions, so no new 2-3 evidence was inferred or fabricated.
+
+### Render Boundary
+
+The Render Blueprint remains the deployment source of truth and now declares `/api/health`. Current-commit live verification was not completed because the connected Render workspace is not selected in this session and the public service URL could not be fetched through the available web verifier.
+
+---
 ## 58. 2026-10-01 — Rebuild trainer around a non-overlapping game-first surface
 
 ### Finding
