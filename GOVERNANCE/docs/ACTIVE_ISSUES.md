@@ -40,7 +40,6 @@
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `ISSUE-001` | `BLOCKED` | `P1` | `CI/CD` | CI 성공을 Render 배포의 필수 선행조건으로 강제하는 strict gate 미구현 | CI 실패와 Render auto deploy가 독립적으로 발생할 수 있어 배포 신뢰성 경계가 완전하지 않음. Requirement Contract CI guard는 추가했지만, main branch protection이 꺼져 있어 직접 push를 merge 전 차단하지는 못함 | GitHub branch protection / ruleset 및 Render deployment policy의 자동화 가능 범위를 재검토하고 가능한 경로 설계 | 현재 연결된 GitHub/Render 도구에서 필요한 기존 설정 mutation을 제공하지 않음 | 2026-09-29 | `GOVERNANCE/docs/CURRENT_STATUS.md`, PR #50, `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md` |
 
-| `ISSUE-003` | `RESOLVED` | `P1` | `CI/CD` | GitHub Actions PR jobs fail before executable steps | Fast CI is operational again; no current execution-path blocker observed | Keep monitoring the fast PR validation path on code-bearing changes | None | 2026-10-01 | GitHub Issue #85, PR #86, PR #84, workflow runs #345/#347 |
 
 ## Operating Rules
 
