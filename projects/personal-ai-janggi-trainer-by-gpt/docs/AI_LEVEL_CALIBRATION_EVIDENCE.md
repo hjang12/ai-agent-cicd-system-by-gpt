@@ -61,6 +61,17 @@ The first bounded evidence attempt at 48 plies was insufficient (1 completed / 9
 
 The aggregate meets the default evidence thresholds (21 completed games, 4.545% unfinished, 2 seeds). The score relationship is descriptive evidence only: it does not authorize public level promotion or search-budget changes. Adjacent pairs 2-3 through 5-6 have not yet met the evidence threshold.
 
+
+### Legacy exploratory evidence: adjacent pair 2-3
+
+A previously completed calibration artifact from workflow run #46 / PR #80 was recovered for seed 20261002. It contains 10/10 completed games at a 96-ply cap, with the lower level scoring 0.0 and the higher level scoring 10.0.
+
+This artifact predates the provenance-aware calibration format and contains no AI-level configuration fingerprint, engine version, source revision, or calibration protocol version. It is therefore retained as historical/exploratory evidence only and is not mixed into the current provenance-aware aggregation threshold.
+
+| Seed | Games | Completed | Unfinished | Lower score | Higher score | Evidence class |
+| ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 20261002 | 10 | 10 | 0 | 0.0 | 10.0 | legacy / exploratory only |
+
 ## Important limitation
 
 Level 6 uses an 800 ms wall-clock search budget. Seeded experiments are therefore configuration-repeatable but not guaranteed to be bit-for-bit identical across different runner environments.
