@@ -130,11 +130,14 @@ def main():
                 # Scenario 1: first launch -> initial state and desktop geometry.
                 context = browser.new_context(viewport={"width": 1440, "height": 900})
                 page = context.new_page()
+                page_errors = []
+                page.on("pageerror", lambda error: page_errors.append(str(error)))
                 page.goto(BASE, wait_until="networkidle")
                 s = state(page)
                 assert s["player_side"] == "cho"
                 assert s["ai_level"] == "1"
                 g = assert_no_viewport_overflow(page, "initial desktop")
+                assert not page_errors, page_errors
                 page.screenshot(path=screenshots / "01-initial-desktop.png", full_page=False)
 
                 # Scenario 2: settings -> choose Han + Lv.6 -> reset -> verify first AI move.
