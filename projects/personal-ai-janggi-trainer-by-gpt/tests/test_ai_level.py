@@ -28,6 +28,11 @@ class AILevelTests(unittest.TestCase):
             self.assertGreaterEqual(later.depth, earlier.depth)
             self.assertGreaterEqual(later.quiescence_depth, earlier.quiescence_depth)
 
+    def test_every_public_level_has_a_distinct_search_configuration(self):
+        fingerprints = [ai_level_configuration_fingerprint(spec) for spec in AI_LEVELS]
+        self.assertEqual(len(fingerprints), 6)
+        self.assertEqual(len(set(fingerprints)), 6)
+
     def test_beginner_and_expert_use_materially_different_search_budgets(self):
         beginner = get_ai_level("1").config
         expert = get_ai_level("6").config
