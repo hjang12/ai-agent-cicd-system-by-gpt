@@ -129,6 +129,7 @@ GitHub Actions workflow: `../../.github/workflows/janggi-validation.yml` (reposi
 - Python: `3.12`
 - Compile: `python -m compileall janggi tests tools`
 - Test: `python -m unittest discover -s tests -v`
+- Workspace gate: `tools/validate_workspace.py` also runs `tools/validate_context_consistency.py`.
 
 Search benchmark workflow: `../../.github/workflows/janggi-search-benchmark.yml` (repository-root path `.github/workflows/janggi-search-benchmark.yml`)
 
@@ -168,7 +169,6 @@ Verified live Render state on 2026-10-01:
 - Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
 - Branch: `main`
 - Auto Deploy: enabled
-- Last independent live verification: 2026-10-01; exact deployment identity is preserved in dated verification/history records.
 - Last independent live verification: 2026-10-01; exact deployment identity is preserved in dated verification/history records.
 - Build: succeeded (`python -m compileall janggi tests`)
 - Start: `python app.py`
