@@ -10,11 +10,11 @@ The adjacent-level calibration workflow is manual-only (`workflow_dispatch`); pu
 
 ## Current boundary
 
-- GitHub Actions quota is currently exhausted.
-- Do not launch additional long-running calibration workflows through Actions while the quota is exhausted.
+- Fast GitHub Actions validation is operational, but long-running calibration remains intentionally off-CI.
+- Do not move adjacent-level calibration back into the normal PR/push validation path; preserve the fast-correctness vs strength-evidence separation.
 - Existing valid evidence remains authoritative as recorded in `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md`.
 - The 1-2 pair is evidence-sufficient: 21/22 games completed, 4.545% unfinished, 2 seeds.
-- Pairs 2-3, 3-4, 4-5, and 5-6 remain uncalibrated.
+- Pairs 2-3, 3-4, 4-5, and 5-6 remain uncalibrated under the current provenance-aware protocol.
 
 ## Off-CI execution
 
@@ -103,3 +103,7 @@ The runner:
 - never changes public AI level configuration.
 
 Changing the game-count or ply-cap for an already-used `pair + seed + setup` identity requires a separately reviewed experiment policy; do not overwrite the existing artifact.
+
+## Current execution constraint
+
+The repository-local runner is ready, but this agent runtime cannot execute the private monorepo outside GitHub Actions. Until an approved off-CI execution environment can run `tools/run_ai_level_calibration.py`, no new calibration evidence should be treated as collected.
