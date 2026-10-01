@@ -1,3 +1,40 @@
+## 2026-10-01 — Governance v1.3.3: evidence discipline and simplicity review
+
+### Trigger
+
+Render service metadata에서 `healthCheckPath` 필드가 반환되지 않은 상황을 실제 empty configuration으로 해석한 운영 오판이 발생했다. 이후 오판을 방지하기 위해 추가한 Context consistency parser가 Markdown 표기와 Git checkout 조건을 잘못 가정하면서 자체 CI 실패를 반복했다.
+
+### Root Cause
+
+- Tool/API 응답에서 필드가 누락된 상태와 값이 실제 empty/null/false인 상태를 구분하는 명시적 Governance 규칙이 없었다.
+- 기존 Governance의 '추측하지 않는다'는 원칙은 있었지만 Evidence의 관찰 범위를 형식화하지 않아 부분적인 Tool 응답을 과도하게 해석할 여지가 있었다.
+- 첫 번째 대응에서 문제의 일반화 가능성과 기존 규칙의 충분성을 먼저 평가하지 않고 별도 parser와 CI gate를 추가하여 복잡성을 키웠다.
+
+### Decision
+
+- Evidence 상태를 Observed / Declared / Unknown으로 구분한다.
+- Tool 응답에 없는 필드는 기본적으로 Unknown이며, empty/null/false/disabled 상태로 해석하지 않는다.
+- 실패 발생 시 먼저 기존 Governance의 적용 여부를 확인하고, 규칙 공백이 확인될 때만 Governance 변경을 검토한다.
+- Governance 변경은 가장 단순한 해법을 우선하며, 전용 parser / registry / workflow / 상태 계층 추가는 마지막 수단으로 둔다.
+- 운영 제품인 Janggi 프로젝트는 Governance Task가 안정화될 때까지 일시 정지하고, Governance를 Workspace 최우선 Development Task로 승격한다.
+
+### Implementation
+
+- Governance Version `1.3.3` 반영.
+- Context consistency parser와 full-history workspace checkout 변경 제거.
+- Governance Gap 확인 및 Governance 변경 적합성 검토 규칙 추가.
+- Render 오판을 유발한 Evidence 해석 규칙 추가.
+- TASK-20260930-0002를 PAUSED로 전환하고 TASK-20261001-0001 Governance Task를 ACTIVE로 등록.
+
+### Verification
+
+- Workspace validation의 기존 구조 검증 경계는 유지하고 새로운 전용 parser는 제거했다.
+- Governance 변경 자체는 제품 코드에 대한 추가 복잡한 runtime dependency나 별도 상태 저장 계층을 만들지 않는다.
+- 다음 단계는 Governance 전체의 중복·충돌·불필요한 복잡성을 추가 검토하는 것이다.
+
+### Review Rule
+
+이번 변경의 핵심 기준은 '문제마다 규칙을 하나씩 추가하지 않는다'이다. 반복성, 일반화 가능성, 기존 규칙의 한계, 단순 대안의 부재, 검증 가능성 및 복잡성 비용을 함께 확인한 뒤에만 Governance를 확장한다.
 
 ## 2026-10-01 — Whole-product review: UI layout regression and Context-state drift root-cause correction
 
