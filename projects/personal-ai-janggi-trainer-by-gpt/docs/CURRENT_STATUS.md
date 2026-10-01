@@ -110,7 +110,7 @@
 
 - The authoritative workspace issue index is `../../../GOVERNANCE/docs/ACTIVE_ISSUES.md`.
 - Off-CI provenance-aware calibration for 2-3 through 5-6 still requires an execution environment capable of running the private repository outside the fast CI path.
-- Live Render deployment state is verified through Render tooling, but direct browser/UI smoke verification remains unavailable from this agent runtime.
+- Live Render deployment state is verified through Render tooling, including the observed empty `healthCheckPath`; direct browser/UI smoke verification remains unavailable from this agent runtime.
 
 ## Development Safety
 
