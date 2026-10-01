@@ -103,14 +103,14 @@
 - The last verified Workspace validation passed; exact run/commit identifiers are preserved in dated verification/history records.
 - The PR initially exposed one stale browser regression assertion for the removed v2 board-width rule; that assertion was updated and the rerun passed. No product logic failure was identified.
 - Static main verification confirms UX-004 layout rules are present and the former fixed-drawer / full-screen overlay CSS is absent.
-- Render workspace access is restored. The current Render service is confirmed `live` on the code-bearing main commit `05ebd5098e11e2a4c74a6475dbe079f77b7062de`; build and `python app.py` startup logs are normal.
+- Render workspace access is restored. The current Render service is confirmed `live` on main commit `6235be60004e06084f551d87e44907cc07a72a30` via deployment `dep-dav07ue0tbcc73e81kf0`; build/start completed normally.
 - External browser/UI smoke verification is still unavailable from this agent runtime because the available web verifier rejects the public Render URL and the runtime cannot resolve the public hostname. This is a verification-environment limitation, not a confirmed product or Render outage.
 
 ## Active Execution Constraints
 
 - The authoritative workspace issue index is `../../../GOVERNANCE/docs/ACTIVE_ISSUES.md`.
 - Off-CI provenance-aware calibration for 2-3 through 5-6 still requires an execution environment capable of running the private repository outside the fast CI path.
-- Live Render deployment state is verified through Render tooling, but direct browser/UI smoke verification remains unavailable from this agent runtime.
+- Live Render deployment state is verified through Render tooling, including the observed empty `healthCheckPath`; direct browser/UI smoke verification remains unavailable from this agent runtime.
 
 ## Development Safety
 
@@ -174,7 +174,7 @@ Verified live Render state on 2026-10-01:
 - Start: `python app.py`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`
 
-Later main commits through the documentation review are documentation-only but are inside the Janggi service build filter, so Render can legitimately redeploy them. They do not change application code or the application runtime behavior. The Render Blueprint declares `/api/health`. The connected Render service metadata currently does not expose a mutable health-check field through the available toolset; this is tracked as the existing workspace platform hardening item, not as a user action or application outage.
+Later main commits through the documentation review are documentation-only but are inside the Janggi service build filter, so Render can legitimately redeploy them. They do not change application code or the application runtime behavior. The Render Blueprint declares `/api/health`, and the application exposes that endpoint. Direct Render metadata now **observes** the live Janggi `healthCheckPath` as an empty string, so this is a confirmed live configuration drift tracked as workspace `ISSUE-002`. The service remains `live`; this is not classified as an application outage. The connected toolset currently lacks an existing-service mutation for the health-check path.
 
 ## Explicitly Deferred
 

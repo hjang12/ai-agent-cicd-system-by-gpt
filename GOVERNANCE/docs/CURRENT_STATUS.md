@@ -79,6 +79,7 @@ Current Active Issue Index: `GOVERNANCE/docs/ACTIVE_ISSUES.md`
 Current active items are maintained in `GOVERNANCE/docs/ACTIVE_ISSUES.md`:
 
 - `ISSUE-001` — CI-success-before-deploy strict gate is not enforced; the current verification date is maintained in the Active Issue Index.
+- `ISSUE-002` — Render Janggi service has an observed empty live `healthCheckPath` while the repository Blueprint declares `/api/health`; current service deployment is still live.
 - Render service metadata observability limitation is documented below as a known limitation, not as an active application or deployment issue.
 
 This section is only a navigation summary. The authoritative current status, priority, next action, blocker, and verification date are maintained in `ACTIVE_ISSUES.md`.
@@ -147,7 +148,7 @@ Deployment verification:
 - The Janggi Render service has been independently verified live; exact deployment IDs and runtime snapshots belong in dated verification/history records.
 - Time Dashboard deploy `dep-damckue7bikc73b4p7ng`: `live`; build succeeded; `python timefolio_server.py` started; a `HEAD /` request returned HTTP 200; Render reported the service live at its primary URL.
 - Time Dashboard had one immediate cutover build failure because `requirements.txt` was not found, followed by a successful retry after the service Root Directory was correctly applied.
-- The connected Render service metadata does not currently expose the live `healthCheckPath` field. The repository Blueprint declares the intended `/api/health` endpoint and the Janggi application exposes it. This is a platform-verification limitation, not evidence that the live setting is empty or disabled.
+- Current connected Render metadata **observes** `healthCheckPath` as an empty string for the Janggi service. The repository Blueprint declares `/api/health`, and the Janggi application exposes that endpoint. This is now confirmed live configuration drift, not an Unknown/observability-only state.
 
 The available Render toolset still does not expose an update operation for existing service Git Repository / Root Directory settings; the actual cutover was performed in the Render Dashboard and then verified through the connected Render API/tooling. No duplicate services were created.
 
@@ -173,15 +174,16 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 - Destructive cleanup is complete; future development must target the canonical monorepo only.
 - Pre-deletion gate verification completed on 2026-09-18: both Render services pointed to the canonical monorepo, latest relevant CI runs were green, and no duplicate Render services existed.
 - A strict CI-success-before-deploy gate is not currently enforced. Render remains commit-triggered auto deploy, so CI and deployment are independently triggered.
-- Connected Render service metadata does not expose the live `healthCheckPath` field; this remains an observability limitation. The repository Blueprint and Janggi application both declare/provide `/api/health`, and no live outage is inferred from the missing metadata.
+- Janggi Render service live metadata currently reports an empty `healthCheckPath`, while `render.yaml` and the application provide `/api/health`. The service is live, but the intended Render health-check configuration is not currently applied to the live service.
 - The connected GitHub repository list currently exposes the GPT monorepo and the two historical project repositories; no active `personal-mcp-server` repository was present in that current list, so older documentation referring to it is treated as stale.
 
 ## Current Priority
 
 1. Resume TASK-20260930-0002 and establish measurable Level 1-6 Janggi AI strength separation with provenance-aware benchmark evidence.
-2. Keep Repository / CI / Render state verification grounded in directly observed evidence; do not infer omitted platform fields.
-3. Use Governance 1.3.3 simplicity and evidence semantics for future operational changes; do not add automation layers without a demonstrated governance gap.
-4. Continue future development under `projects/<project>/` using the finalized common Governance.
+2. Track and resolve the newly observed Janggi Render `healthCheckPath` drift through the active issue process; do not infer or silently normalize the live service state.
+3. Keep Repository / CI / Render state verification grounded in directly observed evidence; an explicitly returned empty value is Observed, while an omitted value remains Unknown.
+4. Use Governance 1.3.3 simplicity and evidence semantics for future operational changes; do not add automation layers without a demonstrated governance gap.
+5. Continue future development under `projects/<project>/` using the finalized common Governance.
 
 ## Next Development Candidates
 

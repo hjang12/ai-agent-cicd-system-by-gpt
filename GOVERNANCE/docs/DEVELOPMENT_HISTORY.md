@@ -642,3 +642,36 @@ TASK-20261001-0001 is complete. TASK-20260930-0002 is resumed as the current Dev
 ### Next Step
 Establish provenance-aware benchmark fixtures for AI Level 1-6, measure actual response separation, and modify search/level mapping only when benchmark evidence demonstrates insufficient separation.
 
+
+## 2026-10-01 — Render healthCheckPath drift confirmed by direct observation
+
+### Requirement / Context
+
+Earlier on 2026-10-01, the connected Render metadata did not return the `healthCheckPath` field. Under Governance 1.3.3 Evidence semantics, that state was correctly treated as **Unknown**, not empty or disabled.
+
+A later direct Render service query returned `healthCheckPath: ""` for the Janggi service.
+
+### Evidence
+
+- **Declared:** repository `render.yaml` declares `healthCheckPath: /api/health`.
+- **Declared / Implemented:** Janggi `app.py` exposes `GET /api/health`.
+- **Observed:** live Render service metadata currently reports an empty `healthCheckPath`.
+- **Observed:** deployment `dep-dav07ue0tbcc73e81kf0` for main commit `6235be60004e06084f551d87e44907cc07a72a30` is `live`.
+
+### Classification
+
+This is a confirmed live configuration drift between the repository Blueprint and the Render service setting. It is not classified as an application outage because the service remains live and application health endpoint code is present.
+
+### Root Cause / Governance Lesson
+
+The earlier conclusion was not corrected by weakening the Evidence rule. The rule behaved as intended: an omitted field was Unknown; an explicitly returned empty value is Observed. The current issue became actionable only after a direct observation exposed the actual empty value.
+
+### Action
+
+- Added `ISSUE-002` to the Active Issue Index.
+- Updated workspace and Janggi Context documents to distinguish the observed live drift from the earlier Unknown state.
+- Configuration mutation remains blocked in the current connected toolset; no unverified manual change is recorded as complete.
+
+### Next Step
+
+Set the existing Render service health-check path to `/api/health` through an authorized Render control path, then re-read the live service metadata and deployment state.
