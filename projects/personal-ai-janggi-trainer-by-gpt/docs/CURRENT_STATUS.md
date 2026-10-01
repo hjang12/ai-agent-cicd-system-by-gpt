@@ -174,7 +174,7 @@ Verified live Render state on 2026-10-01:
 - Start: `python app.py`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`
 
-Later main commits through the documentation review are documentation-only but are inside the Janggi service build filter, so Render can legitimately redeploy them. They do not change application code or the application runtime behavior. The Render Blueprint declares `/api/health`. The connected Render service metadata currently does not expose a mutable health-check field through the available toolset; this is tracked as the existing workspace platform hardening item, not as a user action or application outage.
+Later main commits through the documentation review are documentation-only but are inside the Janggi service build filter, so Render can legitimately redeploy them. They do not change application code or the application runtime behavior. The Render Blueprint declares `/api/health`, and the application exposes that endpoint. Direct Render metadata now **observes** the live Janggi `healthCheckPath` as an empty string, so this is a confirmed live configuration drift tracked as workspace `ISSUE-002`. The service remains `live`; this is not classified as an application outage. The connected toolset currently lacks an existing-service mutation for the health-check path.
 
 ## Explicitly Deferred
 
