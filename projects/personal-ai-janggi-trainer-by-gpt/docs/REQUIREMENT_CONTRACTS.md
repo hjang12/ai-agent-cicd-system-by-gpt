@@ -55,6 +55,23 @@
 
 이 피드백을 제거하거나 AI 계산 중 상태를 숨기는 것은 단순 리팩터링이 아니라 Contract 변경입니다. 새로운 요구사항 때문에 변경이 필요하면 현재 Contract와 충돌한다고 사용자에게 보고하고, 사용자 결정 이후 변경합니다.
 
+### UX-003 — Trainer is a scroll-free single-screen web app
+
+**Requirement**
+
+장기 훈련기의 주요 사용 화면은 브라우저 viewport 안에서 페이지 스크롤 없이 동작해야 합니다. 장기판을 시각적 중심으로 두고, 설정·실력 평가·착수 분석·복기·훈련은 고정 높이의 앱 영역 안에서 함께 접근할 수 있어야 합니다.
+
+**Protection**
+
+- Viewport shell: `height:100dvh`
+- Page overflow contract: `html,body` use `overflow:hidden`
+- Layout contract: fixed application grid with `min-height:0`
+- Regression test: `tests/test_app.py::test_browser_single_screen_layout_contract`
+
+**Change rule**
+
+스크롤 기반의 일반 페이지로 되돌리거나 대국 화면과 학습 기능을 별도 긴 페이지로 분리하는 변경은 단순 리팩터링이 아니라 Contract 변경입니다.
+
 ### AI-001 — Six public AI levels remain selectable with distinct search profiles
 
 **Requirement**
