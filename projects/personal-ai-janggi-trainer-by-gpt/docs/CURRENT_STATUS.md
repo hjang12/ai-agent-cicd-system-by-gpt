@@ -168,9 +168,8 @@ Verified live Render state on 2026-10-01:
 - Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
 - Branch: `main`
 - Auto Deploy: enabled
-- Latest code-bearing live deployment commit: `05ebd5098e11e2a4c74a6475dbe079f77b7062de`
-- Deployment: `dep-dauttlhsrm7s73be8qb0`
-- Deployment status: `live`
+- Last independent live verification: 2026-10-01; exact deployment identity is preserved in dated verification/history records.
+- Last independent live verification: 2026-10-01; exact deployment identity is preserved in dated verification/history records.
 - Build: succeeded (`python -m compileall janggi tests`)
 - Start: `python app.py`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`
