@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: finish and verify the game-first UI pass, then resume adjacent AI-level calibration while preserving the engine/evaluation boundaries
+- Current priority: resume provenance-aware adjacent AI-level calibration (`2-3 → 3-4 → 4-5 → 5-6`) while preserving the engine/evaluation boundaries; actual off-CI execution is currently blocked in this runtime.
 
 ## Implemented Capability
 
@@ -95,6 +95,20 @@
 - The post-game result surface is part of normal layout flow rather than an absolute board overlay.
 - UX-001 and UX-002 remain protected, and UX-003 now also has the non-overlap UX-004 companion contract.
 - This UI remains independent from Engine/search implementation so AI-strength calibration can resume on the same stable product shell.
+
+## Latest Verification (2026-10-01)
+
+- UI redesign merged to `main` as PR #89, merge commit `2886a0d940f951929edc6d53f501e1133018cc44`.
+- Post-merge Workspace validation run #358 completed successfully.
+- Post-merge Janggi validation run #358 completed successfully after compile, Requirement Contract validation, and the full unit-test suite (`303` tests) passed.
+- The PR initially exposed one stale browser regression assertion for the removed v2 board-width rule; that assertion was updated and the rerun passed. No product logic failure was identified.
+- Static main verification confirms UX-004 layout rules are present and the former fixed-drawer / full-screen overlay CSS is absent.
+- Render Blueprint is still canonical; live production verification for this commit could not be completed from the current agent session because the connected Render workspace is not selected and the public service URL is not accessible through the available web verifier.
+
+## Active Execution Constraints
+
+- `ACTIVE_ISSUES.md` records the two unresolved environment-level blockers: Render dashboard/live verification access and off-CI calibration execution access.
+
 ## Development Safety
 
 - Requirement Contract Registry: `docs/requirement_contracts.json`
@@ -158,7 +172,7 @@ Verified live Render state on 2026-09-21:
 - Start: `python app.py`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`
 
-The service is now running from the canonical monorepo. Live Render `healthCheckPath` remains empty; application `/api/health` exists and explicit platform health-check configuration is a follow-up operational improvement.
+The service is now running from the canonical monorepo. Render Blueprint currently configures `/api/health` as the platform health check. The last independently recorded live verification remains the 2026-09-21 deployment; current-commit live verification is tracked as an environment-access blocker.
 
 ## Explicitly Deferred
 
