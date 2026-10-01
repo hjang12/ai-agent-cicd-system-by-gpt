@@ -991,7 +991,7 @@ Pending Decisions
 Current Development Target
 ```
 
-`CURRENT_STATUS.md`는 장문의 역사 문서가 아니라 **빠른 Context 복구 문서**다.
+`CURRENT_STATUS.md`는 장문의 역사 문서가 아니라 **빠른 Context 복구 문서**다. 문서에 기록된 외부 시스템의 상태는 복구를 위한 참고 정보이며, 실제 Platform / CI / Deployment 상태가 필요할 때는 해당 시스템에서 다시 확인한다. 문서와 실제 상태가 충돌하면 실제 상태를 우선하고 문서 drift를 기록·수정한다.
 
 ### ACTIVE_ISSUES.md
 
