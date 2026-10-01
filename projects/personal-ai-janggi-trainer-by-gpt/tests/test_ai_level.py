@@ -1,6 +1,6 @@
 import unittest
 
-from janggi.ai_level import AI_LEVELS, AILevel, ai_level_payload, get_ai_level
+from janggi.ai_level import AI_LEVELS, AILevel, ai_level_configuration_fingerprint, ai_level_payload, get_ai_level
 from tools.benchmark_ai_levels import validate_benchmark_args
 
 
@@ -58,10 +58,19 @@ class AILevelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             get_ai_level(3)  # type: ignore[arg-type]
 
+    def test_configuration_fingerprint_is_stable_and_pair_specific(self):
+        first = ai_level_configuration_fingerprint(get_ai_level("2"), get_ai_level("3"))
+        repeat = ai_level_configuration_fingerprint(get_ai_level("2"), get_ai_level("3"))
+        different = ai_level_configuration_fingerprint(get_ai_level("3"), get_ai_level("4"))
+        self.assertEqual(first, repeat)
+        self.assertNotEqual(first, different)
+        self.assertEqual(len(first), 64)
+
     def test_payload_is_serializable_and_complete(self):
         payload = ai_level_payload()
         self.assertEqual(len(payload), 6)
         self.assertEqual(payload[0]["level"], "1")
+        self.assertEqual(payload[0]["name"], "입문")
         self.assertEqual(payload[-1]["level"], "6")
         self.assertIn("description", payload[0])
         self.assertIn("root_refinement_count", payload[-1])

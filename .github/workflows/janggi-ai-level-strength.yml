@@ -41,17 +41,6 @@ on:
         required: true
         type: boolean
         default: false
-  pull_request:
-    paths:
-      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/ai_level.py'
-      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
-      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/tournament.py'
-      - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/rating.py'
-      - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_levels.py'
-      - 'projects/personal-ai-janggi-trainer-by-gpt/docs/AI_LEVELS.md'
-      - '.github/workflows/janggi-ai-level-strength.yml'
-      - '.github/calibration/level-request.json'
-
 concurrency:
   group: janggi-ai-level-strength-${{ github.ref }}
   cancel-in-progress: true
