@@ -161,13 +161,12 @@ def main():
 
                 # Scenario 4: human move rendering before AI computation.
                 # Slow only /api/move to force the pending-player-move render to be observable.
-                page.route(
-                    "**/api/move",
-                    lambda route: route.continue_()  # replaced below with an async handler
-                )
-                # Playwright sync API cannot await a handler body inline, so use a short server-side
-                # observation window by freezing the browser after the pending render with route abort.
-                # Re-register route with a controlled fulfillment based on real API response.
+                page.route("**/api/move", lambda route: (time.sleep(0.8), route.continue_())[1])
+                click_first_player_piece_and_move(page)
+                page.wait_for_timeout(120)
+                pending_status = page.locator("#status").text_content() or ""
+                assert "내 수를 먼저 반영했습니다" in pending_status, pending_status
+                page.screenshot(path=screenshots / "03-pending-human-move.png", full_page=False)
                 page.unroute("**/api/move")
                 def delayed_move(route):
                     import time as _time
