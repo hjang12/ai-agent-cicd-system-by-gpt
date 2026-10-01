@@ -74,20 +74,31 @@
 
 ### UX-004 — Game-first layout does not let auxiliary surfaces cover the board
 
+**Status**
+
+SUPERSEDED — 2026-10-02
+
+**Replacement**
+
+UX-005로 대체되었습니다. 사용자 요청에 따라 설정/학습 drawer 구조 자체를 제거하고, 대국 시작 전 설정 화면과 재대국 설정 modal을 별도 흐름으로 분리했습니다.
+
+### UX-005 — Setup-first game flow with minimal in-game surface
+
 **Requirement**
 
-일반 대국 화면에서는 장기판·대국 상태·최소 행동이 주된 표면이어야 합니다. 설정·분석·복기·훈련은 명시적인 버튼으로만 열고, 열려 있을 때도 앱 레이아웃 공간을 사용하여 장기판을 가리는 overlay로 동작하지 않아야 합니다.
+장기판은 대국 설정이 완료된 뒤에만 표시되어야 합니다. 최초 진입에서는 난이도와 진영을 선택하는 별도 설정 화면이 먼저 나타나며, 대국 중에는 장기판·대국 정보·간단한 착수 평가·필수 조작만 표시합니다. 재대국은 현재 대국 화면을 유지한 채 동일한 설정 화면을 modal 형태로 열어 새 난이도/진영을 선택한 후 새 대국을 시작할 수 있어야 합니다. 복기와 훈련은 대국 중 상시 노출하지 않고 대국 종료 후 결과 흐름에서 접근합니다.
 
 **Protection**
 
-- Game-stage/flexible board layout in index.html
-- Explicit settings/learning toggles
-- Desktop drawer columns and mobile drawer rows consume layout space
-- Regression tests remain in tests/test_app.py
+- Setup-first shell: #setup-screen and #game-screen
+- Replay entry: #replay-button → showSetup('modal')
+- Compact move comment: #status with severity-based short messages
+- Scroll-free viewport: html,body overflow:hidden and height:100dvh
+- Browser regression coverage in tests/test_app.py
 
 **Change rule**
 
-보조 화면이 다시 상시 노출되거나, drawer를 통해 장기판을 가리는 overlay 구조로 되돌리는 변경은 단순 리팩터링이 아니라 Contract 변경입니다.
+대국 전에 장기판을 노출하거나, 대국 중 설정/분석/복기/훈련 패널을 상시 노출하거나, 재대국을 별도 설정 modal이 아닌 기존 drawer/side-panel 구조로 되돌리는 변경은 Contract 변경입니다.
 
 ### AI-001 — Six public AI levels remain selectable with distinct search profiles
 

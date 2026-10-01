@@ -1,3 +1,44 @@
+## 61. 2026-10-02 — Replace UI drawers with setup-first game flow
+
+### Requirement
+
+The prior drawer-based UI continued to interfere with the board on real user interaction. The requested product flow became: separate pre-game difficulty/side selection → board-first game → dedicated replay action opening the same setup modal.
+
+### Decision
+
+Replace the drawer architecture rather than iteratively patching it.
+
+- Before a game starts, show only the setup screen.
+- During play, keep only board, player/turn context, compact move evaluation, undo, and replay.
+- Open replay through the same setup UI as a modal; changing difficulty/side/setup applies only when the user starts the new game.
+- Keep review/training available after a terminal result rather than as persistent in-game surfaces.
+- Preserve Engine/search/API boundaries.
+
+### Implementation
+
+- Replaced the board/drawer shell in `index.html` with setup-first and game-only screens.
+- Added visual six-level and side selectors backed by the existing API fields.
+- Added a dedicated `재대국` modal flow using the same setup component.
+- Added compact severity-based move comments instead of verbose coaching text during play.
+- Removed visible settings/analysis/learning drawer UI while retaining hidden runtime compatibility for existing APIs and post-game learning functions.
+- Superseded UX-004 and introduced UX-005 in the Requirement Contract Registry.
+
+### Verification
+
+- Chromium scenario suite passed on the final UI commit `b86d9d2e517fe1942042dd4dde43c6346a39b648`.
+- Verified initial setup-only view, Lv.6/Han start, replay modal, cancel/restart flow, human move before AI, compact move evaluation, and responsive states at 1024×768, 820×1180, 390×844, 360×800, and 320×568.
+- Final screenshots were reviewed for desktop setup, active game, replay modal, move evaluation, and narrow mobile states.
+
+### Boundary
+
+No Janggi rules, Engine/search configuration, HTTP/API contract, player assessment semantics, or training-data model were changed.
+
+### Next Step
+
+After the production merge and normal main validation, resume provenance-aware adjacent AI-level calibration beginning with 2-3.
+
+---
+
 ## 60. 2026-10-01 — Scenario-based browser UI verification and responsive hardening
 
 ### Finding
