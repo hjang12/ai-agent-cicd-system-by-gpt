@@ -180,8 +180,9 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 ## Current Priority
 
 1. Resume TASK-20260930-0002 and establish measurable Level 1-6 Janggi AI strength separation with provenance-aware benchmark evidence.
-2. Keep Repository / CI / Render state verification grounded in directly observed evidence; do not infer omitted platform fields.
-3. Use Governance 1.3.3 simplicity and evidence semantics for future operational changes; do not add automation layers without a demonstrated governance gap.
+2. Track and resolve the newly observed Janggi Render `healthCheckPath` drift through the active issue process; do not infer or silently normalize the live service state.
+3. Keep Repository / CI / Render state verification grounded in directly observed evidence; an explicitly returned empty value is Observed, while an omitted value remains Unknown.
+4. Use Governance 1.3.3 simplicity and evidence semantics for future operational changes; do not add automation layers without a demonstrated governance gap.
 4. Continue future development under `projects/<project>/` using the finalized common Governance.
 
 ## Next Development Candidates
