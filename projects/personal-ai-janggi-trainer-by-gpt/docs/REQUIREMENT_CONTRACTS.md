@@ -72,6 +72,23 @@
 
 스크롤 기반의 일반 페이지로 되돌리거나 대국 화면과 학습 기능을 별도 긴 페이지로 분리하는 변경은 단순 리팩터링이 아니라 Contract 변경입니다.
 
+### UX-004 — Game-first layout does not let auxiliary surfaces cover the board
+
+**Requirement**
+
+일반 대국 화면에서는 장기판·대국 상태·최소 행동이 주된 표면이어야 합니다. 설정·분석·복기·훈련은 명시적인 버튼으로만 열고, 열려 있을 때도 앱 레이아웃 공간을 사용하여 장기판을 가리는 overlay로 동작하지 않아야 합니다.
+
+**Protection**
+
+- Game-stage/flexible board layout in index.html
+- Explicit settings/learning toggles
+- Desktop drawer columns and mobile drawer rows consume layout space
+- Regression tests remain in tests/test_app.py
+
+**Change rule**
+
+보조 화면이 다시 상시 노출되거나, drawer를 통해 장기판을 가리는 overlay 구조로 되돌리는 변경은 단순 리팩터링이 아니라 Contract 변경입니다.
+
 ### AI-001 — Six public AI levels remain selectable with distinct search profiles
 
 **Requirement**

@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: complete the human-vs-AI match loop first, then improve baseline AI strength while preserving clean engine/evaluation boundaries
+- Current priority: finish and verify the game-first UI pass, then resume adjacent AI-level calibration while preserving the engine/evaluation boundaries
 
 ## Implemented Capability
 
@@ -87,12 +87,14 @@
 
 ## Current UI Direction
 
-- Primary trainer screen is being rebuilt as a scroll-free single-screen web app.
-- The board is the visual center; settings/assessment are grouped on the left rail and analysis/review/training on the right rail.
-- The browser viewport is the application boundary: page overflow is disabled and the main shell uses 100dvh with fixed grid regions and min-height: 0.
-- Existing UX-001 and UX-002 gameplay feedback contracts remain protected. The new UX-003 contract protects the single-screen/no-page-scroll behavior.
-- This UI redesign is independent from Engine/search implementation so the later AI-strength review can evaluate the product as a whole on the new screen structure.
-
+- The trainer is a scroll-free, single-screen game application with the Janggi board as the dominant surface.
+- During a normal game, only player/turn context, the compact game status, and the essential actions remain visible around the board.
+- Settings, analysis, review, training, and player assessment are not persistent side content; they are opened explicitly from the header.
+- Desktop drawers use dedicated layout columns, so opening a drawer reduces the game-stage width instead of covering the board.
+- Mobile drawers use a second layout row below the game stage, so opening them consumes viewport space instead of covering the board.
+- The post-game result surface is part of normal layout flow rather than an absolute board overlay.
+- UX-001 and UX-002 remain protected, and UX-003 now also has the non-overlap UX-004 companion contract.
+- This UI remains independent from Engine/search implementation so AI-strength calibration can resume on the same stable product shell.
 ## Development Safety
 
 - Requirement Contract Registry: `docs/requirement_contracts.json`
@@ -217,8 +219,8 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 
 ## Known Next Targets
 
-1. Exercise the human-vs-AI turn loop against the live service and close any gameplay/UX defects before increasing engine strength.
-2. Calibrate adjacent pairs 2-3, 3-4, 4-5, and 5-6 with sufficient seeded completed-game evidence before changing public AI level search budgets.
+1. Verify the game-first UI and human-vs-AI turn loop against the live service, then close any remaining gameplay/UX defects.
+2. Resume calibration for adjacent pairs 2-3, 3-4, 4-5, and 5-6 with sufficient seeded completed-game evidence before changing public AI level search budgets.
 3. Upgrade baseline AI strength in measured stages, using the existing deterministic search benchmarks and keeping move legality as the authoritative boundary.
 4. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
 5. Use player skill-assessment evidence together with adaptive position-training selection and ephemeral session metrics, while keeping match rating separate from coaching statistics and preventing uncalibrated AI levels from producing numeric player ratings.

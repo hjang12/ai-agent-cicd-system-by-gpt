@@ -505,7 +505,8 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("cell.style.left = (5 + x * 11.25) + '%'", html)
         self.assertIn("cell.style.top = (5 + y * 10) + '%'", html)
         self.assertIn(".board{", html)
-        self.assertIn("width:min(100%,62vh)", html)
+        self.assertIn("height:min(100%,68dvh)", html)
+        self.assertIn("max-width:min(88vw,860px)", html)
         self.assertIn("board-wrap", html)
         self.assertIn('stroke-width="0.035" fill="none">', html)
 
@@ -527,17 +528,22 @@ class TrainerApplicationTests(unittest.TestCase):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("html,body{width:100%;height:100%;margin:0;overflow:hidden}", html)
         self.assertIn("height:100dvh", html)
-        self.assertIn("grid-template-rows:56px minmax(0,1fr)", html)
-        self.assertIn("grid-template-columns:260px minmax(0,1fr) 318px", html)
+        self.assertIn("grid-template-rows:52px minmax(0,1fr)", html)
+        self.assertIn(".dashboard{min-width:0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}", html)
+        self.assertIn(".dashboard.settings-open{grid-template-columns:minmax(280px,320px) minmax(0,1fr)}", html)
+        self.assertIn(".dashboard.learning-open{grid-template-columns:minmax(0,1fr) minmax(320px,390px)}", html)
         self.assertIn("min-height:0", html)
         self.assertIn('class="rail rail-right side-panel"', html)
-        self.assertIn("viewport", html)
-        self.assertIn("height:min(100%,72vh)", html)
-        self.assertIn("dashboard.settings-open .rail-left", html)
-        self.assertIn("dashboard.learning-open .rail-right", html)
+        self.assertIn("height:min(100%,68dvh)", html)
+        self.assertIn(".game-stage{min-width:0;min-height:0;height:100%;display:flex;flex-direction:column;align-items:stretch;", html)
+        self.assertIn(".board-wrap{flex:1 1 auto;", html)
+        self.assertIn(".dashboard.settings-open .rail-left", html)
+        self.assertIn(".dashboard.learning-open .rail-right", html)
         self.assertIn('id="settings-toggle"', html)
         self.assertIn('id="learning-toggle"', html)
         self.assertIn(".journey{display:none}", html)
+        self.assertNotIn("dashboard.settings-open::after", html)
+        self.assertNotIn("dashboard.learning-open::after", html)
 
     def test_browser_postgame_learning_loop_contract(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
@@ -670,6 +676,30 @@ class TrainerApplicationTests(unittest.TestCase):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertTrue(callable(RequestHandler.do_GET))
         self.assertIn("/api/assessment", __import__("app").RequestHandler.do_GET.__code__.co_consts)
+
+
+
+class TestGameFirstNonOverlappingUiContract(unittest.TestCase):
+    def test_browser_game_first_layout_keeps_drawers_out_of_board_stage(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn('class="topbar-actions"', html)
+        self.assertIn('id="settings-toggle"', html)
+        self.assertIn('id="learning-toggle"', html)
+        self.assertIn(".dashboard.settings-open{grid-template-columns:minmax(280px,320px) minmax(0,1fr)}", html)
+        self.assertIn(".dashboard.learning-open{grid-template-columns:minmax(0,1fr) minmax(320px,390px)}", html)
+        self.assertIn(".game-stage{min-width:0;min-height:0;height:100%;display:flex;flex-direction:column;align-items:stretch;", html)
+        self.assertIn(".board-wrap{flex:1 1 auto;", html)
+        self.assertNotIn("dashboard.settings-open::after", html)
+        self.assertNotIn("dashboard.learning-open::after", html)
+        self.assertNotIn("position:fixed;\n  top:60px;", html)
+        self.assertNotIn("position:absolute;\n  left:50%;\n  bottom:58px;", html)
+        self.assertIn(".game-controls #review,.game-controls #training{display:none}", html)
+
+    def test_browser_mobile_drawer_consumes_layout_space_instead_of_covering_board(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn(".dashboard.settings-open,.dashboard.learning-open{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}", html)
+        self.assertIn(".game-stage{grid-row:1}", html)
+        self.assertIn(".dashboard.settings-open .rail-left,.dashboard.learning-open .rail-right{grid-column:1;grid-row:2;", html)
 
 
 if __name__ == "__main__":

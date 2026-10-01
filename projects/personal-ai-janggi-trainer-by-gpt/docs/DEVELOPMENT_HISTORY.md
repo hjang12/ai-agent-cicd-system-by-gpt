@@ -1,3 +1,30 @@
+## 58. 2026-10-01 — Rebuild trainer around a non-overlapping game-first surface
+
+### Finding
+
+The previous v2 UI moved secondary content into drawers, but the implementation still used fixed/absolute overlay positioning and kept legacy and v2 CSS blocks together. That left the board vulnerable to being visually crowded or covered when auxiliary surfaces were opened.
+
+### Decision
+
+Make the game stage the primary layout region and make auxiliary surfaces consume layout space instead of overlaying it. Keep the existing API, browser IDs, gameplay sequencing, and protected UX contracts unchanged.
+
+### Implementation
+
+- Replaced the duplicated trainer CSS with one coherent game-first stylesheet.
+- The desktop trainer uses optional settings/learning columns that shrink the game stage rather than cover it.
+- Mobile drawers occupy a second viewport row below the game stage.
+- Post-game results remain in normal layout flow instead of using an absolute board overlay.
+- Added UX-004 to the Requirement Contract Registry and added focused regression coverage for desktop/non-overlapping drawer behavior and mobile layout-space consumption.
+
+### Verification Boundary
+
+Repository-level contract verification is the first gate. Full browser/live verification remains required after merge because the Render workspace is not currently selected in the connected Render tool session.
+
+### Next Step
+
+After this UI pass is live-verified, resume provenance-aware calibration for 2-3, then 3-4, 4-5, and 5-6.
+
+---
 ## 57. 2026-10-01 — Rebuild trainer as a scroll-free single-screen web app
 
 ### Requirement
