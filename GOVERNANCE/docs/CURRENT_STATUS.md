@@ -136,10 +136,10 @@ Render workspace: `My Workspace` (`tea-da7sjdgu01pc73bsno6g`).
 
 Render service cutover is complete. Both existing services now use the canonical monorepo with project-specific Root Directories:
 
-| Service | Repository | Root Directory | Branch | Auto Deploy | Latest Live Deploy |
+| Service | Repository | Root Directory | Branch | Auto Deploy | State |
 | --- | --- | --- | --- | --- | --- |
-| `personal-ai-janggi-trainer-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/personal-ai-janggi-trainer-by-gpt` | `main` | yes | `05ebd5098e11e2a4c74a6475dbe079f77b7062de` |
-| `time-dashboard-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/time-dashboard-by-gpt` | `main` | yes | `7a7cd7636e50f69deccb4928db1dd20dd4344c77` |
+| `personal-ai-janggi-trainer-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/personal-ai-janggi-trainer-by-gpt` | `main` | yes | active |
+| `time-dashboard-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/time-dashboard-by-gpt` | `main` | yes | active |
 
 Both services are active and their latest cutover deployments are `live`.
 
