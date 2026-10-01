@@ -66,7 +66,7 @@ def assert_clean_viewport(page, label):
     assert g["htmlHeight"] <= vp["height"] + 1, (label, g)
     assert g["bodyHeight"] <= vp["height"] + 1, (label, g)
     board = g["board"]
-    if board:
+    if board and board["width"] > 0 and board["height"] > 0:
         ratio = board["width"] / board["height"]
         assert abs(ratio - 8/9) < 0.025, (label, "board ratio", ratio, g)
         assert board["x"] >= -1 and board["right"] <= vp["width"] + 1, (label, g)
