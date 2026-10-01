@@ -192,6 +192,7 @@ def main():
                 assert "내 수가 먼저 반영되었습니다" in pending_status, pending_status
                 assert page.locator(".cell.last-move-from").count() == 1
                 assert page.locator(".cell.last-move-to").count() == 1
+                assert "내 수 반영" in page.locator(".board-message-title").text_content()
                 page.screenshot(path=screenshots / "03-pending-human-move.png", full_page=False)
                 page.evaluate("""() => {
                   window.fetch = window.__janggiOriginalFetch;
@@ -216,6 +217,9 @@ def main():
                 page.click("#learning-toggle")
                 page.wait_for_timeout(100)
                 assert page.locator("#learning-toggle").get_attribute("aria-expanded") == "true"
+                assert page.locator("#learning-toggle").text_content().strip() == "분석·학습"
+                learning_style = page.locator("#learning-toggle").evaluate("(el) => ({background:getComputedStyle(el).backgroundColor,color:getComputedStyle(el).color,active:el.classList.contains('active')})")
+                assert learning_style["active"] and learning_style["background"] not in ("rgb(255, 255, 255)", "rgba(255, 255, 255, 1)"), learning_style
                 page.screenshot(path=screenshots / "04-learning-open.png", full_page=False)
                 assert_no_viewport_overflow(page, "learning desktop")
 
