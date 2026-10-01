@@ -198,10 +198,10 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 ## Current Calibration Execution State
 
 - Long-running AI level calibration is intentionally separated from GitHub Actions.
-- Active implementation PR: #84 (Calibration: move long-running AI level evidence off GitHub Actions).
-- PR #84 is not merged yet; its dedicated runner tests and provenance hardening are under review. Fast project CI is operational again on PR validation, while long-running calibration remains intentionally off-CI.
+- Off-CI calibration infrastructure from PR #84 is merged; no calibration implementation PR is currently open.
+- PR #84 merged after Workspace and Janggi validation passed; fast project CI is operational again, while long-running calibration remains intentionally off-CI.
 - The off-CI runner now validates existing artifact identity and avoids cross-setup aggregation.
-- Actual 2-3 / 3-4 / 4-5 / 5-6 calibration computation has not been executed; no strength result is inferred from infrastructure readiness alone.
+- A legacy single-seed 2-3 artifact exists (10/10 completed, higher level 10-0), but it is not sufficient under the current provenance-aware two-seed evidence boundary. Actual sufficient 2-3 / 3-4 / 4-5 / 5-6 calibration computation remains incomplete; no strength result is inferred from infrastructure readiness or one-seed legacy evidence.
 
 ## Actual level-strength calibration evidence
 
