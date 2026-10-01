@@ -106,6 +106,14 @@
 - Render workspace access is restored. The current Render service is confirmed `live` on main commit `6235be60004e06084f551d87e44907cc07a72a30` via deployment `dep-dav07ue0tbcc73e81kf0`; build/start completed normally.
 - External browser/UI smoke verification is still unavailable from this agent runtime because the available web verifier rejects the public Render URL and the runtime cannot resolve the public hostname. This is a verification-environment limitation, not a confirmed product or Render outage.
 
+### UI User-Scenario Verification (2026-10-01)
+
+- A Chromium-based end-to-end scenario suite was executed against the trainer on test commit `444ba1b63ceaefa3fb054c2e270e7a83e25bd1fc`.
+- Verified user flows: initial launch, Han/Lv.6 setup, mid-game new game reset, alternate board setup, human-move-before-AI rendering, undo, review → training, browser-session isolation, and mobile/desktop drawer states.
+- Responsive checkpoints covered 1280×720, 1024×768, 821×700, 820×1180, 390×844, 360×800, and 320×568.
+- The test initially exposed and fixed the undefined `hasHistory` runtime error, stale pending-move status rendering, stale board-start overlay during a move, mobile board-ratio distortion, mobile settings-rail overflow, and the hidden/visually empty analysis-learning header action.
+- Final browser scenario run and Janggi validation both passed; screenshots were reviewed for desktop, pending-move, 820×1180, and narrow-mobile states.
+
 ## Active Execution Constraints
 
 - The authoritative workspace issue index is `../../../GOVERNANCE/docs/ACTIVE_ISSUES.md`.
