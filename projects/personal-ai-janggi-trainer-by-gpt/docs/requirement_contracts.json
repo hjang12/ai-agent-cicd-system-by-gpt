@@ -94,6 +94,30 @@
         }
       ],
       "change_policy": "INTENTIONAL_CHANGE_REQUIRES_REPORT"
+    },
+    {
+      "id": "UX-004",
+      "status": "ACTIVE",
+      "title": "Game-first layout does not let auxiliary surfaces cover the board",
+      "requirement": "In the normal trainer screen the board, turn/status context, and essential actions are the primary visible surface. Settings, analysis, review, and training open only through explicit controls and consume application layout space rather than overlaying the board.",
+      "source": "User-requested UI priority, explicitly reconfirmed for the post-v2 redesign on 2026-10-01.",
+      "protected_paths": [
+        "index.html",
+        "tests/test_app.py",
+        "docs/CURRENT_STATUS.md",
+        "docs/DEVELOPMENT_HISTORY.md"
+      ],
+      "regression_tests": [
+        {
+          "file": "tests/test_app.py",
+          "symbol": "test_browser_game_first_layout_keeps_drawers_out_of_board_stage"
+        },
+        {
+          "file": "tests/test_app.py",
+          "symbol": "test_browser_mobile_drawer_consumes_layout_space_instead_of_covering_board"
+        }
+      ],
+      "change_policy": "INTENTIONAL_CHANGE_REQUIRES_REPORT"
     }
   ]
 }
