@@ -34,3 +34,36 @@ jobs:
         run: python tools/validate_requirement_contracts.py
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
+
+
+  browser_ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: projects/personal-ai-janggi-trainer-by-gpt
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install browser test dependency
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Run browser user scenarios
+        env:
+          PYTHONUNBUFFERED: "1"
+          UI_TEST_ARTIFACT_DIR: ui-test-artifacts
+        run: python tools/ui_user_scenarios.py
+      - name: Upload UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: janggi-ui-user-scenario-screenshots
+          path: projects/personal-ai-janggi-trainer-by-gpt/ui-test-artifacts/
+          if-no-files-found: warn
