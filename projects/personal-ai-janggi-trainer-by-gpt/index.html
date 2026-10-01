@@ -51,7 +51,9 @@ button:focus-visible,select:focus-visible{outline:3px solid #3158d455;outline-of
 .topbar-actions{display:flex;align-items:center;gap:5px;min-width:0}
 .header-action{height:34px;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font-size:.72rem;font-weight:900;white-space:nowrap;box-shadow:0 2px 6px #19233208}
 .header-action:hover:not(:disabled){border-color:var(--line-strong);background:#fbfcfd}
-.header-action.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.header-action{color:var(--ink)}
+.header-action.active{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+
 .dashboard{min-width:0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
 .dashboard.settings-open{grid-template-columns:minmax(280px,320px) minmax(0,1fr)}
 .dashboard.learning-open{grid-template-columns:minmax(0,1fr) minmax(320px,390px)}
@@ -63,6 +65,7 @@ button:focus-visible,select:focus-visible{outline:3px solid #3158d455;outline-of
 .card{padding:12px}
 .analysis,.review,.training{padding:12px;overflow:auto}
 .rail-right > .analysis[hidden],.rail-right > .review[hidden],.rail-right > .training[hidden]{display:none}
+.learning-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:none}
 .rail-right > .analysis:not([hidden]),.rail-right > .review:not([hidden]),.rail-right > .training:not([hidden]){flex:0 0 auto;max-height:100%}
 .section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
 .section-title h2,.section-title h3,.analysis h3,.review h3,.training h3{margin:0}
@@ -169,11 +172,13 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
   .brand-mark{width:32px;height:32px;border-radius:9px}
   .brand-title{font-size:.88rem}
   .turn-indicator{display:none}
-  .header-action{height:32px;padding:0 8px;font-size:.67rem}
+  .header-action{height:32px;padding:0 8px;font-size:.67rem;min-width:0}
+  .topbar-actions #learning-toggle{min-width:64px}
+
   .dashboard{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr)}
   .dashboard.settings-open,.dashboard.learning-open{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
   .game-stage{grid-row:1}
-  .dashboard.settings-open .rail-left,.dashboard.learning-open .rail-right{grid-column:1;grid-row:2;display:flex;max-height:34dvh}
+  .dashboard.settings-open .rail-left,.dashboard.learning-open .rail-right{grid-column:1;grid-row:2;display:flex;max-height:34dvh;overflow:hidden}
   .dashboard.learning-open .rail-right{max-height:42dvh}
   .rail-left .card,.rail-right > .analysis,.rail-right > .review,.rail-right > .training{box-shadow:0 -10px 30px #19233218}
   .players{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
@@ -184,7 +189,7 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
   .status-bar{min-height:35px;padding:6px 8px}
   .status{font-size:.69rem}
   .status-turn{font-size:.6rem}
-  .board{height:min(100%,62dvh);max-width:96vw;border-width:4px}
+  .board{height:min(100%,62dvh,calc(96vw * 9 / 8));max-width:none;border-width:4px}
   .piece{font-size:clamp(18px,5.8vw,30px)}
   .result-grid{gap:4px}
   .result-actions{grid-template-columns:1fr 1fr}
@@ -347,6 +352,11 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
     </section>
 
     <aside class="rail rail-right side-panel" aria-label="분석과 학습">
+      <div class="learning-actions" aria-label="분석과 학습 작업">
+        <button class="secondary" id="learning-review" type="button" disabled>최근 대국 복기</button>
+        <button class="secondary" id="learning-training" type="button" disabled>훈련 문제 만들기</button>
+      </div>
+
       <div class="analysis" id="analysis" hidden>
         <div class="section-title"><h3>착수 분석</h3><small>현재 수</small></div>
         <div class="analysis-row"><span>평가</span><strong id="severity" class="severity"></strong></div>
@@ -507,6 +517,8 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
     const dashboard = document.querySelector('.dashboard');
     const settingsToggle = document.querySelector('#settings-toggle');
     const learningToggle = document.querySelector('#learning-toggle');
+    const learningReview = document.querySelector('#learning-review');
+    const learningTraining = document.querySelector('#learning-training');
     const trainingAccuracy = document.querySelector('#training-accuracy');
     const reasonAccuracySummary = document.querySelector('#reason-accuracy-summary');
     const trainingList = document.querySelector('#training-list');
@@ -694,9 +706,12 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
       const canUndo = Boolean(snapshot?.can_undo);
       reset.disabled = busy;
       undo.disabled = busy || !canUndo;
+      const hasHistory = Boolean(snapshot?.state?.history?.length);
       engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== snapshot?.ai_side;
       review.disabled = busy || !hasHistory;
       training.disabled = busy || !hasHistory;
+      learningReview.disabled = busy || !hasHistory;
+      learningTraining.disabled = busy || !hasHistory;
       setup.disabled = busy;
       playerSide.disabled = busy;
       aiLevel.disabled = busy;
@@ -809,6 +824,9 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
       busy = true;
       updateControls();
       try {
+        analysisPanel.hidden = true;
+        nextAction.hidden = true;
+        reviewPanel.hidden = true;
         status.textContent = '복기에서 훈련 문제를 만드는 중입니다…';
         const result = await post('/api/training/problems', {review_limit: 20, problem_limit: 5});
         renderTrainingProblems(result);
@@ -1081,22 +1099,25 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
       renderBoardMessage();
       const turnSide = view.state.turn;
       const terminal = snapshot?.status && snapshot.status !== 'playing';
+      const waitingForAi = Boolean(pendingPlayerMove) && !trainingPosition && !terminal;
       turn.textContent = trainingPosition
         ? '훈련 문제 차례: ' + (sideLabels[turnSide] || turnSide)
-        : (terminal ? '대국 종료' : '현재 차례: ' + (sideLabels[turnSide] || turnSide));
+        : (terminal ? '대국 종료' : (waitingForAi ? 'AI 응수 중' : '현재 차례: ' + (sideLabels[turnSide] || turnSide)));
       status.textContent = trainingPosition
         ? '포지션 훈련 중'
         : (terminal
           ? terminalMessage(snapshot.status)
-          : (view.state.turn === snapshot.player_side
-            ? '내 차례 · 말을 선택하세요'
-            : 'AI 차례 · 응수를 기다리는 중입니다'));
+          : (waitingForAi
+            ? '내 수가 먼저 반영되었습니다 · AI를 기다리는 중입니다…'
+            : (view.state.turn === snapshot.player_side
+              ? '내 차례 · 말을 선택하세요'
+              : 'AI 차례 · 응수를 기다리는 중입니다')));
       orientationNote.textContent = boardSide() === 'han'
         ? '한이 화면 아래쪽입니다.'
         : '초가 화면 아래쪽입니다.';
       statusContext.textContent = trainingPosition
         ? '훈련 문제'
-        : (terminal ? '대국 종료' : (view.state.turn === snapshot.player_side ? '내 차례' : 'AI 응수 중'));
+        : (terminal ? '대국 종료' : (waitingForAi ? 'AI 응수 중' : (view.state.turn === snapshot.player_side ? '내 차례' : 'AI 응수 중')));
       updateControls();
     }
 
@@ -1158,6 +1179,7 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
       const current = pieceAt(stateY * 9 + stateX);
       if (!selected) {
         if (current && current.side === snapshot.state.turn) {
+          clearBoardMessage();
           selected = [stateX, stateY];
           showGameMessage('');
           status.textContent = '이동할 수 있는 칸을 선택하세요.';
@@ -1193,7 +1215,9 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
         const beforeSnapshot = snapshot;
         pendingPlayerMove = move;
         selected = null;
-        status.textContent = '내 수를 먼저 반영했습니다 · AI를 기다리는 중입니다…';
+        clearBoardMessage();
+        status.textContent = '내 수가 먼저 반영되었습니다 · AI를 기다리는 중입니다…';
+        showBoardMessage('내 수 반영 · AI 응수 준비 중…', '잠시만 기다려 주세요.', {thinking:true, durationMs:0});
         render();
         await waitForPaint();
 
@@ -1291,6 +1315,8 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
       updateControls();
       try {
         clearTrainingMode();
+        analysisPanel.hidden = true;
+        nextAction.hidden = true;
         status.textContent = '최근 대국을 복기하는 중입니다…';
         const result = await post('/api/review', {limit: 20});
         renderReview(result);
@@ -1330,11 +1356,14 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
         dashboard.classList.add('learning-open');
         learningToggle.classList.add('active');
         learningToggle.setAttribute('aria-expanded', 'true');
+        updateControls();
       }
     });
 
     training.addEventListener('click', startTrainingProblems);
     review.addEventListener('click', runReview);
+    learningReview.addEventListener('click', runReview);
+    learningTraining.addEventListener('click', startTrainingProblems);
     postgameReview.addEventListener('click', runReview);
     postgameTraining.addEventListener('click', startTrainingProblems);
     postgameReset.addEventListener('click', () => reset.click());
@@ -1366,7 +1395,9 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
         renderAnalysis(null, null);
         renderReview(null);
         closeDrawers();
+        clearBoardMessage();
         render();
+        showBoardMessage(startMessage, '', {durationMs:1800});
       }
       catch (error) { status.textContent = error.message; }
       finally { busy = false; updateControls(); }
