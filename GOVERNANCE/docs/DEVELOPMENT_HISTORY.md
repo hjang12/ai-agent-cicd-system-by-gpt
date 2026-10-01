@@ -1,3 +1,26 @@
+
+## 2026-10-01 — Whole-product review: UI layout regression and Context-state drift root-cause correction
+
+### Review Findings
+
+이번 리뷰에서 두 종류의 반복 위험을 분리했다.
+
+1. **UI 구조 위험**
+   초기 trainer UI는 기능을 추가하는 과정에서 기존 v2 drawer/overlay 스타일 위에 후속 스타일을 누적하는 방식으로 진화했다. 그 결과 장기판을 가릴 수 있는 구형 layout 규칙과 새 game-first 규칙이 동시에 존재할 여지가 생겼고, UI 요구사항이 명시적인 non-overlap Contract로 승격되기 전까지는 구조적 회귀를 자동으로 충분히 제한하지 못했다. 실제 PR #89에서 이 구조를 단일 game-first layout으로 재구성했고, UX-004와 browser regression tests로 board-covering drawer 회귀를 보호했다.
+
+2. **Context 상태 드리프트**
+   CURRENT_STATUS 계열 문서에 Governance version, CI run, Render deployment 같은 빠르게 변하는 상태가 정적 Context와 함께 수동 복제되어 있었다. 이후 PR/commit/deploy가 연속으로 발생하면서 문서 갱신 시점과 실제 Repository/CI/Render 상태가 어긋날 수 있었고, Agent가 이 정적 문구를 현재 사실처럼 읽을 위험이 생겼다. 문제의 구조적 원인은 동적 운영 telemetry와 durable Context의 경계가 명확하지 않았고 이를 기계적으로 검증하는 CI gate가 없었던 것이다.
+
+### Prevention
+
+- UI 변경은 active UX Contract와 회귀 테스트를 함께 수정·검증하고, superseded CSS/layout rule을 같은 변경에서 제거한다.
+- docs/CURRENT_STATUS.md는 durable product/context 상태만 유지한다. 정확한 CI run ID, Render deployment ID, 현재 live commit 등 mutable telemetry는 dated verification/history/checkpoint 기록으로 이동한다.
+- tools/validate_context_consistency.py를 추가하고 Workspace validation에서 실행하여 Governance version, ACTIVE Task → Context/Checkpoint 연결, checkpoint commit 존재 여부, Active Issue authoritative index, Current Status telemetry boundary를 자동 검사한다.
+- Project AGENTS.md에 UI layout 및 Current Status 운영 경계를 명문화하여 다음 Agent가 동일한 패턴을 반복하지 않도록 한다.
+
+### Result
+
+문서와 실제 상태의 불일치를 사람이 마지막에 발견하는 방식에서, Repository 변경 단계에서 구조적 drift를 자동 검출하는 방식으로 운영 경계를 강화했다. 이번 리뷰에서 확인된 1번 UI 문제는 UX-004 Contract와 regression tests로 보호되며, 6번 Context drift 문제는 dedicated consistency validation으로 재발 방지 장치를 추가했다.
 # Development History
 
 ## 2026-09-30 — Governance v1.3.2 Continuity / Execution Path Refinement
