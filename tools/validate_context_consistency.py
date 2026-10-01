@@ -19,12 +19,24 @@ def read(path: Path) -> str:
 
 def version(text: str) -> str | None:
     for line in text.splitlines():
-        if line.startswith("Governance Version:"):
-            return line.split(":", 1)[1].strip().strip("`") or None
+        normalized = line.strip()
+        if normalized.startswith("- Governance Version:"):
+            return normalized.split(":", 1)[1].strip().strip(chr(96)) or None
     return None
 
 def git_exists(sha: str) -> bool:
     return subprocess.run(["git", "cat-file", "-e", sha + "^{commit}"], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode == 0
+
+def active_task(text: str) -> tuple[str, str, str] | None:
+    for line in text.splitlines():
+        if not line.strip().startswith("| TASK-"):
+            continue
+        parts = [part.strip() for part in line.strip().strip("|").split("|")]
+        if len(parts) < 7 or parts[4] != "ACTIVE":
+            continue
+        return parts[0], parts[5], parts[6]
+    return None
+
 
 def main() -> int:
     errors: list[str] = []
@@ -32,11 +44,11 @@ def main() -> int:
     pv = version(read(PROJECT_STATUS))
     if not gv or not pv or gv != pv:
         errors.append("workspace/project Governance Version mismatch")
-    task = re.search(r"\|\s*(TASK-[0-9]{8}-[0-9]{4})\s*\|[^|]+\|[^|]+\|\s*ACTIVE\s*\|[^|]+\|\s*([^|]+)\|\s*([^|]+)\|", read(TASKS))
+    task = active_task(read(TASKS))
     if not task:
         errors.append("no parseable ACTIVE Task row")
     else:
-        task_id, context, checkpoint = task.groups()
+        task_id, context, checkpoint = task
         context_path = ROOT / context.strip()
         checkpoint_path = ROOT / checkpoint.strip()
         if not context_path.exists():
