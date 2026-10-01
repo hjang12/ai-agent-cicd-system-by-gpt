@@ -21,6 +21,12 @@
 
 # Changelog
 
+### Review Completion
+
+- 2차 Governance review에서 Context Recovery의 중복 ACTIVE_ISSUES 단계를 제거하고, resolved issue를 Active Issue Index에서 제거.
+- 추가적인 Governance parser / registry / workflow / state layer는 필요하지 않다고 재확인.
+- Governance 1.3.3을 현재 공통 운영 기준으로 확정하고 다음 Development Task를 Janggi calibration으로 전환.
+
 ## [1.3.2] - 2026-09-30
 
 ### Added

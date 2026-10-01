@@ -1338,7 +1338,6 @@ Governance
 → AGENT_START / AGENTS
 → Task가 지정한 Project / Workspace Context
 → CURRENT_STATUS
-→ ACTIVE_ISSUES
 → Checkpoint가 있는 경우 Task Registry가 지정한 Checkpoint
 → README / ARCHITECTURE / Requirement Contracts
 → DEVELOPMENT_HISTORY / ADR / Evidence
