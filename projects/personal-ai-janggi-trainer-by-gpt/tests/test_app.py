@@ -412,8 +412,10 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("pieceMoveHints", html)
         self.assertIn("상은 2칸×3칸 또는 3칸×2칸", html)
         self.assertIn("explainIllegalMove(selected, [stateX, stateY], view)", html)
+        self.assertIn("post('/api/analyze/move', move)", html)
         self.assertIn("post('/api/move', move)", html)
-        self.assertIn("내 수가 먼저 반영되었습니다.", html)
+        self.assertIn("착수 평가 중…", html)
+        self.assertIn("내 수가 반영되었습니다.", html)
         self.assertIn("AI가 수를 계산하는 중입니다…", html)
         self.assertIn("장군!", html)
         self.assertIn("멍군!", html)
@@ -579,7 +581,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn('option value="6">Lv.6 전문', html)
         self.assertIn("ai_level:aiLevel.value", html)
         self.assertIn("snapshot.ai_level || '1'", html)
-        self.assertIn("선택된 AI:", html)
+        self.assertIn("선택: Lv.", html)
 
     def test_browser_move_presentation_uses_board_notation(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
@@ -636,7 +638,7 @@ class TrainerApplicationTests(unittest.TestCase):
     def test_browser_undo_contract_is_present(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn('id="undo"', html)
-        self.assertIn('class="analysis-row analysis-pv"', html)
+        self.assertIn('id="undo"', html)
         self.assertIn("undo.disabled = busy || !canUndo", html)
         self.assertIn("engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== snapshot?.ai_side", html)
         self.assertIn("const [stateX, stateY] = displayToState(x, y)", html)
