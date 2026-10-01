@@ -125,8 +125,8 @@ Current root workflows:
 
 - Janggi validation — governed by the mandatory fast CI workflow; exact execution snapshots are recorded with the relevant commit.
 - Janggi search benchmark — maintained by the dedicated search benchmark workflow; exact execution snapshots are recorded with the relevant commit.
-- Time Dashboard CI — success on current `main` (run #27)
-- Workspace structure validation — success on current `main` (run #6)
+- Time Dashboard CI — maintained by the dedicated project workflow; exact execution snapshots are recorded with the relevant commit.
+- Workspace structure validation — mandatory monorepo structural gate; exact execution snapshots are recorded with the relevant commit.
 
 The first monorepo Janggi validation/benchmark runs failed because the migrated test/benchmark files still reflected pre-monorepo assumptions. The subsequent fixes are now green. The actual current GitHub Actions result, not the historical failure, is the operative state.
 
