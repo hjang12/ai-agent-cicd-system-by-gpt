@@ -306,7 +306,7 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
   gap:6px;
 }
 .topbar{
-  grid-template-columns:minmax(0,1fr) auto auto;
+  grid-template-columns:minmax(0,1fr) auto auto auto;
   gap:8px;
 }
 .brand-sub{display:none}
@@ -441,7 +441,7 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
 
 @media(max-width:820px){
   .app-shell{grid-template-rows:48px minmax(0,1fr);padding:5px;gap:5px}
-  .topbar{grid-template-columns:minmax(0,1fr) auto}
+  .topbar{grid-template-columns:minmax(0,1fr) auto auto}
   .header-state{display:none}
   .topbar-actions{gap:4px}
   .header-action{height:32px;padding:0 8px;font-size:.68rem}
@@ -1078,6 +1078,9 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
 
     async function startTrainingProblems() {
       if (busy || !snapshot?.state?.history?.length) return;
+      dashboard.classList.add('learning-open');
+      learningToggle.classList.add('active');
+      learningToggle.setAttribute('aria-expanded', 'true');
       busy = true;
       updateControls();
       try {
@@ -1556,6 +1559,9 @@ button.secondary:hover:not(:disabled),button.primary:hover:not(:disabled){filter
 
     async function runReview() {
       if (busy || !snapshot?.state?.history?.length) return;
+      dashboard.classList.add('learning-open');
+      learningToggle.classList.add('active');
+      learningToggle.setAttribute('aria-expanded', 'true');
       busy = true;
       updateControls();
       try {
