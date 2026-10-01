@@ -170,6 +170,7 @@ def main():
                 # Delay the browser fetch asynchronously so the DOM can render the pending move
                 # before the API response arrives.
                 page.evaluate("""() => {
+                  window.__janggiOriginalFetch = window.fetch;
                   const originalFetch = window.fetch;
                   window.fetch = async (...args) => {
                     const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
@@ -183,31 +184,12 @@ def main():
                 page.wait_for_timeout(120)
                 pending_status = page.locator("#status").text_content() or ""
                 assert "내 수를 먼저 반영했습니다" in pending_status, pending_status
+                assert page.locator(".cell.last-move-from").count() == 1
+                assert page.locator(".cell.last-move-to").count() == 1
                 page.screenshot(path=screenshots / "03-pending-human-move.png", full_page=False)
-                def delayed_move(route):
-                    import time as _time
-                    request = route.request
-                    import urllib.request as _urllib
-                    # Forward the request manually and delay the response.
-                    req = _urllib.Request(
-                        BASE + "/api/move",
-                        data=request.post_data.encode() if request.post_data else b"{}",
-                        headers={"Content-Type": "application/json"},
-                        method="POST",
-                    )
-                    with _urllib.urlopen(req, timeout=15) as upstream:
-                        body = upstream.read()
-                        status = upstream.status
-                        headers = dict(upstream.headers.items())
-                    _time.sleep(0.8)
-                    route.fulfill(status=status, headers=headers, body=body)
-                page.route("**/api/move", delayed_move)
-                click_first_player_piece_and_move(page)
-                page.wait_for_timeout(120)
-                pending_status = page.locator("#status").text_content() or ""
-                assert "내 수를 먼저 반영했습니다" in pending_status, pending_status
-                page.screenshot(path=screenshots / "03-pending-human-move.png", full_page=False)
-                page.unroute("**/api/move")
+                page.evaluate("""() => {
+                  window.fetch = window.__janggiOriginalFetch;
+                }""")
                 wait_player_turn(page)
                 s = state(page)
                 assert len(s["state"]["history"]) >= 2
