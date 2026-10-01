@@ -124,7 +124,7 @@ The former project repositories were deleted after the pre-deletion verification
 Current root workflows:
 
 - Janggi validation — governed by the mandatory fast CI workflow; exact execution snapshots are recorded with the relevant commit.
-- Janggi search benchmark — success on current `main` (run #20)
+- Janggi search benchmark — maintained by the dedicated search benchmark workflow; exact execution snapshots are recorded with the relevant commit.
 - Time Dashboard CI — success on current `main` (run #27)
 - Workspace structure validation — success on current `main` (run #6)
 
