@@ -88,35 +88,20 @@
 ## Current UI Direction
 
 - The trainer is a scroll-free, single-screen game application with the Janggi board as the dominant surface.
-- During a normal game, only player/turn context, the compact game status, and the essential actions remain visible around the board.
-- Settings, analysis, review, training, and player assessment are not persistent side content; they are opened explicitly from the header.
-- Desktop drawers use dedicated layout columns, so opening a drawer reduces the game-stage width instead of covering the board.
-- Mobile drawers use a second layout row below the game stage, so opening them consumes viewport space instead of covering the board.
-- The post-game result surface is part of normal layout flow rather than an absolute board overlay.
-- UX-001 and UX-002 remain protected, and UX-003 now also has the non-overlap UX-004 companion contract.
-- This UI remains independent from Engine/search implementation so AI-strength calibration can resume on the same stable product shell.
+- Initial entry is a separate setup screen; the board is not shown until the user chooses AI difficulty and side and starts a game.
+- The setup screen exposes six AI levels and two player-side choices with a compact optional board-setup selector.
+- During an active game, the persistent UI is intentionally minimal: player/AI context, the board, a compact one-line move evaluation comment, undo, and a dedicated `재대국` action.
+- `재대국` opens the same setup UI as a modal over the current game. Starting the new game applies the selected side/AI level/setup and returns to the game surface.
+- Detailed settings, analysis, review, training, and player-assessment panels are not persistent during play. Post-game review/training remain accessible from the terminal result surface.
+- Engine/search/API boundaries remain unchanged; the UI consumes the same snapshots and analysis/coaching interfaces.
+- UX-004 drawer contract was superseded by UX-005 to reflect this setup-first/replay-modal architecture.
 
-## Latest Verification (2026-10-01)
-- PR #95 (`fix: harden Janggi UI user flows and responsive layout`) merged to `main` as `139460155b418ee33e676b08978e4cf6ff068552`.
-- A Chromium-based real-user scenario suite exercised initial launch, side/AI-level selection, mid-game reset, alternate setup, pending human-move rendering, undo, review/training access, browser-session isolation, and responsive states at 1280×720, 1024×768, 821×700, 820×1180, 390×844, 360×800, and 320×568.
-- The final scenario run passed after fixing the concrete UI defects found during testing: `hasHistory` runtime failure, stale human-move status, stale start overlay, narrow-mobile board ratio distortion, mobile settings-rail overflow, and the narrow-width analysis/learning header action state.
-- PR #95 Janggi validation and main post-merge `test`/validation checks passed. Main checks for merge commit `139460155b418ee33e676b08978e4cf6ff068552` completed successfully.
+## Latest Verification (2026-10-02)
 
-- UI redesign merged to `main` as PR #89, merge commit `2886a0d940f951929edc6d53f501e1133018cc44`.
-- The last verified code-bearing Janggi validation passed compile, Requirement Contract validation, and the full unit-test suite; exact run/commit identifiers are preserved in dated verification/history records.
-- The last verified Workspace validation passed; exact run/commit identifiers are preserved in dated verification/history records.
-- The PR initially exposed one stale browser regression assertion for the removed v2 board-width rule; that assertion was updated and the rerun passed. No product logic failure was identified.
-- Static main verification confirms UX-004 layout rules are present and the former fixed-drawer / full-screen overlay CSS is absent.
-- Render workspace access is restored. The current Render service is confirmed `live` on main commit `6235be60004e06084f551d87e44907cc07a72a30` via deployment `dep-dav07ue0tbcc73e81kf0`; build/start completed normally.
-- Direct public Render browser/UI smoke verification remains unavailable from this agent runtime because the available web verifier rejects the public Render URL and the runtime cannot resolve the public hostname. Repository-local browser scenarios were instead executed in GitHub Actions on the test branch before the production merge.
-
-### UI User-Scenario Verification (2026-10-01)
-
-- A Chromium-based end-to-end scenario suite was executed against the trainer on test commit `444ba1b63ceaefa3fb054c2e270e7a83e25bd1fc`.
-- Verified user flows: initial launch, Han/Lv.6 setup, mid-game new game reset, alternate board setup, human-move-before-AI rendering, undo, review → training, browser-session isolation, and mobile/desktop drawer states.
-- Responsive checkpoints covered 1280×720, 1024×768, 821×700, 820×1180, 390×844, 360×800, and 320×568.
-- The test initially exposed and fixed the undefined `hasHistory` runtime error, stale pending-move status rendering, stale board-start overlay during a move, mobile board-ratio distortion, mobile settings-rail overflow, and the hidden/visually empty analysis-learning header action.
-- Final browser scenario run and Janggi validation both passed; screenshots were reviewed for desktop, pending-move, 820×1180, and narrow-mobile states.
+- A dedicated Chromium scenario suite validated the new setup-first game flow on commit `b86d9d2e517fe1942042dd4dde43c6346a39b648`.
+- Verified: setup-only initial view, Lv.6/Han start, replay modal open/cancel, Cho/Lv.2 replay start, immediate human-move presentation, compact move evaluation, AI handoff, and single-screen responsive layout at 1024×768, 820×1180, 390×844, 360×800, and 320×568.
+- The final scenario run passed after correcting hidden-state CSS, runtime compatibility elements, compact evaluation wording, and test harness assumptions.
+- Screenshots were reviewed for setup, active game, replay modal, move-evaluation state, desktop response, and narrow mobile states.
 
 ## Active Execution Constraints
 
