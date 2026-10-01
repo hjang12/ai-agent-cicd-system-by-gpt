@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.3.3] - 2026-10-01
+
+### Added
+
+- Tool/API Evidence를 Observed / Declared / Unknown으로 구분하고, 응답에 없는 필드를 실제 빈 값·false·disabled 상태로 추론하지 않는 운영 원칙을 명문화.
+- 실패 발생 시 기존 Governance가 이미 문제를 다루고 있었는지 먼저 확인하도록 Governance Gap 검토 절차를 추가.
+- Governance 변경 전 일반화 가능성, 기존 규칙의 충분성, 단순 대안, 복잡성 비용, 검증 가능성 및 제거 조건을 검토하는 단순성 기준을 추가.
+
+### Changed
+
+- 한 번의 운영 오류를 해결하기 위한 전용 parser / registry / workflow / 상태 계층 추가를 마지막 수단으로 제한.
+- 이번 review에서 시범 도입한 Context consistency parser와 추가 CI checkout 변경을 제거하여 Governance 운영 구조를 단순화.
+- Render healthCheckPath 관련 과거 기록에서 Tool 응답 미노출을 실제 empty 상태로 단정한 부분을 정정 대상으로 기록.
+
+### Review Trigger
+
+- Render service metadata 응답에 healthCheckPath 필드가 반환되지 않은 것을 실제 빈 설정으로 오판한 사례.
+- 오판 후 추가된 context consistency validator 자체가 문서 형식과 Git checkout 조건을 잘못 가정하면서 연속 CI 실패를 만든 사례.
+
+# Changelog
+
 ## [1.3.2] - 2026-09-30
 
 ### Added
