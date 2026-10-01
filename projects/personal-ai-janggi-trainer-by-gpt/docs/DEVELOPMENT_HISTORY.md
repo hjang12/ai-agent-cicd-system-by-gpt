@@ -19,10 +19,16 @@ Keep the existing game-first architecture and fix only the user-flow/state-rende
 ### Product Boundary
 
 No Janggi rules, API contracts, session-isolation semantics, engine/search configuration, public AI-level budgets, player-assessment semantics, or training-model boundaries were changed.
+### Production Merge
+
+- PR #95 merged to `main` as `139460155b418ee33e676b08978e4cf6ff068552`.
+- Post-merge main validation completed successfully.
+- The temporary browser-test branch/PR was kept out of production; only the tested product/docs changes were merged.
+
 
 ### Next Step
 
-Merge the production UI-only fix branch after the normal main validation gate, then resume the existing AI-level calibration task.
+Resume the existing provenance-aware AI-level calibration task, starting with the remaining 2-3 pair.
 
 ---
 

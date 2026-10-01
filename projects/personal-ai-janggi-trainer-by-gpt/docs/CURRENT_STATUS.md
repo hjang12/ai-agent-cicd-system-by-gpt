@@ -97,6 +97,10 @@
 - This UI remains independent from Engine/search implementation so AI-strength calibration can resume on the same stable product shell.
 
 ## Latest Verification (2026-10-01)
+- PR #95 (`fix: harden Janggi UI user flows and responsive layout`) merged to `main` as `139460155b418ee33e676b08978e4cf6ff068552`.
+- A Chromium-based real-user scenario suite exercised initial launch, side/AI-level selection, mid-game reset, alternate setup, pending human-move rendering, undo, review/training access, browser-session isolation, and responsive states at 1280×720, 1024×768, 821×700, 820×1180, 390×844, 360×800, and 320×568.
+- The final scenario run passed after fixing the concrete UI defects found during testing: `hasHistory` runtime failure, stale human-move status, stale start overlay, narrow-mobile board ratio distortion, mobile settings-rail overflow, and the narrow-width analysis/learning header action state.
+- PR #95 Janggi validation and main post-merge `test`/validation checks passed. Main checks for merge commit `139460155b418ee33e676b08978e4cf6ff068552` completed successfully.
 
 - UI redesign merged to `main` as PR #89, merge commit `2886a0d940f951929edc6d53f501e1133018cc44`.
 - The last verified code-bearing Janggi validation passed compile, Requirement Contract validation, and the full unit-test suite; exact run/commit identifiers are preserved in dated verification/history records.
@@ -104,7 +108,7 @@
 - The PR initially exposed one stale browser regression assertion for the removed v2 board-width rule; that assertion was updated and the rerun passed. No product logic failure was identified.
 - Static main verification confirms UX-004 layout rules are present and the former fixed-drawer / full-screen overlay CSS is absent.
 - Render workspace access is restored. The current Render service is confirmed `live` on main commit `6235be60004e06084f551d87e44907cc07a72a30` via deployment `dep-dav07ue0tbcc73e81kf0`; build/start completed normally.
-- External browser/UI smoke verification is still unavailable from this agent runtime because the available web verifier rejects the public Render URL and the runtime cannot resolve the public hostname. This is a verification-environment limitation, not a confirmed product or Render outage.
+- Direct public Render browser/UI smoke verification remains unavailable from this agent runtime because the available web verifier rejects the public Render URL and the runtime cannot resolve the public hostname. Repository-local browser scenarios were instead executed in GitHub Actions on the test branch before the production merge.
 
 ### UI User-Scenario Verification (2026-10-01)
 
