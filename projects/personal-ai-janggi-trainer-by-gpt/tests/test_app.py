@@ -672,5 +672,29 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("/api/assessment", __import__("app").RequestHandler.do_GET.__code__.co_consts)
 
 
+
+class TestGameFirstNonOverlappingUiContract(unittest.TestCase):
+    def test_browser_game_first_layout_keeps_drawers_out_of_board_stage(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn('class="topbar-actions"', html)
+        self.assertIn('id="settings-toggle"', html)
+        self.assertIn('id="learning-toggle"', html)
+        self.assertIn(".dashboard.settings-open{grid-template-columns:minmax(280px,320px) minmax(0,1fr)}", html)
+        self.assertIn(".dashboard.learning-open{grid-template-columns:minmax(0,1fr) minmax(320px,390px)}", html)
+        self.assertIn(".game-stage{min-width:0;min-height:0;height:100%;display:flex;flex-direction:column;align-items:stretch;", html)
+        self.assertIn(".board-wrap{flex:1 1 auto;", html)
+        self.assertNotIn("dashboard.settings-open::after", html)
+        self.assertNotIn("dashboard.learning-open::after", html)
+        self.assertNotIn("position:fixed;\n  top:60px;", html)
+        self.assertNotIn("position:absolute;\n  left:50%;\n  bottom:58px;", html)
+        self.assertIn(".game-controls #review,.game-controls #training{display:none}", html)
+
+    def test_browser_mobile_drawer_consumes_layout_space_instead_of_covering_board(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn(".dashboard.settings-open,.dashboard.learning-open{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}", html)
+        self.assertIn(".game-stage{grid-row:1}", html)
+        self.assertIn(".dashboard.settings-open .rail-left,.dashboard.learning-open .rail-right{grid-column:1;grid-row:2;", html)
+
+
 if __name__ == "__main__":
     unittest.main()
