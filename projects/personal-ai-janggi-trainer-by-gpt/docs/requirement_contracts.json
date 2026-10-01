@@ -97,10 +97,10 @@
     },
     {
       "id": "UX-004",
-      "status": "ACTIVE",
+      "status": "SUPERSEDED",
       "title": "Game-first layout does not let auxiliary surfaces cover the board",
       "requirement": "In the normal trainer screen the board, turn/status context, and essential actions are the primary visible surface. Settings, analysis, review, and training open only through explicit controls and consume application layout space rather than overlaying the board.",
-      "source": "User-requested UI priority, explicitly reconfirmed for the post-v2 redesign on 2026-10-01.",
+      "source": "Superseded by explicit user-requested setup-first/replay-modal UI flow on 2026-10-02.",
       "protected_paths": [
         "index.html",
         "tests/test_app.py",
@@ -115,6 +115,34 @@
         {
           "file": "tests/test_app.py",
           "symbol": "test_browser_mobile_drawer_consumes_layout_space_instead_of_covering_board"
+        }
+      ],
+      "change_policy": "REPLACED_BY_UX-005"
+    },
+    {
+      "id": "UX-005",
+      "status": "ACTIVE",
+      "title": "Setup-first game flow with minimal in-game surface",
+      "requirement": "The board must not be shown before game setup is completed. Initial entry presents a separate difficulty/side setup screen. During play, only the board, turn/player context, compact move evaluation, and essential actions remain visible. Starting a new game opens the same setup flow as a modal over the current game, and review/training remain post-game actions rather than persistent in-game surfaces.",
+      "source": "Explicit user-requested product UI direction, confirmed and browser-verified on 2026-10-02.",
+      "protected_paths": [
+        "index.html",
+        "tests/test_app.py",
+        "docs/REQUIREMENT_CONTRACTS.md",
+        "docs/DEVELOPMENT_HISTORY.md"
+      ],
+      "regression_tests": [
+        {
+          "file": "tests/test_app.py",
+          "symbol": "TestGameFirstSetupFlowUiContract.test_browser_initially_stays_on_setup_screen"
+        },
+        {
+          "file": "tests/test_app.py",
+          "symbol": "TestGameFirstSetupFlowUiContract.test_browser_replay_uses_the_same_modal_setup_flow"
+        },
+        {
+          "file": "tests/test_app.py",
+          "symbol": "TestGameFirstSetupFlowUiContract.test_browser_game_surface_is_minimal_and_has_compact_move_comment"
         }
       ],
       "change_policy": "INTENTIONAL_CHANGE_REQUIRES_REPORT"
