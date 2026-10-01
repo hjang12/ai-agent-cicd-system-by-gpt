@@ -147,7 +147,7 @@ Deployment verification:
 - The Janggi Render service has been independently verified live; exact deployment IDs and runtime snapshots belong in dated verification/history records.
 - Time Dashboard deploy `dep-damckue7bikc73b4p7ng`: `live`; build succeeded; `python timefolio_server.py` started; a `HEAD /` request returned HTTP 200; Render reported the service live at its primary URL.
 - Time Dashboard had one immediate cutover build failure because `requirements.txt` was not found, followed by a successful retry after the service Root Directory was correctly applied.
-- Current Render service `healthCheckPath` remains empty for both services. The applications expose Janggi `/api/health`; Time Dashboard has a root endpoint returning HTTP 200. Explicit Render health-check configuration is therefore still a platform-setting improvement, not a deployment blocker.
+- The connected Render service metadata does not currently expose the live `healthCheckPath` field. The repository Blueprint declares the intended `/api/health` endpoint and the Janggi application exposes it. This is a platform-verification limitation, not evidence that the live setting is empty or disabled.
 
 The available Render toolset still does not expose an update operation for existing service Git Repository / Root Directory settings; the actual cutover was performed in the Render Dashboard and then verified through the connected Render API/tooling. No duplicate services were created.
 
