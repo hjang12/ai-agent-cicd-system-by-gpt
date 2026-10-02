@@ -190,6 +190,18 @@ class CalibrationRunner:
             self._status["state"] = (
                 "completed" if completed.returncode == 0 else "failed"
             )
+
+        print("Calibration artifacts:")
+        for artifact_name in self._artifact_names():
+            try:
+                payload, _ = self.read_artifact(artifact_name)
+            except (ValueError, FileNotFoundError, OSError) as exc:
+                print(f"ARTIFACT {artifact_name} UNAVAILABLE: {exc}")
+                continue
+            print(f"ARTIFACT {artifact_name} BEGIN")
+            print(payload.decode("utf-8"))
+            print(f"ARTIFACT {artifact_name} END")
+
         print(
             "Calibration runner finished:",
             json.dumps(self.status(), ensure_ascii=False),
