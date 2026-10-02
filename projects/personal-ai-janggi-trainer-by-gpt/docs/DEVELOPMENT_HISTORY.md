@@ -1805,3 +1805,28 @@ Rework the presentation layer around a dark game-room visual system:
 ### Boundary
 
 This is a visual redesign pass, not a declaration that UI work is complete. Further visual refinement remains part of the product work and should be driven by concrete UI observations rather than being silently closed.
+
+
+## 64. 2026-10-02 — Game HUD and setup refinement
+
+### Requirement
+
+Continue the mobile-game UI pass with concrete interaction and readability refinements identified during product review.
+
+### Implementation
+
+- Reworked the initial `마상 교환` selector into a four-card visual menu while preserving the existing `classic/left/right/both` setup values.
+- Removed the replay modal's `취소` action; tapping/clicking the modal backdrop now closes the modal without changing the active game.
+- Repositioned the AI profile above the Janggi board and the user profile below the board.
+- Changed Cho/Han piece accents from muted tones to strong green/red colors and constrained piece glyph rendering so text stays within the circular piece.
+- Preserved the existing `AI 생각 중…` board thinking state and Engine/API boundaries.
+- PR #102 merged to `main` as `69c537a48d225995a38fd941661ba01efa488f9a`.
+- Render deploy `dep-davgtkdckfvc73bp2qg0` reached `live` on 2026-10-02.
+
+### Verification Boundary
+
+The connected GitHub Actions lookup returned no workflow run for the PR #102 head commit, so CI success was not claimed. Render deployment state was directly observed as `live`. Direct browser/UI smoke rendering remains unavailable in the current agent runtime.
+
+### Product Direction
+
+This remains an iterative UI pass. The next refinement target should be driven by concrete remaining visual/interaction observations rather than treating the layout as finished.
