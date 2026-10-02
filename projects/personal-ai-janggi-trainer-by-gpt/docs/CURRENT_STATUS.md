@@ -105,10 +105,13 @@
 - The visible product flow remains: `대국 준비 → 대국 → 재대국(동일 설정 modal) → 대국 종료 후 복기/훈련`.
 - Replay setup remains scrollable on short viewports, and only the modal backdrop closes the replay setup without starting a game.
 - Board input is now gated by `snapshot.player_side`, so the user cannot select or move AI pieces while the AI is the side to move.
-- The current visual direction is intentionally still iterative: this mobile-game redesign is a UI pass, not a declaration that the UI is finished.
+- The current UI baseline is treated as finished for the present product scope; future UI changes are bug fixes or explicit new requirements rather than open-ended visual redesign.
 - UX-004 is superseded and UX-005 is the active UI contract.
 - PR #104 (`fix: stabilize replay setup and Han turn flow`) merged to `main` as `efe5d08cd99db165ceac6aedd548106a6be41cc7` and deployed live to Render as `dep-davh61gjo6nc738jmnl0`.
 - PR #104 added user-scenario coverage for 8 side/setup combinations, all six AI levels, and repeated replay configuration changes. The connected GitHub Actions lookup returned no workflow run for the PR #104 head commit, so CI success is not asserted.
+- PR #106 (`fix: show Han-side AI opening before player turn`) merged to `main` as `8171ccd4c33844a4a5a9a4f9688f579011689388` and deployed live to Render as `dep-davho1qvcj2c7389f5fg` (`live`).
+- When starting as Han, the browser now shows the initial board for 900ms, displays the AI's opening-state message, then switches to the authoritative post-opening position and user turn. The server/engine flow is unchanged.
+- This completes the current UI refinement scope; no further visual redesign is planned unless a new defect or requirement is identified.
 
 ## Active Execution Constraints
 
