@@ -1830,3 +1830,32 @@ The connected GitHub Actions lookup returned no workflow run for the PR #102 hea
 ### Product Direction
 
 This remains an iterative UI pass. The next refinement target should be driven by concrete remaining visual/interaction observations rather than treating the layout as finished.
+
+
+## 65. 2026-10-02 — Replay setup and Han turn regression fix
+
+### Finding
+
+User-oriented review exposed two gameplay/UI risks: lower controls in the replay setup could become unreachable on short/touch viewports, and board input was not explicitly restricted to the player's side during the AI turn. The server-side reset contract already guarantees that Cho opens when the user chooses Han; the browser needed a stronger turn-ownership guard and clearer start feedback.
+
+### Implementation
+
+- Made the replay setup overlay itself vertically scrollable on short viewports instead of relying on the centered card's internal max-height.
+- Kept the replay card above the overlay with explicit z-index/pointer-event behavior and reset modal scroll to the top when opened.
+- Restricted board click handling to `view.state.turn === snapshot.player_side` outside training mode, preventing accidental selection of AI pieces during AI turns.
+- Clarified the Han-start message as `AI가 초로 선공했습니다 · 내 차례입니다.` when the server snapshot correctly returns Han to move after the AI opening.
+- Added scenario-driven regression coverage for side/setup combinations, all public AI levels, repeated replay setting changes, replay lower-control accessibility, and turn ownership.
+- PR #104 merged to `main` as `efe5d08cd99db165ceac6aedd548106a6be41cc7`.
+- Render deploy `dep-davh61gjo6nc738jmnl0` reached `live` on 2026-10-02.
+
+### Verification Boundary
+
+The source and test contracts were reviewed after the fix. The connected GitHub Actions lookup returned no workflow run for the PR #104 head commit, so automated test execution is not claimed here. Render deployment reached `live`; the agent runtime still cannot independently render the production browser UI.
+
+### User-Scenario Matrix
+
+- Cho/Han × classic/left/right/both setup: 8 combinations checked by application-level regression tests.
+- Cho × Lv.1..Lv.6: 6 AI-level selection scenarios.
+- Replay-like repeated configuration sequence across side/setup/level combinations: 6 scenarios.
+- Han opening invariant: AI is Cho, one opening move exists, and the resulting turn is Han.
+- Board interaction invariant: AI-turn board clicks are blocked in browser logic.
