@@ -395,11 +395,51 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
     let activeTrainingProblem = null;
     let trainingPosition = null;
     let pendingPlayerMove = null;
-    let boardMessage = {title:'', subtitle:'', thinking:false};    let boardMessageTimer = null;
+    let boardMessage = {title:'', subtitle:'', thinking:false};
+    let boardMessageTimer = null;
     let boardMessageToken = 0;
 
+    const HAN_OPENING_DELAY_MS = 900;
+    let openingPreview = false;
+    let openingPreviewSnapshot = null;
+
     function currentPosition() {
-      return trainingPosition || snapshot;
+      return openingPreviewSnapshot || trainingPosition || snapshot;
+    }
+
+    function createOpeningPreviewSnapshot(actualSnapshot) {
+      if (!actualSnapshot || actualSnapshot.player_side !== 'han') return null;
+      const state = actualSnapshot.state;
+      if (!state || state.turn !== 'han' || !Array.isArray(state.history) || state.history.length !== 1) return null;
+      const openingMove = state.history[0];
+      if (!openingMove || openingMove.pass || !Array.isArray(openingMove.src) || !Array.isArray(openingMove.dst)) return null;
+      const srcIndex = openingMove.src[1] * 9 + openingMove.src[0];
+      const dstIndex = openingMove.dst[1] * 9 + openingMove.dst[0];
+      if (srcIndex < 0 || srcIndex >= 90 || dstIndex < 0 || dstIndex >= 90) return null;
+      const board = [...state.board];
+      if (!board[dstIndex] || board[srcIndex]) return null;
+      board[srcIndex] = board[dstIndex];
+      board[dstIndex] = null;
+      return {
+        ...actualSnapshot,
+        state: {
+          ...state,
+          turn: 'cho',
+          board,
+          history: []
+        }
+      };
+    }
+
+    function setOpeningPreview(actualSnapshot) {
+      openingPreviewSnapshot = createOpeningPreviewSnapshot(actualSnapshot);
+      openingPreview = Boolean(openingPreviewSnapshot);
+      return openingPreview;
+    }
+
+    function clearOpeningPreview() {
+      openingPreview = false;
+      openingPreviewSnapshot = null;
     }
 
     function pieceAt(index) {
@@ -1016,16 +1056,18 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       const waitingForAi = Boolean(pendingPlayerMove) && !trainingPosition && !terminal;
       turn.textContent = trainingPosition
         ? '훈련 문제 차례: ' + (sideLabels[turnSide] || turnSide)
-        : (terminal ? '대국 종료' : (waitingForAi ? 'AI 응수 중' : '현재 차례: ' + (sideLabels[turnSide] || turnSide)));
+        : (openingPreview ? 'AI 선공 중' : (terminal ? '대국 종료' : (waitingForAi ? 'AI 응수 중' : '현재 차례: ' + (sideLabels[turnSide] || turnSide))));
       status.textContent = trainingPosition
         ? '포지션 훈련 중'
-        : (terminal
-          ? terminalMessage(snapshot.status)
-          : (waitingForAi
-            ? '착수 평가 중…'
-            : (view.state.turn === snapshot.player_side
-              ? '내 차례 · 말을 선택하세요'
-              : 'AI 차례 · 응수를 기다리는 중입니다')));
+        : (openingPreview
+          ? 'AI가 선공하는 장면을 보여드리는 중입니다…'
+          : (terminal
+            ? terminalMessage(snapshot.status)
+            : (waitingForAi
+              ? '착수 평가 중…'
+              : (view.state.turn === snapshot.player_side
+                ? '내 차례 · 말을 선택하세요'
+                : 'AI 차례 · 응수를 기다리는 중입니다'))));
       orientationNote.textContent = boardSide() === 'han'
         ? '한이 화면 아래쪽입니다.'
         : '초가 화면 아래쪽입니다.';
@@ -1077,7 +1119,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
 
     async function clickCell(x, y) {
       const view = currentPosition();
-      if (busy || view.status !== 'playing') return;
+      if (busy || view.status !== 'playing' || openingPreview) return;
       if (!trainingPosition && (!snapshot || view.state.turn !== snapshot.player_side)) return;
       const [stateX, stateY] = displayToState(x, y);
       const current = pieceAt(stateY * 9 + stateX);
@@ -1278,7 +1320,10 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       playerSide.value = option.dataset.side;
       syncSetupOptions();
     }));
-    replayButton.addEventListener('click', () => showSetup('modal'));
+    replayButton.addEventListener('click', () => {
+      if (busy || openingPreview) return;
+      showSetup('modal');
+    });
     setupScreen.addEventListener('click', event => {
       if (setupScreen.classList.contains('modal') && event.target === setupScreen && !busy) showGame();
     });
@@ -1295,6 +1340,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       updateControls();
       try {
         pendingPlayerMove = null;
+        clearOpeningPreview();
         snapshot = await post('/api/reset', {setup:setup.value, player_side:playerSide.value, ai_level:aiLevel.value});
         clearTrainingMode();
         selected = null;
@@ -1302,6 +1348,18 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         renderAnalysis(null, null);
         renderReview(null);
         clearBoardMessage();
+
+        if (setOpeningPreview(snapshot)) {
+          render();
+          showGame();
+          showBoardMessage('AI가 초로 선공 중…', '첫 수를 두는 과정을 보여드립니다.', {thinking:true, durationMs:0});
+          showGameMessage('AI가 초로 선공 중…');
+          heading.textContent = 'AI 선공을 보여주는 중';
+          setMoveComment(null, 'AI가 첫 수를 두는 장면입니다.');
+          await new Promise(resolve => setTimeout(resolve, HAN_OPENING_DELAY_MS));
+          clearOpeningPreview();
+        }
+
         render();
         showGame();
         const startMessage = snapshot.player_side === 'han'
@@ -1311,11 +1369,15 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
           : (snapshot.state.turn === 'cho'
             ? '초로 선공합니다 · 내 차례입니다.'
             : '초가 선공합니다 · AI 응수를 기다리는 중입니다.');
+        clearBoardMessage();
         showGameMessage(startMessage);
         heading.textContent = startMessage;
         setMoveComment(null, startMessage);
       }
-      catch (error) { status.textContent = error.message; }
+      catch (error) {
+        clearOpeningPreview();
+        status.textContent = error.message;
+      }
       finally { busy = false; updateControls(); }
     });
 

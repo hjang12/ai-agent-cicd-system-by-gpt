@@ -713,6 +713,20 @@ class TestGameFirstSetupFlowUiContract(unittest.TestCase):
         self.assertIn("if (mode === 'modal') setupScreen.scrollTop = 0;", html)
         self.assertIn("event.target === setupScreen", html)
 
+    def test_browser_han_opening_is_visually_delayed_before_player_turn(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("const HAN_OPENING_DELAY_MS = 900;", html)
+        self.assertIn("function createOpeningPreviewSnapshot(actualSnapshot)", html)
+        self.assertIn("turn: 'cho'", html)
+        self.assertIn("history: []", html)
+        self.assertIn("board[srcIndex] = board[dstIndex];", html)
+        self.assertIn("board[dstIndex] = null;", html)
+        self.assertIn("if (setOpeningPreview(snapshot))", html)
+        self.assertIn("await new Promise(resolve => setTimeout(resolve, HAN_OPENING_DELAY_MS));", html)
+        self.assertIn("AI가 초로 선공 중…", html)
+        self.assertIn("AI 선공을 보여주는 중", html)
+        self.assertIn("clearOpeningPreview();", html)
+
     def test_browser_uses_player_turn_as_the_only_clickable_game_turn(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("if (!trainingPosition && (!snapshot || view.state.turn !== snapshot.player_side)) return;", html)
