@@ -180,10 +180,7 @@ select{
   position:relative;
   width:min(76vw,calc((100dvh - 188px) * 8 / 9),860px);
   height:auto;aspect-ratio:8/9;
-  background:
-    linear-gradient(135deg,#fff1 25%,transparent 25%) 0 0/12px 12px,
-    linear-gradient(315deg,#0001 25%,transparent 25%) 0 0/12px 12px,
-    var(--board);
+  background:var(--board);
   border:7px solid var(--board-dark);
   border-radius:11px;
   box-shadow:0 18px 40px #2a1c0d2b,0 3px 10px #2a1c0d16;
@@ -1174,7 +1171,7 @@ select{
         : (terminal
           ? terminalMessage(snapshot.status)
           : (waitingForAi
-            ? '착수 평가 중…'
+            ? 'AI 생각 중…'
             : (view.state.turn === snapshot.player_side
               ? '내 차례 · 말을 선택하세요'
               : 'AI 차례 · 응수를 기다리는 중입니다')));
@@ -1271,7 +1268,7 @@ select{
         pendingPlayerMove = move;
         selected = null;
         clearBoardMessage();
-        showBoardMessage('착수 평가 중…', '이 수를 간단히 확인하고 있습니다.', {thinking:true, durationMs:0});
+        showBoardMessage('AI 생각 중…', 'AI가 다음 수를 계산하고 있습니다.', {thinking:true, durationMs:0});
         render();
         await waitForPaint();
 
