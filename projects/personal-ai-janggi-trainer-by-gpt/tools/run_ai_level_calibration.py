@@ -92,7 +92,8 @@ def _run_experiment(
 
     command = [
         sys.executable,
-        "tools/benchmark_ai_levels.py",
+        "-m",
+        "tools.benchmark_ai_levels",
         "--tournament-games",
         str(games),
         "--max-plies",
@@ -231,7 +232,8 @@ def main() -> int:
         aggregate = output_dir / f"aggregate-{pair}-{args.setup}.json"
         command = [
             sys.executable,
-            "tools/evaluate_ai_level_evidence.py",
+            "-m",
+            "tools.evaluate_ai_level_evidence",
             *(str(path) for path in pair_artifacts),
             "--output",
             str(aggregate),
