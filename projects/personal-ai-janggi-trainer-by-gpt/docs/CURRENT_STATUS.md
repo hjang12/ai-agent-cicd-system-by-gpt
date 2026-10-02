@@ -103,8 +103,12 @@
 - The final Chromium scenario suite passed for the setup-first UI before merge. It covered setup-only initial entry, Lv.6/Han start, replay modal open/cancel, Cho/Lv.2 replay start, human move before AI, compact move evaluation, and responsive single-screen states at 1024×768, 820×1180, 390×844, 360×800, and 320×568.
 - Post-merge main `validate` and `test` checks both passed.
 - The visible product flow remains: `대국 준비 → 대국 → 재대국(동일 설정 modal) → 대국 종료 후 복기/훈련`.
+- Replay setup remains scrollable on short viewports, and only the modal backdrop closes the replay setup without starting a game.
+- Board input is now gated by `snapshot.player_side`, so the user cannot select or move AI pieces while the AI is the side to move.
 - The current visual direction is intentionally still iterative: this mobile-game redesign is a UI pass, not a declaration that the UI is finished.
 - UX-004 is superseded and UX-005 is the active UI contract.
+- PR #104 (`fix: stabilize replay setup and Han turn flow`) merged to `main` as `efe5d08cd99db165ceac6aedd548106a6be41cc7` and deployed live to Render as `dep-davh61gjo6nc738jmnl0`.
+- PR #104 added user-scenario coverage for 8 side/setup combinations, all six AI levels, and repeated replay configuration changes. The connected GitHub Actions lookup returned no workflow run for the PR #104 head commit, so CI success is not asserted.
 
 ## Active Execution Constraints
 
