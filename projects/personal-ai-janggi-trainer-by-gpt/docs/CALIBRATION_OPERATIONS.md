@@ -120,6 +120,8 @@ Render service:
 
 The runner executes one explicitly configured calibration request at service start and then remains available for status/artifact retrieval. It does not expose a remote "run arbitrary calibration" API.
 
+Because the project is using Render's Free Web Service runner, the operational execution unit is intentionally bounded to one seed per service start. A typical evidence batch uses 2 games at the 96-ply cap; the evaluator aggregates many distinct seeds until the normal 20-completed-game threshold is reached. This avoids losing an in-progress benchmark to the Free Web Service 15-minute idle shutdown while preserving the provenance identity of every experiment.
+
 Configuration is provided through Render environment variables:
 
 ```text
