@@ -21,9 +21,9 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
 
 /* Match lobby */
 .setup-screen{position:absolute;inset:0;z-index:40;display:grid;place-items:center;padding:18px;background:radial-gradient(circle at 50% 18%,#51462f 0%,transparent 30%),linear-gradient(180deg,#171612 0%,#0c0c0a 100%)}
-.setup-screen.modal{background:#070706d9;backdrop-filter:blur(10px)}
+.setup-screen.modal{background:#070706d9;backdrop-filter:blur(10px);place-items:start center;overflow-y:auto;overscroll-behavior:contain}
 .setup-card{width:min(520px,100%);max-height:calc(100dvh - 28px);overflow:auto;padding:28px;background:linear-gradient(180deg,#29271f 0%,#1d1c17 100%);border:1px solid #5a523f;border-radius:22px;box-shadow:var(--shadow),0 0 0 1px #0005 inset}
-.setup-screen.modal .setup-card{width:min(500px,calc(100vw - 24px));padding:24px}
+.setup-screen.modal .setup-card{width:min(500px,calc(100vw - 24px));padding:24px;max-height:none;overflow:visible;position:relative;z-index:1;pointer-events:auto;margin:auto 0}
 .setup-brand{display:flex;align-items:center;gap:13px;margin-bottom:7px}
 .brand-mark{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,#e0bf78,#9c7132);color:#1a150d;font-family:"Noto Serif CJK KR","Noto Serif KR",serif;font-weight:950;font-size:1.25rem;box-shadow:0 7px 18px #0005,inset 0 1px #fff8}
 .setup-kicker{font-size:.62rem;color:var(--gold);font-weight:900;letter-spacing:.16em}
@@ -930,6 +930,8 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       reset.textContent = mode === 'modal' ? '새 대국 시작' : '대국 시작';
       setupScreen.setAttribute('aria-modal', mode === 'modal' ? 'true' : 'false');
       setupScreen.hidden = false;
+      syncSetupOptions();
+      if (mode === 'modal') setupScreen.scrollTop = 0;
       if (mode === 'initial') gameScreen.hidden = true;
       document.body.dataset.view = mode;
     }
@@ -1076,6 +1078,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
     async function clickCell(x, y) {
       const view = currentPosition();
       if (busy || view.status !== 'playing') return;
+      if (!trainingPosition && (!snapshot || view.state.turn !== snapshot.player_side)) return;
       const [stateX, stateY] = displayToState(x, y);
       const current = pieceAt(stateY * 9 + stateX);
       if (!selected) {
@@ -1301,9 +1304,13 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         clearBoardMessage();
         render();
         showGame();
-        const startMessage = snapshot.player_side === 'han' && snapshot.state.history.length
-          ? '한으로 시작 · 초가 먼저 두었습니다.'
-          : '대국 시작 · 초가 먼저 둡니다.';
+        const startMessage = snapshot.player_side === 'han'
+          ? (snapshot.state.turn === 'han'
+            ? 'AI가 초로 선공했습니다 · 내 차례입니다.'
+            : '초가 선공합니다 · AI 응수를 기다리는 중입니다.')
+          : (snapshot.state.turn === 'cho'
+            ? '초로 선공합니다 · 내 차례입니다.'
+            : '초가 선공합니다 · AI 응수를 기다리는 중입니다.');
         showGameMessage(startMessage);
         heading.textContent = startMessage;
         setMoveComment(null, startMessage);

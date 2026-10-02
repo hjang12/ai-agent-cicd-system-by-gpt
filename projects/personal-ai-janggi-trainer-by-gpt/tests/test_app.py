@@ -538,7 +538,7 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn(".game-screen{", html)
         self.assertIn(".game-main{", html)
         self.assertIn(".board-wrap{", html)
-        self.assertIn("width:min(76vw,calc((100dvh - 188px) * 8 / 9),860px)", html)
+        self.assertIn("width:min(82vw,calc((100dvh - 188px) * 8 / 9),900px)", html)
         self.assertIn("aspect-ratio:8/9", html)
         self.assertNotIn(".dashboard.settings-open", html)
         self.assertNotIn(".dashboard.learning-open", html)
@@ -705,6 +705,60 @@ class TestGameFirstSetupFlowUiContract(unittest.TestCase):
         self.assertIn("overflow:hidden;background:radial-gradient", html)
         self.assertIn("font-size:clamp(16px,3.2vh,30px)", html)
         self.assertIn("AI 생각 중…", html)
+
+    def test_browser_replay_modal_keeps_lower_controls_reachable(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn(".setup-screen.modal{background:#070706d9;backdrop-filter:blur(10px);place-items:start center;overflow-y:auto;overscroll-behavior:contain}", html)
+        self.assertIn(".setup-screen.modal .setup-card{width:min(500px,calc(100vw - 24px));padding:24px;max-height:none;overflow:visible;position:relative;z-index:1;pointer-events:auto;margin:auto 0}", html)
+        self.assertIn("if (mode === 'modal') setupScreen.scrollTop = 0;", html)
+        self.assertIn("event.target === setupScreen", html)
+
+    def test_browser_uses_player_turn_as_the_only_clickable_game_turn(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("if (!trainingPosition && (!snapshot || view.state.turn !== snapshot.player_side)) return;", html)
+        self.assertIn("snapshot.state.turn === 'han'", html)
+        self.assertIn("AI가 초로 선공했습니다 · 내 차례입니다.", html)
+
+    def test_user_scenario_side_setup_matrix_preserves_turn_ownership(self):
+        app = TrainerApplication()
+        setups = ("classic", "left", "right", "both")
+        for side in ("cho", "han"):
+            for setup in setups:
+                snapshot = app.reset(setup=setup, player_side=side, ai_level="1")
+                self.assertEqual(snapshot["setup"], setup)
+                self.assertEqual(snapshot["player_side"], side)
+                self.assertEqual(snapshot["ai_side"], "han" if side == "cho" else "cho")
+                self.assertEqual(snapshot["state"]["turn"], side)
+                if side == "han":
+                    self.assertEqual(len(snapshot["state"]["history"]), 1)
+                else:
+                    self.assertEqual(len(snapshot["state"]["history"]), 0)
+
+    def test_user_scenario_all_ai_levels_can_start_as_cho(self):
+        app = TrainerApplication()
+        for level in ("1", "2", "3", "4", "5", "6"):
+            snapshot = app.reset(setup="classic", player_side="cho", ai_level=level)
+            self.assertEqual(snapshot["ai_level"], level)
+            self.assertEqual(snapshot["player_side"], "cho")
+            self.assertEqual(snapshot["state"]["turn"], "cho")
+            self.assertEqual(len(snapshot["state"]["history"]), 0)
+
+    def test_user_scenario_replay_sequence_can_switch_side_setup_and_level(self):
+        app = TrainerApplication()
+        sequence = (
+            ("cho", "classic", "1"),
+            ("han", "left", "2"),
+            ("cho", "right", "3"),
+            ("han", "both", "4"),
+            ("cho", "left", "5"),
+            ("han", "classic", "6"),
+        )
+        for side, setup, level in sequence:
+            snapshot = app.reset(setup=setup, player_side=side, ai_level=level)
+            self.assertEqual(
+                (snapshot["player_side"], snapshot["setup"], snapshot["ai_level"], snapshot["state"]["turn"]),
+                (side, setup, level, side),
+            )
 
     def test_browser_game_surface_is_minimal_and_has_compact_move_comment(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
