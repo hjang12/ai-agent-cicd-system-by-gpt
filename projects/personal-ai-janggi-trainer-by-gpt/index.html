@@ -8,7 +8,7 @@
 :root{
   color-scheme:dark;--bg:#10100e;--surface:#201f1a;--surface2:#29271f;
   --ink:#f4efe4;--muted:#aaa394;--line:#4a4437;--gold:#d8b36a;--gold2:#f0d18c;
-  --cho:#6fb68f;--han:#dc7169;--board:#d9b16b;--board-dark:#5a3a1d;--board-grid:#69471f;
+  --cho:#00a63c;--han:#e30613;--board:#d9b16b;--board-dark:#5a3a1d;--board-grid:#69471f;
   --accent:#d7a94f;--shadow:0 24px 70px #0009;
 }
 *{box-sizing:border-box}[hidden]{display:none!important}
@@ -37,11 +37,18 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
 .option-title{display:block;font-weight:900;font-size:.79rem}.option-sub{display:block;margin-top:3px;color:#948d7e;font-size:.62rem;line-height:1.3}
 .side-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.side-option{min-height:60px}
 .setup-select-row{display:grid;grid-template-columns:70px minmax(0,1fr);gap:8px;align-items:center}.setup-select-row label{font-size:.68rem;font-weight:850;color:#a39b8b}
-select{width:100%;height:38px;padding:0 10px;border:1px solid #494438;border-radius:10px;background:#24221c;color:var(--ink);font-weight:800}
+.setup-variant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.setup-variant{min-height:58px;padding:8px 10px;display:flex;align-items:center;gap:9px;border:1px solid #494438;border-radius:12px;background:#24221c;color:var(--ink);text-align:left;cursor:pointer;transition:border-color .15s,background .15s,transform .15s,box-shadow .15s}
+.setup-variant:hover{transform:translateY(-1px);border-color:#71664f}
+.setup-variant.selected{border-color:var(--gold);background:linear-gradient(145deg,#3a3223,#29251d);box-shadow:0 0 0 1px #d7a94f55 inset,0 7px 18px #0004}
+.setup-variant:disabled{opacity:.45;cursor:wait;transform:none}
+.variant-mark{width:28px;height:28px;display:grid;place-items:center;flex:none;border-radius:9px;background:linear-gradient(145deg,#4a402d,#2a271e);border:1px solid #5a513d;color:#e0bd70;font-family:"Noto Serif CJK KR","Noto Serif KR",serif;font-size:.88rem;font-weight:950}
+.setup-variant.selected .variant-mark{background:linear-gradient(145deg,#d9b56c,#9d7030);color:#1d160b;border-color:#f0d18c}
+.variant-copy{min-width:0}.variant-title{display:block;font-size:.69rem;font-weight:900}.variant-sub{display:block;margin-top:2px;color:#918a7a;font-size:.57rem;line-height:1.2}
 .setup-actions{display:flex;gap:8px;margin-top:18px}.setup-actions button{flex:1}
 .primary{min-height:45px;padding:9px 14px;border-radius:11px;background:linear-gradient(145deg,#e1bd70,#b78334);color:#1a140a;font-weight:950;box-shadow:0 8px 22px #0005,inset 0 1px #fff8}
 .secondary{min-height:40px;padding:8px 12px;border-radius:10px;background:#26241e;color:#ddd5c5;border:1px solid #4b463a;font-weight:850}
-.setup-cancel{display:none}.setup-screen.modal .setup-cancel{display:block}
+.setup-cancel{display:none}
 .visually-hidden-select{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;opacity:0!important;pointer-events:none!important}
 
 /* Game HUD */
@@ -52,15 +59,18 @@ select{width:100%;height:38px;padding:0 10px;border:1px solid #494438;border-rad
 .turn-chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:104px;padding:6px 11px;border:1px solid #4c4639;border-radius:999px;background:#24221c;font-size:.65rem;font-weight:900;box-shadow:0 3px 12px #0004}
 .turn-dot{width:7px;height:7px;border-radius:50%;background:var(--gold)}
 .game-header-actions{display:flex;justify-content:flex-end;gap:6px}.replay-button{min-height:34px;padding:7px 11px;border:1px solid #4b463a;border-radius:10px;background:#24221c;color:#eee5d3;font-weight:900}
-.game-main{min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:4px}
-.players{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;align-items:center}
+.game-main{min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:4px}
+.players{display:contents}
+.player-card.opponent{grid-column:1;grid-row:1}
+.board-wrap{grid-column:1;grid-row:2}
+.player-card.me{grid-column:1;grid-row:3}
 .player-card{min-width:0;padding:6px 9px;border:1px solid #403c32;border-radius:10px;background:linear-gradient(180deg,#24231e,#1c1b17);box-shadow:0 4px 14px #0004}
 .player-card.me{border-color:#6b5731}.player-card.opponent{border-color:#3f3b31}.players>.status-chip{display:none}
 .player-top{display:flex;align-items:center;gap:6px;min-width:0}.player-dot{width:7px;height:7px;border-radius:50%;background:#888175;flex:none}
 .player-card.side-cho .player-dot{background:var(--cho)}.player-card.side-han .player-dot{background:var(--han)}
 .player-name{font-size:.67rem;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player-level{margin-left:auto;color:#9d9586;font-size:.58rem;white-space:nowrap}.player-sub{display:none}
 .board-wrap{min-width:0;min-height:0;display:grid;place-items:center;overflow:hidden}
-.board{position:relative;width:min(82vw,calc((100dvh - 126px) * 8 / 9),900px);height:auto;aspect-ratio:8/9;background:var(--board);border:7px solid var(--board-dark);border-radius:8px;box-shadow:0 22px 50px #0009,0 3px 8px #0005,inset 0 0 0 1px #e4bd7a;touch-action:manipulation;overflow:hidden}
+.board{position:relative;width:min(82vw,calc((100dvh - 188px) * 8 / 9),900px);height:auto;aspect-ratio:8/9;background:var(--board);border:7px solid var(--board-dark);border-radius:8px;box-shadow:0 22px 50px #0009,0 3px 8px #0005,inset 0 0 0 1px #e4bd7a;touch-action:manipulation;overflow:hidden}
 .board:before{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 28px #5b391c2b}
 .board-lines{position:absolute;inset:5%;width:90%;height:90%;pointer-events:none}.board-lines g{stroke:var(--board-grid)}
 .cell{position:absolute;box-sizing:border-box;display:grid;place-items:center;width:8.4%;aspect-ratio:1;left:0;top:0;margin:0;padding:0;transform:translate(-50%,-50%);background:transparent;color:#211605;border:0;cursor:pointer;z-index:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -68,8 +78,8 @@ select{width:100%;height:38px;padding:0 10px;border:1px solid #494438;border-rad
 .cell.selected .piece{box-shadow:0 0 0 4px #e7b953,0 3px 6px #0006,inset 0 0 0 1px #fff9}
 .cell.last-move-from{outline:2px dashed #e0b15a;outline-offset:-4px;background:#d9a94b12}.cell.last-move-to{outline:3px solid #e0b15a;outline-offset:-4px;background:#d9a94b2a}
 .cell.last-move-to .piece{box-shadow:0 0 0 3px #e0b15a,0 3px 6px #0005,inset 0 0 0 1px #fff}
-.piece{width:82%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 28%,#fffdf7 0%,#f2e4ca 48%,#d6c09b 100%);border:2px solid #6e5a3f;box-shadow:0 3px 6px #0005,inset 0 0 0 1px #fff9;font-family:"Noto Serif CJK KR","Noto Serif KR",serif;font-weight:900;line-height:1;font-size:clamp(20px,3.8vh,34px)}
-.piece-cho{color:var(--cho);border-color:#3e805f}.piece-han{color:var(--han);border-color:#a84740}
+.piece{width:82%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 35% 28%,#fffdf7 0%,#f2e4ca 48%,#d6c09b 100%);border:2px solid #6e5a3f;box-shadow:0 3px 6px #0005,inset 0 0 0 1px #fff9;font-family:"Noto Serif CJK KR","Noto Serif KR",serif;font-weight:900;line-height:.95;font-size:clamp(16px,3.2vh,30px);letter-spacing:-.08em;padding:0 .03em;white-space:nowrap}
+.piece-cho{color:var(--cho);border-color:#00832f}.piece-han{color:var(--han);border-color:#b8000d}
 .board-message{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;min-width:52%;max-width:82%;padding:13px 17px;border-radius:13px;background:#171611ed;color:#fff;text-align:center;pointer-events:none;box-shadow:0 16px 35px #0008;border:1px solid #66583d;font-weight:950;line-height:1.25;font-size:clamp(17px,3.3vh,28px);opacity:0;visibility:hidden;transition:opacity .15s ease,visibility .15s ease}
 .board-message.visible{opacity:1;visibility:visible}.board-message-sub{display:block;margin-top:5px;font-size:.53em;font-weight:700;color:#c8c0af}.board-message.thinking .board-message-sub{animation:boardPulse 1.1s ease-in-out infinite}
 @keyframes boardPulse{0%,100%{opacity:.5}50%{opacity:1}}
@@ -87,7 +97,8 @@ select{width:100%;height:38px;padding:0 10px;border:1px solid #494438;border-rad
   .game-screen{grid-template-rows:40px minmax(0,1fr) 43px;padding:5px 6px 6px;gap:3px}.game-brand .brand-mark{width:27px;height:27px;font-size:.72rem}
   .game-title{font-size:.72rem}.game-sub{display:none}.turn-chip{min-width:90px;padding:5px 8px;font-size:.58rem}.replay-button{min-height:30px;padding:5px 8px;font-size:.62rem}
   .players{gap:4px}.player-card{padding:5px 7px}.player-name{font-size:.6rem}.player-level{font-size:.52rem}
-  .board{width:min(94vw,calc((100dvh - 111px) * 8 / 9));border-width:5px}.piece{font-size:clamp(18px,6vw,28px)}
+  .board{width:min(94vw,calc((100dvh - 164px) * 8 / 9));border-width:5px}.piece{font-size:clamp(16px,4.5vw,25px)}
+  .setup-variant-grid{grid-template-columns:1fr}.setup-variant{min-height:54px}
   .comment-card{padding:5px 8px}.comment-label{font-size:.5rem}#status{font-size:.58rem}.game-actions .secondary{min-height:32px;padding:5px 7px;font-size:.58rem}
   .setup-card{padding:22px 18px}.setup-title{font-size:1.4rem}.level-option{min-height:62px;padding:8px}.option-title{font-size:.72rem}.option-sub{font-size:.57rem}
 }
@@ -125,25 +136,23 @@ select{width:100%;height:38px;padding:0 10px;border:1px solid #494438;border-rad
         <button class="side-option" type="button" data-side="han"><span class="option-title">한</span><span class="option-sub">한으로 플레이 · 초 선공</span></button>
       </div>
 
-      <div class="setup-heading"><h2>장기판 배치</h2><small>필요할 때만 변경</small></div>
-      <div class="setup-select-row">
-        <label for="setup">배치</label>
-        <select id="setup" aria-label="장기판 배치">
-          <option value="classic">기본 배치</option>
-          <option value="left">왼쪽 마상 교환</option>
-          <option value="right">오른쪽 마상 교환</option>
-          <option value="both">양쪽 마상 교환</option>
-        </select>
+      <div class="setup-heading"><h2>마상 교환</h2><small>장기판 초기 배치</small></div>
+      <div class="setup-variant-grid" id="setup-variant-options">
+        <button class="setup-variant selected" type="button" data-setup="classic" aria-pressed="true"><span class="variant-mark" aria-hidden="true">馬</span><span class="variant-copy"><span class="variant-title">기본 배치</span><span class="variant-sub">양쪽 마상을 기본 위치에 둡니다.</span></span></button>
+        <button class="setup-variant" type="button" data-setup="left" aria-pressed="false"><span class="variant-mark" aria-hidden="true">馬</span><span class="variant-copy"><span class="variant-title">왼쪽 교환</span><span class="variant-sub">좌측의 마상 위치를 교환합니다.</span></span></button>
+        <button class="setup-variant" type="button" data-setup="right" aria-pressed="false"><span class="variant-mark" aria-hidden="true">馬</span><span class="variant-copy"><span class="variant-title">오른쪽 교환</span><span class="variant-sub">우측의 마상 위치를 교환합니다.</span></span></button>
+        <button class="setup-variant" type="button" data-setup="both" aria-pressed="false"><span class="variant-mark" aria-hidden="true">馬</span><span class="variant-copy"><span class="variant-title">양쪽 교환</span><span class="variant-sub">양쪽의 마상 위치를 모두 교환합니다.</span></span></button>
       </div>
-
       <div class="setup-actions">
-        <button class="secondary setup-cancel" id="setup-cancel" type="button">취소</button>
         <button class="primary" id="reset" type="button">대국 시작</button>
       </div>
     </div>
 
     <select id="player-side" class="visually-hidden-select" aria-label="내 진영">
       <option value="cho">초</option><option value="han">한</option>
+    </select>
+    <select id="setup" class="visually-hidden-select" aria-label="장기판 배치">
+      <option value="classic">기본 배치</option><option value="left">왼쪽 교환</option><option value="right">오른쪽 교환</option><option value="both">양쪽 교환</option>
     </select>
     <select id="ai-level" class="visually-hidden-select" aria-label="AI 레벨">
       <option value="1">Lv.1 입문</option><option value="2">Lv.2 초급</option><option value="3">Lv.3 중급</option>
@@ -375,9 +384,9 @@ select{width:100%;height:38px;padding:0 10px;border:1px solid #494438;border-rad
     const setupScreen = document.querySelector('#setup-screen');
     const gameScreen = document.querySelector('#game-screen');
     const replayButton = document.querySelector('#replay-button');
-    const setupCancel = document.querySelector('#setup-cancel');
     const levelOptions = [...document.querySelectorAll('[data-level]')];
     const sideOptions = [...document.querySelectorAll('[data-side]')];
+    const setupOptions = [...document.querySelectorAll('[data-setup]')];
     let lastMoveCoaching = null;
     let snapshot = null;
     let selected = null;
@@ -569,6 +578,7 @@ select{width:100%;height:38px;padding:0 10px;border:1px solid #494438;border-rad
       learningReview.disabled = busy || !hasHistory;
       learningTraining.disabled = busy || !hasHistory;
       setup.disabled = busy;
+      setupOptions.forEach(option => option.disabled = busy);
       playerSide.disabled = busy;
       aiLevel.disabled = busy;
       const terminal = snapshot?.status && snapshot.status !== 'playing';
@@ -903,6 +913,11 @@ select{width:100%;height:38px;padding:0 10px;border:1px solid #494438;border-rad
     function syncSetupOptions() {
       levelOptions.forEach(option => option.classList.toggle('selected', option.dataset.level === aiLevel.value));
       sideOptions.forEach(option => option.classList.toggle('selected', option.dataset.side === playerSide.value));
+      setupOptions.forEach(option => {
+        const selected = option.dataset.setup === setup.value;
+        option.classList.toggle('selected', selected);
+        option.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      });
       const labels = {'1':'입문','2':'초급','3':'중급','4':'고급','5':'상급','6':'전문'};
       aiLevelNote.textContent = '선택: Lv.' + aiLevel.value + ' ' + (labels[aiLevel.value] || '');
       orientationNote.textContent = playerSide.value === 'han'
@@ -912,8 +927,8 @@ select{width:100%;height:38px;padding:0 10px;border:1px solid #494438;border-rad
 
     function showSetup(mode = 'initial') {
       setupScreen.classList.toggle('modal', mode === 'modal');
-      setupCancel.style.display = mode === 'modal' ? '' : 'none';
       reset.textContent = mode === 'modal' ? '새 대국 시작' : '대국 시작';
+      setupScreen.setAttribute('aria-modal', mode === 'modal' ? 'true' : 'false');
       setupScreen.hidden = false;
       if (mode === 'initial') gameScreen.hidden = true;
       document.body.dataset.view = mode;
@@ -1261,9 +1276,13 @@ select{width:100%;height:38px;padding:0 10px;border:1px solid #494438;border-rad
       syncSetupOptions();
     }));
     replayButton.addEventListener('click', () => showSetup('modal'));
-    setupCancel.addEventListener('click', () => {
-      if (!gameScreen.hidden) showGame();
+    setupScreen.addEventListener('click', event => {
+      if (setupScreen.classList.contains('modal') && event.target === setupScreen && !busy) showGame();
     });
+    setupOptions.forEach(option => option.addEventListener('click', () => {
+      setup.value = option.dataset.setup;
+      syncSetupOptions();
+    }));
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && setupScreen.classList.contains('modal')) showGame();
     });
