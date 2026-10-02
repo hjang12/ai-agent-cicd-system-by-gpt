@@ -6,7 +6,7 @@ Long-running adjacent AI-level self-play calibration is an evidence-generation w
 
 GitHub Actions remains the path for fast deterministic validation and ordinary pull-request checks. Calibration compute must be executable without consuming the CI quota.
 
-The adjacent-level calibration workflow is manual-only (`workflow_dispatch`); pull requests must not launch calibration compute automatically.
+The adjacent-level calibration workload has a dedicated Render execution service. GitHub Actions may remain available for bounded/manual diagnostics, but pull requests and ordinary pushes must not launch long-running calibration compute automatically.
 
 ## Current boundary
 
@@ -104,6 +104,49 @@ The runner:
 
 Changing the game-count or ply-cap for an already-used `pair + seed + setup` identity requires a separately reviewed experiment policy; do not overwrite the existing artifact.
 
+## Dedicated Render calibration runner
+
+The project now includes `tools/calibration_runner_service.py`, a dependency-free HTTP wrapper around `tools/run_ai_level_calibration.py`.
+
+Render service:
+
+- name: `personal-ai-janggi-calibration-runner`;
+- region: Singapore;
+- plan: Free;
+- auto deploy: disabled;
+- root: `projects/personal-ai-janggi-trainer-by-gpt`;
+- start command: `python tools/calibration_runner_service.py`;
+- health check: `/api/health`.
+
+The runner executes one explicitly configured calibration request at service start and then remains available for status/artifact retrieval. It does not expose a remote "run arbitrary calibration" API.
+
+Configuration is provided through Render environment variables:
+
+```text
+CALIBRATION_ENABLED=true
+CALIBRATION_PAIR=2-3
+CALIBRATION_SEEDS=20261002,20261003
+CALIBRATION_SETUP=classic
+CALIBRATION_GAMES=12
+CALIBRATION_MAX_PLIES=96
+```
+
+Operational endpoints are read-only:
+
+- `GET /api/health` — runner health;
+- `GET /api/status` — request state and produced artifact names;
+- `GET /api/artifacts/<filename>` — retrieve a generated JSON artifact.
+
+The normal operating sequence is:
+
+1. set the next pair/seed request in the runner environment;
+2. manually deploy the runner service;
+3. wait for the status to reach `completed` or `failed`;
+4. preserve the returned raw artifacts and aggregate report in the repository evidence history;
+5. update `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md` and the task checkpoint from the collected evidence.
+
+The runner itself never changes public AI level configuration and never treats a higher-scoring result as authorization for a search-budget change.
+
 ## Current execution constraint
 
-The repository-local runner is ready, but this agent runtime cannot execute the private monorepo outside GitHub Actions. Until an approved off-CI execution environment can run `tools/run_ai_level_calibration.py`, no new calibration evidence should be treated as collected.
+The execution path is now implemented and source-controlled. New strength evidence is not considered collected until the dedicated Render runner has completed the requested experiments and the resulting artifacts have passed the existing provenance-aware evaluator.
