@@ -1319,7 +1319,7 @@ select{
         heading.textContent = humanMessage && (humanMessage.includes('장군!') || humanMessage.includes('멍군!'))
           ? humanMessage
           : '내 수 완료 · AI가 생각하는 중';
-        status.textContent = 'AI가 수를 계산하는 중입니다…';
+        status.textContent = 'AI 생각 중…';
         await new Promise(resolve => requestAnimationFrame(resolve));
         const engineResult = await post('/api/engine/move', {});
         const aiBeforeSnapshot = snapshot;
@@ -1485,7 +1485,7 @@ select{
       busy = true;
       updateControls();
       try {
-        status.textContent = 'AI가 수를 계산하는 중입니다…';
+        status.textContent = 'AI 생각 중…';
         const aiBeforeSnapshot = snapshot;
         const response = await post('/api/engine/move', {});
         snapshot = response.snapshot;
