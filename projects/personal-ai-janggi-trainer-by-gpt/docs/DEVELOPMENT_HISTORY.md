@@ -1859,3 +1859,24 @@ The source and test contracts were reviewed after the fix. The connected GitHub 
 - Replay-like repeated configuration sequence across side/setup/level combinations: 6 scenarios.
 - Han opening invariant: AI is Cho, one opening move exists, and the resulting turn is Han.
 - Board interaction invariant: AI-turn board clicks are blocked in browser logic.
+
+
+## 66. 2026-10-02 — Final current-scope UI fix: visible Han opening
+
+### Requirement
+
+When the user chooses Han, the server correctly lets Cho make the first move, but the browser received the already-updated board in the same response, so the user saw the AI's first move as an initial state instead of seeing it happen.
+
+### Implementation
+
+- Added a browser-only opening preview for the Han-start path.
+- The authoritative server snapshot remains unchanged.
+- The browser reconstructs the initial board from the single opening move only for display, shows it for 900ms, displays `AI가 초로 선공 중…`, and then switches to the authoritative post-opening snapshot.
+- Board interaction remains blocked during this preview.
+- Added a regression contract for the visible opening delay.
+- PR #106 merged to `main` as `8171ccd4c33844a4a5a9a4f9688f579011689388`.
+- Render deploy `dep-davho1qvcj2c7389f5fg` reached `live` on 2026-10-02.
+
+### Product Boundary
+
+This closes the current requested UI refinement scope. Future UI changes should be driven by a concrete defect or explicit product requirement rather than continued visual iteration.
