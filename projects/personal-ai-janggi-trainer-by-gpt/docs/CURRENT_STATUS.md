@@ -58,7 +58,7 @@
 - Per-browser in-memory session isolation using an opaque HttpOnly SameSite cookie, so separate browser sessions no longer share the same `Match` or training state
 - Browser analysis panel shows tactical risk, bounded tactical warnings, recommendation principal variation, and structured next-action coaching; principal variations use learner-facing board notation (`a1`–`i10`) with numbered plies and side labels, terminal results are localized, and turn handoff is explicit in the heading
 - Browser engine-move result also shows the engine principal variation, normalized evaluation score, search depth, and visited-node count as learning aids
-- Browser UI redesigned around a board-first, mobile-friendly game screen with explicit new-game settings, side/opponent cards, player assessment summary, and compact action controls
+- Browser UI redesigned around a board-first, mobile-game presentation with a dark game-room visual system, game-lobby setup, compact player HUD, board-centered play surface, and compact action controls
 - Browser board selection now has an explicit selected-piece marker and legal-destination highlight, and the board shows a persistent AI-thinking overlay during the `/api/engine/move` request.
 - Browser match flow renders the human move immediately through `/api/move`, then starts the AI calculation through `/api/engine/move`; the UI exposes check-state feedback (`장군`/`멍군`) and localized terminal results. The previously available `/api/player/turn` remains an atomic server-side transaction for callers that need the combined turn contract. Browser requests validate JSON responses and resynchronize from `/api/state` after request-format/server errors. Undo restores the previous human decision point by removing the AI response plus the preceding human move when applicable
 
@@ -98,10 +98,11 @@
 
 ## Latest Verification (2026-10-02)
 
-- PR #97 (`feat: replace Janggi UI with setup-first game flow`) merged to `main` as `218e0bb9ba3065b2b733f2c420d1c560a6f0df6b`.
+- PR #100 (`feat: redesign Janggi trainer as mobile game UI`) merged to `main` as `2d36b9c5346d86c672e5c7ad039f31b58dea6b6b` and deployed live to Render as deploy `dep-davgfmuq1p3s73d9fipg`.
 - The final Chromium scenario suite passed for the setup-first UI before merge. It covered setup-only initial entry, Lv.6/Han start, replay modal open/cancel, Cho/Lv.2 replay start, human move before AI, compact move evaluation, and responsive single-screen states at 1024×768, 820×1180, 390×844, 360×800, and 320×568.
 - Post-merge main `validate` and `test` checks both passed.
-- The visible product flow is now: `대국 준비 → 대국 → 재대국(동일 설정 modal) → 대국 종료 후 복기/훈련`.
+- The visible product flow remains: `대국 준비 → 대국 → 재대국(동일 설정 modal) → 대국 종료 후 복기/훈련`.
+- The current visual direction is intentionally still iterative: this mobile-game redesign is a UI pass, not a declaration that the UI is finished.
 - UX-004 is superseded and UX-005 is the active UI contract.
 
 ## Active Execution Constraints
@@ -167,7 +168,7 @@ Verified live Render state on 2026-10-01:
 - Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
 - Branch: `main`
 - Auto Deploy: enabled
-- Last independent live verification: 2026-10-01; exact deployment identity is preserved in dated verification/history records.
+- Last independent live verification: 2026-10-02; the mobile-game UI redesign deploy is `dep-davgfmuq1p3s73d9fipg` and is `live`.
 - Build: succeeded (`python -m compileall janggi tests`)
 - Start: `python app.py`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`

@@ -1776,3 +1776,32 @@ On failure, the optimistic state is discarded and the browser re-synchronizes fr
 Added browser contract tests that require the optimistic render and paint boundary to occur before the `/api/move` request, and require `pendingPlayerMove` to remain display-only until the authoritative snapshot arrives.
 
 This is a protected gameplay UX invariant, not an optional presentation detail.
+
+## 63. 2026-10-02 — Mobile-game UI redesign deployment
+
+### Requirement
+
+The setup-first UI structure was functionally correct but still presented as a conventional web application. The next UI pass should make the product visually read as a mobile Janggi game while preserving the existing game flow and engine/API boundaries.
+
+### Decision
+
+Rework the presentation layer around a dark game-room visual system:
+- setup becomes a game-lobby surface,
+- the board is the dominant gameplay surface,
+- player/AI information becomes compact HUD elements,
+- AI waiting state uses the concise `AI 생각 중…` language,
+- move feedback and controls are compact game HUD elements,
+- the Janggi board remains a plain wood-tone surface without the previous decorative pattern.
+
+### Implementation
+
+- Replaced the light web-app visual system with a dark, game-oriented palette.
+- Enlarged and visually emphasized the board with a simple wood-tone surface and frame/depth treatment.
+- Restyled setup, player HUD, turn indicator, board overlay, move feedback, controls, and terminal result surface.
+- Preserved existing element IDs and browser/API behavior so engine, match, coaching, assessment, and replay flows remain unchanged.
+- PR #100 merged to `main` as `2d36b9c5346d86c672e5c7ad039f31b58dea6b6b`.
+- Render automatically deployed the commit as `dep-davgfmuq1p3s73d9fipg`; deployment reached `live` on 2026-10-02.
+
+### Boundary
+
+This is a visual redesign pass, not a declaration that UI work is complete. Further visual refinement remains part of the product work and should be driven by concrete UI observations rather than being silently closed.
