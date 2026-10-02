@@ -89,10 +89,11 @@
 
 - The trainer is a scroll-free, single-screen game application with the Janggi board as the dominant surface.
 - Initial entry is a separate setup screen; the board is not shown until the user chooses AI difficulty and side and starts a game.
-- The setup screen exposes six AI levels and two player-side choices with a compact optional board-setup selector.
+- The setup screen exposes six AI levels and two player-side choices, with the `마상 교환` board setup presented as four visual option cards.
 - During an active game, the persistent UI is intentionally minimal: player/AI context, the board, a compact one-line move evaluation comment, undo, and a dedicated `재대국` action.
-- `재대국` opens the same setup UI as a modal over the current game. Starting the new game applies the selected side/AI level/setup and returns to the game surface.
+- `재대국` opens the same setup UI as a modal over the current game. Starting the new game applies the selected side/AI level/setup and returns to the game surface; tapping/clicking the modal backdrop closes it without starting a new game.
 - Detailed settings, analysis, review, training, and player-assessment panels are not persistent during play. Post-game review/training remain accessible from the terminal result surface.
+- During play, the AI profile is positioned above the board and the user profile below it; the side colors use strong red/green accents and piece glyphs are constrained inside the piece discs.
 - Engine/search/API boundaries remain unchanged; the UI consumes the same snapshots and analysis/coaching interfaces.
 - UX-004 drawer contract was superseded by UX-005 to reflect this setup-first/replay-modal architecture.
 
