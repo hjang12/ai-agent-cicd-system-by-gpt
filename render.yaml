@@ -28,3 +28,15 @@ services:
       paths:
         - projects/time-dashboard-by-gpt/**
         - render.yaml
+
+  - type: web
+    name: personal-ai-janggi-calibration-runner
+    runtime: python
+    plan: free
+    region: singapore
+    branch: main
+    rootDir: projects/personal-ai-janggi-trainer-by-gpt
+    buildCommand: python -m compileall janggi tests tools
+    startCommand: python tools/calibration_runner_service.py
+    healthCheckPath: /api/health
+    autoDeployTrigger: off
