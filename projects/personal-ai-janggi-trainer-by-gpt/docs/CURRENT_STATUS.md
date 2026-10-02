@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: resume provenance-aware adjacent AI-level calibration (`2-3 → 3-4 → 4-5 → 5-6`) while preserving the engine/evaluation boundaries; actual off-CI execution is currently blocked in this runtime.
+- Current priority: resume provenance-aware adjacent AI-level calibration (`2-3 → 3-4 → 4-5 → 5-6`) through the dedicated off-CI Render runner while preserving the engine/evaluation boundaries.
 
 ## Implemented Capability
 
@@ -50,6 +50,7 @@
 - Deterministic production node-count baselines now include the new midgame/endgame fixtures
 - Persistent search benchmark history in `docs/SEARCH_BENCHMARK_HISTORY.md`
 - Self-play generation
+- Dedicated off-CI calibration runner service that executes the existing resumable calibration CLI without changing public AI-level configuration
 - Position/action/value training examples and dataset builder
 - Model metadata registry
 - Head-to-head evaluation, tournament aggregation, and Elo-style rating primitives
@@ -116,7 +117,7 @@
 ## Active Execution Constraints
 
 - The authoritative workspace issue index is `../../../GOVERNANCE/docs/ACTIVE_ISSUES.md`.
-- Off-CI provenance-aware calibration for 2-3 through 5-6 still requires an execution environment capable of running the private repository outside the fast CI path.
+- The dedicated off-CI Render calibration runner is now the execution path for 2-3 through 5-6. New strength evidence remains provisional until the raw artifacts pass the existing provenance-aware evaluator.
 - Live Render deployment state is verified through Render tooling, including the observed empty `healthCheckPath`; direct browser/UI smoke verification remains unavailable from this agent runtime.
 
 ## Development Safety
@@ -161,7 +162,8 @@ Latest automated validation has also covered the structured coaching action, bro
 Render target Blueprint:
 
 - Root Blueprint: `../../render.yaml`
-- Service name: `personal-ai-janggi-trainer-by-gpt`
+- User-facing service name: `personal-ai-janggi-trainer-by-gpt`
+- Calibration execution service: `personal-ai-janggi-calibration-runner`
 - Desired Repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Desired Root Directory: `projects/personal-ai-janggi-trainer-by-gpt`
 - Branch: `main`
@@ -223,9 +225,11 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 ## Current Calibration Execution State
 
 - Long-running AI level calibration is intentionally separated from GitHub Actions.
-- Off-CI calibration infrastructure from PR #84 is merged; no calibration implementation PR is currently open.
+- Off-CI calibration infrastructure from PR #84 is merged.
+- Dedicated Render service `personal-ai-janggi-calibration-runner` now provides the operational execution path; it is manual-deploy and independent from the user-facing trainer service.
 - PR #84 merged after Workspace and Janggi validation passed; fast project CI is operational again, while long-running calibration remains intentionally off-CI.
-- The off-CI runner now validates existing artifact identity and avoids cross-setup aggregation.
+- The repository-local runner now validates existing artifact identity and avoids cross-setup aggregation.
+- The Render runner service wraps that same CLI and exposes read-only health/status/artifact endpoints without accepting arbitrary remote execution requests.
 - A legacy single-seed 2-3 artifact exists (10/10 completed, higher level 10-0), but it is not sufficient under the current provenance-aware two-seed evidence boundary. Actual sufficient 2-3 / 3-4 / 4-5 / 5-6 calibration computation remains incomplete; no strength result is inferred from infrastructure readiness or one-seed legacy evidence.
 
 ## Actual level-strength calibration evidence
