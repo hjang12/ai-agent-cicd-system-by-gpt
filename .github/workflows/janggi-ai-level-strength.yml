@@ -116,6 +116,9 @@ jobs:
             $EXTRA_ARGS \
             --output "$OUTPUT"
           cat "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+          echo "CALIBRATION_ARTIFACT_BEGIN"
+          cat "$OUTPUT"
+          echo "CALIBRATION_ARTIFACT_END"
       - name: Upload calibration evidence
         if: always()
         uses: actions/upload-artifact@v4
