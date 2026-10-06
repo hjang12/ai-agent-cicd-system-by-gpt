@@ -1,6 +1,9 @@
 name: Janggi AI level strength calibration
 
 on:
+  push:
+    paths:
+      - ".github/calibration/level-request.json"
   workflow_dispatch:
     inputs:
       games:
@@ -63,7 +66,17 @@ jobs:
       - name: Run adjacent-level benchmark
         run: |
           REQUEST_FILE="${GITHUB_WORKSPACE}/.github/calibration/level-request.json"
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ -f "$REQUEST_FILE" ]; then
+          if [ "${{ github.event_name }}" = "push" ] && [ -f "$REQUEST_FILE" ]; then
+            REQUEST=$(python -c 'import json,sys; print(json.dumps(json.load(open(sys.argv[1]))))' "$REQUEST_FILE")
+            GAMES=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["games"])' "$REQUEST_FILE")
+            MAX_PLIES=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["max_plies"])' "$REQUEST_FILE")
+            PAIR=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["pair"])' "$REQUEST_FILE")
+            SEED=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["seed"])' "$REQUEST_FILE")
+            SETUP=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["setup"])' "$REQUEST_FILE")
+            RUN_SEARCH=false
+            OUTPUT="ai-level-strength-${PAIR}-seed-${SEED}.json"
+            echo "Calibration request (push): $REQUEST"
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ -f "$REQUEST_FILE" ]; then
             REQUEST=$(python -c 'import json,sys; print(json.dumps(json.load(open(sys.argv[1]))))' "$REQUEST_FILE")
             GAMES=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["games"])' "$REQUEST_FILE")
             MAX_PLIES=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["max_plies"])' "$REQUEST_FILE")
@@ -91,7 +104,7 @@ jobs:
             OUTPUT="ai-level-strength-${PAIR}.json"
           fi
           EXTRA_ARGS=""
-          if [ "${{ github.event_name }}" = "pull_request" ] || [ "$RUN_SEARCH" != "true" ]; then
+          if [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "push" ] || [ "$RUN_SEARCH" != "true" ]; then
             EXTRA_ARGS="--skip-search-benchmark"
           fi
           PYTHONPATH=. python tools/benchmark_ai_levels.py \
