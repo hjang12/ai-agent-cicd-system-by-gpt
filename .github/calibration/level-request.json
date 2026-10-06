@@ -1,8 +1,8 @@
 {
   "pair": "2-3",
-  "seed": 20261014,
+  "seed": 20261015,
   "games": 4,
-  "max_plies": 48,
+  "max_plies": 32,
   "setup": "classic",
   "run_search_benchmark": false
 }
