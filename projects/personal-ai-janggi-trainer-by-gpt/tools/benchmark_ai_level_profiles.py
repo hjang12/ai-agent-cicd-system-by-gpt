@@ -13,6 +13,47 @@ class Fixture:
     state: GameState
 
 
+class ProfiledEngine(NegamaxEngine):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.root_ordering_calls = 0
+        self.root_check_calls = 0
+        self.check_cache_hits = 0
+        self.check_cache_misses = 0
+        self.legal_cache_hits = 0
+        self.legal_cache_misses = 0
+        self._profiling_root_ordering = False
+
+    def _ordered_search_moves(self, state, moves, preferred_move, depth):
+        root = depth == self._active_search_depth
+        if root:
+            self.root_ordering_calls += 1
+        previous = self._profiling_root_ordering
+        self._profiling_root_ordering = root
+        try:
+            return super()._ordered_search_moves(state, moves, preferred_move, depth)
+        finally:
+            self._profiling_root_ordering = previous
+
+    def _gives_check(self, state, move):
+        if self._profiling_root_ordering:
+            self.root_check_calls += 1
+        cache_key = (state.position_key(), move)
+        if cache_key in self._check_cache:
+            self.check_cache_hits += 1
+        else:
+            self.check_cache_misses += 1
+        return super()._gives_check(state, move)
+
+    def _legal_moves(self, state, include_pass):
+        cache_key = (state.position_key(), include_pass)
+        if cache_key in self._legal_moves_cache:
+            self.legal_cache_hits += 1
+        else:
+            self.legal_cache_misses += 1
+        return super()._legal_moves(state, include_pass)
+
+
 def _capture_fixture() -> Fixture:
     board = [None] * 90
     board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
@@ -72,10 +113,7 @@ FIXTURES = (
 
 
 def main() -> None:
-    fingerprints = [
-        ai_level_configuration_fingerprint(spec)
-        for spec in AI_LEVELS
-    ]
+    fingerprints = [ai_level_configuration_fingerprint(spec) for spec in AI_LEVELS]
     if len(set(fingerprints)) != len(AI_LEVELS):
         raise AssertionError("public AI level configuration fingerprints must be unique")
 
@@ -86,12 +124,14 @@ def main() -> None:
     print(
         "level,name,configured_depth,time_limit_ms,mobility_weight,"
         "quiescence_depth,root_refinement_count,fixture,effective_depth,"
-        "nodes,score_cp,best_move,elapsed_ms"
+        "nodes,score_cp,best_move,elapsed_ms,root_ordering_calls,"
+        "root_check_calls,check_cache_hits,check_cache_misses,"
+        "legal_cache_hits,legal_cache_misses"
     )
 
     for spec in AI_LEVELS:
         for fixture in FIXTURES:
-            engine = NegamaxEngine(spec.config)
+            engine = ProfiledEngine(spec.config)
             started = perf_counter()
             analysis = engine.analyze(fixture.state)
             elapsed_ms = (perf_counter() - started) * 1000.0
@@ -108,7 +148,10 @@ def main() -> None:
                 f"{spec.config.time_limit_ms or 0},{spec.config.mobility_weight},"
                 f"{spec.config.quiescence_depth},{spec.config.root_refinement_count},"
                 f"{fixture.name},{analysis.depth},{analysis.nodes},"
-                f"{analysis.score_cp},{best_move_label},{elapsed_ms:.2f}"
+                f"{analysis.score_cp},{best_move_label},{elapsed_ms:.2f},"
+                f"{engine.root_ordering_calls},{engine.root_check_calls},"
+                f"{engine.check_cache_hits},{engine.check_cache_misses},"
+                f"{engine.legal_cache_hits},{engine.legal_cache_misses}"
             )
 
 
