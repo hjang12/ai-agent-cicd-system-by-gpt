@@ -1,7 +1,7 @@
 {
   "pair": "5-6",
-  "seed": 20261107,
-  "games": 4,
+  "seed": 20261108,
+  "games": 8,
   "max_plies": 96,
   "setup": "classic",
   "fixture": "tactical",
