@@ -1,7 +1,7 @@
 {
   "pair": "3-4",
-  "seed": 20261026,
-  "games": 4,
+  "seed": 20261027,
+  "games": 8,
   "max_plies": 48,
   "setup": "classic",
   "fixture": "tactical",
