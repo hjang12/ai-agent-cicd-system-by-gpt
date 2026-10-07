@@ -101,10 +101,10 @@ class GameState:
 
     def find_general(self, side: Side) -> Optional[Position]:
         target = Piece(side, PieceType.GENERAL)
-        for pos in all_positions():
-            if self.piece_at(pos) == target:
-                return pos
-        return None
+        try:
+            return position(self.board.index(target))
+        except ValueError:
+            return None
 
     def is_in_check(self, side: Optional[Side] = None) -> bool:
         side = side or self.turn
