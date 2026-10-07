@@ -9,9 +9,10 @@ from pathlib import Path
 from time import perf_counter
 
 from janggi import AI_LEVELS, GameState, HeadToHeadTournament, Move, NegamaxEngine, Piece, PieceType, Side, ai_level_configuration_fingerprint
-from janggi.match import GameStatus
+from janggi.match import GameStatus, Match, RuleSet
+from janggi.engine import validate_engine_move
 
-CALIBRATION_PROTOCOL_VERSION = 1
+CALIBRATION_PROTOCOL_VERSION = 2
 
 @dataclass(frozen=True)
 class Fixture:
@@ -121,6 +122,40 @@ def run_search_benchmark() -> list[dict[str, object]]:
     return rows
 
 
+def _fixtures_for_mode(fixture_mode: str, setup: str) -> tuple[Fixture, ...]:
+    if fixture_mode == "initial":
+        return (Fixture("initial", GameState.initial(setup)),)
+    if fixture_mode == "capture":
+        return (_capture_fixture(),)
+    if fixture_mode == "check":
+        return (_check_fixture(),)
+    if fixture_mode == "endgame":
+        return (_endgame_fixture(),)
+    if fixture_mode == "tactical":
+        return (_capture_fixture(), _check_fixture(), _endgame_fixture())
+    raise ValueError(f"unsupported fixture mode: {fixture_mode}")
+
+
+def _play_fixture_game(
+    lower_engine: NegamaxEngine,
+    higher_engine: NegamaxEngine,
+    fixture: Fixture,
+    *,
+    lower_starts_as_cho: bool,
+    max_plies: int,
+) -> tuple[GameStatus, int]:
+    match = Match(state=fixture.state, setup="classic", rules=RuleSet())
+    for _ in range(max_plies):
+        if match.status is not GameStatus.PLAYING:
+            break
+        lower_turn = (match.state.turn is Side.CHO) == lower_starts_as_cho
+        engine = lower_engine if lower_turn else higher_engine
+        proposed_move = engine.choose_move(match.state)
+        move = validate_engine_move(engine, match.state, proposed_move)
+        match = match.play(move)
+    return match.status, len(match.state.history)
+
+
 def run_adjacent_tournaments(
     games: int,
     max_plies: int,
@@ -128,10 +163,11 @@ def run_adjacent_tournaments(
     *,
     seed: int = 20260930,
     setup: str = "classic",
+    fixture_mode: str = "initial",
     random_ties: bool = True,
 ) -> list[dict[str, object]]:
     print()
-    print(f"Adjacent-level self-play benchmark: {games} games, {max_plies} plies cap")
+    print(f"Adjacent-level self-play benchmark: {games} games, {max_plies} plies cap, fixture={fixture_mode}")
     print("Results are exploratory strength evidence, not a calibrated rating.")
     print("lower_level,higher_level,lower_score,higher_score,lower_wins,higher_wins,draws,completed,unfinished")
 
@@ -154,30 +190,48 @@ def run_adjacent_tournaments(
                 seed=seed + int(higher.level.value),
             )
         )
-        summary = HeadToHeadTournament(
-            lower_engine,
-            higher_engine,
-            first_model_id=f"level-{lower.level.value}",
-            second_model_id=f"level-{higher.level.value}",
-            max_plies=max_plies,
-        ).run(
-            games,
-            alternate_colors=True,
-            setup=setup,
-        )
+        fixtures = _fixtures_for_mode(fixture_mode, setup)
+        lower_wins = higher_wins = draws = unfinished = 0
         game_results = []
-        for index, game in enumerate(summary.games, start=1):
+        for index in range(games):
+            fixture = fixtures[index % len(fixtures)]
+            lower_starts_as_cho = index % 2 == 0
+            status, plies = _play_fixture_game(
+                lower_engine,
+                higher_engine,
+                fixture,
+                lower_starts_as_cho=lower_starts_as_cho,
+                max_plies=max_plies,
+            )
+            if status is GameStatus.PLAYING:
+                unfinished += 1
+                outcome_for_lower = None
+            elif status is GameStatus.CHO_WIN:
+                outcome_for_lower = 1 if lower_starts_as_cho else -1
+                if outcome_for_lower == 1:
+                    lower_wins += 1
+                else:
+                    higher_wins += 1
+            elif status is GameStatus.HAN_WIN:
+                outcome_for_lower = -1 if lower_starts_as_cho else 1
+                if outcome_for_lower == 1:
+                    lower_wins += 1
+                else:
+                    higher_wins += 1
+            else:
+                outcome_for_lower = 0
+                draws += 1
             game_results.append(
                 {
-                    "game": index,
-                    "status": game.status.value,
-                    "outcome_for_lower": (
-                        None if game.status is GameStatus.PLAYING else game.outcome_for_first.value
-                    ),
-                    "plies": len(game.moves),
+                    "game": index + 1,
+                    "fixture": fixture.name,
+                    "status": status.value,
+                    "outcome_for_lower": outcome_for_lower,
+                    "plies": plies,
                 }
             )
 
+        completed = games - unfinished
         row = {
             "lower_level": lower.level.value,
             "lower_name": lower.name,
@@ -185,13 +239,14 @@ def run_adjacent_tournaments(
             "higher_name": higher.name,
             "games": games,
             "max_plies": max_plies,
-            "lower_score": summary.first_score,
-            "higher_score": summary.second_score,
-            "lower_wins": summary.first_wins,
-            "higher_wins": summary.second_wins,
-            "draws": summary.draws,
-            "completed": summary.completed,
-            "unfinished": summary.unfinished,
+            "fixture_mode": fixture_mode,
+            "lower_score": lower_wins + draws * 0.5,
+            "higher_score": higher_wins + draws * 0.5,
+            "lower_wins": lower_wins,
+            "higher_wins": higher_wins,
+            "draws": draws,
+            "completed": completed,
+            "unfinished": unfinished,
             "game_results": game_results,
         }
         rows.append(row)
@@ -210,6 +265,7 @@ def validate_benchmark_args(
     max_plies: int,
     pair: str | None = None,
     setup: str = "classic",
+    fixture_mode: str = "initial",
 ) -> None:
     if tournament_games < 0:
         raise ValueError("tournament_games must be non-negative")
@@ -221,6 +277,8 @@ def validate_benchmark_args(
         raise ValueError("pair must be one of 1-2, 2-3, 3-4, 4-5, 5-6")
     if setup not in {"classic", "left", "right", "both"}:
         raise ValueError("setup must be one of classic, left, right, both")
+    if fixture_mode not in {"initial", "capture", "check", "endgame", "tactical"}:
+        raise ValueError("fixture_mode must be one of initial, capture, check, endgame, tactical")
 
 
 def main() -> None:
@@ -258,7 +316,13 @@ def main() -> None:
         "--setup",
         choices=("classic", "left", "right", "both"),
         default="classic",
-        help="Starting arrangement used for every calibration game.",
+        help="Starting arrangement used by the initial fixture.",
+    )
+    parser.add_argument(
+        "--fixture",
+        choices=("initial", "capture", "check", "endgame", "tactical"),
+        default="initial",
+        help="Calibration starting position(s). Tactical cycles capture/check/endgame.",
     )
     parser.add_argument(
         "--deterministic-ties",
@@ -274,7 +338,7 @@ def main() -> None:
     args = parser.parse_args()
 
     try:
-        validate_benchmark_args(args.tournament_games, args.max_plies, args.pair, args.setup)
+        validate_benchmark_args(args.tournament_games, args.max_plies, args.pair, args.setup, args.fixture)
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
 
@@ -286,6 +350,7 @@ def main() -> None:
             args.pair,
             seed=args.seed,
             setup=args.setup,
+            fixture_mode=args.fixture,
             random_ties=not args.deterministic_ties,
         )
         if args.tournament_games
@@ -296,11 +361,12 @@ def main() -> None:
         payload = {
             "experiment": {
                 "name": "adjacent AI level strength benchmark",
-                "method": "HeadToHeadTournament with alternating colors",
+                "method": "head-to-head with alternating colors and optional fixture starts",
                 "games_per_adjacent_pair": args.tournament_games,
                 "max_plies": args.max_plies,
                 "pair": args.pair,
                 "setup": args.setup,
+                "fixture": args.fixture,
                 "seed": args.seed,
                 "random_ties": not args.deterministic_ties,
                 "interpretation": "exploratory evidence only; not calibrated player or model rating",

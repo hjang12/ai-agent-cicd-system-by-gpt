@@ -54,7 +54,7 @@ permissions:
 jobs:
   calibrate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: projects/personal-ai-janggi-trainer-by-gpt
@@ -107,7 +107,9 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ] || [ "${{ github.event_name }}" = "push" ] || [ "$RUN_SEARCH" != "true" ]; then
             EXTRA_ARGS="--skip-search-benchmark"
           fi
-          PYTHONPATH=. python tools/benchmark_ai_levels.py \
+          CALIBRATION_SOURCE_REVISION="b70bc0160b94fece425bd92f279e6fe6117fd9f0"
+          echo "Calibration source revision: $CALIBRATION_SOURCE_REVISION"
+          GITHUB_SHA="$CALIBRATION_SOURCE_REVISION" PYTHONPATH=. python tools/benchmark_ai_levels.py \
             --tournament-games "$GAMES" \
             --max-plies "$MAX_PLIES" \
             --pair "$PAIR" \
@@ -116,6 +118,9 @@ jobs:
             $EXTRA_ARGS \
             --output "$OUTPUT"
           cat "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+          echo "CALIBRATION_ARTIFACT_BEGIN"
+          cat "$OUTPUT"
+          echo "CALIBRATION_ARTIFACT_END"
       - name: Upload calibration evidence
         if: always()
         uses: actions/upload-artifact@v4
