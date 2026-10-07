@@ -99,10 +99,14 @@ class GameState:
     def piece_at(self, pos: Position) -> Optional[Piece]:
         return self.board[index(pos)]
 
+    def _piece_at_unchecked(self, pos: Position) -> Optional[Piece]:
+        x, y = pos
+        return self.board[y * BOARD_WIDTH + x]
+
     def find_general(self, side: Side) -> Optional[Position]:
         target = Piece(side, PieceType.GENERAL)
         for pos in all_positions():
-            if self.piece_at(pos) == target:
+            if self._piece_at_unchecked(pos) == target:
                 return pos
         return None
 
@@ -129,7 +133,8 @@ class GameState:
         return all(self.piece_at((x, y)) is None for y in range(low + 1, high))
 
     def pseudo_moves(self, src: Position) -> tuple[Move, ...]:
-        piece = self.piece_at(src)
+        _validate_position(src)
+        piece = self._piece_at_unchecked(src)
         if piece is None or piece.side is not self.turn:
             return ()
         return tuple(
@@ -145,7 +150,7 @@ class GameState:
             if piece is None or piece.side is not self.turn:
                 continue
             for move in self.pseudo_moves(src):
-                target = self.piece_at(move.dst) if move.dst is not None else None
+                target = self._piece_at_unchecked(move.dst) if move.dst is not None else None
                 if target is not None and target.kind is PieceType.GENERAL:
                     continue
                 candidate = self._apply_unchecked(move)
@@ -167,7 +172,8 @@ class GameState:
             raise ValueError("non-pass moves require src and dst")
         if move not in self.pseudo_moves(move.src):
             raise ValueError("illegal piece movement")
-        target = self.piece_at(move.dst)
+        _validate_position(move.dst)
+        target = self._piece_at_unchecked(move.dst)
         if target is not None and target.kind is PieceType.GENERAL:
             raise ValueError("capturing a general is not a legal Janggi move")
         candidate = self._apply_unchecked(move)
@@ -180,7 +186,7 @@ class GameState:
             return GameState(self.board, self.turn.opponent, self.history + (move,))
         if move.src is None or move.dst is None:
             raise ValueError("non-pass moves require src and dst")
-        piece = self.piece_at(move.src)
+        piece = self._piece_at_unchecked(move.src)
         if piece is None:
             raise ValueError("source square is empty")
         board = list(self.board)
@@ -282,7 +288,7 @@ def _ray(state: GameState, src: Position, direction: tuple[int, int], side: Side
     nx, ny = x + dx, y + dy
     while 0 <= nx < BOARD_WIDTH and 0 <= ny < BOARD_HEIGHT:
         dst = nx, ny
-        target = state.piece_at(dst)
+        target = state._piece_at_unchecked(dst)
         if target is None:
             out.add(dst)
         else:
