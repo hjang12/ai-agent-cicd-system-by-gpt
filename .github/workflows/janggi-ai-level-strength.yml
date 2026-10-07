@@ -30,7 +30,7 @@ on:
         required: true
         default: "20260930"
       setup:
-        description: "Starting arrangement"
+        description: "Starting arrangement for the initial fixture"
         required: true
         type: choice
         options:
@@ -39,6 +39,17 @@ on:
           - right
           - both
         default: classic
+      fixture:
+        description: "Calibration starting fixture"
+        required: true
+        type: choice
+        options:
+          - initial
+          - tactical
+          - capture
+          - check
+          - endgame
+        default: initial
       run_search_benchmark:
         description: "Also run deterministic search fixture benchmark"
         required: true
@@ -73,6 +84,7 @@ jobs:
             PAIR=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["pair"])' "$REQUEST_FILE")
             SEED=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["seed"])' "$REQUEST_FILE")
             SETUP=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["setup"])' "$REQUEST_FILE")
+            FIXTURE=$(python -c 'import json,sys; print(json.load(open(sys.argv[1])).get("fixture","initial"))' "$REQUEST_FILE")
             RUN_SEARCH=false
             OUTPUT="ai-level-strength-${PAIR}-seed-${SEED}.json"
             echo "Calibration request (push): $REQUEST"
@@ -92,6 +104,7 @@ jobs:
             PAIR="1-2"
             SEED=20260930
             SETUP=classic
+            FIXTURE=initial
             RUN_SEARCH=false
             OUTPUT=ai-level-strength-pr.json
           else
@@ -100,6 +113,7 @@ jobs:
             PAIR="${{ inputs.pair }}"
             SEED="${{ inputs.seed }}"
             SETUP="${{ inputs.setup }}"
+            FIXTURE="${{ inputs.fixture }}"
             RUN_SEARCH="${{ inputs.run_search_benchmark }}"
             OUTPUT="ai-level-strength-${PAIR}.json"
           fi
@@ -115,6 +129,7 @@ jobs:
             --pair "$PAIR" \
             --seed "$SEED" \
             --setup "$SETUP" \
+            --fixture "$FIXTURE" \
             $EXTRA_ARGS \
             --output "$OUTPUT"
           cat "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
