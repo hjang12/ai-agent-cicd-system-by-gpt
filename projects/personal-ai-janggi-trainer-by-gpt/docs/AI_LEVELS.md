@@ -13,16 +13,16 @@ The browser trainer exposes six AI levels. A level changes only the search profi
 
 ## Important distinction
 
-The six levels are a search-complexity ladder, not yet a validated playing-strength ladder.
+The six levels are both a search-complexity ladder and, under the current calibration protocol, a validated adjacent playing-strength ordering.
 
-A higher level performs more search work and is expected to have access to a larger tactical horizon, but a configuration change alone is not evidence that the resulting engine wins more games.
+A higher level performs more search work and is expected to have access to a larger tactical horizon. The calibration results below confirm that the higher public level scored at least as well as the lower level in every adjacent pair under the recorded evidence set. This is evidence of ordering, not a calibrated player/model rating.
 
 Strength should be validated through:
 
 1. deterministic search fixtures;
 2. adjacent-level self-play;
 3. repeated head-to-head evaluation with color alternation;
-4. Elo-style tracking;
+4. Elo-style tracking when enough evidence exists for meaningful rating estimates;
 5. later, learned evaluation versions.
 
 ## Runtime policy
@@ -89,3 +89,21 @@ Future calibration evidence should record the pair, seed, requested games, compl
 Each calibration artifact also records per-game terminal status, lower-level outcome, and ply count. This keeps completed-game evidence auditable instead of relying only on the aggregate pair summary. When the calibration workflow runs the optional deterministic search benchmark, those fixture rows are stored under `search_fixtures` in the same artifact; the normal calibration path skips this repeated benchmark because the dedicated search benchmark workflow already owns it.
 
 Calibration runs use benchmark-only fixed-seed tie randomization by default. This does not change the public AI level configuration; it only varies equal-score move choices during self-play so repeated games are not forced to follow the same deterministic trajectory. The starting arrangement can also be selected explicitly (classic, left, right, or both) and is recorded in the evidence artifact. These controls make the experiment configuration repeatable, but level 6 remains wall-clock-sensitive because its production search uses an 800 ms budget, so identical seeds do not guarantee bit-for-bit identical outcomes across runner environments.
+
+## 2026-10-07 strength calibration result
+
+The adjacent-level calibration was completed for all five public pairs using provenance-aware protocol v2. The experiment used seeded head-to-head games with alternating colors and a tactical fixture mix ('capture', 'check', 'endgame'), while unfinished games were excluded from score calculations and retained as data-quality metadata.
+
+| Pair | Completed / unfinished | Seeds | Lower score | Higher score | Result |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 1-2 | 21 / 1 | 2 | 9.5 | 11.5 | 2 scored higher |
+| 2-3 | 20 / 0 | 3 | 0.0 | 20.0 | 3 scored higher |
+| 3-4 | 20 / 4 | 3 | 9.0 | 11.0 | 4 scored higher |
+| 4-5 | 21 / 3 | 4 | 8.5 | 12.5 | 5 scored higher |
+| 5-6 | 21 / 3 | 3 | 9.5 | 11.5 | 6 scored higher |
+
+Calibration sufficiency was defined as at least 20 completed games, unfinished rate at or below 25%, and at least 2 unique seeds. Every adjacent pair met those criteria.
+
+These results validate the current public level ordering for this calibration protocol. They do not establish an Elo rating, prove universal superiority across every Janggi position, or by themselves justify increasing public search budgets. Future budget or evaluation changes should be supported by new evidence and regression tests.
+
+The calibration execution branch also upgraded the benchmark protocol to record fixture-start context and to reject malformed tactical fixtures that are already terminal at game start.
