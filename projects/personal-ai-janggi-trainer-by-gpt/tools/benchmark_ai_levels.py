@@ -252,9 +252,9 @@ def run_adjacent_tournaments(
         rows.append(row)
         print(
             f"{lower.level.value},{higher.level.value},"
-            f"{summary.first_score},{summary.second_score},"
-            f"{summary.first_wins},{summary.second_wins},{summary.draws},"
-            f"{summary.completed},{summary.unfinished}"
+            f"{lower_wins + draws * 0.5},{higher_wins + draws * 0.5},"
+            f"{lower_wins},{higher_wins},{draws},"
+            f"{completed},{unfinished}"
         )
     return rows
 
