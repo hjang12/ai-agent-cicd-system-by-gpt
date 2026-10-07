@@ -591,7 +591,7 @@ class NegamaxEngine:
         move: Move,
         depth: int,
     ) -> None:
-        if self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent):
+        if self._captured_value(state, move) > 0 or self._gives_check(state, move):
             return
 
         ply = max(self._active_search_depth - depth, 0)
@@ -640,7 +640,7 @@ class NegamaxEngine:
                     state,
                     self._legal_moves(state, include_pass=False),
                 )
-                if self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
+                if self._captured_value(state, move) > 0 or self._gives_check(state, move)
             )
 
         if not moves:
