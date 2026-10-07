@@ -58,16 +58,42 @@ FIXTURES = (
 EXPERT = next(spec for spec in AI_LEVELS if spec.level.value == "6")
 
 
+EXPERT = next(spec for spec in AI_LEVELS if spec.level.value == "6")
+
+
 def main() -> None:
-    print("Timed Lv6 profile")
-    print("fixture,effective_depth,nodes,score_cp,elapsed_ms,root_ordering_calls,root_check_calls")
+    print("Timed budget sweep")
+    print("level,budget_ms,effective_depth,nodes,score_cp,elapsed_ms,root_ordering_calls,root_check_calls")
+    state = GameState.initial()
+    for level_id in ("5", "6"):
+        spec = next(item for item in AI_LEVELS if item.level.value == level_id)
+        for budget_ms in (800, 1200, 1600, 2000):
+            config = spec.config.__class__(
+                depth=spec.config.depth,
+                mobility_weight=spec.config.mobility_weight,
+                quiescence_depth=spec.config.quiescence_depth,
+                root_refinement_count=spec.config.root_refinement_count,
+                time_limit_ms=budget_ms,
+            )
+            engine = ProfiledEngine(config)
+            started = perf_counter()
+            analysis = engine.analyze(state)
+            elapsed_ms = (perf_counter() - started) * 1000.0
+            print(
+                f"{level_id},{budget_ms},{analysis.depth},{analysis.nodes},{analysis.score_cp},"
+                f"{elapsed_ms:.2f},{engine.root_ordering_calls},{engine.root_check_calls}"
+            )
+
+    print()
+    print("Timed Lv6 profile at public budget")
+    print("fixture,budget_ms,effective_depth,nodes,score_cp,elapsed_ms,root_ordering_calls,root_check_calls")
     for name, state in FIXTURES:
         engine = ProfiledEngine(EXPERT.config)
         started = perf_counter()
         analysis = engine.analyze(state)
         elapsed_ms = (perf_counter() - started) * 1000.0
         print(
-            f"{name},{analysis.depth},{analysis.nodes},{analysis.score_cp},"
+            f"{name},800,{analysis.depth},{analysis.nodes},{analysis.score_cp},"
             f"{elapsed_ms:.2f},{engine.root_ordering_calls},{engine.root_check_calls}"
         )
 
