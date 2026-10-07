@@ -115,7 +115,7 @@ class GameState:
             piece = self.piece_at(src)
             if piece is None or piece.side is side or piece.kind is PieceType.GENERAL:
                 continue
-            if general in _attacks(self, src):
+            if _piece_attacks_square(self, src, piece, general):
                 return True
         return False
 
@@ -419,3 +419,122 @@ def _attacks(state: GameState, src: Position) -> set[Position]:
     if piece is None:
         return set()
     return _piece_destinations(state, src, piece)
+
+def _piece_attacks_square(
+    state: GameState,
+    src: Position,
+    piece: Piece,
+    target: Position,
+) -> bool:
+    """Return whether one enemy piece attacks one target square.
+
+    Check detection only asks whether the opposing general is attacked. A
+    target-specific predicate avoids constructing the full destination set for
+    every enemy piece during every legal-move test.
+    """
+    sx, sy = src
+    tx, ty = target
+    dx = tx - sx
+    dy = ty - sy
+
+    if piece.kind in {PieceType.GENERAL, PieceType.GUARD}:
+        if target not in palace_for(piece.side):
+            return False
+        if (abs(dx), abs(dy)) in {(1, 0), (0, 1)}:
+            return True
+        return (
+            _on_palace_diagonal(src, piece.side)
+            and abs(dx) == 1
+            and abs(dy) == 1
+            and _on_palace_diagonal(target, piece.side)
+        )
+
+    if piece.kind is PieceType.HORSE:
+        if sorted((abs(dx), abs(dy))) != [1, 2]:
+            return False
+        if abs(dx) == 2:
+            block = (sx + (1 if dx > 0 else -1), sy)
+        else:
+            block = (sx, sy + (1 if dy > 0 else -1))
+        return state.piece_at(block) is None
+
+    if piece.kind is PieceType.ELEPHANT:
+        if sorted((abs(dx), abs(dy))) != [2, 3]:
+            return False
+        sx_step = 1 if dx > 0 else -1
+        sy_step = 1 if dy > 0 else -1
+        if abs(dx) > abs(dy):
+            first = (sx + sx_step, sy)
+            second = (sx + 2 * sx_step, sy + sy_step)
+        else:
+            first = (sx, sy + sy_step)
+            second = (sx + sx_step, sy + 2 * sy_step)
+        return state.piece_at(first) is None and state.piece_at(second) is None
+
+    if piece.kind is PieceType.SOLDIER:
+        if dx == 0 and dy == piece.side.forward:
+            return True
+        if dy == 0 and abs(dx) == 1:
+            return True
+        return (
+            dy == piece.side.forward
+            and abs(dx) == 1
+            and target in palace_for(piece.side.opponent)
+            and _on_palace_diagonal(target, piece.side.opponent)
+        )
+
+    if piece.kind is PieceType.CHARIOT:
+        if sx == tx:
+            step = 1 if ty > sy else -1
+            y = sy + step
+            while y != ty:
+                if state.piece_at((sx, y)) is not None:
+                    return False
+                y += step
+            return True
+        if sy == ty:
+            step = 1 if tx > sx else -1
+            x = sx + step
+            while x != tx:
+                if state.piece_at((x, sy)) is not None:
+                    return False
+                x += step
+            return True
+        return False
+
+    if piece.kind is PieceType.CANNON:
+        if sx == tx:
+            step = 1 if ty > sy else -1
+            y = sy + step
+            screens = 0
+            while y != ty:
+                occupant = state.piece_at((sx, y))
+                if occupant is not None:
+                    if screens == 0:
+                        if occupant.kind is PieceType.CANNON:
+                            return False
+                        screens = 1
+                    else:
+                        return False
+                y += step
+            return screens == 1
+
+        if sy == ty:
+            step = 1 if tx > sx else -1
+            x = sx + step
+            screens = 0
+            while x != tx:
+                occupant = state.piece_at((x, sy))
+                if occupant is not None:
+                    if screens == 0:
+                        if occupant.kind is PieceType.CANNON:
+                            return False
+                        screens = 1
+                    else:
+                        return False
+                x += step
+            return screens == 1
+
+        return False
+
+    raise AssertionError(piece.kind)
