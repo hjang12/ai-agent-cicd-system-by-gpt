@@ -522,17 +522,35 @@ class NegamaxEngine:
         preferred_move: Optional[Move],
         depth: int,
     ) -> tuple[Move, ...]:
-        ordered = self._ordered_moves(state, moves)
+        timed_root_ordering = (
+            self.config.time_limit_ms is not None
+            and depth == self._active_search_depth
+        )
+        if timed_root_ordering:
+            # Avoid an eager apply/check scan for every root candidate when the
+            # whole analysis has a strict wall-clock budget. Capture ordering
+            # remains deterministic and the full forcing-move ordering is still
+            # used at non-root nodes.
+            ordered = tuple(
+                sorted(
+                    moves,
+                    key=lambda move: (
+                        int(move.is_pass),
+                        -self._captured_value(state, move),
+                        move.src or (-1, -1),
+                        move.dst or (-1, -1),
+                    ),
+                )
+            )
+        else:
+            ordered = self._ordered_moves(state, moves)
+
         if not self.config.adaptive_ordering or not getattr(self, "_adaptive_ordering_enabled", True):
             return ordered
 
         ply = max(self._active_search_depth - depth, 0)
         killers = self._killer_moves.get(ply, ())
         killer_rank = {move: index for index, move in enumerate(killers)}
-        timed_root_ordering = (
-            self.config.time_limit_ms is not None
-            and depth == self._active_search_depth
-        )
 
         def ordering_key(move: Move) -> tuple[object, ...]:
             is_preferred = 0 if preferred_move is not None and move == preferred_move else 1
