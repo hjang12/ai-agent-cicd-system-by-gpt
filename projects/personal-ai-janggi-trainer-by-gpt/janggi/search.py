@@ -206,7 +206,7 @@ class NegamaxEngine:
             self._active_search_depth = self.config.depth
             for index, move in enumerate(moves):
                 child = state.apply(move)
-                child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+                child_noisy = self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
                 child_score, child_pv = self._search(
                     child,
                     self.config.depth - 1,
@@ -239,7 +239,7 @@ class NegamaxEngine:
                     self._nodes = 0
                     self._active_search_depth = self.config.depth + 1
                     child = state.apply(move)
-                    child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+                    child_noisy = self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
                     child_score, child_pv = self._search(
                         child,
                         self.config.depth,
@@ -371,7 +371,7 @@ class NegamaxEngine:
         for move in ordered_moves:
             self._check_time_budget()
             child = state.apply(move)
-            child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+            child_noisy = self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
             child_score, child_pv = self._search(
                 child,
                 depth - 1,
@@ -481,7 +481,7 @@ class NegamaxEngine:
         best_pv: tuple[Move, ...] = ()
         for move in moves:
             child = state.apply(move)
-            child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+            child_noisy = self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
             child_score, child_pv = self._search(
                 child,
                 depth - 1,
@@ -591,7 +591,7 @@ class NegamaxEngine:
         move: Move,
         depth: int,
     ) -> None:
-        if self._captured_value(state, move) > 0 or self._gives_check(state, move):
+        if self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent):
             return
 
         ply = max(self._active_search_depth - depth, 0)
@@ -640,7 +640,7 @@ class NegamaxEngine:
                     state,
                     self._legal_moves(state, include_pass=False),
                 )
-                if self._captured_value(state, move) > 0 or self._gives_check(state, move)
+                if self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
             )
 
         if not moves:
@@ -659,7 +659,7 @@ class NegamaxEngine:
         best_pv: tuple[Move, ...] = ()
         for move in moves:
             child = state.apply(move)
-            child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+            child_noisy = self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
             if child_noisy and depth > 1:
                 child_score, child_pv = self._quiescence(
                     child,
