@@ -1,8 +1,8 @@
 {
   "pair": "3-4",
-  "seed": 20261030,
+  "seed": 20261031,
   "games": 4,
-  "max_plies": 48,
+  "max_plies": 96,
   "setup": "classic",
   "fixture": "tactical",
   "run_search_benchmark": false
