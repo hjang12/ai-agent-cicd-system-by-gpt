@@ -17,6 +17,9 @@ class AILevelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_benchmark_args(2, 0)
 
+    def test_level_benchmark_accepts_tactical_fixture_mode(self):
+        validate_benchmark_args(8, 96, pair="5-6", fixture_mode="tactical")
+
     def test_all_levels_have_unique_order_and_metadata(self):
         self.assertEqual([spec.level for spec in AI_LEVELS], list(AILevel))
         self.assertEqual(len({spec.name for spec in AI_LEVELS}), len(AI_LEVELS))
