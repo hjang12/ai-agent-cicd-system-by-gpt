@@ -529,11 +529,24 @@ class NegamaxEngine:
         ply = max(self._active_search_depth - depth, 0)
         killers = self._killer_moves.get(ply, ())
         killer_rank = {move: index for index, move in enumerate(killers)}
+        timed_root_ordering = (
+            self.config.time_limit_ms is not None
+            and depth == self._active_search_depth
+        )
 
         def ordering_key(move: Move) -> tuple[object, ...]:
             is_preferred = 0 if preferred_move is not None and move == preferred_move else 1
             capture_value = self._captured_value(state, move)
-            gives_check = int(self._gives_check(state, move))
+            # A time-bounded root search must preserve the wall-clock budget for
+            # actual search. Checking every root candidate requires another
+            # child-state construction and check scan, so use capture/preferred/
+            # killer/history ordering only at timed roots. Deeper non-root search
+            # retains the full forcing-move ordering.
+            gives_check = (
+                0
+                if timed_root_ordering
+                else int(self._gives_check(state, move))
+            )
             killer_index = killer_rank.get(move, len(killers))
             history = self._history_scores.get((state.turn, move), 0)
             if killer_index < len(killers):
