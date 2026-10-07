@@ -7,12 +7,14 @@ on:
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/core.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_search_ordering.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_level_profiles.py'
       - '.github/workflows/janggi-search-benchmark.yml'
   pull_request:
     paths:
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/search.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/janggi/core.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_search_ordering.py'
+      - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_level_profiles.py'
       - 'projects/personal-ai-janggi-trainer-by-gpt/tools/benchmark_ai_versions.py'
       - '.github/workflows/janggi-search-benchmark.yml'
 
@@ -39,3 +41,5 @@ jobs:
         run: PYTHONPATH=. python tools/benchmark_search_ordering.py
       - name: Run selective deepening probe
         run: PYTHONPATH=. python tools/benchmark_selective_deepening.py
+      - name: Run public AI level profile benchmark
+        run: PYTHONPATH=. python tools/benchmark_ai_level_profiles.py
