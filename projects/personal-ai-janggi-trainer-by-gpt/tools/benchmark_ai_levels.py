@@ -27,7 +27,7 @@ def _initial_fixture() -> Fixture:
 def _capture_fixture() -> Fixture:
     board = [None] * 90
     board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
-    board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+    board[5 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
     board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
     board[0 + 4 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
     board[2 + 3 * 9] = Piece(Side.CHO, PieceType.HORSE)
@@ -36,9 +36,9 @@ def _capture_fixture() -> Fixture:
 
 def _check_fixture() -> Fixture:
     board = [None] * 90
-    board[0] = Piece(Side.CHO, PieceType.GENERAL)
-    board[4 + 9 * 9] = Piece(Side.HAN, PieceType.GENERAL)
-    board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+    board[0 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+    board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+    board[4 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
     board[8] = Piece(Side.CHO, PieceType.HORSE)
     return Fixture("check", GameState(tuple(board), turn=Side.CHO))
 
@@ -48,11 +48,20 @@ def _endgame_fixture() -> Fixture:
     board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
     board[2 + 4 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
     board[4 + 5 * 9] = Piece(Side.CHO, PieceType.SOLDIER)
-    board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+    board[5 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
     board[6 + 6 * 9] = Piece(Side.HAN, PieceType.CHARIOT)
     board[4 + 6 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
     board[3 + 9 * 9] = Piece(Side.HAN, PieceType.GUARD)
     return Fixture("endgame", GameState(tuple(board), turn=Side.CHO))
+
+
+def _validate_fixture_states() -> None:
+    for fixture in (_capture_fixture(), _check_fixture(), _endgame_fixture()):
+        status = Match(state=fixture.state, setup="classic", rules=RuleSet()).status
+        if status is not GameStatus.PLAYING:
+            raise ValueError(
+                f"calibration fixture {fixture.name} must start as playing, got {status.value}"
+            )
 
 
 
@@ -282,6 +291,7 @@ def validate_benchmark_args(
 
 
 def main() -> None:
+    _validate_fixture_states()
     parser = argparse.ArgumentParser(description="Benchmark configured Janggi AI levels.")
     parser.add_argument(
         "--tournament-games",
