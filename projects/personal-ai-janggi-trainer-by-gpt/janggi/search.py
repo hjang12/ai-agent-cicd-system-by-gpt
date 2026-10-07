@@ -440,12 +440,7 @@ class NegamaxEngine:
             if cached.principal_variation:
                 preferred_move = cached.principal_variation[0]
 
-        moves = self._ordered_search_moves(
-            state,
-            self._legal_moves(state, include_pass=True),
-            preferred_move,
-            depth,
-        )
+        moves = self._legal_moves(state, include_pass=True)
         if not moves:
             if state.is_in_check(state.turn):
                 # Mate distance must depend only on search depth, not the
@@ -460,6 +455,9 @@ class NegamaxEngine:
             )
             return result
 
+        # A leaf only needs terminal detection and evaluation. Ordering its
+        # legal moves here does no useful search work and can be expensive
+        # because forcing-move ordering probes captures/checks.
         if depth <= 0:
             if noisy and self.config.quiescence_depth > 0:
                 result = self._quiescence(
@@ -476,6 +474,13 @@ class NegamaxEngine:
                 score=result[0], principal_variation=result[1], bound=bound
             )
             return result
+
+        moves = self._ordered_search_moves(
+            state,
+            moves,
+            preferred_move,
+            depth,
+        )
 
         best_score = -MATE_SCORE * 2
         best_pv: tuple[Move, ...] = ()
