@@ -39,3 +39,5 @@ jobs:
         run: PYTHONPATH=. python tools/benchmark_search_ordering.py
       - name: Run selective deepening probe
         run: PYTHONPATH=. python tools/benchmark_selective_deepening.py
+      - name: Run timed Lv6 profile benchmark
+        run: PYTHONPATH=. python tools/benchmark_timed_level_profile.py

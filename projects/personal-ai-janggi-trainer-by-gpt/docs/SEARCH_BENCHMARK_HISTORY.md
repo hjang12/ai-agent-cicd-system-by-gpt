@@ -430,3 +430,37 @@ The production node counts increased relative to the pre-pass baseline because e
 ### Decision
 
 Promote the pass-inclusive production node counts above to the deterministic regression baseline. Keep pass late in move ordering so ordinary tactical candidates are considered before the quiet pass action, while retaining pass as a valid fallback/search choice when its evaluated value warrants it.
+
+## 2026-10-07 — Time-bounded Lv6 search overhead reduction
+
+### Finding
+
+The public Lv6 profile uses iterative deepening with an 800 ms wall-clock budget. Profiling showed that timed root ordering was spending budget on forcing-move checks even though the root needed to preserve time for actual search.
+
+A second profile pass found that each searched child was applying the same move again solely to determine whether it gave check. Leaf nodes also sorted legal moves before evaluating them, even though no child search occurs at depth 0.
+
+### Change
+
+- At timed search roots, use capture/pass/coordinate ordering without probing every root move for check status.
+- Reuse the already-generated child state when determining the child noisy flag instead of applying the move a second time.
+- At depth-0 leaves, perform terminal detection and evaluation without ordering the legal moves.
+- Keep the full forcing-move ordering unchanged for non-timed roots and non-leaf search nodes.
+
+### Timed Lv6 profile result
+
+Hosted-runner wall-clock values are informational; effective depth and score are the important behavior signals.
+
+| Fixture | Before optimization | After optimization |
+| --- | --- | --- |
+| initial | depth 1 / ~815 ms | depth 1 / ~800 ms |
+| capture | depth 2 / ~800 ms | depth 3 / ~725 ms |
+| check | depth 3 / ~654 ms | depth 3 / ~434 ms |
+
+Timed-root check probes fell from 192 on the initial fixture to 0. The capture fixture reached an additional full search depth within the same public 800 ms budget.
+
+The deterministic search benchmark and full Python validation both passed after the changes. The benchmark continues to preserve the established minimax scores and production best moves.
+
+### Decision
+
+Do not change the public Lv6 800 ms budget yet. The optimization improves the effective search horizon on compact tactical positions without changing the public level configuration. The initial position remains bounded to depth 1 under the current budget, so further budget increases should wait for a concrete latency/strength trade-off study.
+

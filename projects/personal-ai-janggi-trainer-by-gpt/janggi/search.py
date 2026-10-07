@@ -206,7 +206,7 @@ class NegamaxEngine:
             self._active_search_depth = self.config.depth
             for index, move in enumerate(moves):
                 child = state.apply(move)
-                child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+                child_noisy = self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
                 child_score, child_pv = self._search(
                     child,
                     self.config.depth - 1,
@@ -239,7 +239,7 @@ class NegamaxEngine:
                     self._nodes = 0
                     self._active_search_depth = self.config.depth + 1
                     child = state.apply(move)
-                    child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+                    child_noisy = self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
                     child_score, child_pv = self._search(
                         child,
                         self.config.depth,
@@ -371,7 +371,7 @@ class NegamaxEngine:
         for move in ordered_moves:
             self._check_time_budget()
             child = state.apply(move)
-            child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+            child_noisy = self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
             child_score, child_pv = self._search(
                 child,
                 depth - 1,
@@ -440,12 +440,7 @@ class NegamaxEngine:
             if cached.principal_variation:
                 preferred_move = cached.principal_variation[0]
 
-        moves = self._ordered_search_moves(
-            state,
-            self._legal_moves(state, include_pass=True),
-            preferred_move,
-            depth,
-        )
+        moves = self._legal_moves(state, include_pass=True)
         if not moves:
             if state.is_in_check(state.turn):
                 # Mate distance must depend only on search depth, not the
@@ -460,6 +455,9 @@ class NegamaxEngine:
             )
             return result
 
+        # A leaf only needs terminal detection and evaluation. Ordering its
+        # legal moves here does no useful search work and can be expensive
+        # because forcing-move ordering probes captures/checks.
         if depth <= 0:
             if noisy and self.config.quiescence_depth > 0:
                 result = self._quiescence(
@@ -477,11 +475,18 @@ class NegamaxEngine:
             )
             return result
 
+        moves = self._ordered_search_moves(
+            state,
+            moves,
+            preferred_move,
+            depth,
+        )
+
         best_score = -MATE_SCORE * 2
         best_pv: tuple[Move, ...] = ()
         for move in moves:
             child = state.apply(move)
-            child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+            child_noisy = self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
             child_score, child_pv = self._search(
                 child,
                 depth - 1,
@@ -522,7 +527,29 @@ class NegamaxEngine:
         preferred_move: Optional[Move],
         depth: int,
     ) -> tuple[Move, ...]:
-        ordered = self._ordered_moves(state, moves)
+        timed_root_ordering = (
+            self.config.time_limit_ms is not None
+            and depth == self._active_search_depth
+        )
+        if timed_root_ordering:
+            # Avoid an eager apply/check scan for every root candidate when the
+            # whole analysis has a strict wall-clock budget. Capture ordering
+            # remains deterministic and the full forcing-move ordering is still
+            # used at non-root nodes.
+            ordered = tuple(
+                sorted(
+                    moves,
+                    key=lambda move: (
+                        int(move.is_pass),
+                        -self._captured_value(state, move),
+                        move.src or (-1, -1),
+                        move.dst or (-1, -1),
+                    ),
+                )
+            )
+        else:
+            ordered = self._ordered_moves(state, moves)
+
         if not self.config.adaptive_ordering or not getattr(self, "_adaptive_ordering_enabled", True):
             return ordered
 
@@ -533,7 +560,16 @@ class NegamaxEngine:
         def ordering_key(move: Move) -> tuple[object, ...]:
             is_preferred = 0 if preferred_move is not None and move == preferred_move else 1
             capture_value = self._captured_value(state, move)
-            gives_check = int(self._gives_check(state, move))
+            # A time-bounded root search must preserve the wall-clock budget for
+            # actual search. Checking every root candidate requires another
+            # child-state construction and check scan, so use capture/preferred/
+            # killer/history ordering only at timed roots. Deeper non-root search
+            # retains the full forcing-move ordering.
+            gives_check = (
+                0
+                if timed_root_ordering
+                else int(self._gives_check(state, move))
+            )
             killer_index = killer_rank.get(move, len(killers))
             history = self._history_scores.get((state.turn, move), 0)
             if killer_index < len(killers):
@@ -628,7 +664,7 @@ class NegamaxEngine:
         best_pv: tuple[Move, ...] = ()
         for move in moves:
             child = state.apply(move)
-            child_noisy = self._captured_value(state, move) > 0 or self._gives_check(state, move)
+            child_noisy = self._captured_value(state, move) > 0 or child.is_in_check(state.turn.opponent)
             if child_noisy and depth > 1:
                 child_score, child_pv = self._quiescence(
                     child,

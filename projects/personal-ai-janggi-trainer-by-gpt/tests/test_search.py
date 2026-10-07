@@ -381,6 +381,53 @@ class SearchEngineTests(unittest.TestCase):
             analysis.depth + engine.config.quiescence_depth,
         )
 
+    def test_timed_root_ordering_skips_expensive_check_probes(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(SearchConfig(depth=3, time_limit_ms=800))
+        engine._active_search_depth = 3
+        moves = engine._legal_moves(state, include_pass=True)
+        original_gives_check = engine._gives_check
+        calls = 0
+
+        def count_calls(current_state, move):
+            nonlocal calls
+            calls += 1
+            return original_gives_check(current_state, move)
+
+        engine._gives_check = count_calls
+        try:
+            engine._ordered_search_moves(
+                state,
+                moves,
+                preferred_move=None,
+                depth=3,
+            )
+        finally:
+            engine._gives_check = original_gives_check
+
+        self.assertEqual(calls, 0)
+
+    def test_timed_root_search_reuses_generated_child_for_check_detection(self):
+        state = GameState.initial()
+        engine = NegamaxEngine(SearchConfig(depth=1, time_limit_ms=800))
+        original_gives_check = engine._gives_check
+        root_parent_calls = 0
+
+        def count_root_parent_calls(current_state, move):
+            nonlocal root_parent_calls
+            if current_state is state:
+                root_parent_calls += 1
+            return original_gives_check(current_state, move)
+
+        engine._gives_check = count_root_parent_calls
+        try:
+            analysis = engine.analyze(state)
+        finally:
+            engine._gives_check = original_gives_check
+
+        self.assertIsNotNone(analysis.best_move)
+        self.assertEqual(root_parent_calls, 0)
+
     def test_quiescence_extension_is_configurable(self):
         state = GameState.initial()
 
