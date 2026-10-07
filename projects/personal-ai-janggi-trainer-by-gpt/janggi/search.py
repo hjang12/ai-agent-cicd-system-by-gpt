@@ -232,10 +232,11 @@ class NegamaxEngine:
                 refined_results: list[tuple[int, int, Move, tuple[Move, ...]]] = []
                 refinement_nodes = 0
                 for _, shallow_rank, move, _ in finalists:
-                    self._transposition.clear()
-                    self._evaluation_cache.clear()
-                    self._check_cache.clear()
-                    self._legal_moves_cache.clear()
+                    # Refinement candidates are searched from the same root. Their
+                    # position/depth/noisy cache keys remain valid across candidates,
+                    # so preserve the caches instead of recomputing identical child
+                    # positions for every finalist. Node accounting remains isolated
+                    # per candidate below.
                     self._nodes = 0
                     self._active_search_depth = self.config.depth + 1
                     child = state.apply(move)
