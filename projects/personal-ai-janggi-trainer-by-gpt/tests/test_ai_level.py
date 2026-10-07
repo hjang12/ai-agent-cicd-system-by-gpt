@@ -42,7 +42,7 @@ class AILevelTests(unittest.TestCase):
         self.assertEqual(expert.depth, 3)
         self.assertEqual(expert.mobility_weight, 2)
         self.assertEqual(expert.quiescence_depth, 1)
-        self.assertEqual(expert.time_limit_ms, 800)
+        self.assertEqual(expert.time_limit_ms, 1200)
 
     def test_named_level_lookup(self):
         spec = get_ai_level("5")
