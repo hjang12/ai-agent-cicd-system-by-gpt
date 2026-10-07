@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - ".github/calibration/level-request.json"
+  pull_request:
+    paths:
+      - ".github/calibration/level-request.json"
   workflow_dispatch:
     inputs:
       games:
@@ -54,7 +57,7 @@ permissions:
 jobs:
   calibrate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: projects/personal-ai-janggi-trainer-by-gpt
