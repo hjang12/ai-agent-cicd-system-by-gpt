@@ -59,13 +59,13 @@ AI_LEVELS: tuple[AILevelSpec, ...] = (
     AILevelSpec(
         level=AILevel.EXPERT,
         name="전문",
-        description="3수 최대 탐색 + 반복심화 + 0.8초 시간 예산",
+        description="3수 최대 탐색 + 반복심화 + 1.2초 시간 예산",
         config=SearchConfig(
             depth=3,
             mobility_weight=2,
             quiescence_depth=1,
             root_refinement_count=0,
-            time_limit_ms=800,
+            time_limit_ms=1200,
         ),
     ),
 )
