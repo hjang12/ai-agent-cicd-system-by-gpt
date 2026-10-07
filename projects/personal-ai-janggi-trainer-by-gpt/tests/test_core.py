@@ -1,7 +1,7 @@
 import unittest
 
 from janggi import GameRecord, GameState, Move, Piece, PieceType, Side, state_from_dict, state_to_dict
-from janggi.core import _on_palace_diagonal
+from janggi.core import _attacks, _on_palace_diagonal, all_positions
 
 
 class JanggiCoreTests(unittest.TestCase):
@@ -163,6 +163,47 @@ class JanggiCoreTests(unittest.TestCase):
         state = GameState.initial()
         same_board_opposite_turn = GameState(state.board, Side.HAN)
         self.assertNotEqual(state.position_key(), same_board_opposite_turn.position_key())
+
+
+    def test_check_detection_matches_full_attack_destination_generation(self):
+        fixtures = [GameState.initial()]
+
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[4 + 4 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+        board[4 + 6 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
+        fixtures.append(GameState(tuple(board), turn=Side.CHO))
+
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[2 + 4 * 9] = Piece(Side.CHO, PieceType.HORSE)
+        board[4 + 5 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
+        fixtures.append(GameState(tuple(board), turn=Side.CHO))
+
+        board = [None] * 90
+        board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
+        board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
+        board[4 + 4 * 9] = Piece(Side.CHO, PieceType.CANNON)
+        board[4 + 6 * 9] = Piece(Side.CHO, PieceType.SOLDIER)
+        board[4 + 5 * 9] = Piece(Side.HAN, PieceType.GUARD)
+        fixtures.append(GameState(tuple(board), turn=Side.CHO))
+
+        for state in fixtures:
+            for side in (Side.CHO, Side.HAN):
+                general = state.find_general(side)
+                expected = general is None
+                if general is not None:
+                    expected = any(
+                        piece is not None
+                        and piece.side is not side
+                        and piece.kind is not PieceType.GENERAL
+                        and general in _attacks(state, src)
+                        for src in all_positions()
+                        for piece in (state.piece_at(src),)
+                    )
+                self.assertEqual(state.is_in_check(side), expected, (state, side))
 
 
 class JanggiRecordTests(unittest.TestCase):
