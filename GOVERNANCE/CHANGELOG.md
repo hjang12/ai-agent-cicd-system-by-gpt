@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.4.0] - 2026-10-08
+
+### Added
+
+- 외부 Platform Tool의 실행 Context(workspace/project/environment/service 선택 상태)와 실제 Resource 상태를 분리하는 운영 규칙 추가.
+- 가능한 경우 호출 단위의 안정적인 Resource ID를 사용하고, 외부 상태 변경 전 read-only Scope 확인을 수행하도록 명문화.
+- "no workspace selected" 등 Tool Context 오류를 Platform 장애나 Resource 변경으로 오판하지 않고 Context 재구성 및 직접 검증을 거치도록 명확화.
+
+### Review Trigger
+
+- 2026-10-08 Render 검증 과정에서 실제 Render workspace와 서비스는 정상인데 Tool의 선택 Context가 초기화되어 "no workspace selected"가 발생하는 사례가 확인됨.
+- 기존 1.3.3의 Observed / Declared / Unknown 원칙은 증거 해석에는 충분했지만, Tool 실행 Context와 외부 Resource Scope를 구분하는 구체적인 운영 절차는 명시하지 않았음.
+
+### Decision
+
+- 새로운 registry / parser / workflow / state layer를 추가하지 않고 기존 Evidence 원칙과 외부 Platform 검증 절차를 구체화한다.
+- Tool Context 문제와 Platform Resource 상태를 분리하여 판단하고, 실제 Resource 조회 결과를 Source of Truth로 사용한다.
+
 ## [1.3.3] - 2026-10-01
 
 ### Added
