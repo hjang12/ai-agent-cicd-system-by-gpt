@@ -61,7 +61,7 @@ A larger game/ply configuration remains required for actual level-strength evide
 
 ## Expert search budget
 
-Lv6 Expert uses iterative deepening with a maximum depth of 3 and an 800 ms wall-clock budget. The effective depth can be lower when a position is computationally expensive.
+Lv6 Expert uses iterative deepening with a maximum depth of 3 and an 1200 ms wall-clock budget. The effective depth can be lower when a position is computationally expensive.
 
 
 ## Strength calibration workflow
@@ -88,4 +88,4 @@ Future calibration evidence should record the pair, seed, requested games, compl
 
 Each calibration artifact also records per-game terminal status, lower-level outcome, and ply count. This keeps completed-game evidence auditable instead of relying only on the aggregate pair summary. When the calibration workflow runs the optional deterministic search benchmark, those fixture rows are stored under `search_fixtures` in the same artifact; the normal calibration path skips this repeated benchmark because the dedicated search benchmark workflow already owns it.
 
-Calibration runs use benchmark-only fixed-seed tie randomization by default. This does not change the public AI level configuration; it only varies equal-score move choices during self-play so repeated games are not forced to follow the same deterministic trajectory. The starting arrangement can also be selected explicitly (classic, left, right, or both) and is recorded in the evidence artifact. These controls make the experiment configuration repeatable, but level 6 remains wall-clock-sensitive because its production search uses an 800 ms budget, so identical seeds do not guarantee bit-for-bit identical outcomes across runner environments.
+Calibration runs use benchmark-only fixed-seed tie randomization by default. This does not change the public AI level configuration; it only varies equal-score move choices during self-play so repeated games are not forced to follow the same deterministic trajectory. The starting arrangement can also be selected explicitly (classic, left, right, or both) and is recorded in the evidence artifact. These controls make the experiment configuration repeatable, but level 6 remains wall-clock-sensitive because its production search uses a 1200 ms budget, so identical seeds do not guarantee bit-for-bit identical outcomes across runner environments.
