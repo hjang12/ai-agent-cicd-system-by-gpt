@@ -56,8 +56,8 @@ def _endgame_fixture() -> Fixture:
 
 
 
-def _source_revision() -> str | None:
-    revision = os.environ.get("GITHUB_SHA")
+def _source_revision(explicit_revision: str | None = None) -> str | None:
+    revision = explicit_revision or os.environ.get("GITHUB_SHA")
     if revision:
         return revision
 
@@ -266,6 +266,11 @@ def main() -> None:
         help="Disable benchmark-only random tie-breaking. The default uses fixed-seed tie-breaking for game diversity.",
     )
     parser.add_argument(
+        "--source-revision",
+        default=None,
+        help="Explicit code/config source revision for evidence provenance. Defaults to GITHUB_SHA or git HEAD.",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=None,
@@ -309,7 +314,7 @@ def main() -> None:
                 "benchmark_only_random_ties": True,
                 "search_benchmark_included": not args.skip_search_benchmark,
                 "engine_version": NegamaxEngine().info.version,
-                "source_revision": _source_revision(),
+                "source_revision": _source_revision(args.source_revision),
                 "calibration_protocol_version": str(CALIBRATION_PROTOCOL_VERSION),
                 "ai_level_config_fingerprint": (
                     ai_level_configuration_fingerprint(*pair_specs)
