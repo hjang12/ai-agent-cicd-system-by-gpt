@@ -2,7 +2,7 @@
 
 ## Governance
 
-- Governance Version: `1.4.0`
+- Governance Version: `1.4.1`
 - Status: Active baseline on `main`
 - Current canonical workspace repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Default / working branch: `main`
