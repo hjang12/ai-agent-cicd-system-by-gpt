@@ -73,6 +73,7 @@ jobs:
             PAIR=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["pair"])' "$REQUEST_FILE")
             SEED=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["seed"])' "$REQUEST_FILE")
             SETUP=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["setup"])' "$REQUEST_FILE")
+            SOURCE_REVISION=$(python -c 'import json,sys; print(json.load(open(sys.argv[1])).get("source_revision") or sys.argv[2])' "$REQUEST_FILE" "${{ github.sha }}")
             RUN_SEARCH=false
             OUTPUT="ai-level-strength-${PAIR}-seed-${SEED}.json"
             echo "Calibration request (push): $REQUEST"
@@ -83,6 +84,7 @@ jobs:
             PAIR=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["pair"])' "$REQUEST_FILE")
             SEED=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["seed"])' "$REQUEST_FILE")
             SETUP=$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["setup"])' "$REQUEST_FILE")
+            SOURCE_REVISION=$(python -c 'import json,sys; print(json.load(open(sys.argv[1])).get("source_revision") or sys.argv[2])' "$REQUEST_FILE" "${{ github.sha }}")
             RUN_SEARCH=false
             OUTPUT="ai-level-strength-${PAIR}-seed-${SEED}.json"
             echo "Calibration request: $REQUEST"
@@ -92,6 +94,7 @@ jobs:
             PAIR="1-2"
             SEED=20260930
             SETUP=classic
+            SOURCE_REVISION="${{ github.sha }}"
             RUN_SEARCH=false
             OUTPUT=ai-level-strength-pr.json
           else
@@ -100,6 +103,7 @@ jobs:
             PAIR="${{ inputs.pair }}"
             SEED="${{ inputs.seed }}"
             SETUP="${{ inputs.setup }}"
+            SOURCE_REVISION="${{ github.sha }}"
             RUN_SEARCH="${{ inputs.run_search_benchmark }}"
             OUTPUT="ai-level-strength-${PAIR}.json"
           fi
@@ -113,6 +117,7 @@ jobs:
             --pair "$PAIR" \
             --seed "$SEED" \
             --setup "$SETUP" \
+            --source-revision "$SOURCE_REVISION" \
             $EXTRA_ARGS \
             --output "$OUTPUT"
           cat "$OUTPUT" >> "$GITHUB_STEP_SUMMARY"
