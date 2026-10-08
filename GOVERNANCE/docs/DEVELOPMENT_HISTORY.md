@@ -1,3 +1,38 @@
+## 2026-10-08 — Governance v1.4.0: Tool Context / Platform Resource Scope separation
+
+### Trigger
+
+Render 검증 중 실제 Render workspace와 서비스는 정상적으로 존재하고 최신 배포도 성공했지만, Tool 실행 Context의 workspace 선택 상태가 초기화되어 "no workspace selected"가 발생했다.
+
+### Root Cause
+
+기존 Governance v1.3.3은 Tool/API 응답의 Observed / Declared / Unknown 구분과 실제 Platform 상태 우선 원칙을 정의했지만, **Tool의 실행 Context 또는 선택 scope 자체가 stale/reset될 수 있다는 운영 조건과 이를 외부 Resource 장애와 분리하는 절차**를 명시하지 않았다.
+
+### Decision
+
+1. Tool 실행 Context와 실제 외부 Platform Resource 상태를 별개의 Evidence 대상으로 취급한다.
+2. 가능한 경우 호출 단위의 안정적인 Resource ID를 사용하여 암묵적인 Tool 선택 상태 의존성을 줄인다.
+3. 외부 상태 변경 전 read-only Scope 확인을 수행한다.
+4. "no workspace selected" 같은 Tool Context 오류만으로 Resource 삭제·이동·배포 장애를 추론하지 않는다.
+5. 새로운 parser / registry / workflow / state layer는 추가하지 않고 기존 Evidence 및 Deployment 검증 체계를 구체화한다.
+
+### Implementation
+
+- Governance Version 1.4.0 반영.
+- GOVERNANCE/GOVERNANCE.md의 Evidence 규칙에 Tool Context / Platform Resource Scope 분리 절차 추가.
+- GOVERNANCE/CHANGELOG.md, GOVERNANCE/VERSION, GOVERNANCE/docs/CURRENT_STATUS.md 동기화.
+
+### Verification
+
+- Render My Workspace와 personal-ai-janggi-trainer-by-gpt service가 실제 Tool 조회에서 정상 확인됨.
+- 최신 Render deployment b7ae33f93df43f60a3413c4e16199515465973dd가 live / succeeded 상태로 직접 확인됨.
+- 같은 시간 범위의 Render error log에는 오류가 없음을 직접 확인함.
+- 이번 변경은 새로운 실행 계층이나 상태 저장 구조를 추가하지 않으며 기존 Governance의 Evidence / Deployment 원칙을 구체화하는 최소 변경이다.
+
+### Review Outcome
+
+Tool 오류를 Platform 장애로 오판하지 않도록 하는 재발 방지 규칙을 일반화하되, 특정 Vendor에 종속된 규칙이나 추가 자동화 계층은 만들지 않는다.
+
 ## 2026-10-01 — Governance v1.3.3: evidence discipline and simplicity review
 
 ### Trigger
