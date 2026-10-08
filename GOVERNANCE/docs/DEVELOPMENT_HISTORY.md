@@ -1,3 +1,35 @@
+## 2026-10-08 — Governance v1.4.1: explicit minimal Chat continuation
+
+### Trigger
+
+Repository 기반 Context Recovery와 긴 Continuation Prompt 최소화 원칙은 이미 존재했지만, 새 Chat에서 실제로 사용할 최소 메시지 형식이 문서에 명시되지 않아 사용자가 다시 긴 상태 설명을 작성해야 하는 운영 위험이 남아 있었다.
+
+### Decision
+
+- 새 Chat의 재개 메시지는 Repository 기반 Context Recovery를 지시하는 짧은 문장으로 충분하도록 명문화한다.
+- Repository를 새 Agent가 식별하지 못할 수 있는 환경에서만 canonical GitHub repository 식별자를 한 줄 추가한다.
+- 최소 메시지로 Context Recovery가 실패하는 경우 긴 Prompt를 사용자에게 요구하기보다 Governance / Context 구조 문제로 먼저 검토한다.
+- 별도 registry, parser, workflow, state layer는 추가하지 않는다.
+
+### Implementation
+
+- Governance Version 1.4.1 반영.
+- GOVERNANCE/GOVERNANCE.md에 Minimal Chat Continuation Message 절 추가.
+- GOVERNANCE/CHANGELOG.md, GOVERNANCE/VERSION, GOVERNANCE/docs/CURRENT_STATUS.md 동기화.
+
+### Canonical Minimal Message
+
+이 저장소 작업 이어서 진행해.
+Governance 기준으로 현재 ACTIVE Task와 Checkpoint를 자동 복구하고 Next Action부터 계속해.
+
+필요한 경우에만 다음 한 줄을 추가한다.
+
+GitHub: hjang12/ai-agent-cicd-system-by-gpt
+
+### Review Outcome
+
+Continuity의 Source of Truth가 Chat이 아니라 Repository와 공식 Context라는 기존 원칙을 유지하면서 사용자 입력을 최소화했다.
+
 ## 2026-10-08 — Governance v1.4.0: Tool Context / Platform Resource Scope separation
 
 ### Trigger
