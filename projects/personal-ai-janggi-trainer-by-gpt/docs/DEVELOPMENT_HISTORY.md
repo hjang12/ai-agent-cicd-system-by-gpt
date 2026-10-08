@@ -1,3 +1,43 @@
+## 2026-10-08 — Lv6 1.2s budget calibration rejected
+
+### Experiment
+
+The proposed Lv6 public search budget increase from 800 ms to 1200 ms was evaluated against Lv5 using six independent seeds.
+
+- Pair: 5-6
+- Setup: classic
+- 4 games per seed
+- 48 plies per game
+- Total requested: 24 games
+- Completed: 11
+- Unfinished: 13
+- Unfinished rate: 54.17%
+
+### Result
+
+Completed games were:
+
+- Lv5: 9 wins
+- Lv6: 0 wins
+- Draws: 2
+
+Scores were Lv5 10.0 vs Lv6 1.0 among the completed games.
+
+The existing evidence gate requires at least 20 completed games, at most 25% unfinished, and at least two unique seeds. The experiment therefore remains insufficient and does not demonstrate a Lv6 strength advantage.
+
+### Decision
+
+- Keep the public Lv6 budget at 800 ms.
+- Close PR #118 without merge.
+- Do not treat the 1200 ms run as strength evidence for public promotion.
+- Record the experiment as a rejected/inconclusive budget change rather than retrying the same configuration without a new hypothesis.
+
+### Tooling Finding
+
+The six artifacts used different calibration request commit SHAs as source revision, even though they shared the same AI-level configuration fingerprint and engine/protocol metadata. This occurs because the calibration workflow currently derives provenance from the request commit itself.
+
+A minimal follow-up change separates experiment source revision from calibration request revision by allowing the workflow/request to pass an explicit source revision.
+
 ## 62. 2026-10-02 — Setup-first UI merged to main
 
 ### Verification
