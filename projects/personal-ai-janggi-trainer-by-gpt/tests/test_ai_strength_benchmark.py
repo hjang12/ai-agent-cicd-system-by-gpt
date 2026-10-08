@@ -3,7 +3,7 @@ import unittest
 from janggi.evaluation import EvaluationGame
 from janggi.match import GameStatus
 from tools.benchmark_ai_strength import summarize_games
-from tools.benchmark_ai_levels import validate_benchmark_args
+from tools.benchmark_ai_levels import _source_revision, validate_benchmark_args
 
 
 class AiStrengthBenchmarkTests(unittest.TestCase):
@@ -28,6 +28,9 @@ class AiStrengthBenchmarkTests(unittest.TestCase):
         self.assertEqual(result["final_v1_rating"] + result["final_v2_rating"], 2000)
         self.assertIsNone(result["game_results"][-1]["rating_update"])
 
+
+    def test_explicit_calibration_source_revision_overrides_runtime_revision(self):
+        self.assertEqual(_source_revision("code-revision-sha"), "code-revision-sha")
 
     def test_level_calibration_accepts_only_known_adjacent_pairs(self):
         for pair in ("1-2", "2-3", "3-4", "4-5", "5-6"):
