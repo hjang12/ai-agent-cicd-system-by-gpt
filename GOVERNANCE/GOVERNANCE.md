@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.3.3**
+**Governance Version: 1.4.0**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -481,6 +481,20 @@ Evidence는 사람이 읽기 쉬운 형태뿐 아니라 Agent가 다시 활용�
 서로 다른 Evidence 상태를 하나의 사실처럼 합치지 않는다. Repository에 설정이 선언되어 있다는 사실과 실제 Platform 설정이 동일하다는 사실은 별도로 검증한다.
 
 운영 상태, Active Issue, 완료 여부, 장애 여부와 같은 판단은 미확인 상태를 근거로 확정하지 않는다. 필요한 경우 검증 필요 상태로 남기고 추가 관찰 경로를 사용한다.
+
+### Tool 실행 Context와 외부 Platform Resource Scope의 분리
+
+외부 Platform을 다루는 Tool이 workspace, project, environment, service 등의 선택 범위를 실행 Context로 유지하더라도, **Tool 실행 Context의 상태와 실제 외부 Platform Resource의 상태를 동일한 사실로 취급하지 않는다.** Tool의 선택 Context가 초기화되거나 stale 상태가 되어도 외부 Resource가 삭제·이동·장애가 발생했다는 의미는 아니다.
+
+가능한 경우 외부 Platform 작업에서는 다음 원칙을 적용한다.
+
+- workspaceId, projectId, environmentId, serviceId 등 **안정적인 Resource 식별자를 호출 단위로 명시**하여 Tool의 암묵적 선택 상태 의존성을 줄인다.
+- 외부 상태를 변경하기 전에 **read-only 조회로 Resource Scope를 확인**하고, 확인된 식별자가 요청한 Project / Environment / Service와 일치하는지 검증한다.
+- Tool이 no workspace selected, context missing 등 **실행 Context 문제를 반환한 경우 이를 Platform 장애나 Resource 상태 변화로 해석하지 않는다.** 먼저 사용 가능한 workspace / project / resource를 다시 조회하여 Context를 재구성한다.
+- 안정적인 Resource 식별자를 확인할 수 없고 Tool의 선택 Context에만 의존해야 한다면, 그 Context를 read-only 조회로 검증할 수 없는 동안 외부 상태 변경을 수행하지 않는다.
+- Platform 상태에 관한 완료·장애·배포 판단은 Tool Context가 아니라 **실제 Resource 조회, 배포/이벤트 상태, 로그 또는 기타 직접 검증 결과**를 기준으로 한다.
+
+이는 Render에 한정하지 않고 GitHub, Cloud Platform, CI/CD, Database, Storage 등 외부 시스템을 다루는 모든 Tool에 적용한다.
 
 ## 12. 재현성(Reproducibility)
 
