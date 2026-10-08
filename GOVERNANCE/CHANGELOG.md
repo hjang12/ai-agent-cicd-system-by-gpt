@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.1] - 2026-10-08
+
+### Clarified
+
+- 새 Chat에서 전체 프로젝트 상태를 수동 복사하지 않고 Repository 기반 Context Recovery를 수행하도록 **최소 Continuation Message 형식**을 명문화.
+- 정상 재개에는 Governance / Development Task / Context / Checkpoint를 Agent가 자동 복구하는 것을 기본으로 하고, 필요할 때만 canonical repository 식별자를 한 줄 추가하도록 명확화.
+- Agent가 최소 메시지로 Context를 복구하지 못하는 경우 사용자의 긴 Prompt 작성을 요구하기 전에 Context Recovery / Governance 문제로 검토하도록 명문화.
+
+### Review Trigger
+
+- 2026-10-08 사용자 운영 피드백: Governance에 Repository 기반 Continuity 원칙은 이미 존재했지만, 실제 새 Chat에서 사용할 최소 메시지 형식이 명시적으로 제공되지 않아 긴 Continuation Prompt를 다시 요청할 가능성이 남아 있었음.
+
+### Decision
+
+- 새로운 registry / parser / workflow / state layer를 추가하지 않는다.
+- 기존 Context Recovery 원칙을 명확한 최소 메시지 예시로 구체화한다.
+
 ## [1.4.0] - 2026-10-08
 
 ### Added

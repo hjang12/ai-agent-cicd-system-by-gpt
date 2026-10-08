@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.4.0**
+**Governance Version: 1.4.1**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -1466,6 +1466,28 @@ Continuation Prompt가 Repository / Context / Checkpoint에 기록된 공식 상
 새 Chat에서 사용자가 단순히 **“계속 진행해”**, **“이어서 해”**와 같이 요청한 경우, Agent는 가능한 범위에서 현재 ACTIVE Development Task를 Repository 기반으로 자동 복구하고 작업을 계속한다. 긴 이전 Chat 전문이나 별도의 대형 시작 프롬프트를 사용자에게 다시 요구하는 것을 기본 절차로 삼지 않는다.
 
 동일한 Continuity 문제가 반복되어 매번 긴 수동 Prompt가 필요해진다면 이를 개인 대화의 불편으로만 처리하지 않고 **Governance / Context 구조의 결함 가능성**으로 검토한다.
+
+### 25-A-14. Minimal Chat Continuation Message
+
+새 Chat에서 Development Task를 이어갈 때 사용자가 매번 긴 Project Context를 복사할 필요가 없도록 한다. Repository의 Governance, Development Task Registry, Context, Checkpoint 및 실제 Git / CI / Deployment 상태가 공식 복구 수단이다.
+
+새 Chat의 정상적인 재개 메시지는 다음 수준으로 충분하다.
+
+```text
+이 저장소 작업 이어서 진행해.
+Governance 기준으로 현재 ACTIVE Task와 Checkpoint를 자동 복구하고 Next Action부터 계속해.
+```
+
+Repository를 새 Agent가 아직 식별하지 못할 가능성이 있는 환경에서는 **저장소 식별자만 한 줄 추가**할 수 있다.
+
+```text
+GitHub: hjang12/ai-agent-cicd-system-by-gpt
+```
+
+따라서 새 Chat에서 전체 기능 목록, 최근 작업 내역, 긴 기술 설명, 이전 Chat 전문, 수동으로 작성한 상태 보고서를 반복해서 요구하지 않는다. Agent가 이 최소 정보만으로 공식 Context와 실제 상태를 복구하지 못한다면 그것을 사용자에게 긴 Prompt 작성을 요구할 사유로 처리하지 않고 **Context Recovery / Governance 개선 문제로 먼저 검토**한다.
+
+이 원칙의 목적은 Chat의 기억을 보존하는 것이 아니라, **개발 작업의 Source of Truth를 Chat에서 Repository와 공식 Context로 이동시키는 것**이다.
+
 
 ## 26. Evidence와 Traceability 관리
 
