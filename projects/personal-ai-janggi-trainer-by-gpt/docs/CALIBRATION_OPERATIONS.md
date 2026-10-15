@@ -167,3 +167,7 @@ The execution path is now implemented and source-controlled. New strength eviden
 
 - Follow-up 4-game batch for pair `2-3`, seed `20261003`, setup `classic`, max 96 plies completed with return code 0 in 13m 9s. All 4 games completed; Level 2 scored 0.0 and Level 3 scored 4.0.
 - Although the 4-game batch fit this run, it left little margin against the Free Web Service idle limit. Keep the routine batch at 2 games per seed; do not infer a safe margin from a single 4-game run. Preserve output before changing environment variables or redeploying.
+
+
+- Follow-up 2-game batch for pair `2-3`, seed `20261004`, setup `classic`, max 96 plies completed with return code 0 in 5m35s. Both games completed; Level 2 scored 0.5 and Level 3 scored 1.5 (one draw and one Level 3 win).
+- Runner was returned to `CALIBRATION_ENABLED=false` after the batch, and Render deploy `dep-db85cr2vcj2c7389eev0` reached `live`. Do not automatically start another batch in the same work segment; preserve this checkpoint and resume only from an explicit continuation.
