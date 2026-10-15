@@ -79,16 +79,22 @@ Level 6 uses an 800 ms wall-clock search budget. Seeded experiments are therefor
 
 ### Provenance-aware exploratory evidence: adjacent pair 2-3 (2026-10-15)
 
-The first bounded Render runner batch completed using source revision `aa872c77a07d64ea86273b59903c3bce296300e4`, engine version `7`, calibration protocol `1`, setup `classic`, and AI-level configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
+Two seed-scoped Render runner batches completed using source revision `aa872c77a07d64ea86273b59903c3bce296300e4`, engine version `7`, calibration protocol `1`, setup `classic`, and AI-level configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
 
 | Seed | Games | Completed | Unfinished | Lower score (Lv.2) | Higher score (Lv.3) | Outcome |
 | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| 20261002 | 2 | 2 | 0 | 0.0 | 2.0 | Level 3 won both games; exploratory only |
+| 20261002 | 2 | 2 | 0 | 0.0 | 2.0 | Level 3 won both games |
+| 20261003 | 4 | 4 | 0 | 0.0 | 4.0 | Level 3 won all four games |
+| **Aggregate** | **6** | **6** | **0** | **0.0** | **6.0** | **Exploratory only** |
 
-Per-game evidence: game 1 ended `han_win` after 52 plies; game 2 ended `han_win` after 23 plies. In both games the outcome for the lower level was `-1`.
+Per-game evidence for seed `20261002`: `han_win` at 52 and 23 plies. Per-game evidence for seed `20261003`: `han_win` at 36, 25, 52, and 23 plies. In all six games the outcome for the lower level was `-1`.
 
-The raw artifact is `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261002-classic.json`; the corresponding evaluator output is `artifacts/ai-level-calibration/aggregate-2-3-classic.json`. Both are preserved on evidence branch `calibration/evidence-20261015`.
+Raw artifacts preserved on evidence branch `calibration/evidence-20261015`:
+- `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261002-classic.json`
+- `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261003-classic.json`
 
-The current provenance-aware result is `INSUFFICIENT`: 2 completed games and 1 distinct seed do not meet the 20-completed-game and 2-seed thresholds. This new artifact is not merged with the historical legacy 2-3 artifact above, and its 2-0 result is not a strength conclusion or authorization to change public level configuration.
+The per-seed evaluator reports and manifests are retained separately. The combined evaluator-shaped aggregation is `artifacts/ai-level-calibration/aggregate-2-3-classic-seeds-20261002-20261003.json`.
 
-The initial 12-game/multi-seed request emitted no completed artifact and is excluded entirely. Subsequent work uses small one-seed batches, preserves raw artifacts before redeploy, and holds engine/source/config provenance constant for the pair.
+The combined status is still `INSUFFICIENT`: 6 completed games do not meet the 20-completed-game threshold, although the 2-seed and unfinished-rate requirements are satisfied. This new evidence is not mixed with the historical legacy 2-3 artifact above. The observed 6-0 score is descriptive only, not a calibrated strength conclusion or authorization to change public level configuration.
+
+The initial 12-game/multi-seed request emitted no completed artifact and is excluded entirely. The 2-game batch completed in about 6m7s; the follow-up 4-game batch completed in about 13m9s, close to the Free Web Service idle limit. Routine future batches remain one seed and 2 games, with immediate artifact preservation before any redeploy.
