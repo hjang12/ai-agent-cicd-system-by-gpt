@@ -2,7 +2,7 @@
 
 ## Governance
 
-- Governance Version: `1.4.1`
+- Governance Version: `1.4.2`
 - Status: Active baseline on `main`
 - Current canonical workspace repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Default / working branch: `main`
@@ -48,7 +48,10 @@ This workspace uses ChatGPT + AI Agent as the primary interactive development in
 - Current development continuity is managed through Development Task, Development Task Registry, Development Context, Checkpoint, and Context Recovery.
 - Chat transitions are allowed whenever platform/context constraints or work structure make a new Chat safer or more efficient.
 - No fixed time-based forced Chat cutoff is used. Checkpoints are state-based.
-- Interaction has no fixed maximum duration; an Interaction normally ends when a Response is returned, and a safe interruption may end it earlier after preserving recoverable state.
+- Interaction has no fixed maximum duration; an Interaction ends with its final response, not with an intermediate progress report. A safe interruption may end it earlier after preserving recoverable state.
+- Intermediate reports show actual status while Agent Work continues; after a final response, do not imply that the Agent is still working in the background. Any independently running external process is reported separately.
+- Report meaningful milestones using the current phase, verified outcomes, next action, and material plan changes; do not use a fixed total milestone count by default.
+- For long-running or efficiency-sensitive work, distinguish total elapsed time from measured process/computation time and observed waiting; mark unmeasured intervals as unknown rather than inventing a breakdown.
 - Agent Work may be divided into Agent Work Segments when Context / Token / Tool / Runtime / external-work boundaries make continued execution unsafe or inefficient.
 - Long-running Agent Work is supported as part of long-running Development Tasks, but does not imply unbounded or uninterrupted execution.
 - User pause/stop requests are honored at the earliest safe interruption point, with Checkpoint / Context preservation when needed.
