@@ -235,6 +235,9 @@ def main() -> int:
         parser.error("--max-plies must be at least 1")
     if args.fixture != "initial" and args.setup != "classic":
         parser.error("non-initial fixtures require --setup classic")
+    source_revision = _resolve_source_revision(args.source_revision)
+    if not source_revision:
+        parser.error("unable to resolve the code/configuration source revision")
 
     project_root = Path(__file__).resolve().parents[1]
     output_dir = (project_root / args.output_dir).resolve()
@@ -257,7 +260,7 @@ def main() -> int:
                     games=args.games,
                     max_plies=args.max_plies,
                     fixture_mode=args.fixture,
-                    source_revision=args.source_revision,
+                    source_revision=source_revision,
                 )
                 experiment_succeeded = True
             except (subprocess.CalledProcessError, ValueError, RuntimeError) as exc:
@@ -310,7 +313,7 @@ def main() -> int:
         "setup": args.setup,
         "fixture": args.fixture,
         "calibration_protocol_version": CALIBRATION_PROTOCOL_VERSION,
-        "source_revision": _resolve_source_revision(args.source_revision),
+        "source_revision": source_revision,
         "games_per_experiment": args.games,
         "max_plies": args.max_plies,
         "artifacts": [str(path) for path in completed_artifacts],
