@@ -54,6 +54,40 @@ class OffCiCalibrationRunnerTests(unittest.TestCase):
         )
         self.assertNotEqual(path.name, "manifest.json")
 
+    def test_aggregate_path_is_unique_to_run_identity(self) -> None:
+        output_dir = Path("/tmp/calibration")
+        common = {
+            "pair": "2-3",
+            "setup": "classic",
+            "fixture_mode": "tactical",
+            "games": 2,
+            "max_plies": 96,
+            "source_revision": "a" * 40,
+        }
+        first = runner._aggregate_path(
+            output_dir, seeds=[20261006], **common
+        )
+        next_seed = runner._aggregate_path(
+            output_dir, seeds=[20261007], **common
+        )
+        changed_game_count = runner._aggregate_path(
+            output_dir, seeds=[20261006], **{**common, "games": 4}
+        )
+        changed_revision = runner._aggregate_path(
+            output_dir,
+            seeds=[20261006],
+            **{**common, "source_revision": "b" * 40},
+        )
+
+        self.assertEqual(
+            first.name,
+            "aggregate-v3-pair-2_3-seeds-20261006-setup-classic-fixture-tactical-g2-p96-src-aaaaaaaaaaaa.json",
+        )
+        self.assertNotEqual(first, next_seed)
+        self.assertNotEqual(first, changed_game_count)
+        self.assertNotEqual(first, changed_revision)
+        self.assertNotEqual(first.name, "aggregate-2-3-classic-v3-tactical.json")
+
     def test_existing_artifact_is_skipped_and_not_overwritten(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
