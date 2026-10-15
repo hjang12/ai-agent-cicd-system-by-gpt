@@ -1,3 +1,16 @@
+## 2026-10-16 — Aggregate report identity collision found before seed 20261007
+
+### Observation
+- Protocol-v3 raw artifacts are seed-specific and run manifests include seed, game count, ply cap, and source revision.
+- The aggregate report still used a generic pair/setup/fixture filename. A subsequent run could overwrite that JSON while the prior manifest still pointed at the same path, weakening immutable evidence traceability.
+
+### Decision
+- Do not launch another calibration batch until aggregate output paths are unique to each run identity.
+- Add a bounded regression test proving that seed, game count, and source revision alter the aggregate path. Keep the existing seed-20261006 raw/aggregate/manifest intact.
+- Render runner remains disabled until the path fix is validated and merged.
+
+---
+
 ## 2026-10-16 — Protocol-v3 seed 20261006 pilot result
 
 ### Run conditions

@@ -68,6 +68,26 @@ def _manifest_path(
     )
 
 
+def _aggregate_path(
+    output_dir: Path,
+    *,
+    pair: str,
+    seeds: list[int],
+    setup: str,
+    fixture_mode: str,
+    games: int,
+    max_plies: int,
+    source_revision: str,
+) -> Path:
+    """Keep aggregate reports immutable across distinct calibration requests."""
+    seed_token = "-".join(str(seed) for seed in seeds)
+    return output_dir / (
+        f"aggregate-v{CALIBRATION_PROTOCOL_VERSION}-pair-{pair.replace('-', '_')}"
+        f"-seeds-{seed_token}-setup-{setup}-fixture-{fixture_mode}"
+        f"-g{games}-p{max_plies}-src-{source_revision[:12]}.json"
+    )
+
+
 def _run(
     command: list[str],
     *,
@@ -314,7 +334,16 @@ def main() -> int:
         if not pair_artifacts:
             continue
 
-        aggregate = output_dir / f"aggregate-{pair}-{args.setup}-v{CALIBRATION_PROTOCOL_VERSION}-{args.fixture}.json"
+        aggregate = _aggregate_path(
+            output_dir,
+            pair=pair,
+            seeds=seeds,
+            setup=args.setup,
+            fixture_mode=args.fixture,
+            games=args.games,
+            max_plies=args.max_plies,
+            source_revision=source_revision,
+        )
         command = [
             sys.executable,
             "-m",
