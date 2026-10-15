@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: protect calibration provenance before the next run. Seed 20261006 is complete and preserved (Lv.3 won both games at 68/69 plies), but aggregate status remains INSUFFICIENT. The generic aggregate path could overwrite an earlier seed's report, so add and validate run-scoped aggregate filenames before starting another seed. Render runner is CALIBRATION_ENABLED=false and verified idle. Do not change public search budgets without sufficient evidence.
+- Current priority: continue protocol-v3 calibration only after deploying current main revision `a0bc620181e8101331110e457219174f6c90d413` to Render with `CALIBRATION_ENABLED=false` and verifying idle. PR #131 fixed aggregate artifact identity by seed set, games, ply cap and source revision; project and Workspace CI passed. Seed 20261006 remains preserved, with Lv.3 winning both games at 68/69 plies, but the pair aggregate remains INSUFFICIENT. Do not change public search budgets without sufficient evidence.
 
 ## Implemented Capability
 
