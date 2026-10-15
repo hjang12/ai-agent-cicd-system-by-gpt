@@ -5,12 +5,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.calibration_runner_service import CalibrationRunner
+from tools.calibration_runner_service import CalibrationRunner, ROOT
 
 
 class CalibrationRunnerServiceTests(unittest.TestCase):
     def test_completion_artifacts_are_scoped_to_the_matching_v3_manifest(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
+        with tempfile.TemporaryDirectory(dir=ROOT) as temp:
             output_dir = Path(temp)
             raw_name = "ai-level-strength-2-3-seed-20261006-classic-v3-tactical.json"
             aggregate_name = "aggregate-2-3-classic-v3-tactical.json"
