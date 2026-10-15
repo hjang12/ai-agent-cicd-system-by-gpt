@@ -127,3 +127,34 @@ Runner wall time from its own timestamps was 5.605054 seconds; this is process e
 Protocol-v2 introduced explicit initial/capture/check/endgame/tactical fixture metadata. Seed 20261005 is preserved but both tactical games ended in bikjang after only 2 and 3 plies, so the result is low-information and not a strength conclusion.
 
 Protocol-v3 rebuilds the synthetic capture/check fixtures to retain normal material and blockers, rejects synthetic bikjang before 8 plies, scopes each manifest by pairs/seeds/setup/fixture/games/plies/source revision, and limits completion logs to artifacts listed by the matching request manifest. Protocol-v3 results form a separate evidence set. Protocol-v1 and protocol-v2 evidence remain preserved and must not be mixed into protocol-v3 conclusions.
+
+
+## Protocol-v3 pilot — Seed 20261006
+
+### Run conditions
+
+- Source revision: `e7651d557fb6fd13f6f110d3e7604360225d15d3`
+- Pair: 2-3 (`초급` vs `중급`); seed: `20261006`; setup: classic; fixture mode: tactical; protocol: 3.
+- Requested games: 2; maximum plies: 96; engine version: 7.
+- AI-level configuration fingerprint: `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`
+- Runner returned code 0. Its own timestamps span 7 minutes 25.598 seconds; this is process wall time, not CPU time.
+- The runner was reset to `CALIBRATION_ENABLED=false`; reset deployment `dep-db8lu0m89jmc73bu1oeg` reached `live`, and startup logs confirmed idle mode.
+
+### Results
+
+| Game | Fixture | Terminal result | Plies | Outcome for Lv.2 |
+| --- | --- | --- | ---: | ---: |
+| 1 | capture | `han_win` | 68 | -1 |
+| 2 | check | `cho_win` | 69 | -1 |
+
+Both games completed without an unfinished game. Lv.3 won both games, including after the lower-level engine's starting side was alternated. Combined score was Lv.2 `0.0` : Lv.3 `2.0`, with no draws. Neither game ended in early bikjang, so the protocol-v3 fixture-quality guard passed for the capture/check fixtures exercised by this two-game batch.
+
+### Interpretation and preserved artifacts
+
+The aggregate evaluator still reports `INSUFFICIENT`: only 2 completed games and 1 unique seed are available for pair 2-3, below the existing thresholds of 20 completed games and 2 unique seeds. The result is directionally consistent with Lv.3 being stronger in this small sample, but does not establish calibrated strength or authorize public level/search-budget changes. Protocol-v1, protocol-v2, and protocol-v3 results remain separate.
+
+- Raw: `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261006-classic-v3-tactical.json`
+- Aggregate: `artifacts/ai-level-calibration/aggregate-2-3-classic-v3-tactical.json`
+- Manifest: `artifacts/ai-level-calibration/manifest-v3-pairs-2_3-seeds-20261006-setup-classic-fixture-tactical-g2-p96-src-e7651d557fb6.json`
+
+Next action: continue protocol-v3 evidence collection for pair 2-3 with a fresh seed, retaining the disabled-first / bounded-run / preserve-artifacts / disable-after-run procedure. Do not change public AI-level budgets from this pilot.
