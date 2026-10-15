@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: validate the protocol-v2 fixture/provenance integration with the dedicated off-CI Render runner, then resume bounded adjacent AI-level calibration (`2-3 → 3-4 → 4-5 → 5-6`) without changing public search budgets before sufficient evidence.
+- Current priority: fix protocol-v2 synthetic fixture quality after the seed 20261005 batch ended in 2/3-ply bikjang draws, isolate run manifests and reported artifacts, pass CI, then resume bounded calibration. Do not change public search budgets without sufficient evidence.
 
 ## Implemented Capability
 

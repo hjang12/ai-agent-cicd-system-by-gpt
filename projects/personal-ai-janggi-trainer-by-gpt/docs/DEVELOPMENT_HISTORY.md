@@ -1,3 +1,31 @@
+## 2026-10-15 — Protocol-v2 seed 20261005 early-bikjang result and follow-up
+
+### Run conditions
+
+- Source/code revision: `535598c4445f2bb9d8edaef05bb9cc90b1ad1279`
+- Pair: 2-3; seed: 20261005; setup: classic; fixture mode: tactical
+- Requested games: 2; maximum plies: 96; engine version: 7; protocol: 2
+- Configuration fingerprint: `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`
+- Runner elapsed time: 5.605054 seconds from the service's start/end timestamps; this is process wall time, not CPU time.
+- Exit code: 0. Both games completed; there were no unfinished games.
+
+### Outcome
+
+Both games ended by bikjang very early: capture fixture at 2 plies and check fixture at 3 plies. Combined score was 1.0–1.0 with two draws and no wins. Status remains `INSUFFICIENT`. The raw observation is retained, but this is not informative enough to support a comparative playing-strength conclusion.
+
+### Operational finding
+
+The per-request protocol-v2 manifest correctly identified the single seed, while the service log's artifact list enumerated all JSON files in the ephemeral output directory and the manifest still used the generic `manifest.json` path. This makes output review noisy and lets separate requests replace the manifest identity in the runtime filesystem.
+
+### Next decision
+
+Before another batch:
+- build synthetic fixtures on a more realistic material/blocker layout;
+- add a regression quality guard for trivial early bikjang outcomes;
+- bump the fixture-semantics protocol identity so old protocol-v2 outcomes are not reused/mixed;
+- use a run-specific manifest path and scope completion logs to the request's manifest;
+- keep the Render runner disabled until the new protocol passes project and workspace CI.
+
 ## 2026-10-15 — Calibration protocol v2 integrity and off-CI runner integration
 
 ### Trigger
