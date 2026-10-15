@@ -61,7 +61,7 @@ A larger game/ply configuration remains required for actual level-strength evide
 
 ## Expert search budget
 
-Lv6 Expert uses iterative deepening with a maximum depth of 3 and an 800 ms wall-clock budget. The effective depth can be lower when a position is computationally expensive.
+Lv6 Expert uses iterative deepening with a maximum depth of 3 and an 1200 ms wall-clock budget. The effective depth can be lower when a position is computationally expensive.
 
 
 ## Strength calibration workflow
