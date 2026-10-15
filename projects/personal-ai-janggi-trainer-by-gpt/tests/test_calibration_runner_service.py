@@ -16,7 +16,7 @@ class CalibrationRunnerServiceTests(unittest.TestCase):
             aggregate_name = "aggregate-2-3-classic-v3-tactical.json"
             manifest_name = (
                 "manifest-v3-pairs-2_3-seeds-20261006-setup-classic-"
-                "fixture-tactical-g2-p96-src-535598c4445f.json"
+                "fixture-tactical-g2-p96-src-aaaaaaaaaaaa.json"
             )
             old_name = "ai-level-strength-2-3-seed-20261005-classic-v2-tactical.json"
             for name in (raw_name, aggregate_name, old_name):
@@ -30,7 +30,7 @@ class CalibrationRunnerServiceTests(unittest.TestCase):
                 "games_per_experiment": 2,
                 "max_plies": 96,
                 "calibration_protocol_version": "3",
-                "source_revision": "535598c4445f5fbeab2f",
+                "source_revision": "a" * 40,
                 "artifacts": [str(output_dir / raw_name)],
                 "aggregate_reports": {"2-3:tactical": str(output_dir / aggregate_name)},
             }
@@ -45,7 +45,7 @@ class CalibrationRunnerServiceTests(unittest.TestCase):
                     "seeds": "20261006",
                     "setup": "classic",
                     "fixture": "tactical",
-                    "source_revision": "535598c4445f5fbeab2f",
+                    "source_revision": "a" * 40,
                     "games": 2,
                     "max_plies": 96,
                     "output_dir": output_dir,
