@@ -59,7 +59,7 @@ def _check_fixture() -> Fixture:
     # Preserve the normal army/blockers, then create a real file check for Cho.
     board = list(GameState.initial("classic").board)
     _move_fixture_piece(board, (4, 3), (3, 4), Side.CHO, PieceType.SOLDIER)
-    _move_fixture_piece(board, (4, 6), (4, 7), Side.HAN, PieceType.SOLDIER)
+    _move_fixture_piece(board, (4, 6), (5, 6), Side.HAN, PieceType.SOLDIER)
     _move_fixture_piece(board, (0, 9), (4, 6), Side.HAN, PieceType.CHARIOT)
     return Fixture("check", GameState(tuple(board), turn=Side.CHO))
 
