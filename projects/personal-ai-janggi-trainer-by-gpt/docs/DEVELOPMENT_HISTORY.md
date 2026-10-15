@@ -29,7 +29,10 @@ The previous bounded protocol-v1 run produced valid but insufficient 2-3 evidenc
 
 ### Verification
 
-- Pending PR CI.
+- PASS — PR #126 Janggi Python validation, Workspace structure validation, and lightweight smoke benchmark passed.
+- Merged to main as `535598c4445f2bb9d8edaef05bb9cc90b1ad1279`.
+- Post-merge main Janggi Python validation and Workspace structure validation passed.
+- Render runner remains disabled; no protocol-v2 game has been run yet.
 
 ## 62. 2026-10-02 — Setup-first UI merged to main
 
