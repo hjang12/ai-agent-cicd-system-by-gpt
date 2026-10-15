@@ -1,0 +1,24 @@
+{
+  "method": "off-CI resumable adjacent-level calibration runner",
+  "pairs": [
+    "2-3"
+  ],
+  "seeds": [
+    20261006
+  ],
+  "setup": "classic",
+  "fixture": "tactical",
+  "calibration_protocol_version": "3",
+  "source_revision": "e7651d557fb6fd13f6f110d3e7604360225d15d3",
+  "games_per_experiment": 2,
+  "max_plies": 96,
+  "artifacts": [
+    "/opt/render/project/src/projects/personal-ai-janggi-trainer-by-gpt/artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261006-classic-v3-tactical.json"
+  ],
+  "aggregate_reports": {
+    "2-3:tactical": "/opt/render/project/src/projects/personal-ai-janggi-trainer-by-gpt/artifacts/ai-level-calibration/aggregate-2-3-classic-v3-tactical.json"
+  },
+  "failures": [],
+  "resume_rule": "Existing raw evidence artifacts are reused and never overwritten. Each protocol-v3 experiment is uniquely identified by pair, seed, setup, protocol, fixture mode, and source revision."
+}
+

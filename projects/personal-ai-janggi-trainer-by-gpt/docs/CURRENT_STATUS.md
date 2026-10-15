@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: finish protocol-v3 fixture-quality and request-scoped manifest/reporting changes, pass project and workspace CI, then resume bounded pair 2-3 calibration with seed 20261006. Keep the Render runner disabled until the merged code revision is verified live. Do not change public search budgets without sufficient evidence.
+- Current priority: continue provenance-aware protocol-v3 AI-level calibration, beginning with additional pair 2-3 seeds. Seed 20261006 is complete and preserved (Lv.3 won both games at 68/69 plies), but aggregate status remains INSUFFICIENT. The Render runner has been returned to CALIBRATION_ENABLED=false and verified idle. Do not change public search budgets without sufficient evidence.
 
 ## Implemented Capability
 
@@ -234,6 +234,13 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 
 ## Actual level-strength calibration evidence
 
+### Latest protocol-v3 pilot — seed 20261006
+
+- Protocol-v3 source revision `e7651d557fb6fd13f6f110d3e7604360225d15d3` ran pair 2-3 with classic+tactical fixtures, 2 games and a 96-ply cap.
+- Results: 2/2 complete, 0 unfinished; Lv.2 score 0.0, Lv.3 score 2.0; capture fixture ended `han_win` at 68 plies and check fixture ended `cho_win` at 69 plies. The early-bikjang guard was not triggered.
+- Status remains `INSUFFICIENT` because protocol-v3 currently has only 2 completed games / 1 unique seed for pair 2-3. Preserve v1/v2/v3 as separate evidence sets; no public level/search-budget change is authorized.
+- Raw, aggregate, and source-specific manifest are preserved under `artifacts/ai-level-calibration/`. The Render runner's reset deployment reached `live`; logs confirm `CALIBRATION_ENABLED=false` and idle mode.
+- Next action: continue pair 2-3 with a fresh protocol-v3 seed and the same bounded-run procedure, then move to other adjacent pairs only after completing the evidence ladder.
 - PR smoke calibration pipeline remains operational for bounded validation only.
 - Smoke configuration remains: 2 games per adjacent pair, 4 plies per game; its 0/10 completed result is not playing-strength evidence.
 - The calibration request runner now supports repository-root request files through `GITHUB_WORKSPACE`; PR #76 added the request path and PR #78 corrected the working-directory path resolution.

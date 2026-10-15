@@ -1,3 +1,30 @@
+## 2026-10-16 — Protocol-v3 seed 20261006 pilot result
+
+### Run conditions
+
+- Source / code revision: `e7651d557fb6fd13f6f110d3e7604360225d15d3`; protocol v3; engine version 7.
+- Pair: 2-3; seed: 20261006; setup: classic; fixture mode: tactical; requested games: 2; maximum plies: 96.
+- Configuration fingerprint: `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
+- Render run deploy: `dep-db8lpj6q1p3s73bjag0g`. Runner start `2026-10-15T23:08:25.919347Z`, completion `2026-10-15T23:15:51.517602Z`, return code 0. Process wall time was 7 minutes 25.598 seconds (not CPU time).
+- The runner-reset deployment `dep-db8lu0m89jmc73bu1oeg` reached `live`; startup logs confirmed `CALIBRATION_ENABLED=false` and idle mode.
+
+### Results
+
+- Game 1: capture fixture; terminal result `han_win`; 68 plies.
+- Game 2: check fixture; terminal result `cho_win`; 69 plies.
+- Both games completed, no unfinished games, no draw, and no early-bikjang guard failure. Because the lower-level side alternated, Lv.3 won one game as Han and the other as Cho.
+- Combined score: Lv.2 `0.0`; Lv.3 `2.0`. Aggregate evaluator returned `INSUFFICIENT` because only 2 completed games and 1 distinct seed are available against thresholds of 20 games and 2 seeds.
+
+### Evidence and interpretation
+
+- Raw: `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261006-classic-v3-tactical.json`
+- Aggregate: `artifacts/ai-level-calibration/aggregate-2-3-classic-v3-tactical.json`
+- Manifest: `artifacts/ai-level-calibration/manifest-v3-pairs-2_3-seeds-20261006-setup-classic-fixture-tactical-g2-p96-src-e7651d557fb6.json`
+- The result is exploratory and directionally consistent with Lv.3 being stronger in this pair, but it does not establish calibrated strength. Do not alter public AI levels or search budgets from this sample. v1, v2, and v3 evidence remain separate.
+- Next action: preserve/merge this evidence record, then continue pair 2-3 with fresh protocol-v3 seeds using the same bounded and disabled-between-runs procedure.
+
+---
+
 ## 2026-10-15 — Protocol-v3 fixture quality and manifest isolation
 
 ### Trigger
@@ -16,7 +43,10 @@ Protocol-v2 seed 20261005 returned successfully but both synthetic tactical game
 
 ### Verification
 
-- Pending PR CI.
+- PR #128 merged as `e7651d557fb6fd13f6f110d3e7604360225d15d3`.
+- PR-head project Python validation and Workspace structure validation both passed on `8a28aecc1e99124f339ccc08ba146d0199d8f17b`.
+- Post-merge main project Python validation and Workspace structure validation both passed on `e7651d557fb6fd13f6f110d3e7604360225d15d3`.
+- Render deploy `dep-db8lpj6q1p3s73bjag0g` ran the bounded protocol-v3 pilot only after the merged code was verified live with the runner disabled. The runner was reset and verified idle after the batch.
 
 ## 2026-10-15 — Protocol-v2 seed 20261005 early-bikjang result and follow-up
 
