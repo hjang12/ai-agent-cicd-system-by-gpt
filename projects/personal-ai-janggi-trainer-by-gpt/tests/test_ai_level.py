@@ -4,7 +4,12 @@ from janggi.ai_level import AI_LEVELS, AILevel, ai_level_configuration_fingerpri
 from janggi.core import Side, palace_for
 from janggi.match import GameStatus, Match
 from tools.benchmark_ai_levels import (
+    MIN_MEANINGFUL_SYNTHETIC_BIKJANG_PLIES,
+    _capture_fixture,
+    _check_fixture,
+    _endgame_fixture,
     _fixtures_for_mode,
+    _validate_fixture_result,
     _validate_fixture_states,
     validate_benchmark_args,
 )
@@ -23,7 +28,7 @@ class AILevelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_benchmark_args(2, 0)
 
-    def test_protocol_v2_fixtures_are_legal_and_check_fixture_checks_moving_side(self):
+    def test_protocol_v3_fixtures_are_legal_and_preserve_general_file_blockers(self):
         _validate_fixture_states()
         fixtures = _fixtures_for_mode("tactical", "classic")
         self.assertEqual({fixture.name for fixture in fixtures}, {"capture", "check", "endgame"})
@@ -35,6 +40,18 @@ class AILevelTests(unittest.TestCase):
             self.assertEqual(Match(state=state, setup="classic").status, GameStatus.PLAYING)
         check = next(fixture for fixture in fixtures if fixture.name == "check")
         self.assertTrue(check.state.is_in_check(check.state.turn))
+        self.assertGreaterEqual(sum(piece is not None for piece in fixtures[0].state.board), 30)
+        self.assertGreaterEqual(sum(piece is not None for piece in check.state.board), 30)
+        endgame = next(fixture for fixture in fixtures if fixture.name == "endgame")
+        self.assertGreaterEqual(sum(piece is not None for piece in endgame.state.board), 8)
+
+    def test_protocol_v3_rejects_trivial_early_bikjang_as_informative_sample(self):
+        self.assertEqual(MIN_MEANINGFUL_SYNTHETIC_BIKJANG_PLIES, 8)
+        for fixture in (_capture_fixture(), _check_fixture(), _endgame_fixture()):
+            with self.assertRaisesRegex(ValueError, "minimum meaningful sample"):
+                _validate_fixture_result(fixture, GameStatus.DRAW_BIKJANG, 3)
+            _validate_fixture_result(fixture, GameStatus.DRAW_BIKJANG, 8)
+
 
     def test_synthetic_fixtures_reject_unused_starting_arrangement_variants(self):
         with self.assertRaisesRegex(ValueError, "only to the initial fixture"):

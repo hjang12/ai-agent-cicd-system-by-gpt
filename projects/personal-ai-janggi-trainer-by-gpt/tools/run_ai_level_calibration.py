@@ -10,7 +10,7 @@ from pathlib import Path
 PAIR_IDS = ("1-2", "2-3", "3-4", "4-5", "5-6")
 SETUPS = ("classic", "left", "right", "both")
 FIXTURE_MODES = ("initial", "capture", "check", "endgame", "tactical")
-CALIBRATION_PROTOCOL_VERSION = "2"
+CALIBRATION_PROTOCOL_VERSION = "3"
 
 
 def _parse_csv(value: str, *, allowed: tuple[str, ...]) -> list[str]:
@@ -45,6 +45,26 @@ def _artifact_path(
     return output_dir / (
         f"ai-level-strength-{pair}-seed-{seed}-{setup}"
         f"-v{CALIBRATION_PROTOCOL_VERSION}-{fixture_mode}.json"
+    )
+
+
+def _manifest_path(
+    output_dir: Path,
+    *,
+    pairs: list[str],
+    seeds: list[int],
+    setup: str,
+    fixture_mode: str,
+    games: int,
+    max_plies: int,
+    source_revision: str,
+) -> Path:
+    pair_token = "__".join(pair.replace("-", "_") for pair in pairs)
+    seed_token = "-".join(str(seed) for seed in seeds)
+    return output_dir / (
+        f"manifest-v{CALIBRATION_PROTOCOL_VERSION}-pairs-{pair_token}"
+        f"-seeds-{seed_token}-setup-{setup}-fixture-{fixture_mode}"
+        f"-g{games}-p{max_plies}-src-{source_revision[:12]}.json"
     )
 
 
@@ -321,10 +341,19 @@ def main() -> int:
         "failures": failures,
         "resume_rule": (
             "Existing raw evidence artifacts are reused and never overwritten. "
-            "Each protocol-v2 experiment is uniquely identified by pair, seed, setup, protocol, and fixture mode."
+            "Each protocol-v3 experiment is uniquely identified by pair, seed, setup, protocol, fixture mode, and source revision."
         ),
     }
-    manifest_path = output_dir / "manifest.json"
+    manifest_path = _manifest_path(
+        output_dir,
+        pairs=pairs,
+        seeds=seeds,
+        setup=args.setup,
+        fixture_mode=args.fixture,
+        games=args.games,
+        max_plies=args.max_plies,
+        source_revision=source_revision,
+    )
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",

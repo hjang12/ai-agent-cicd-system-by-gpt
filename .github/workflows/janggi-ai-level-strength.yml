@@ -37,7 +37,7 @@ on:
           - both
         default: classic
       fixture:
-        description: "Starting fixture mode"
+        description: "Protocol-v3 starting fixture mode"
         required: true
         type: choice
         options:
@@ -92,7 +92,7 @@ jobs:
           if [ "$RUN_SEARCH" != "true" ]; then
             EXTRA_ARGS="--skip-search-benchmark"
           fi
-          OUTPUT="ai-level-strength-${PAIR}-seed-${SEED}-v2-${FIXTURE}.json"
+          OUTPUT="ai-level-strength-${PAIR}-seed-${SEED}-v3-${FIXTURE}.json"
           echo "Calibration source revision: $SOURCE_REVISION"
           PYTHONPATH=. python tools/benchmark_ai_levels.py \
             --tournament-games "$GAMES" \

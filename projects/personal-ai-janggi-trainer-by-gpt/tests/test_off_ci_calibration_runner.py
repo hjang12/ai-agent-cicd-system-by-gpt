@@ -30,12 +30,29 @@ class OffCiCalibrationRunnerTests(unittest.TestCase):
         )
         self.assertEqual(
             path.name,
-            "ai-level-strength-2-3-seed-20261005-classic-v2-tactical.json",
+            "ai-level-strength-2-3-seed-20261005-classic-v3-tactical.json",
         )
         self.assertNotEqual(
             path,
             Path("/tmp/calibration/ai-level-strength-2-3-seed-20261005-classic.json"),
         )
+
+    def test_manifest_path_is_unique_to_protocol_and_run_identity(self) -> None:
+        path = runner._manifest_path(
+            Path("/tmp/calibration"),
+            pairs=["2-3"],
+            seeds=[20261006],
+            setup="classic",
+            fixture_mode="tactical",
+            games=2,
+            max_plies=96,
+            source_revision="a" * 40,
+        )
+        self.assertEqual(
+            path.name,
+            "manifest-v3-pairs-2_3-seeds-20261006-setup-classic-fixture-tactical-g2-p96-src-aaaaaaaaaaaa.json",
+        )
+        self.assertNotEqual(path.name, "manifest.json")
 
     def test_existing_artifact_is_skipped_and_not_overwritten(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -47,7 +64,7 @@ class OffCiCalibrationRunnerTests(unittest.TestCase):
                     "seed": 20261002,
                     "setup": "classic",
                     "fixture": "tactical",
-                    "calibration_protocol_version": "2",
+                    "calibration_protocol_version": "3",
                 },
                 "pairs": [],
             }

@@ -1,3 +1,23 @@
+## 2026-10-15 — Protocol-v3 fixture quality and manifest isolation
+
+### Trigger
+
+Protocol-v2 seed 20261005 returned successfully but both synthetic tactical games ended in bikjang at 2 and 3 plies. Review also found the resumable service emitted a full-directory JSON listing into completion logs while the manifest identity was insufficiently isolated per request.
+
+### Decision / Implementation
+
+- Bump fixture semantics to protocol v3 so corrected fixtures cannot reuse or be aggregated with protocol-v2 files.
+- Construct capture/check fixtures by moving selected pieces from the full classic setup, retaining material and blockers.
+- Add a quality guard that fails synthetic fixture runs when bikjang ends before 8 plies; such games must not be counted as informative strength evidence.
+- Keep protocol-v3 raw/aggregate filenames distinct and manifest identity scoped by pairs, seeds, setup, fixture, game count, ply cap, and source revision.
+- Limit completion logs to artifacts declared by the matching request manifest while retaining the API's full artifact listing for explicit retrieval.
+- Add regression coverage for fixture legality/quality, manifest identity, and request-scoped artifact listing.
+- Keep the Render runner disabled until project and workspace CI pass.
+
+### Verification
+
+- Pending PR CI.
+
 ## 2026-10-15 — Protocol-v2 seed 20261005 early-bikjang result and follow-up
 
 ### Run conditions

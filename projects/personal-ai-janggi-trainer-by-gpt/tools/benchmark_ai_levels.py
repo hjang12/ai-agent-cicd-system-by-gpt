@@ -13,7 +13,7 @@ from janggi.match import GameStatus, Match, RuleSet
 from janggi.core import palace_for
 from janggi.engine import validate_engine_move
 
-CALIBRATION_PROTOCOL_VERSION = 2
+CALIBRATION_PROTOCOL_VERSION = 3
 
 @dataclass(frozen=True)
 class Fixture:
@@ -25,23 +25,42 @@ def _initial_fixture() -> Fixture:
     return Fixture("initial", GameState.initial())
 
 
+def _move_fixture_piece(
+    board: list[Piece | None],
+    src: tuple[int, int],
+    dst: tuple[int, int],
+    side: Side,
+    kind: PieceType,
+) -> None:
+    src_index = src[0] + src[1] * 9
+    dst_index = dst[0] + dst[1] * 9
+    expected = Piece(side, kind)
+    if board[src_index] != expected:
+        raise ValueError(f"fixture setup expected {expected} at {src}, got {board[src_index]}")
+    if board[dst_index] is not None:
+        raise ValueError(f"fixture setup destination {dst} is occupied")
+    board[dst_index] = board[src_index]
+    board[src_index] = None
+
+
 def _capture_fixture() -> Fixture:
-    board = [None] * 90
-    board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
-    board[5 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
-    board[0 + 3 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
-    board[0 + 4 * 9] = Piece(Side.HAN, PieceType.SOLDIER)
-    board[2 + 3 * 9] = Piece(Side.CHO, PieceType.HORSE)
+    # Start from a complete legal deployment so normal blockers remain in place.
+    board = list(GameState.initial("classic").board)
+    _move_fixture_piece(board, (0, 3), (1, 4), Side.CHO, PieceType.SOLDIER)
+    _move_fixture_piece(board, (2, 3), (3, 4), Side.CHO, PieceType.SOLDIER)
+    _move_fixture_piece(board, (0, 0), (0, 3), Side.CHO, PieceType.CHARIOT)
+    _move_fixture_piece(board, (2, 0), (2, 3), Side.CHO, PieceType.HORSE)
+    _move_fixture_piece(board, (0, 6), (0, 4), Side.HAN, PieceType.SOLDIER)
+    _move_fixture_piece(board, (4, 8), (5, 8), Side.HAN, PieceType.GENERAL)
     return Fixture("capture", GameState(tuple(board), turn=Side.CHO))
 
 
 def _check_fixture() -> Fixture:
-    board = [None] * 90
-    board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
-    board[4 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
-    # The Han chariot checks Cho's general and blocks the flying-general line.
-    board[4 + 6 * 9] = Piece(Side.HAN, PieceType.CHARIOT)
-    board[8] = Piece(Side.CHO, PieceType.HORSE)
+    # Preserve the normal army/blockers, then create a real file check for Cho.
+    board = list(GameState.initial("classic").board)
+    _move_fixture_piece(board, (4, 3), (3, 4), Side.CHO, PieceType.SOLDIER)
+    _move_fixture_piece(board, (4, 6), (5, 6), Side.HAN, PieceType.SOLDIER)
+    _move_fixture_piece(board, (0, 9), (4, 6), Side.HAN, PieceType.CHARIOT)
     return Fixture("check", GameState(tuple(board), turn=Side.CHO))
 
 
@@ -49,6 +68,7 @@ def _endgame_fixture() -> Fixture:
     board = [None] * 90
     board[4 + 1 * 9] = Piece(Side.CHO, PieceType.GENERAL)
     board[2 + 4 * 9] = Piece(Side.CHO, PieceType.CHARIOT)
+    board[4 + 3 * 9] = Piece(Side.CHO, PieceType.SOLDIER)
     board[4 + 5 * 9] = Piece(Side.CHO, PieceType.SOLDIER)
     board[5 + 8 * 9] = Piece(Side.HAN, PieceType.GENERAL)
     board[6 + 6 * 9] = Piece(Side.HAN, PieceType.CHARIOT)
@@ -166,6 +186,21 @@ def _fixtures_for_mode(fixture_mode: str, setup: str) -> tuple[Fixture, ...]:
     raise ValueError(f"unsupported fixture mode: {fixture_mode}")
 
 
+MIN_MEANINGFUL_SYNTHETIC_BIKJANG_PLIES = 8
+
+
+def _validate_fixture_result(fixture: Fixture, status: GameStatus, plies: int) -> None:
+    if (
+        fixture.name != "initial"
+        and status is GameStatus.DRAW_BIKJANG
+        and plies < MIN_MEANINGFUL_SYNTHETIC_BIKJANG_PLIES
+    ):
+        raise ValueError(
+            f"synthetic fixture {fixture.name} reached bikjang after {plies} plies; "
+            f"minimum meaningful sample is {MIN_MEANINGFUL_SYNTHETIC_BIKJANG_PLIES} plies"
+        )
+
+
 def _play_fixture_game(
     lower_engine: NegamaxEngine,
     higher_engine: NegamaxEngine,
@@ -233,6 +268,7 @@ def run_adjacent_tournaments(
                 lower_starts_as_cho=lower_starts_as_cho,
                 max_plies=max_plies,
             )
+            _validate_fixture_result(fixture, status, plies)
             if status is GameStatus.PLAYING:
                 unfinished += 1
                 outcome_for_lower = None
