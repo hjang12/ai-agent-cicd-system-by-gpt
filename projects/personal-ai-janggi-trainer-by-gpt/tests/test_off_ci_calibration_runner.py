@@ -20,27 +20,34 @@ class OffCiCalibrationRunnerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unique"):
             runner._parse_seeds("20261002,20261002")
 
-    def test_artifact_identity_contains_pair_seed_and_setup(self) -> None:
+    def test_artifact_identity_includes_protocol_and_fixture_mode(self) -> None:
         path = runner._artifact_path(
             Path("/tmp/calibration"),
             "2-3",
-            20261002,
+            20261005,
             "classic",
+            "tactical",
         )
         self.assertEqual(
             path.name,
-            "ai-level-strength-2-3-seed-20261002-classic.json",
+            "ai-level-strength-2-3-seed-20261005-classic-v2-tactical.json",
+        )
+        self.assertNotEqual(
+            path,
+            Path("/tmp/calibration/ai-level-strength-2-3-seed-20261005-classic.json"),
         )
 
     def test_existing_artifact_is_skipped_and_not_overwritten(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
-            artifact = project_root / "ai-level-strength-2-3-seed-20261002-classic.json"
+            artifact = runner._artifact_path(project_root, "2-3", 20261002, "classic", "tactical")
             original = {
                 "experiment": {
                     "pair": "2-3",
                     "seed": 20261002,
                     "setup": "classic",
+                    "fixture": "tactical",
+                    "calibration_protocol_version": "2",
                 },
                 "pairs": [],
             }
@@ -58,6 +65,7 @@ class OffCiCalibrationRunnerTests(unittest.TestCase):
                     setup="classic",
                     games=12,
                     max_plies=96,
+                    fixture_mode="tactical",
                 )
                 self.assertEqual(
                     artifact.read_text(encoding="utf-8"),
@@ -67,7 +75,7 @@ class OffCiCalibrationRunnerTests(unittest.TestCase):
 
     def test_existing_artifact_identity_mismatch_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            artifact = Path(tmp) / "ai-level-strength-2-3-seed-20261002-classic.json"
+            artifact = runner._artifact_path(Path(tmp), "2-3", 20261002, "classic", "tactical")
             artifact.write_text(
                 json.dumps(
                     {
@@ -90,6 +98,7 @@ class OffCiCalibrationRunnerTests(unittest.TestCase):
                     setup="classic",
                     games=12,
                     max_plies=96,
+                    fixture_mode="tactical",
                 )
 
 

@@ -108,7 +108,7 @@ def aggregate_evidence(
     if min_unique_seeds < 1:
         raise ValueError("min_unique_seeds must be at least 1")
 
-    seen_experiments: set[tuple[str, int, str]] = set()
+    seen_experiments: set[tuple[str, int, str, str]] = set()
     pair_buckets: dict[str, dict[str, object]] = defaultdict(
         lambda: {
             "experiments": 0,
@@ -121,6 +121,7 @@ def aggregate_evidence(
             "lower_score": 0.0,
             "seeds": set(),
             "setups": set(),
+            "fixture_modes": set(),
             "config_fingerprints": set(),
             "engine_versions": set(),
             "source_revisions": set(),
@@ -141,12 +142,15 @@ def aggregate_evidence(
         pair_id = experiment.get("pair")
         seed = experiment.get("seed")
         setup = experiment.get("setup")
+        fixture_mode = experiment.get("fixture", "initial")
         if pair_id not in PAIR_IDS:
             raise ValueError(f"{path}: invalid pair {pair_id!r}")
         if not isinstance(seed, int) or isinstance(seed, bool):
             raise ValueError(f"{path}: seed must be an integer")
         if not isinstance(setup, str) or not setup:
             raise ValueError(f"{path}: setup must be a non-empty string")
+        if not isinstance(fixture_mode, str) or fixture_mode not in {"initial", "capture", "check", "endgame", "tactical"}:
+            raise ValueError(f"{path}: invalid fixture mode {fixture_mode!r}")
 
         config_fingerprint = experiment.get("ai_level_config_fingerprint")
         engine_version = experiment.get("engine_version")
@@ -160,10 +164,11 @@ def aggregate_evidence(
         ):
             if value is not None and not isinstance(value, str):
                 raise ValueError(f"{path}: {field_name} must be a string when present")
-        identity = (pair_id, seed, setup)
+        identity = (pair_id, seed, setup, fixture_mode)
         if identity in seen_experiments:
             raise ValueError(
-                f"duplicate experiment identity: pair={pair_id}, seed={seed}, setup={setup}"
+                "duplicate experiment identity: "
+                f"pair={pair_id}, seed={seed}, setup={setup}, fixture={fixture_mode}"
             )
         seen_experiments.add(identity)
 
@@ -215,6 +220,9 @@ def aggregate_evidence(
         assert isinstance(cast_setups, set)
         cast_seeds.add(seed)
         cast_setups.add(setup)
+        cast_fixture_modes = bucket["fixture_modes"]
+        assert isinstance(cast_fixture_modes, set)
+        cast_fixture_modes.add(fixture_mode)
 
     pair_reports: list[dict[str, object]] = []
     for pair_id in PAIR_IDS:
@@ -263,6 +271,7 @@ def aggregate_evidence(
                 f"{pair_id}: incompatible calibration protocol versions: {protocol_versions}"
             )
         setups = sorted(bucket["setups"])
+        fixture_modes = sorted(bucket["fixture_modes"])
 
         sufficient = (
             completed >= min_completed
@@ -297,6 +306,7 @@ def aggregate_evidence(
                 "higher_score_pct": (100.0 * higher_score / completed) if completed else None,
                 "seeds": seeds,
                 "setups": setups,
+                "fixture_modes": fixture_modes,
                 "ai_level_config_fingerprints": config_fingerprints,
                 "engine_versions": engine_versions,
                 "source_revisions": source_revisions,

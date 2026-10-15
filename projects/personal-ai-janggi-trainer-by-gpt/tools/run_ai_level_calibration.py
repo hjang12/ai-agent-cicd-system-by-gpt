@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 PAIR_IDS = ("1-2", "2-3", "3-4", "4-5", "5-6")
 SETUPS = ("classic", "left", "right", "both")
+FIXTURE_MODES = ("initial", "capture", "check", "endgame", "tactical")
+CALIBRATION_PROTOCOL_VERSION = "2"
 
 
 def _parse_csv(value: str, *, allowed: tuple[str, ...]) -> list[str]:
@@ -32,8 +35,17 @@ def _parse_seeds(value: str) -> list[int]:
     return seeds
 
 
-def _artifact_path(output_dir: Path, pair: str, seed: int, setup: str) -> Path:
-    return output_dir / f"ai-level-strength-{pair}-seed-{seed}-{setup}.json"
+def _artifact_path(
+    output_dir: Path,
+    pair: str,
+    seed: int,
+    setup: str,
+    fixture_mode: str = "tactical",
+) -> Path:
+    return output_dir / (
+        f"ai-level-strength-{pair}-seed-{seed}-{setup}"
+        f"-v{CALIBRATION_PROTOCOL_VERSION}-{fixture_mode}.json"
+    )
 
 
 def _run(
@@ -51,6 +63,8 @@ def _validate_artifact_identity(
     pair: str,
     seed: int,
     setup: str,
+    fixture_mode: str = "tactical",
+    source_revision: str | None = None,
 ) -> None:
     try:
         payload = json.loads(artifact.read_text(encoding="utf-8"))
@@ -61,7 +75,15 @@ def _validate_artifact_identity(
     if not isinstance(experiment, dict):
         raise ValueError(f"{artifact}: existing artifact has no experiment metadata")
 
-    expected = {"pair": pair, "seed": seed, "setup": setup}
+    expected = {
+        "pair": pair,
+        "seed": seed,
+        "setup": setup,
+        "fixture": fixture_mode,
+        "calibration_protocol_version": CALIBRATION_PROTOCOL_VERSION,
+    }
+    if source_revision:
+        expected["source_revision"] = source_revision
     actual = {key: experiment.get(key) for key in expected}
     if actual != expected:
         raise ValueError(
@@ -79,6 +101,8 @@ def _run_experiment(
     setup: str,
     games: int,
     max_plies: int,
+    fixture_mode: str = "tactical",
+    source_revision: str | None = None,
 ) -> None:
     if artifact.exists():
         _validate_artifact_identity(
@@ -86,6 +110,8 @@ def _run_experiment(
             pair=pair,
             seed=seed,
             setup=setup,
+            fixture_mode=fixture_mode,
+            source_revision=source_revision,
         )
         print(f"SKIP existing artifact: {artifact}")
         return
@@ -104,10 +130,14 @@ def _run_experiment(
         str(seed),
         "--setup",
         setup,
+        "--fixture",
+        fixture_mode,
         "--skip-search-benchmark",
         "--output",
         str(artifact),
     ]
+    if source_revision:
+        command.extend(["--source-revision", source_revision])
     _run(command, cwd=project_root)
 
     if not artifact.exists():
@@ -120,7 +150,22 @@ def _run_experiment(
         pair=pair,
         seed=seed,
         setup=setup,
+        fixture_mode=fixture_mode,
+        source_revision=source_revision,
     )
+
+def _resolve_source_revision(explicit_revision: str | None = None) -> str | None:
+    revision = (explicit_revision or os.environ.get("CALIBRATION_SOURCE_REVISION") or "").strip()
+    if revision:
+        return revision
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.stdout.strip() or None
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -141,6 +186,17 @@ def main() -> int:
         choices=SETUPS,
         default="classic",
         help="Starting arrangement used for every calibration game.",
+    )
+    parser.add_argument(
+        "--fixture",
+        choices=FIXTURE_MODES,
+        default="tactical",
+        help="Protocol-v2 fixture mode; tactical cycles capture/check/endgame positions.",
+    )
+    parser.add_argument(
+        "--source-revision",
+        default=None,
+        help="Explicit code/configuration revision being evaluated.",
     )
     parser.add_argument(
         "--games",
@@ -177,6 +233,11 @@ def main() -> int:
         parser.error("--games must be an even integer of at least 2")
     if args.max_plies < 1:
         parser.error("--max-plies must be at least 1")
+    if args.fixture != "initial" and args.setup != "classic":
+        parser.error("non-initial fixtures require --setup classic")
+    source_revision = _resolve_source_revision(args.source_revision)
+    if not source_revision:
+        parser.error("unable to resolve the code/configuration source revision")
 
     project_root = Path(__file__).resolve().parents[1]
     output_dir = (project_root / args.output_dir).resolve()
@@ -187,7 +248,7 @@ def main() -> int:
 
     for pair in pairs:
         for seed in seeds:
-            artifact = _artifact_path(output_dir, pair, seed, args.setup)
+            artifact = _artifact_path(output_dir, pair, seed, args.setup, args.fixture)
             experiment_succeeded = False
             try:
                 _run_experiment(
@@ -198,6 +259,8 @@ def main() -> int:
                     setup=args.setup,
                     games=args.games,
                     max_plies=args.max_plies,
+                    fixture_mode=args.fixture,
+                    source_revision=source_revision,
                 )
                 experiment_succeeded = True
             except (subprocess.CalledProcessError, ValueError, RuntimeError) as exc:
@@ -205,6 +268,8 @@ def main() -> int:
                     "pair": pair,
                     "seed": seed,
                     "setup": args.setup,
+                    "fixture": args.fixture,
+                    "calibration_protocol_version": CALIBRATION_PROTOCOL_VERSION,
                     "returncode": (
                         exc.returncode
                         if isinstance(exc, subprocess.CalledProcessError)
@@ -222,14 +287,14 @@ def main() -> int:
     aggregate_reports: dict[str, str] = {}
     for pair in pairs:
         pair_artifacts = [
-            _artifact_path(output_dir, pair, seed, args.setup)
+            _artifact_path(output_dir, pair, seed, args.setup, args.fixture)
             for seed in seeds
-            if _artifact_path(output_dir, pair, seed, args.setup).exists()
+            if _artifact_path(output_dir, pair, seed, args.setup, args.fixture).exists()
         ]
         if not pair_artifacts:
             continue
 
-        aggregate = output_dir / f"aggregate-{pair}-{args.setup}.json"
+        aggregate = output_dir / f"aggregate-{pair}-{args.setup}-v{CALIBRATION_PROTOCOL_VERSION}-{args.fixture}.json"
         command = [
             sys.executable,
             "-m",
@@ -239,13 +304,16 @@ def main() -> int:
             str(aggregate),
         ]
         _run(command, cwd=project_root)
-        aggregate_reports[pair] = str(aggregate)
+        aggregate_reports[f"{pair}:{args.fixture}"] = str(aggregate)
 
     manifest = {
         "method": "off-CI resumable adjacent-level calibration runner",
         "pairs": pairs,
         "seeds": seeds,
         "setup": args.setup,
+        "fixture": args.fixture,
+        "calibration_protocol_version": CALIBRATION_PROTOCOL_VERSION,
+        "source_revision": source_revision,
         "games_per_experiment": args.games,
         "max_plies": args.max_plies,
         "artifacts": [str(path) for path in completed_artifacts],
@@ -253,7 +321,7 @@ def main() -> int:
         "failures": failures,
         "resume_rule": (
             "Existing raw evidence artifacts are reused and never overwritten. "
-            "Each experiment remains uniquely identified by pair, seed, and setup."
+            "Each protocol-v2 experiment is uniquely identified by pair, seed, setup, protocol, and fixture mode."
         ),
     }
     manifest_path = output_dir / "manifest.json"

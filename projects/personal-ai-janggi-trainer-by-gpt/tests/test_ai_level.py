@@ -1,7 +1,13 @@
 import unittest
 
 from janggi.ai_level import AI_LEVELS, AILevel, ai_level_configuration_fingerprint, ai_level_payload, get_ai_level
-from tools.benchmark_ai_levels import validate_benchmark_args
+from janggi.core import Side, palace_for
+from janggi.match import GameStatus, Match
+from tools.benchmark_ai_levels import (
+    _fixtures_for_mode,
+    _validate_fixture_states,
+    validate_benchmark_args,
+)
 
 
 class AILevelTests(unittest.TestCase):
@@ -16,6 +22,23 @@ class AILevelTests(unittest.TestCase):
             validate_benchmark_args(3, 16)
         with self.assertRaises(ValueError):
             validate_benchmark_args(2, 0)
+
+    def test_protocol_v2_fixtures_are_legal_and_check_fixture_checks_moving_side(self):
+        _validate_fixture_states()
+        fixtures = _fixtures_for_mode("tactical", "classic")
+        self.assertEqual({fixture.name for fixture in fixtures}, {"capture", "check", "endgame"})
+        for fixture in fixtures:
+            state = fixture.state
+            for side in Side:
+                self.assertIn(state.find_general(side), palace_for(side))
+            self.assertFalse(state.is_in_check(state.turn.opponent))
+            self.assertEqual(Match(state=state, setup="classic").status, GameStatus.PLAYING)
+        check = next(fixture for fixture in fixtures if fixture.name == "check")
+        self.assertTrue(check.state.is_in_check(check.state.turn))
+
+    def test_synthetic_fixtures_reject_unused_starting_arrangement_variants(self):
+        with self.assertRaisesRegex(ValueError, "only to the initial fixture"):
+            validate_benchmark_args(2, 48, "2-3", "left", "tactical")
 
     def test_all_levels_have_unique_order_and_metadata(self):
         self.assertEqual([spec.level for spec in AI_LEVELS], list(AILevel))

@@ -15,6 +15,7 @@ def _write_fixture(
     config_fingerprint: str | None = None,
     engine_version: str | None = None,
     protocol_version: str | None = None,
+    fixture_mode: str = "initial",
 ) -> None:
     lower, higher = pair.split("-")
     games = []
@@ -44,6 +45,7 @@ def _write_fixture(
             "pair": pair,
             "seed": seed,
             "setup": "classic",
+            "fixture": fixture_mode,
             "ai_level_config_fingerprint": config_fingerprint,
             "engine_version": engine_version,
             "calibration_protocol_version": protocol_version,
@@ -82,6 +84,21 @@ class AiLevelEvidenceTests(unittest.TestCase):
             result = aggregate_evidence((path,), min_completed=4, min_unique_seeds=1)
             report = result["pairs"][0]
             self.assertEqual(report["status"], "INSUFFICIENT")
+
+    def test_same_seed_can_have_distinct_fixture_mode_experiments(self):
+        with tempfile.TemporaryDirectory() as temp:
+            initial = Path(temp) / "initial.json"
+            tactical = Path(temp) / "tactical.json"
+            common = {
+                "config_fingerprint": "same",
+                "engine_version": "7",
+                "protocol_version": "2",
+            }
+            _write_fixture(initial, pair="2-3", seed=20261005, outcomes=[-1, -1], fixture_mode="initial", **common)
+            _write_fixture(tactical, pair="2-3", seed=20261005, outcomes=[-1, 0], fixture_mode="tactical", **common)
+            result = aggregate_evidence((initial, tactical), min_completed=4, min_unique_seeds=1)["pairs"][1]
+            self.assertEqual(result["experiments"], 2)
+            self.assertEqual(result["fixture_modes"], ["initial", "tactical"])
 
     def test_aggregate_rejects_incompatible_config_fingerprints(self):
         with tempfile.TemporaryDirectory() as temp:
