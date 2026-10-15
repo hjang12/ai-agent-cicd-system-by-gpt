@@ -20,8 +20,6 @@
 
 ## [1.4.1] - 2026-10-08
 
-## [1.4.1] - 2026-10-08
-
 ### Clarified
 
 - 새 Chat에서 전체 프로젝트 상태를 수동 복사하지 않고 Repository 기반 Context Recovery를 수행하도록 **최소 Continuation Message 형식**을 명문화.
