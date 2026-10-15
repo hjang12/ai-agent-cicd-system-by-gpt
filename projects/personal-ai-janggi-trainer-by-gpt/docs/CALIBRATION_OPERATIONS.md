@@ -163,3 +163,7 @@ The execution path is now implemented and source-controlled. New strength eviden
 - Observed result: 2/2 completed, 0 unfinished, Level 2 score 0.0 and Level 3 score 2.0. This remains insufficient evidence under the 20-completed-game / 2-seed threshold.
 - The raw artifact, aggregate report, and manifest were preserved on branch `calibration/evidence-20261015`.
 - Root cause is execution-path mismatch: a free web service with ephemeral local storage was used for bounded-but-still-long benchmark work. Further runs are seed-scoped and small, with immediate evidence preservation before any redeploy. If this is still unreliable, use a durable job/worker execution path; do not claim that a live HTTP server proves a calibration process completed.
+
+
+- Follow-up 4-game batch for pair `2-3`, seed `20261003`, setup `classic`, max 96 plies completed with return code 0 in 13m 9s. All 4 games completed; Level 2 scored 0.0 and Level 3 scored 4.0.
+- Although the 4-game batch fit this run, it left little margin against the Free Web Service idle limit. Keep the routine batch at 2 games per seed; do not infer a safe margin from a single 4-game run. Preserve output before changing environment variables or redeploying.
