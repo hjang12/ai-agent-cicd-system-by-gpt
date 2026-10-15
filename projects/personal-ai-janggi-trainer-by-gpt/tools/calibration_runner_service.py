@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / "artifacts" / "ai-level-calibration"
 ALLOWED_PAIRS = {"1-2", "2-3", "3-4", "4-5", "5-6"}
 ALLOWED_SETUPS = {"classic", "left", "right", "both"}
+ALLOWED_FIXTURES = {"initial", "capture", "check", "endgame", "tactical"}
 STATUS_PATH = "/api/status"
 HEALTH_PATH = "/api/health"
 
@@ -63,8 +64,14 @@ def _load_config() -> dict[str, object]:
     if setup not in ALLOWED_SETUPS:
         raise ValueError(f"CALIBRATION_SETUP must be one of {sorted(ALLOWED_SETUPS)}")
 
-    seeds = _parse_seeds(os.environ.get("CALIBRATION_SEEDS", "20261002,20261003"))
-    games = _env_int("CALIBRATION_GAMES", 12, minimum=2)
+    fixture = os.environ.get("CALIBRATION_FIXTURE", "tactical").strip()
+    if fixture not in ALLOWED_FIXTURES:
+        raise ValueError(f"CALIBRATION_FIXTURE must be one of {sorted(ALLOWED_FIXTURES)}")
+    source_revision = os.environ.get("CALIBRATION_SOURCE_REVISION", "").strip() or None
+    if fixture != "initial" and setup != "classic":
+        raise ValueError("non-initial fixtures require CALIBRATION_SETUP=classic")
+    seeds = _parse_seeds(os.environ.get("CALIBRATION_SEEDS", "20261005"))
+    games = _env_int("CALIBRATION_GAMES", 2, minimum=2)
     if games % 2:
         raise ValueError("CALIBRATION_GAMES must be an even integer")
     max_plies = _env_int("CALIBRATION_MAX_PLIES", 96)
@@ -85,6 +92,8 @@ def _load_config() -> dict[str, object]:
         "pair": pair,
         "seeds": seeds,
         "setup": setup,
+        "fixture": fixture,
+        "source_revision": source_revision,
         "games": games,
         "max_plies": max_plies,
         "output_dir": output_dir,
@@ -115,6 +124,8 @@ class CalibrationRunner:
                 "pair": config["pair"],
                 "seeds": config["seeds"],
                 "setup": config["setup"],
+                "fixture": config["fixture"],
+                "source_revision": config["source_revision"],
                 "games": config["games"],
                 "max_plies": config["max_plies"],
                 "output_dir": str(self.output_dir.relative_to(ROOT)),
@@ -154,6 +165,8 @@ class CalibrationRunner:
             str(self.config["seeds"]),
             "--setup",
             str(self.config["setup"]),
+            "--fixture",
+            str(self.config["fixture"]),
             "--games",
             str(self.config["games"]),
             "--max-plies",
@@ -162,6 +175,9 @@ class CalibrationRunner:
             str(self.output_dir),
             "--keep-going",
         ]
+        source_revision = self.config.get("source_revision")
+        if isinstance(source_revision, str) and source_revision:
+            command.extend(["--source-revision", source_revision])
 
         with self._lock:
             self._status["state"] = "running"
