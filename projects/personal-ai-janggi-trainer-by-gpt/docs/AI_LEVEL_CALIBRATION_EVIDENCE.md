@@ -79,22 +79,27 @@ Level 6 uses an 800 ms wall-clock search budget. Seeded experiments are therefor
 
 ### Provenance-aware exploratory evidence: adjacent pair 2-3 (2026-10-15)
 
-Two seed-scoped Render runner batches completed using source revision `aa872c77a07d64ea86273b59903c3bce296300e4`, engine version `7`, calibration protocol `1`, setup `classic`, and AI-level configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
+Three seed-scoped Render runner batches completed using source revision `aa872c77a07d64ea86273b59903c3bce296300e4`, engine version `7`, calibration protocol `1`, setup `classic`, and AI-level configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
 
 | Seed | Games | Completed | Unfinished | Lower score (Lv.2) | Higher score (Lv.3) | Outcome |
 | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | 20261002 | 2 | 2 | 0 | 0.0 | 2.0 | Level 3 won both games |
 | 20261003 | 4 | 4 | 0 | 0.0 | 4.0 | Level 3 won all four games |
-| **Aggregate** | **6** | **6** | **0** | **0.0** | **6.0** | **Exploratory only** |
+| 20261004 | 2 | 2 | 0 | 0.5 | 1.5 | One draw, one Level 3 win |
+| **Aggregate** | **8** | **8** | **0** | **0.5** | **7.5** | **Exploratory only** |
 
-Per-game evidence for seed `20261002`: `han_win` at 52 and 23 plies. Per-game evidence for seed `20261003`: `han_win` at 36, 25, 52, and 23 plies. In all six games the outcome for the lower level was `-1`.
+Per-game evidence:
+- Seed `20261002`: `han_win` at 52 and 23 plies.
+- Seed `20261003`: `han_win` at 36, 25, 52, and 23 plies.
+- Seed `20261004`: `draw_bikjang` at 36 plies and `han_win` at 25 plies.
 
-Raw artifacts preserved on evidence branch `calibration/evidence-20261015`:
+All eight raw artifacts include matching configuration fingerprint, Engine version, source revision, and protocol version. The raw artifacts and per-seed aggregate/manifest files are preserved on `calibration/evidence-20261015`:
 - `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261002-classic.json`
 - `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261003-classic.json`
+- `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261004-classic.json`
 
-The per-seed evaluator reports and manifests are retained separately. The combined evaluator-shaped aggregation is `artifacts/ai-level-calibration/aggregate-2-3-classic-seeds-20261002-20261003.json`.
+The latest combined evaluator-shaped snapshot is `artifacts/ai-level-calibration/aggregate-2-3-classic-seeds-20261002-20261004.json`.
 
-The combined status is still `INSUFFICIENT`: 6 completed games do not meet the 20-completed-game threshold, although the 2-seed and unfinished-rate requirements are satisfied. This new evidence is not mixed with the historical legacy 2-3 artifact above. The observed 6-0 score is descriptive only, not a calibrated strength conclusion or authorization to change public level configuration.
+The combined status is still `INSUFFICIENT`: 8 completed games do not meet the 20-completed-game threshold, although the 3-seed and unfinished-rate requirements are satisfied. This evidence is not mixed with the historical legacy 2-3 artifact. The observed 7.5–0.5 score is descriptive only, not a calibrated strength conclusion or authorization to change public level configuration.
 
-The initial 12-game/multi-seed request emitted no completed artifact and is excluded entirely. The 2-game batch completed in about 6m7s; the follow-up 4-game batch completed in about 13m9s, close to the Free Web Service idle limit. Routine future batches remain one seed and 2 games, with immediate artifact preservation before any redeploy.
+The initial 12-game/multi-seed request emitted no completed artifact and is excluded entirely. The 2-game batches completed in approximately 6m7s and 5m35s; the 4-game batch completed in approximately 13m9s and is too close to the Free Web Service idle limit to be the standard batch size. The runner is now disabled.
