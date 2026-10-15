@@ -15,7 +15,7 @@ The adjacent-level calibration workload has a dedicated Render execution service
 - Existing valid evidence remains authoritative as recorded in `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md`.
 - The 1-2 pair is evidence-sufficient: 21/22 games completed, 4.545% unfinished, 2 seeds.
 - Pair 2-3 has 8 completed protocol-v1 games across three seeds, but remains `INSUFFICIENT`; pairs 3-4, 4-5, and 5-6 also lack sufficient evidence.
-- Protocol-v2 fixture/provenance integration passed CI; seed 20261005 produced two completed but uninformative early-bikjang draws (2/3 plies). The runner is disabled. Fix fixture design and run-scoped manifest reporting and pass CI before any next compute; never mix protocol-v1/v2 or corrected-protocol evidence.
+- Protocol-v2 integration passed CI, but seed 20261005 produced two uninformative 2/3-ply bikjang draws. Protocol-v3 rebuilds synthetic fixtures on a blocker-preserving board, fails the run on trivial early bikjang, and isolates request-scoped manifests/logs. This v3 work must pass project and workspace CI before compute; never mix protocol-v1, v2, and v3 evidence.
 
 ## Off-CI execution
 
@@ -119,7 +119,7 @@ Render service:
 - start command: `python tools/calibration_runner_service.py`;
 - health check: `/api/health`.
 
-The runner executes one explicitly configured calibration request at service start and then remains available for status/artifact retrieval. `CALIBRATION_SOURCE_REVISION` pins the evaluated code/configuration revision separately from the deployment/request commit. The seed 20261005 protocol-v2 run completed in 5.605 seconds but both games ended by bikjang in 2 and 3 plies. Preserve that raw result, but do not use it as an informative strength sample. The next work is fixture-quality and manifest-isolation correction, not more compute. The service does not expose a remote "run arbitrary calibration" API.
+The runner executes one explicitly configured protocol-v3 calibration request at service start and then remains available for status/artifact retrieval. The `tactical` mode cycles through capture/check/endgame positions using blocker-preserving fixtures; synthetic bikjang before 8 plies fails the run instead of being counted as informative strength evidence. `CALIBRATION_SOURCE_REVISION` pins the evaluated code/configuration revision separately from the deployment/request commit. Completion logs include only raw/aggregate files listed by the matching request-scoped manifest. The service does not expose a remote "run arbitrary calibration" API.
 
 The Render Free Web Service is not a durable long-running worker. It may stop after 15 minutes without inbound traffic, and its local filesystem is ephemeral across stop/restart/redeploy. An initial 12-game, multi-seed service-start request produced no completed artifact, so it is not counted as evidence. The bounded operating unit is one seed with 2 games at the 96-ply cap, followed by immediate evidence retrieval and preservation before any redeploy. Do not bundle multiple seeds or the 12-game default into a single Free Web Service run. Keep each artifact's original pair + seed + setup identity and source provenance. If this minimum batch cannot complete reliably, move the execution workload to a durable worker/job with persistent output rather than adding more polling or state layers to the web service.
 
@@ -182,3 +182,8 @@ The execution path is now implemented and source-controlled. New strength eviden
 - Runner process elapsed time was 5.605 seconds; this is not CPU time.
 - `CALIBRATION_ENABLED=false` is deployed and the runner reports idle/disabled.
 - Before the next run, redesign sparse fixtures so they preserve realistic blockers, add a regression guard against early bikjang, and make the per-request manifest uniquely named. No further batches until those changes pass CI.
+
+
+## Protocol-v3 quality gate — 2026-10-15
+
+Seed 20261005 protocol-v2 finished in 5.605 seconds but ended in bikjang after 2 and 3 plies. The runner remains disabled. Protocol-v3 adds full-board blockers to capture/check scenarios, rejects synthetic bikjang before 8 plies, and isolates completion logs by run-specific manifest identity. Do not run another batch until protocol-v3 project tests and workspace validation pass and the merged code revision is deployed disabled-first.
