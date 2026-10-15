@@ -1,13 +1,14 @@
-## 2026-10-16 — Aggregate report identity collision found before seed 20261007
+## 2026-10-16 — Aggregate report identity collision fixed before seed 20261007
 
-### Observation
-- Protocol-v3 raw artifacts are seed-specific and run manifests include seed, game count, ply cap, and source revision.
-- The aggregate report still used a generic pair/setup/fixture filename. A subsequent run could overwrite that JSON while the prior manifest still pointed at the same path, weakening immutable evidence traceability.
+### Observation and fix
+- Protocol-v3 raw artifacts were seed-specific and run manifests included seed, game count, ply cap, and source revision, but aggregate output still used a generic pair/setup/fixture filename that could be overwritten by a later seed.
+- PR #131 merged as `a0bc620181e8101331110e457219174f6c90d413`. Aggregate report identity now includes protocol, pair, seed set, setup, fixture, game count, ply cap and source revision.
+- Regression coverage confirms that seed, game count, and source-revision changes produce different aggregate paths.
+- PR and post-merge main project/Workspace checks passed. Existing seed-20261006 raw, aggregate, and manifest remain preserved.
 
-### Decision
-- Do not launch another calibration batch until aggregate output paths are unique to each run identity.
-- Add a bounded regression test proving that seed, game count, and source revision alter the aggregate path. Keep the existing seed-20261006 raw/aggregate/manifest intact.
-- Render runner remains disabled until the path fix is validated and merged.
+### Operational boundary
+- Render is live/idle with `CALIBRATION_ENABLED=false`; its currently deployed source remains `e7651d557fb6fd13f6f110d3` because auto-deploy is disabled.
+- Before the next seed, deploy main `a0bc620181e8101331110e457219174f6c90d413` with the runner disabled and verify idle/current revision. Then continue with a fresh protocol-v3 seed under the bounded procedure.
 
 ---
 
