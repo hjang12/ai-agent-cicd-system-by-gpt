@@ -1,3 +1,37 @@
+## 2026-10-15 — Governance v1.4.2: Interaction progress visibility and efficiency reporting
+
+### Trigger
+
+사용자가 장시간 캘리브레이션 작업의 진행을 대화 응답만으로 파악하기 어려웠고, 중간 보고 뒤에도 동일 Interaction에서 작업이 계속되는지 또는 최종 응답 이후에 Agent 작업이 종료되었는지 구별하기 어려웠다. 경과시간과 실제 연산·대기시간의 기록 기준도 충분히 분명하지 않았다.
+
+### Root Cause
+
+기존 Governance는 Interaction을 Request → Agent Work → Response로 정의하고 장시간 작업의 Checkpoint 원칙을 갖추고 있었지만, Response라는 일반 용어가 중간 진행 보고와 최종 응답을 구분하지 않았다. 또한 변경 가능한 계획에서 고정 마일스톤 분모를 사용하지 않는 원칙과, 작업 효율을 가시화하기 위한 시간 구분 보고가 명시되지 않았다.
+
+### Decision
+
+- 중간 진행 보고는 Interaction을 종료하지 않으며, 다음 단계가 명확하고 위험·권한·정책 문제가 없으면 동일 Interaction에서 자율적으로 계속한다.
+- 최종 응답은 Interaction을 종료한다. 최종 응답 이후 Agent가 백그라운드에서 계속 작업한다고 암시하지 않으며, 실제 실행 중인 외부 프로세스는 별도로 표시한다.
+- 진행 보고는 의미 있는 마일스톤, 중요한 결정, 계획 변경 또는 효율 저하에 맞춘다. Interaction 번호와 고정된 전체 마일스톤 수/분모를 기본 정보로 표시하지 않는다.
+- 장시간 또는 효율 민감 작업의 시간 보고는 경과시간, 관측·측정 가능한 연산/실행시간, 관찰된 대기시간을 구분한다. 측정 불가능한 시간을 사실로 만들어내지 않는다.
+- 불필요한 반복 실행·재배포·상태 확인이나 긴 무진척 구간이 나타나면 안전한 지점에서 효율을 재평가하고, 필요한 경우 증거와 Checkpoint를 보존한 뒤 사용자에게 판단 근거를 보고한다.
+- 새 실행 계층, registry, parser 또는 workflow는 추가하지 않고 기존 Interaction / Agent Work Segment / Checkpoint 모델을 구체화한다.
+
+### Implementation
+
+- Governance Version 1.4.2 반영.
+- `GOVERNANCE/GOVERNANCE.md`, `GOVERNANCE/CHANGELOG.md`, `GOVERNANCE/VERSION`, `GOVERNANCE/docs/CURRENT_STATUS.md` 동기화.
+
+### Verification
+
+- Existing Interaction / Agent Work Segment / Checkpoint terminology retained.
+- No fixed duration, fixed reporting interval, or fixed total milestone count was introduced.
+- Time reporting explicitly separates observed data from estimates and unknown intervals.
+
+### Review Outcome
+
+장기 작업의 자율성은 유지하면서 사용자가 현재 Agent 작업이 진행 중인지, 최종 응답으로 종료되었는지, 외부 프로세스만 실행 중인지 파악할 수 있도록 했다. 진행률을 과도한 숫자로 표현하지 않고 현재 상태와 증거를 중심으로 보고한다.
+
 ## 2026-10-08 — Governance v1.4.1: explicit minimal Chat continuation
 
 ### Trigger
