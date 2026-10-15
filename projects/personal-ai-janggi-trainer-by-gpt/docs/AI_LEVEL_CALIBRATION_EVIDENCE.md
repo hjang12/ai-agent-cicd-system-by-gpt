@@ -124,6 +124,6 @@ Runner wall time from its own timestamps was 5.605054 seconds; this is process e
 
 ## Protocol transition
 
-Protocol-v2 uses explicit initial/capture/check/endgame/tactical fixture metadata. The default `tactical` mode cycles through capture, check, and endgame positions; each artifact records the requested fixture mode and the exact code/configuration source revision. The evaluator treats fixture mode as part of experiment identity so independent fixture modes can share a seed without being mistaken for a duplicate experiment.
+Protocol-v2 introduced explicit initial/capture/check/endgame/tactical fixture metadata. Seed 20261005 is preserved but both tactical games ended in bikjang after only 2 and 3 plies, so the result is low-information and not a strength conclusion.
 
-Existing protocol-v1 results, including the 8-game 2-3 exploratory set above, remain preserved but cannot be aggregated into protocol-v2 conclusions. No protocol-v2 strength result is claimed until the dedicated runner completes and the output passes provenance/identity validation.
+Protocol-v3 rebuilds the synthetic capture/check fixtures to retain normal material and blockers, rejects synthetic bikjang before 8 plies, scopes each manifest by pairs/seeds/setup/fixture/games/plies/source revision, and limits completion logs to artifacts listed by the matching request manifest. Protocol-v3 results form a separate evidence set. Protocol-v1 and protocol-v2 evidence remain preserved and must not be mixed into protocol-v3 conclusions.
