@@ -1,0 +1,58 @@
+{
+  "experiment": {
+    "name": "adjacent AI level strength benchmark",
+    "method": "fixture-based self-play with alternating sides",
+    "games_per_adjacent_pair": 2,
+    "max_plies": 96,
+    "pair": "2-3",
+    "setup": "classic",
+    "fixture": "tactical",
+    "seed": 20261006,
+    "random_ties": true,
+    "interpretation": "exploratory evidence only; not calibrated player or model rating",
+    "seeded_experiment": true,
+    "runtime_reproducibility": "wall_clock_sensitive_for_time_bounded_levels",
+    "benchmark_only_random_ties": true,
+    "search_benchmark_included": false,
+    "engine_version": "7",
+    "source_revision": "e7651d557fb6fd13f6f110d3e7604360225d15d3",
+    "calibration_protocol_version": "3",
+    "ai_level_config_fingerprint": "12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd"
+  },
+  "pairs": [
+    {
+      "lower_level": "2",
+      "lower_name": "초급",
+      "higher_level": "3",
+      "higher_name": "중급",
+      "games": 2,
+      "max_plies": 96,
+      "fixture_mode": "tactical",
+      "lower_score": 0.0,
+      "higher_score": 2.0,
+      "lower_wins": 0,
+      "higher_wins": 2,
+      "draws": 0,
+      "completed": 2,
+      "unfinished": 0,
+      "game_results": [
+        {
+          "game": 1,
+          "fixture": "capture",
+          "status": "han_win",
+          "outcome_for_lower": -1,
+          "plies": 68
+        },
+        {
+          "game": 2,
+          "fixture": "check",
+          "status": "cho_win",
+          "outcome_for_lower": -1,
+          "plies": 69
+        }
+      ]
+    }
+  ],
+  "search_fixtures": []
+}
+
