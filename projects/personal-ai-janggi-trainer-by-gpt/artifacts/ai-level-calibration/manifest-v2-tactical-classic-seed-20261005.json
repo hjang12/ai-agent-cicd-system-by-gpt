@@ -1,0 +1,31 @@
+{
+  "method": "off-CI resumable adjacent-level calibration runner",
+  "pairs": [
+    "2-3"
+  ],
+  "seeds": [
+    20261005
+  ],
+  "setup": "classic",
+  "fixture": "tactical",
+  "calibration_protocol_version": "2",
+  "source_revision": "535598c4445f2bb9d8edaef05bb9cc90b1ad1279",
+  "games_per_experiment": 2,
+  "max_plies": 96,
+  "artifacts": [
+    "ai-level-strength-2-3-seed-20261005-classic-v2-tactical.json"
+  ],
+  "aggregate_reports": {
+    "2-3:tactical": "aggregate-2-3-classic-v2-tactical.json"
+  },
+  "failures": [],
+  "resume_rule": "Existing raw evidence artifacts are reused and never overwritten. Each protocol-v2 experiment is uniquely identified by pair, seed, setup, protocol, and fixture mode.",
+  "execution": {
+    "runner_started_at": "2026-10-15T06:47:16.958190+00:00",
+    "runner_completed_at": "2026-10-15T06:47:22.563244+00:00",
+    "runner_wall_seconds": 5.605054,
+    "runner_return_code": 0,
+    "artifacts_recovered_from": "Render service logs",
+    "artifact_payload_matches_logged_BEGIN_END_frame": true
+  }
+}

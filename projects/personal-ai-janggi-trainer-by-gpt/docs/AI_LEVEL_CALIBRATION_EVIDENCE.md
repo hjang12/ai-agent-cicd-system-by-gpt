@@ -104,6 +104,24 @@ The combined status is still `INSUFFICIENT`: 8 completed games do not meet the 2
 
 The initial 12-game/multi-seed request emitted no completed artifact and is excluded entirely. The 2-game batches completed in approximately 6m7s and 5m35s; the 4-game batch completed in approximately 13m9s and is too close to the Free Web Service idle limit to be the standard batch size. The runner is now disabled.
 
+### Protocol-v2 exploratory evidence: adjacent pair 2-3, seed 20261005
+
+This protocol-v2 run used source revision `535598c4445f2bb9d8edaef05bb9cc90b1ad1279`, engine version `7`, the recorded configuration fingerprint, `classic` setup, `tactical` fixture mode, a 96-ply cap, and two requested games.
+
+| Game | Fixture | Terminal status | Plies | Lower outcome |
+| ---: | --- | --- | ---: | ---: |
+| 1 | capture | `draw_bikjang` | 2 | 0 |
+| 2 | check | `draw_bikjang` | 3 | 0 |
+
+The process returned code 0 and both games were technically completed, producing a score of Lv.2 `1.0` : Lv.3 `1.0`. However, both games ended in bikjang after only 2 and 3 plies. **This is retained as raw exploratory evidence but should not be treated as an informative playing-strength sample.** The result remains `INSUFFICIENT`; it is not evidence that the two levels are equal.
+
+Artifacts reconstructed from the matching Render log `BEGIN/END` frames:
+- `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261005-classic-v2-tactical.json`
+- `artifacts/ai-level-calibration/aggregate-2-3-classic-v2-tactical.json`
+- `artifacts/ai-level-calibration/manifest-v2-tactical-classic-seed-20261005.json`
+
+Runner wall time from its own timestamps was 5.605054 seconds; this is process elapsed time, not CPU time. The runner was disabled immediately after the run. The early bikjang outcomes identify a fixture-quality gap: synthetic fixtures need a more realistic blocker/material layout and a regression guard against trivial early bikjang before another batch is run. These protocol-v2 results must remain separate from protocol-v1 and any corrected future fixture protocol.
+
 ## Protocol transition
 
 Protocol-v2 uses explicit initial/capture/check/endgame/tactical fixture metadata. The default `tactical` mode cycles through capture, check, and endgame positions; each artifact records the requested fixture mode and the exact code/configuration source revision. The evaluator treats fixture mode as part of experiment identity so independent fixture modes can share a seed without being mistaken for a duplicate experiment.
