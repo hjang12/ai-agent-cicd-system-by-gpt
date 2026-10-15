@@ -63,7 +63,7 @@ class CalibrationRunnerServiceTests(unittest.TestCase):
             )
 
     def test_v3_manifest_matching_rejects_wrong_source_revision(self) -> None:
-        with tempfile.TemporaryDirectory() as temp:
+        with tempfile.TemporaryDirectory(dir=ROOT) as temp:
             output_dir = Path(temp)
             manifest_name = (
                 "manifest-v3-pairs-2_3-seeds-20261006-setup-classic-"
