@@ -1,3 +1,36 @@
+## 2026-10-15 — Calibration protocol v2 integrity and off-CI runner integration
+
+### Trigger
+
+The previous bounded protocol-v1 run produced valid but insufficient 2-3 evidence (8 completed games across three seeds). Before another run, the existing protocol-v2 proposal was reviewed against the dedicated Render runner and evidence identity/evaluator.
+
+### Findings
+
+- The v2 `check` fixture placed Cho's general outside its palace, left the opposing general in an invalid check state for the current turn, and the existing fixture validator only checked that the match was still marked playing.
+- The v2 workflow derived `source_revision` from `GITHUB_SHA`, which can be the request-file commit rather than the exact code/configuration being evaluated.
+- The resumable Render runner did not pass fixture or explicit source revision through to the benchmark, and its pair + seed + setup filenames could reuse protocol-v1 artifacts or overwrite the aggregate path.
+- Calibration workflow push-trigger behavior conflicted with the requirement that long-running strength computation not launch automatically on ordinary pushes.
+
+### Decision
+
+- Keep protocol-v1 evidence preserved as an independent historical evidence set; do not mix it with protocol-v2.
+- Validate general placement, moving/non-moving side check state, and match viability for synthetic fixtures.
+- Pin source revision explicitly when provided; otherwise use the checked-out code revision, never infer source from a request commit without an explicit override.
+- Include protocol version and fixture mode in artifact naming, resumable identity validation, and aggregate output identity.
+- Integrate the same fixture/provenance controls into the dedicated Render runner.
+- Make the GitHub calibration workflow manual-dispatch-only; ordinary pushes and pull requests must use fast deterministic validation, not strength calibration.
+
+### Implementation
+
+- Protocol-v2 fixture validation and CLI source-revision override.
+- Render runner `CALIBRATION_FIXTURE` / `CALIBRATION_SOURCE_REVISION` propagation.
+- Fixture-aware evaluator identity and regression tests.
+- Operations/evidence documentation and task checkpoint updates.
+
+### Verification
+
+- Pending PR CI.
+
 ## 62. 2026-10-02 — Setup-first UI merged to main
 
 ### Verification
