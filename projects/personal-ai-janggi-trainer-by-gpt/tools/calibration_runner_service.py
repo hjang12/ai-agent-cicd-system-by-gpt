@@ -207,8 +207,9 @@ class CalibrationRunner:
                 "completed" if completed.returncode == 0 else "failed"
             )
 
-        print("Calibration artifacts:")
-        for artifact_name in self._artifact_names():
+        request_artifacts = self._request_artifact_names()
+        print("Calibration artifacts for this request:")
+        for artifact_name in request_artifacts:
             try:
                 payload, _ = self.read_artifact(artifact_name)
             except (ValueError, FileNotFoundError, OSError) as exc:
@@ -218,9 +219,11 @@ class CalibrationRunner:
             print(payload.decode("utf-8"))
             print(f"ARTIFACT {artifact_name} END")
 
+        finished_status = self.status()
+        finished_status["artifacts"] = request_artifacts
         print(
             "Calibration runner finished:",
-            json.dumps(self.status(), ensure_ascii=False),
+            json.dumps(finished_status, ensure_ascii=False),
         )
 
     def _finish_with_error(self, message: str, *, return_code: int) -> None:
@@ -231,7 +234,60 @@ class CalibrationRunner:
             self._status["state"] = "failed"
         print(f"Calibration runner error: {message}")
 
+    def _request_artifact_names(self) -> list[str]:
+        """Return artifacts named by the manifest for the current request only."""
+        if not self.output_dir.exists():
+            return []
+        requested_seeds = [int(item) for item in str(self.config["seeds"]).split(",")]
+        expected_pairs = [str(self.config["pair"])]
+        expected_setup = str(self.config["setup"])
+        expected_fixture = str(self.config["fixture"])
+        expected_games = int(self.config["games"])
+        expected_plies = int(self.config["max_plies"])
+        expected_source = self.config.get("source_revision")
+
+        candidates: list[tuple[float, Path, dict[str, object]]] = []
+        for manifest_path in self.output_dir.glob("manifest-v3-*.json"):
+            try:
+                payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if not isinstance(payload, dict):
+                continue
+            if (
+                payload.get("calibration_protocol_version") != "3"
+                or payload.get("pairs") != expected_pairs
+                or payload.get("seeds") != requested_seeds
+                or payload.get("setup") != expected_setup
+                or payload.get("fixture") != expected_fixture
+                or payload.get("games_per_experiment") != expected_games
+                or payload.get("max_plies") != expected_plies
+            ):
+                continue
+            if expected_source and payload.get("source_revision") != expected_source:
+                continue
+            try:
+                modified = manifest_path.stat().st_mtime
+            except OSError:
+                modified = 0.0
+            candidates.append((modified, manifest_path, payload))
+
+        if not candidates:
+            return []
+        _, manifest_path, manifest = max(candidates, key=lambda item: item[0])
+        names = {manifest_path.name}
+        for value in manifest.get("artifacts", []):
+            if isinstance(value, str):
+                names.add(Path(value).name)
+        aggregate_reports = manifest.get("aggregate_reports", {})
+        if isinstance(aggregate_reports, dict):
+            for value in aggregate_reports.values():
+                if isinstance(value, str):
+                    names.add(Path(value).name)
+        return sorted(names)
+
     def _artifact_names(self) -> list[str]:
+        """List all JSON artifacts available for retrieval via the service API."""
         if not self.output_dir.exists():
             return []
         return sorted(
