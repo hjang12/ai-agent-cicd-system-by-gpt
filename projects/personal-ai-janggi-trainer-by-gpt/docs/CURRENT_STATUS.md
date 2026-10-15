@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: continue provenance-aware protocol-v3 AI-level calibration, beginning with additional pair 2-3 seeds. Seed 20261006 is complete and preserved (Lv.3 won both games at 68/69 plies), but aggregate status remains INSUFFICIENT. The Render runner has been returned to CALIBRATION_ENABLED=false and verified idle. Do not change public search budgets without sufficient evidence.
+- Current priority: protect calibration provenance before the next run. Seed 20261006 is complete and preserved (Lv.3 won both games at 68/69 plies), but aggregate status remains INSUFFICIENT. The generic aggregate path could overwrite an earlier seed's report, so add and validate run-scoped aggregate filenames before starting another seed. Render runner is CALIBRATION_ENABLED=false and verified idle. Do not change public search budgets without sufficient evidence.
 
 ## Implemented Capability
 
