@@ -14,7 +14,8 @@ The adjacent-level calibration workload has a dedicated Render execution service
 - Do not move adjacent-level calibration back into the normal PR/push validation path; preserve the fast-correctness vs strength-evidence separation.
 - Existing valid evidence remains authoritative as recorded in `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md`.
 - The 1-2 pair is evidence-sufficient: 21/22 games completed, 4.545% unfinished, 2 seeds.
-- Pairs 2-3, 3-4, 4-5, and 5-6 remain uncalibrated under the current provenance-aware protocol.
+- Pair 2-3 has 8 completed protocol-v1 games across three seeds, but remains `INSUFFICIENT`; pairs 3-4, 4-5, and 5-6 also lack sufficient evidence.
+- Protocol-v2 fixture/provenance integration must pass project validation before new compute; never mix protocol-v1 and protocol-v2 evidence.
 
 ## Off-CI execution
 
@@ -43,7 +44,7 @@ python tools/evaluate_ai_level_evidence.py \
 
 The same pattern applies to 3-4, 4-5, and 5-6.
 
-The 12-games-per-run value is an initial bounded operating point, not a fixed requirement. A calibration artifact is uniquely identified by pair + seed + setup; existing artifacts are validated and reused rather than overwritten. Review completion rate first; add another run when the pair has not yet reached the evidence threshold.
+The per-run game count is an operating choice, not a fixed requirement. Protocol-v2 artifacts are uniquely identified by pair + seed + setup + protocol version + fixture mode; existing v1 and v2 artifacts use separate names and are validated/reused rather than overwritten. Review completion rate first; add another run when the pair has not yet reached the evidence threshold.
 ## Provenance and compatibility
 
 Every new artifact records the calibrated pair's public AI-level configuration fingerprint, Engine version, source revision when available, and calibration protocol version.
@@ -102,7 +103,7 @@ The runner:
 - writes a `manifest.json` describing the execution set and any failures;
 - never changes public AI level configuration.
 
-Changing the game-count or ply-cap for an already-used `pair + seed + setup` identity requires a separately reviewed experiment policy; do not overwrite the existing artifact.
+Changing game count or ply cap for an already-used protocol-v2 `pair + seed + setup + fixture mode` identity requires a separately reviewed experiment policy; do not overwrite the existing artifact.
 
 ## Dedicated Render calibration runner
 
@@ -118,7 +119,7 @@ Render service:
 - start command: `python tools/calibration_runner_service.py`;
 - health check: `/api/health`.
 
-The runner executes one explicitly configured calibration request at service start and then remains available for status/artifact retrieval. It does not expose a remote "run arbitrary calibration" API.
+The runner executes one explicitly configured protocol-v2 calibration request at service start and then remains available for status/artifact retrieval. The `tactical` mode cycles through capture/check/endgame positions; `CALIBRATION_SOURCE_REVISION` pins the evaluated code/configuration revision separately from the deployment/request commit. It does not expose a remote "run arbitrary calibration" API.
 
 The Render Free Web Service is not a durable long-running worker. It may stop after 15 minutes without inbound traffic, and its local filesystem is ephemeral across stop/restart/redeploy. An initial 12-game, multi-seed service-start request produced no completed artifact, so it is not counted as evidence. The bounded operating unit is one seed with 2 games at the 96-ply cap, followed by immediate evidence retrieval and preservation before any redeploy. Do not bundle multiple seeds or the 12-game default into a single Free Web Service run. Keep each artifact's original pair + seed + setup identity and source provenance. If this minimum batch cannot complete reliably, move the execution workload to a durable worker/job with persistent output rather than adding more polling or state layers to the web service.
 
@@ -131,6 +132,8 @@ CALIBRATION_SEEDS=20261002
 CALIBRATION_SETUP=classic
 CALIBRATION_GAMES=2
 CALIBRATION_MAX_PLIES=96
+CALIBRATION_FIXTURE=tactical
+CALIBRATION_SOURCE_REVISION=<code/configuration revision>
 ```
 
 Operational endpoints are read-only:
