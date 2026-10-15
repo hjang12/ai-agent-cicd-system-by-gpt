@@ -3,7 +3,7 @@
 ## Governance
 
 - Common Governance Repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Governance Version: `1.3.3`
+- Governance Version: `1.4.2`
 - Governance status: active baseline on `main`
 - Project context entrypoint: `AGENT_START.md`
 
@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: resume provenance-aware adjacent AI-level calibration (`2-3 → 3-4 → 4-5 → 5-6`) through the dedicated off-CI Render runner while preserving the engine/evaluation boundaries.
+- Current priority: validate the protocol-v2 fixture/provenance integration with the dedicated off-CI Render runner, then resume bounded adjacent AI-level calibration (`2-3 → 3-4 → 4-5 → 5-6`) without changing public search budgets before sufficient evidence.
 
 ## Implemented Capability
 
