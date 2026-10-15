@@ -3,10 +3,24 @@ import unittest
 from janggi.evaluation import EvaluationGame
 from janggi.match import GameStatus
 from tools.benchmark_ai_strength import summarize_games
-from tools.benchmark_ai_levels import validate_benchmark_args
+from tools.benchmark_ai_levels import _source_revision, validate_benchmark_args
+from unittest.mock import patch
 
 
 class AiStrengthBenchmarkTests(unittest.TestCase):
+    def test_explicit_calibration_source_revision_overrides_runtime_revision(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "CALIBRATION_SOURCE_REVISION": "configured-code-revision",
+                "GITHUB_SHA": "request-commit-revision",
+            },
+        ):
+            self.assertEqual(
+                _source_revision("explicit-code-revision"),
+                "explicit-code-revision",
+            )
+
     def test_unfinished_games_do_not_change_strength_statistics(self):
         games = (
             EvaluationGame("ai-v1", "ai-v2", (), GameStatus.CHO_WIN),
