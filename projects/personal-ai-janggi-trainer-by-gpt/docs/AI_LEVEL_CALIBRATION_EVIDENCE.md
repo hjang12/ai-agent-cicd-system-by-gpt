@@ -6,7 +6,7 @@ This document defines how adjacent-level calibration artifacts are reviewed afte
 
 Each calibration JSON artifact contains one adjacent level pair and one experiment identity:
 
-pair + seed + setup
+pair + seed + setup + calibration protocol version + fixture mode (protocol-v2 runs)
 
 The artifact records both aggregate results and every game's terminal status, lower-level outcome, and ply count.
 
@@ -45,7 +45,7 @@ New calibration artifacts record:
 
 The evaluator rejects incompatible AI-level configuration fingerprints, engine versions, or calibration protocol versions within the same adjacent pair. It also rejects mixing legacy artifacts without provenance metadata with provenance-aware artifacts, or mixing legacy artifacts with protocol-aware artifacts.
 
-Legacy 1-2 evidence remains valid as a historical evidence set because both artifacts share the same legacy schema. New calibration runs should use provenance-aware artifacts.
+Legacy 1-2 evidence remains valid as a historical evidence set because both artifacts share the same legacy schema. Protocol-v1 evidence for pair 2-3 remains a separate historical/exploratory set. New calibration runs should use protocol-v2 provenance-aware artifacts and must not mix protocol-v1 and protocol-v2 evidence.
 
 ## Collected evidence
 
@@ -103,3 +103,9 @@ The latest combined evaluator-shaped snapshot is `artifacts/ai-level-calibration
 The combined status is still `INSUFFICIENT`: 8 completed games do not meet the 20-completed-game threshold, although the 3-seed and unfinished-rate requirements are satisfied. This evidence is not mixed with the historical legacy 2-3 artifact. The observed 7.5–0.5 score is descriptive only, not a calibrated strength conclusion or authorization to change public level configuration.
 
 The initial 12-game/multi-seed request emitted no completed artifact and is excluded entirely. The 2-game batches completed in approximately 6m7s and 5m35s; the 4-game batch completed in approximately 13m9s and is too close to the Free Web Service idle limit to be the standard batch size. The runner is now disabled.
+
+## Protocol transition
+
+Protocol-v2 uses explicit initial/capture/check/endgame/tactical fixture metadata. The default `tactical` mode cycles through capture, check, and endgame positions; each artifact records the requested fixture mode and the exact code/configuration source revision. The evaluator treats fixture mode as part of experiment identity so independent fixture modes can share a seed without being mistaken for a duplicate experiment.
+
+Existing protocol-v1 results, including the 8-game 2-3 exploratory set above, remain preserved but cannot be aggregated into protocol-v2 conclusions. No protocol-v2 strength result is claimed until the dedicated runner completes and the output passes provenance/identity validation.
