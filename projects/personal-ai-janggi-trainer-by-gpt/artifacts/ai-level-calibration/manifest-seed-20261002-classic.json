@@ -1,0 +1,20 @@
+{
+  "method": "off-CI resumable adjacent-level calibration runner",
+  "pairs": [
+    "2-3"
+  ],
+  "seeds": [
+    20261002
+  ],
+  "setup": "classic",
+  "games_per_experiment": 2,
+  "max_plies": 96,
+  "artifacts": [
+    "projects/personal-ai-janggi-trainer-by-gpt/artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261002-classic.json"
+  ],
+  "aggregate_reports": {
+    "2-3": "projects/personal-ai-janggi-trainer-by-gpt/artifacts/ai-level-calibration/aggregate-2-3-classic.json"
+  },
+  "failures": [],
+  "resume_rule": "Existing raw evidence artifacts are reused and never overwritten. Each experiment remains uniquely identified by pair, seed, and setup."
+}

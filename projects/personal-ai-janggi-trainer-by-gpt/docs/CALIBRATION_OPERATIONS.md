@@ -120,16 +120,16 @@ Render service:
 
 The runner executes one explicitly configured calibration request at service start and then remains available for status/artifact retrieval. It does not expose a remote "run arbitrary calibration" API.
 
-Because the project is using Render's Free Web Service runner, the operational execution unit is intentionally bounded to one seed per service start. A typical evidence batch uses 2 games at the 96-ply cap; the evaluator aggregates many distinct seeds until the normal 20-completed-game threshold is reached. This avoids losing an in-progress benchmark to the Free Web Service 15-minute idle shutdown while preserving the provenance identity of every experiment.
+The Render Free Web Service is not a durable long-running worker. It may stop after 15 minutes without inbound traffic, and its local filesystem is ephemeral across stop/restart/redeploy. An initial 12-game, multi-seed service-start request produced no completed artifact, so it is not counted as evidence. The bounded operating unit is one seed with 2 games at the 96-ply cap, followed by immediate evidence retrieval and preservation before any redeploy. Do not bundle multiple seeds or the 12-game default into a single Free Web Service run. Keep each artifact's original pair + seed + setup identity and source provenance. If this minimum batch cannot complete reliably, move the execution workload to a durable worker/job with persistent output rather than adding more polling or state layers to the web service.
 
 Configuration is provided through Render environment variables:
 
 ```text
 CALIBRATION_ENABLED=true
 CALIBRATION_PAIR=2-3
-CALIBRATION_SEEDS=20261002,20261003
+CALIBRATION_SEEDS=20261002
 CALIBRATION_SETUP=classic
-CALIBRATION_GAMES=12
+CALIBRATION_GAMES=2
 CALIBRATION_MAX_PLIES=96
 ```
 
@@ -142,13 +142,32 @@ Operational endpoints are read-only:
 The normal operating sequence is:
 
 1. set the next pair/seed request in the runner environment;
-2. manually deploy the runner service;
-3. wait for the status to reach `completed` or `failed`;
-4. preserve the returned raw artifacts and aggregate report in the repository evidence history;
+2. manually deploy the runner service with exactly one seed and a 2-game batch;
+3. wait for the status to reach `completed` or `failed` without redeploying the service;
+4. retrieve the raw JSON and aggregate report before any subsequent deploy, then commit them to the evidence branch;
 5. update `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md` and the task checkpoint from the collected evidence.
+
+Never treat an absent artifact after a stopped/restarted service as a completed experiment. Record it as an execution failure and do not aggregate it. The raw artifact and aggregate output in the repository are the durable record; the Render service's local files are only staging.
 
 The runner itself never changes public AI level configuration and never treats a higher-scoring result as authorization for a search-budget change.
 
 ## Current execution constraint
 
 The execution path is now implemented and source-controlled. New strength evidence is not considered collected until the dedicated Render runner has completed the requested experiments and the resulting artifacts have passed the existing provenance-aware evaluator.
+
+
+## 2026-10-15 — Free runner interruption and bounded evidence recovery
+
+- A 12-game, two-seed request on the Free Web Service emitted the first seed's command but no completion/artifact output before execution logs stopped. It is explicitly not counted.
+- A bounded 2-game request for pair `2-3`, seed `20261002`, setup `classic`, source revision `aa872c77a07d64ea86273b59903c3bce296300e4` completed with return code 0 in about 6m7s.
+- Observed result: 2/2 completed, 0 unfinished, Level 2 score 0.0 and Level 3 score 2.0. This remains insufficient evidence under the 20-completed-game / 2-seed threshold.
+- The raw artifact, aggregate report, and manifest were preserved on branch `calibration/evidence-20261015`.
+- Root cause is execution-path mismatch: a free web service with ephemeral local storage was used for bounded-but-still-long benchmark work. Further runs are seed-scoped and small, with immediate evidence preservation before any redeploy. If this is still unreliable, use a durable job/worker execution path; do not claim that a live HTTP server proves a calibration process completed.
+
+
+- Follow-up 4-game batch for pair `2-3`, seed `20261003`, setup `classic`, max 96 plies completed with return code 0 in 13m 9s. All 4 games completed; Level 2 scored 0.0 and Level 3 scored 4.0.
+- Although the 4-game batch fit this run, it left little margin against the Free Web Service idle limit. Keep the routine batch at 2 games per seed; do not infer a safe margin from a single 4-game run. Preserve output before changing environment variables or redeploying.
+
+
+- Follow-up 2-game batch for pair `2-3`, seed `20261004`, setup `classic`, max 96 plies completed with return code 0 in 5m35s. Both games completed; Level 2 scored 0.5 and Level 3 scored 1.5 (one draw and one Level 3 win).
+- Runner was returned to `CALIBRATION_ENABLED=false` after the batch, and Render deploy `dep-db85cr2vcj2c7389eev0` reached `live`. Do not automatically start another batch in the same work segment; preserve this checkpoint and resume only from an explicit continuation.
