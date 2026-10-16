@@ -1,3 +1,33 @@
+## 2026-10-16 — Governance v1.4.3: explicit continuation gate
+
+### Trigger
+
+After the protocol-v3 seed-20261007 batch completed, the Render runner was verified live, disabled, and idle. The active calibration Checkpoint already said to run seed 20261008 next, but the Agent returned a final response instead of continuing. The user had not requested a pause, and no technical, permission, policy, or safety blocker prevented the next bounded batch.
+
+### Root Cause
+
+The Agent treated the safe completion of a subtask and confirmation that the external runner was idle as a sufficient interaction boundary. It failed to re-check the authoritative Checkpoint's Next Action before emitting a final response. Existing Governance already allowed same-Interaction continuation after intermediate progress reports, but did not make this pre-finalization check explicit enough to prevent premature termination in practice.
+
+### Decision
+
+- Before a final response, re-check the ACTIVE Development Task, official Checkpoint Next Action, and live Git / CI / Deployment / external process state.
+- If the next action is explicit, authorized, feasible, and unblocked, continue in the same Interaction; a completed batch or idle runner is not by itself a reason to stop.
+- If interruption is necessary, record the evidence-backed cause, completed work, and remaining Next Action in the Checkpoint.
+- If the Agent stopped despite an executable next action and no blocker, record it as avoidable Agent-side early termination rather than inventing a technical or platform cause.
+- Keep the existing Task / Checkpoint / Interaction model; add no new workflow, registry, parser, or state layer.
+
+### Implementation
+
+- Governance Version `1.4.3` clarifies the pre-finalization continuation gate.
+- The calibration Checkpoint records the previous interruption cause and the subsequent seed-20261008 execution.
+
+### Verification
+
+- Review the new rule against the existing same-Interaction progress reporting and Checkpoint rules; it strengthens the existing procedure without adding a separate operational subsystem.
+- Verify governance version references and workspace CI before merging.
+
+---
+
 ## 2026-10-15 — Governance v1.4.2: Interaction progress visibility and efficiency reporting
 
 ### Trigger
