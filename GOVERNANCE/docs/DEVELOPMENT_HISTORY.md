@@ -1,3 +1,12 @@
+## 2026-10-16 — Seed 20261012 evidence and PR #139 verification
+
+- PR #139 merged as `ed646863eee4545ae5999167a7f57c21f84e2dfe`; post-merge Workspace validation run 38859248309 and Janggi test run 38859248285 both passed.
+- Protocol-v3 pair 2-3 seed 20261012 completed 2/2 games (Lv.2 score 0, Lv.3 score 2; two Lv.3 wins, no unfinished) and remains exploratory/INSUFFICIENT at 14/20 cumulative games.
+- Runner reset deploy `dep-db8t0mivcj2c73b46v7g` is live and explicitly logs `CALIBRATION_ENABLED=false` / idle.
+- Governance 1.4.3's pre-finalization continuation gate remains in force. Next recorded bounded action after this sync is seed 20261013.
+
+---
+
 ## 2026-10-16 — Seed 20261011 evidence and PR #138 verification
 
 - PR #138 merged as `45f4f8d3b100e499d236957a82e3e42a856593f9`; post-merge Workspace validation run 38858109548 and Janggi test run 38858109630 both passed.
