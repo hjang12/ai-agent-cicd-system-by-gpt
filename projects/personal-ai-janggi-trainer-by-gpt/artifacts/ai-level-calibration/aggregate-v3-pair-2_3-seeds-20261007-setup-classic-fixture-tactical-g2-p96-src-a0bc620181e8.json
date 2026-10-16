@@ -1,0 +1,70 @@
+{
+  "method": "aggregate adjacent-level calibration evidence",
+  "thresholds": {
+    "min_completed_games_per_pair": 20,
+    "max_unfinished_rate": 0.25,
+    "min_unique_seeds_per_pair": 2
+  },
+  "pairs": [
+    {
+      "pair": "1-2",
+      "status": "INSUFFICIENT",
+      "reason": "no evidence"
+    },
+    {
+      "pair": "2-3",
+      "status": "INSUFFICIENT",
+      "experiments": 1,
+      "games": 2,
+      "completed": 2,
+      "unfinished": 0,
+      "unfinished_rate": 0.0,
+      "lower_wins": 0,
+      "higher_wins": 1,
+      "draws": 1,
+      "decisive_games": 1,
+      "lower_score": 0.5,
+      "higher_score": 1.5,
+      "higher_score_pct": 75.0,
+      "seeds": [
+        20261007
+      ],
+      "setups": [
+        "classic"
+      ],
+      "fixture_modes": [
+        "tactical"
+      ],
+      "ai_level_config_fingerprints": [
+        "12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd"
+      ],
+      "engine_versions": [
+        "7"
+      ],
+      "source_revisions": [
+        "a0bc620181e8101331110e457219174f6c90d413"
+      ],
+      "calibration_protocol_versions": [
+        "3"
+      ]
+    },
+    {
+      "pair": "3-4",
+      "status": "INSUFFICIENT",
+      "reason": "no evidence"
+    },
+    {
+      "pair": "4-5",
+      "status": "INSUFFICIENT",
+      "reason": "no evidence"
+    },
+    {
+      "pair": "5-6",
+      "status": "INSUFFICIENT",
+      "reason": "no evidence"
+    }
+  ],
+  "candidate_monotonic_higher_levels": false,
+  "interpretation": "Descriptive evidence aggregation only. A candidate monotonic ordering does not by itself authorize public level or search-budget changes."
+}
+
