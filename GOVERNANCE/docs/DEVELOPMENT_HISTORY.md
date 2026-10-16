@@ -1,3 +1,13 @@
+
+## 2026-10-16 — PR #135 merged and post-merge verification
+
+- PR #135 (Governance 1.4.3 continuation gate, seed-20261008 evidence and context updates) merged as `364e8ba0cb03b32de1987dd287b325b1ca04033d`; main points to that SHA.
+- Post-merge Workspace structure validation passed: https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/38855640101
+- Post-merge Janggi test validation passed: https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/38855640091
+- PR #135 preserved the seed-20261008 raw, aggregate, and run-specific manifest JSON files on main. Its stale “merge blocker” checkpoint note is superseded by this verified merge result.
+
+---
+
 ## 2026-10-16 — Governance v1.4.3: explicit continuation gate
 
 ### Trigger
