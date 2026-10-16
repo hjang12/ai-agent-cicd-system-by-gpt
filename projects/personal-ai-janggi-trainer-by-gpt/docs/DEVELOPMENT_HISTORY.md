@@ -1,3 +1,41 @@
+## 2026-10-16 — Protocol-v3 seed 20261008 result and runner reset
+
+### Run conditions
+
+- Pair 2-3 (`초급` vs `중급`); seed 20261008; classic setup; tactical fixture; protocol v3; engine 7; two games; maximum 96 plies.
+- Source/code revision `a0bc620181e8101331110e457219174f6c90d413`; configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
+- Render process start `2026-10-16T01:57:40.756049Z`, completed `2026-10-16T02:03:19.948266Z`, return code 0; process wall time 5 minutes 39.192 seconds (not CPU time).
+
+### Results
+
+- Game 1: capture fixture; `han_win`; 66 plies; outcome for Lv.2 `-1`.
+- Game 2: check fixture; `cho_win`; 41 plies; outcome for Lv.2 `-1`.
+- Both games completed, no unfinished games or draws. Seed score Lv.2 0.0 : Lv.3 2.0.
+- Run-scoped aggregate is valid JSON and says `INSUFFICIENT` (2 games, one seed, vs 20-game minimum); manifest `failures=[]`.
+
+### Cumulative interpretation
+
+- Across protocol-v3 seeds 20261006, 20261007, and 20261008: 6 completed games / 0 unfinished over 3 unique seeds; Lv.2 wins 0, Lv.3 wins 5, draws 1; descriptive total score Lv.2 0.5 : Lv.3 5.5.
+- The unique-seed minimum is met but completed-game evidence is 6/20. Results remain exploratory and must not trigger public AI-level or search-budget changes. Protocol-v1/v2 remain separate.
+
+### Preserved artifacts
+
+- Raw: `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261008-classic-v3-tactical.json`
+- Aggregate: `artifacts/ai-level-calibration/aggregate-v3-pair-2_3-seeds-20261008-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
+- Manifest: `artifacts/ai-level-calibration/manifest-v3-pairs-2_3-seeds-20261008-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
+- These three files were parsed as valid JSON from the exact matching Render `ARTIFACT BEGIN/END` frames and committed to the evidence/context PR branch.
+
+### Runner reset
+
+- `CALIBRATION_ENABLED=false` was applied after the run.
+- Reset deployment `dep-db8oc87f3r2c73eqt9v0` reached `live` at `2026-10-16T02:05:07Z`; startup logs at `02:04:57Z` explicitly said `Calibration runner is idle: CALIBRATION_ENABLED is not true.` No calibration computation remains running.
+
+### Next action
+
+- Validate and merge PR #135, then continue with bounded protocol-v3 seed `20261009`; keep each batch disabled/idle between runs.
+
+---
+
 ## 2026-10-16 — Agent-side premature stop after seed 20261007
 
 - After seed `20261007` completed, the runner reset deployment reached `live` and logs confirmed `CALIBRATION_ENABLED=false` / idle. The documented next action was seed `20261008`, and there was no user pause request or observed technical/platform/permission/safety blocker.
