@@ -3,7 +3,7 @@
 ## Governance
 
 - Common Governance Repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Governance Version: `1.4.2`
+- Governance Version: `1.4.3`
 - Governance status: active baseline on `main`
 - Project context entrypoint: `AGENT_START.md`
 
@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: continue protocol-v3 calibration from seed `20261008` after seed-20261007 evidence/context is validated and merged. The current deployed Render code is main `66c4c9fb710f0c1be707184b7114a8f602a8c4f8` (including aggregate-identity fix `a0bc620181e8101331110e457219174f6c90d413`), and the runner has been reset to `CALIBRATION_ENABLED=false` with idle confirmed. Across v3 seeds 20261006 and 20261007, pair 2-3 has 4 completed games / 2 seeds, descriptive score Lv.2 0.5 : Lv.3 3.5; status remains INSUFFICIENT versus the 20-game threshold. Do not change public search budgets without sufficient evidence.
+- Current priority: finish evidence/context PR #135 (Governance 1.4.3 continuation-gate change and protocol-v3 seed-20261008 artifacts), verify latest PR-head CI, merge, then continue pair 2-3 with seed `20261009`. Render runner code contains aggregate-identity fix `a0bc620181e8101331110e457219174f6c90d413`; after seed 20261008, reset deploy `dep-db8oc87f3r2c73eqt9v0` reached `live` and logs confirmed `CALIBRATION_ENABLED=false` / idle. Across v3 seeds 20261006–20261008, pair 2-3 has 6 completed games / 0 unfinished over 3 unique seeds, descriptive score Lv.2 0.5 : Lv.3 5.5 (Lv.3 5 wins, 1 draw). Status remains `INSUFFICIENT` because only 6/20 completed games exist. Do not change public search budgets or infer calibrated ordering from this sample.
 
 ## Implemented Capability
 
