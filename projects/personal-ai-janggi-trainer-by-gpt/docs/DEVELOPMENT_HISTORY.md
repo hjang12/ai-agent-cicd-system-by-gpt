@@ -1,3 +1,38 @@
+## 2026-10-16 — Protocol-v3 seed 20261015 result and runner reset
+
+### Run conditions
+
+- Pair 2-3 (Lv.2 초급 vs Lv.3 중급); seed 20261015; classic setup; tactical fixture; protocol v3; engine 7; two games; maximum 96 plies.
+- Source/code revision `a0bc620181e8101331110e457219174f6c90d413`; configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
+- Runner deploy `dep-db8tdqqjnfac73bcrbog` (service commit `3220242d49a8b44721d9cfb55177d23b7ffbd805`); started `2026-10-16T07:49:31.095618Z`, completed `2026-10-16T07:57:10.491952Z`, return code 0. Wall time 7 minutes 39.396 seconds.
+
+### Results
+
+- Game 1: capture fixture; `han_win`; 68 plies; outcome for Lv.2 -1.
+- Game 2: check fixture; `cho_win`; 69 plies; outcome for Lv.2 -1.
+- Both games completed; 0 unfinished. Seed score Lv.2 0 : Lv.3 2 (Lv.3 two wins, no draws).
+- Run aggregate is valid JSON and remains `INSUFFICIENT` when evaluated alone (2 completed games); manifest `failures=[]`.
+
+### Cumulative interpretation and provenance guard
+
+- Seeds `20261007–20261015` share protocol v3, engine 7, AI-level configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`, and source revision `a0bc620181e8101331110e457219174f6c90d413`: 18 completed games / 0 unfinished across 9 unique seeds; Lv.2 wins 0, Lv.3 wins 15, draws 3; descriptive score Lv.2 1.5 : Lv.3 16.5. This compatible cohort remains `INSUFFICIENT` (18/20 completed games).
+- Seed `20261006` is preserved but uses source revision `e7651d557fb6fd13f6f110d3e7604360225d15d3`, unlike `a0bc620181e8101331110e457219174f6c90d413`. The evaluator rejects mixed source revisions for the same pair; therefore, the raw ledger has 20 completed games across seeds 20261006–20261015, but it is not valid to claim a single evaluator-compatible 20-game cohort. Keep seed 20261006 separate and do not mix it into the `a0bc620181e8` aggregate.
+- After this evidence/context sync merges and post-merge CI passes, run bounded seed `20261016` with the same protocol/setup/fixture/source revision to bring the compatible cohort to 20 completed games across 10 seeds. Then run the deterministic evidence evaluator over seeds `20261007–20261016` (no multi-seed benchmark execution) and preserve its cumulative aggregate report. Keep public AI levels and search budgets unchanged until the compatible aggregate is reviewed.
+
+### Preserved artifacts
+
+- Raw: `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261015-classic-v3-tactical.json`
+- Aggregate: `artifacts/ai-level-calibration/aggregate-v3-pair-2_3-seeds-20261015-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
+- Manifest: `artifacts/ai-level-calibration/manifest-v3-pairs-2_3-seeds-20261015-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
+- All 3 files were restored from matching Render `ARTIFACT BEGIN/END` frames, parsed as valid JSON, and added to this evidence/context branch.
+
+### Runner reset
+
+- `CALIBRATION_ENABLED=false` was applied after the run.
+- Reset deploy `dep-db8ti1rl550s73f5ak5g` reached `live` at `2026-10-16T07:58:38Z`; startup log at `07:58:30Z` explicitly said `Calibration runner is idle: CALIBRATION_ENABLED is not true.` No calibration computation remains running.
+
+---
+
 ## 2026-10-16 — Protocol-v3 seed 20261014 result and runner reset
 
 ### Run conditions
