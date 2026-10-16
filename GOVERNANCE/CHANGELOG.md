@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.3] - 2026-10-16
+
+### Clarified
+
+- 하위 작업이 끝났더라도 ACTIVE Development Task의 Checkpoint에 실행 가능한 Next Action이 명시되어 있으면, 이를 자동으로 완료 처리하지 않고 같은 Interaction에서 계속하도록 최종 응답 전 점검 규칙을 추가.
+- 배치 종료 및 외부 Runner의 idle 확인은 그 자체로 Interaction 종료 사유가 아니며, 불가피한 중단은 실제 원인과 남은 Next Action을 Checkpoint에 기록하도록 명확화.
+- Agent가 기술적 Blocker 없이 먼저 종료한 경우 이를 플랫폼/기술 제약으로 잘못 기록하지 않고, 피할 수 있었던 Agent 측 조기 종료로 분류하도록 명확화.
+
+### Review Trigger
+
+- 2026-10-16: seed 20261007 배치 종료 후 Render Runner의 disabled / idle 상태를 검증했으나, Checkpoint에 이미 다음 seed 20261008이 명시되어 있었음에도 Agent가 다음 Action을 실행하지 않고 최종 응답을 반환함. 사용자 중단 요청이나 기술적 Blocker는 없었음.
+
+### Decision
+
+- 기존 Interaction / Agent Work Segment / Checkpoint 구조만 명확히 하고 새 registry, parser, workflow, state layer는 추가하지 않는다.
+- 사용자 중단, 실제 권한·정책·기술 제약 또는 실행 안전 경계가 없는 한, 완료 가능한 다음 Action을 같은 Interaction에서 계속한다.
+
 ## [1.4.2] - 2026-10-15
 
 ### Clarified
