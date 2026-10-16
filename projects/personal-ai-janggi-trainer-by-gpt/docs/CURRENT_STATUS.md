@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: finish evidence/context PR #135 (Governance 1.4.3 continuation-gate change and protocol-v3 seed-20261008 artifacts), verify latest PR-head CI, merge, then continue pair 2-3 with seed `20261009`. Render runner code contains aggregate-identity fix `a0bc620181e8101331110e457219174f6c90d413`; after seed 20261008, reset deploy `dep-db8oc87f3r2c73eqt9v0` reached `live` and logs confirmed `CALIBRATION_ENABLED=false` / idle. Across v3 seeds 20261006–20261008, pair 2-3 has 6 completed games / 0 unfinished over 3 unique seeds, descriptive score Lv.2 0.5 : Lv.3 5.5 (Lv.3 5 wins, 1 draw). Status remains `INSUFFICIENT` because only 6/20 completed games exist. Do not change public search budgets or infer calibrated ordering from this sample.
+- Current priority: PR #135 merged as `364e8ba0cb03b32de1987dd287b325b1ca04033d`; post-merge Workspace validation and Janggi tests both passed. Protocol-v3 pair 2-3 seeds 20261006–20261009 now total 8 completed games / 0 unfinished across 4 unique seeds; cumulative descriptive score Lv.2 1.0 : Lv.3 7.0 (Lv.3 6 wins, 2 draws), still `INSUFFICIENT` against the 20-game threshold. Seed 20261009 completed 2/2 games at the 96-ply cap with return code 0; raw/aggregate/manifest JSON are preserved on the evidence/context sync branch. Runner reset deploy `dep-db8rf1bbc2fs73bu5qdg` is live and logs explicitly confirm `CALIBRATION_ENABLED=false` / idle. After this evidence/context sync merges, run bounded seed `20261010`; keep public AI-level and search-budget settings unchanged.
 
 ## Implemented Capability
 
