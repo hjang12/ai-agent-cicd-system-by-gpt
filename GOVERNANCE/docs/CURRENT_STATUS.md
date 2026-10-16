@@ -183,7 +183,7 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 
 ## Current Priority
 
-1. Resume TASK-20260930-0002 and establish measurable Level 1-6 Janggi AI strength separation with provenance-aware benchmark evidence. Current protocol-v3 pair 2-3 evidence is 18/20 completed games across seeds 20261006–20261014 (Lv.2 1.5 : Lv.3 16.5; still INSUFFICIENT). Seed-20261014 evidence/context sync is PR #142; after its merge and post-merge CI, next bounded batch is seed 20261015. Keep public level and search-budget settings unchanged until evidence is sufficient.
+1. Resume TASK-20260930-0002 and establish measurable Level 1-6 Janggi AI strength separation with provenance-aware evidence. Pair 2-3's compatible protocol-v3 cohort on source `a0bc620181e8101331110e457219174f6c90d413` has 18/20 completed games across seeds 20261007–20261015 (Lv.2 1.5 : Lv.3 16.5; still INSUFFICIENT). Seed 20261006 uses a different source revision and is excluded from that aggregate. PR #143 syncs seed 20261015; after merge/post-merge CI, next batch is seed 20261016, followed by deterministic aggregation of compatible seeds 20261007–20261016. Keep public level/search budgets unchanged.
 2. Track and resolve the newly observed Janggi Render `healthCheckPath` drift through the active issue process; do not infer or silently normalize the live service state.
 3. Keep Repository / CI / Render state verification grounded in directly observed evidence; an explicitly returned empty value is Observed, while an omitted value remains Unknown.
 4. Use Governance 1.3.3 simplicity and evidence semantics for future operational changes; do not add automation layers without a demonstrated governance gap.

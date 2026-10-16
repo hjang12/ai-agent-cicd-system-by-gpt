@@ -1,3 +1,14 @@
+## 2026-10-16 — Seed 20261015 and source-revision aggregation guard
+
+- PR #142 merged as `3220242d49a8b44721d9cfb55177d23b7ffbd805`; its post-merge Workspace validation run 38869526955 and Janggi test run 38869526933 both passed.
+- Seed 20261015 completed 2/2 games, 0 unfinished, return code 0; Lv.3 won both games. Raw, run aggregate, and manifest JSON are preserved in PR #143.
+- Cross-seed review found a provenance guard that must be applied before declaring the 20-game threshold satisfied: seed 20261006 uses source revision `e7651d557fb6fd13f6f110d3e7604360225d15d3`; seeds 20261007–20261015 use `a0bc620181e8101331110e457219174f6c90d413`. `tools/evaluate_ai_level_evidence.py` explicitly rejects mixed source revisions for the same pair.
+- Therefore, although the raw protocol-v3 ledger contains 20 completed games across seeds 20261006–20261015, the compatible `a0bc620181e8101331110e457219174f6c90d413` cohort has only 18 completed games across nine seeds (Lv.2 score 1.5, Lv.3 score 16.5; 15 Lv.3 wins, 3 draws) and remains `INSUFFICIENT`. Do not aggregate incompatible revision evidence or change public level/search settings.
+- After PR #143 merges and post-merge CI passes, run bounded seed 20261016 at the same revision; then create a deterministic cumulative aggregate over compatible seeds 20261007–20261016 and preserve its report.
+- Runner reset deploy `dep-db8ti1rl550s73f5ak5g` is live and startup logs explicitly say `CALIBRATION_ENABLED=false` / idle.
+
+---
+
 ## 2026-10-16 — Seed 20261014 evidence and PR #141 verification
 
 - PR #141 merged as `b19cdf5e0eab885ab87507cb5a425ea3e145ed74`; post-merge Workspace validation run 38868029055 and Janggi test run 38868028968 both passed.
