@@ -1,3 +1,11 @@
+## 2026-10-16 — Agent-side premature stop after seed 20261007
+
+- After seed `20261007` completed, the runner reset deployment reached `live` and logs confirmed `CALIBRATION_ENABLED=false` / idle. The documented next action was seed `20261008`, and there was no user pause request or observed technical/platform/permission/safety blocker.
+- The Agent nevertheless returned a final response instead of continuing. Root cause: it treated one batch's successful completion and idle verification as a sufficient stopping point without re-checking the Checkpoint's `Next Action`. This was avoidable Agent-side early termination, not an execution failure.
+- On the user's instruction to continue, the next bounded run was resumed. Workspace Governance `1.4.3` now adds a pre-final-response Next Action gate; the active Checkpoint preserves this incident and its prevention rule.
+
+---
+
 ## 2026-10-16 — Protocol-v3 seed 20261007 follow-up result
 
 ### Run conditions
