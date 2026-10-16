@@ -1,3 +1,36 @@
+## 2026-10-16 — Protocol-v3 seed 20261007 follow-up result
+
+### Run conditions
+
+- Code source revision: `a0bc620181e8101331110e457219174f6c90d413`; protocol v3; engine 7.
+- Pair 2-3 (`초급` vs `중급`); seed 20261007; classic setup; tactical fixture mode; 2 games; 96-ply cap.
+- Configuration fingerprint: `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
+- Render execution started `2026-10-15T23:54:30.824934Z`, completed `2026-10-16T00:01:37.908689Z`, return code 0. Process wall time 7 minutes 7.084 seconds (not CPU time).
+- Raw/aggregate/manifest logs were captured from the matching run frames. Reset deployment `dep-db8miufavr4c73dga81g` reached `live`; runtime logs confirmed `CALIBRATION_ENABLED=false` / idle.
+
+### Results
+
+- Game 1: capture fixture; `draw_bikjang`; 70 plies.
+- Game 2: check fixture; `cho_win`; 41 plies.
+- Both games completed, 0 unfinished, and the early-bikjang guard did not fire.
+- Seed score: Lv.2 0.5 : Lv.3 1.5 (1 draw, 1 Lv.3 win).
+
+### Cumulative interpretation
+
+- Across protocol-v3 seeds 20261006 and 20261007: 4 completed games / 0 unfinished over 2 unique seeds; Lv.2 wins 0, Lv.3 wins 3, draws 1; descriptive total score Lv.2 0.5 : Lv.3 3.5.
+- The run-scoped evaluator output remains `INSUFFICIENT` because each request aggregate is intentionally scoped to that request's one seed; the combined descriptive tally also remains below the 20-completed-game threshold. Do not treat this as a calibrated ranking or change public search budgets.
+- Protocol-v1, protocol-v2, and protocol-v3 evidence remain separate.
+
+### Preserved artifacts
+
+- Raw: `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261007-classic-v3-tactical.json`
+- Aggregate: `artifacts/ai-level-calibration/aggregate-v3-pair-2_3-seeds-20261007-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
+- Manifest: `artifacts/ai-level-calibration/manifest-v3-pairs-2_3-seeds-20261007-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
+
+Next action: preserve and merge this evidence/context, then proceed to pair 2-3 seed 20261008 with the same disabled-first, bounded 2-game procedure.
+
+---
+
 ## 2026-10-16 — Aggregate report identity collision fixed before seed 20261007
 
 ### Observation and fix

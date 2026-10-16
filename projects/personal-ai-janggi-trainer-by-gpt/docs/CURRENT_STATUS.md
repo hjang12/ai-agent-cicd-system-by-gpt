@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: continue protocol-v3 calibration only after deploying current main revision `a0bc620181e8101331110e457219174f6c90d413` to Render with `CALIBRATION_ENABLED=false` and verifying idle. PR #131 fixed aggregate artifact identity by seed set, games, ply cap and source revision; project and Workspace CI passed. Seed 20261006 remains preserved, with Lv.3 winning both games at 68/69 plies, but the pair aggregate remains INSUFFICIENT. Do not change public search budgets without sufficient evidence.
+- Current priority: continue protocol-v3 calibration from seed `20261008` after seed-20261007 evidence/context is validated and merged. The current deployed Render code is main `66c4c9fb710f0c1be707184b7114a8f602a8c4f8` (including aggregate-identity fix `a0bc620181e8101331110e457219174f6c90d413`), and the runner has been reset to `CALIBRATION_ENABLED=false` with idle confirmed. Across v3 seeds 20261006 and 20261007, pair 2-3 has 4 completed games / 2 seeds, descriptive score Lv.2 0.5 : Lv.3 3.5; status remains INSUFFICIENT versus the 20-game threshold. Do not change public search budgets without sufficient evidence.
 
 ## Implemented Capability
 
@@ -234,13 +234,42 @@ Engine analysis now has a single normalization boundary. Best-move recommendatio
 
 ## Actual level-strength calibration evidence
 
-### Latest protocol-v3 pilot — seed 20261006
+### Protocol-v3 pilot — seed 20261006
 
 - Protocol-v3 source revision `e7651d557fb6fd13f6f110d3e7604360225d15d3` ran pair 2-3 with classic+tactical fixtures, 2 games and a 96-ply cap.
 - Results: 2/2 complete, 0 unfinished; Lv.2 score 0.0, Lv.3 score 2.0; capture fixture ended `han_win` at 68 plies and check fixture ended `cho_win` at 69 plies. The early-bikjang guard was not triggered.
 - Status remains `INSUFFICIENT` because protocol-v3 currently has only 2 completed games / 1 unique seed for pair 2-3. Preserve v1/v2/v3 as separate evidence sets; no public level/search-budget change is authorized.
 - Raw, aggregate, and source-specific manifest are preserved under `artifacts/ai-level-calibration/`. The Render runner's reset deployment reached `live`; logs confirm `CALIBRATION_ENABLED=false` and idle mode.
-- Next action: continue pair 2-3 with a fresh protocol-v3 seed and the same bounded-run procedure, then move to other adjacent pairs only after completing the evidence ladder.
+### Protocol-v3 follow-up— seed 20261007
+
+#### Run conditions
+
+- Code source revision: `a0bc620181e8101331110e457219174f6c90d413`; protocol v3; engine version 7.
+- Pair: 2-3 (`초급` vs `중급`); seed: `20261007`; classic setup; tactical fixtures; 2 games; 96-ply cap.
+- AI-level configuration fingerprint: `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
+- Runner return code: 0. Its timestamps span 7 minutes 7.084 seconds of process wall time (not CPU time).
+- The unique aggregate output path was exercised: `aggregate-v3-pair-2_3-seeds-20261007-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`. It did not reuse seed 20261006's report filename.
+
+#### Results
+
+| Game | Fixture | Terminal result | Plies | Outcome for Lv.2 |
+| --- | --- | --- | ---: | ---: |
+| 1 | capture | `draw_bikjang` | 70 | 0 |
+| 2 | check | `cho_win` | 41 | -1 |
+
+Both games completed; there were 0 unfinished games. Combined score for this run: Lv.2 `0.5` : Lv.3 `1.5`, with one draw and one Lv.3 win. The capture fixture's bikjang occurred at 70 plies and did not trigger the protocol-v3 early-bikjang guard.
+
+#### Cumulative protocol-v3 snapshot for pair 2-3
+
+Across seeds `20261006` and `20261007`, the raw run results tally to 4 completed games / 0 unfinished across 2 unique seeds: Lv.2 wins 0, Lv.3 wins 3, draws 1; descriptive score Lv.2 `0.5` : Lv.3 `3.5`. This cross-run tally is descriptive, calculated from the two preserved raw files; the per-request aggregate files remain run-scoped by design.
+
+Calibration remains `INSUFFICIENT`: only 4 completed games are available against the existing 20-game threshold. Do not infer a final rating/order or change public AI level/search-budget settings. Keep protocol-v1, v2, and v3 evidence separate.
+
+- Raw: `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261007-classic-v3-tactical.json`
+- Aggregate: `artifacts/ai-level-calibration/aggregate-v3-pair-2_3-seeds-20261007-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
+- Manifest: `artifacts/ai-level-calibration/manifest-v3-pairs-2_3-seeds-20261007-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
+
+The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confirmed `CALIBRATION_ENABLED=false` / idle mode. Next action: preserve and merge these files/context, then continue pair 2-3 with fresh protocol-v3 seed `20261008` using the same disabled-first, two-game bounded procedure.
 - PR smoke calibration pipeline remains operational for bounded validation only.
 - Smoke configuration remains: 2 games per adjacent pair, 4 plies per game; its 0/10 completed result is not playing-strength evidence.
 - The calibration request runner now supports repository-root request files through `GITHUB_WORKSPACE`; PR #76 added the request path and PR #78 corrected the working-directory path resolution.
