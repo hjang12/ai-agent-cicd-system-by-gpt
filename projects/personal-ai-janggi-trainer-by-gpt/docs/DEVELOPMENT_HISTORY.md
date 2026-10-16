@@ -1,3 +1,37 @@
+## 2026-10-16 — Protocol-v3 seed 20261014 result and runner reset
+
+### Run conditions
+
+- Pair 2-3 (Lv.2 초급 vs Lv.3 중급); seed 20261014; classic setup; tactical fixture; protocol v3; engine 7; two games; maximum 96 plies.
+- Source/code revision `a0bc620181e8101331110e457219174f6c90d413`; configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
+- Runner deploy `dep-db8t7a7f3r2c73fbal5g` (service commit `b19cdf5e0eab885ab87507cb5a425ea3e145ed74`); started `2026-10-16T07:35:34.590061Z`, completed `2026-10-16T07:44:35.885992Z`, return code 0. Wall time 9 minutes 1.296 seconds.
+
+### Results
+
+- Game 1: capture fixture; `draw_bikjang`; 82 plies; outcome for Lv.2 0.
+- Game 2: check fixture; `cho_win`; 51 plies; outcome for Lv.2 -1.
+- Both games completed; 0 unfinished. Seed score Lv.2 0.5 : Lv.3 1.5 (Lv.3 one win, one draw).
+- Run aggregate is valid JSON and remains `INSUFFICIENT` (2 completed games vs 20-game threshold); manifest `failures=[]`.
+
+### Cumulative interpretation
+
+- Across protocol-v3 seeds 20261006–20261014: 18 completed games / 0 unfinished across 9 unique seeds; Lv.2 wins 0, Lv.3 wins 15, draws 3; cumulative descriptive score Lv.2 1.5 : Lv.3 16.5.
+- Pair 2-3 remains `INSUFFICIENT` (18/20 completed games). Results remain exploratory; do not change public AI levels or search budgets. Protocol-v1/v2 remain separate.
+
+### Preserved artifacts
+
+- Raw: `artifacts/ai-level-calibration/ai-level-strength-2-3-seed-20261014-classic-v3-tactical.json`
+- Aggregate: `artifacts/ai-level-calibration/aggregate-v3-pair-2_3-seeds-20261014-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
+- Manifest: `artifacts/ai-level-calibration/manifest-v3-pairs-2_3-seeds-20261014-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
+- All 3 files were restored from matching Render `ARTIFACT BEGIN/END` frames, parsed as valid JSON, and added to this evidence/context branch.
+
+### Runner reset
+
+- `CALIBRATION_ENABLED=false` was applied after the run.
+- Reset deploy `dep-db8tc5qvcj2c73b5dd1g` reached `live` at `2026-10-16T07:46:00Z`; startup log at `07:45:59Z` explicitly said `Calibration runner is idle: CALIBRATION_ENABLED is not true.` No calibration computation remains running.
+
+---
+
 ## 2026-10-16 — Protocol-v3 seed 20261013 result and runner reset
 
 ### Run conditions
