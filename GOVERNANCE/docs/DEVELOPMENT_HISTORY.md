@@ -1,3 +1,13 @@
+## 2026-10-19 — Seed 20261016 result and continuation blocker
+
+- The current branch sync starts from main `7e62b04f5d8ad8794e58e75157480cedd3a1bb37`; PR #143 is merged and post-merge CI passed.
+- Seed 20261016 completed 2/2 games, 0 unfinished, return code 0; result: one draw and one Level 3 win, Lv.2 score 0.5 : Lv.3 score 1.5. Raw and per-run aggregate are on `docs/seed-20261016-evidence-sync`; manifest was recovered from Render logs but its GitHub file write was rejected.
+- Compatible seeds 20261007–20261016 have 20 completed games, 0 unfinished, 16 Level 3 wins and 4 draws; preliminary descriptive score Lv.2 2.0 : Lv.3 18.0. The deterministic cumulative evaluator has not yet been run/preserved, so this is not a formal evaluator result. Seed 20261006 remains separate because it uses a different source revision.
+- An update request to set `CALIBRATION_ENABLED=false` was rejected before submission. Runner reset/idle is unconfirmed; do not claim the service is idle and do not launch another batch until an authorized operator disables it and confirms the idle log.
+- The current task is paused at evidence closure: preserve the manifest, execute/preserve cumulative evaluation, reconcile the active task registry/checkpoint, then pass current-head and post-merge CI before continuing. Public AI-level and search-budget settings remain unchanged.
+
+---
+
 ## 2026-10-16 — Seed 20261016 result and follow-up blocker
 
 - PR #143 merged as `7e62b04f5d8ad8794e58e75157480cedd3a1bb37`; its post-merge validation and test CI passed.
