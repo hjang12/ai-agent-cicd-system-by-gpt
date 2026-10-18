@@ -1,3 +1,12 @@
+## 2026-10-16 — Seed 20261016 result and follow-up blocker
+
+- PR #143 merged as `7e62b04f5d8ad8794e58e75157480cedd3a1bb37`; its post-merge validation and test CI passed.
+- Seed 20261016 completed 2/2 games, 0 unfinished, return code 0; results were one draw and one Level 3 win. Raw and per-run aggregate evidence are on branch `docs/seed-20261016-evidence-sync`; the manifest write was blocked by the tool safety checker.
+- Compatible seeds 20261007–20261016 have 20 completed games, 0 unfinished, 16 Level 3 wins and 4 draws; preliminary score Lv.2 2.0 : Lv.3 18.0. The deterministic cumulative evaluator has not yet been run or preserved.
+- The request to disable the Runner via `CALIBRATION_ENABLED=false` was blocked by the tool safety checker before submission. Do not claim idle; require an authorized operator to disable it and confirm the idle startup log. No next batch until that, the manifest, and cumulative evaluation report are complete.
+
+---
+
 ## 2026-10-16 — Seed 20261015 and source-revision aggregation guard
 
 - PR #142 merged as `3220242d49a8b44721d9cfb55177d23b7ffbd805`; its post-merge Workspace validation run 38869526955 and Janggi test run 38869526933 both passed.
