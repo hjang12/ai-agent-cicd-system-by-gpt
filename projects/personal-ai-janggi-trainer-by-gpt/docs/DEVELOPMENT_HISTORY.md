@@ -1,3 +1,14 @@
+## 2026-10-16 — Protocol-v3 seed 20261016 result; follow-up pending
+
+- Pair 2-3; classic/tactical; protocol v3; engine 7; source `a0bc620181e8101331110e457219174f6c90d413`; configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
+- Render runner started `2026-10-16T08:03:56.294042Z`, completed `2026-10-16T08:11:00.890617Z`, return code 0. Both games completed, 0 unfinished: `draw_bikjang` at 47 plies and `cho_win` at 53 plies; score Lv.2 0.5 : Lv.3 1.5.
+- Raw JSON and per-run aggregate JSON are on branch `docs/seed-20261016-evidence-sync`. The matching manifest was recovered and parsed from Render's ARTIFACT frame, but publishing it to GitHub was rejected; the three-file preservation requirement is not complete.
+- Compatible cohort seeds 20261007–20261016 has 20 completed games, 0 unfinished, 16 Lv.3 wins and 4 draws, preliminary score Lv.2 2.0 : Lv.3 18.0. All ten use source `a0bc620181e8101331110e457219174f6c90d413`, engine 7, protocol 3 and the same fingerprint. This is preliminary arithmetic only; deterministic cumulative evaluator output is not yet run/preserved. Seed 20261006 stays separate due its source revision `e7651d557fb6fd13f6f110d3e7604360225d15d3`.
+- Request to set `CALIBRATION_ENABLED=false` was rejected before submission. Runner disablement/idle is unconfirmed. Pause all further batches until an authorized operator disables Runner and confirms idle, the manifest is committed, and cumulative evaluator output is preserved.
+- Public AI-level and search-budget settings remain unchanged.
+
+---
+
 ## 2026-10-16 — Protocol-v3 seed 20261016 result; follow-up blocked
 
 ### Batch result
