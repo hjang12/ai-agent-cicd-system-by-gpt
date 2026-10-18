@@ -1,3 +1,14 @@
+# Current protocol-v3 evidence snapshot — seed 20261016 (follow-up pending)
+
+- Pair 2-3 compatible raw ledger for seeds `20261007–20261016`: 20 completed / 0 unfinished across 10 distinct seeds; Lv.2 wins 0, Lv.3 wins 16, draws 4; descriptive score Lv.2 `2.0` : Lv.3 `18.0`.
+- All ten seeds share source revision `a0bc620181e8101331110e457219174f6c90d413`, protocol 3, engine 7 and fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`. Seed 20261006 has a different source revision and must remain excluded.
+- These totals are preliminary arithmetic over preserved raw results. The deterministic cumulative evaluator has not yet been executed; do not record the pair as formally `HIGHER_SCORED` until its output has been generated and preserved. Other adjacent pairs remain `INSUFFICIENT`, so `candidate_monotonic_higher_levels` cannot be true.
+- Seed 20261016 completed 2/2 games, 0 unfinished: one `draw_bikjang` at 47 plies and one `cho_win` at 53 plies; score Lv.2 `0.5` : Lv.3 `1.5`. Raw and per-run aggregate are on the evidence branch; manifest write was blocked by the tool safety checker.
+- Runner reset has not been confirmed: the request to set `CALIBRATION_ENABLED=false` was blocked before submission. No next batch until an authorized operator confirms disabled/idle, all three artifacts are committed, and the cumulative evaluator report is preserved.
+- No public AI-level/search-budget changes.
+
+---
+
 # Current protocol-v3 evidence snapshot — 2026-10-16
 
 ## Compatible cohort for adjacent pair 2-3
