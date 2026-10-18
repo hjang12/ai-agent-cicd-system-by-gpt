@@ -1,5 +1,16 @@
 # Current protocol-v3 evidence snapshot — seed 20261016 (follow-up pending)
 
+- Pair 2-3 compatible raw cohort for seeds `20261007–20261016`: 20 completed games / 0 unfinished across 10 seeds; Lv.2 wins 0, Lv.3 wins 16, draws 4; preliminary score Lv.2 `2.0` : Lv.3 `18.0`.
+- All ten seeds share source revision `a0bc620181e8101331110e457219174f6c90d413`, protocol 3, engine 7 and AI-level configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`. Seed 20261006 has a different source revision and remains excluded.
+- These totals are arithmetic over the preserved raw results. The deterministic cumulative evaluator has not yet been run and its report has not been preserved. Under the evaluator's compatibility and threshold rules, pair 2-3 is expected to be `HIGHER_SCORED`; do not treat this as a recorded evaluator result. Other adjacent pairs remain `INSUFFICIENT`, so `candidate_monotonic_higher_levels` cannot be true.
+- Seed 20261016 completed 2/2 games, 0 unfinished: `draw_bikjang` at 47 plies and `cho_win` at 53 plies; score Lv.2 `0.5` : Lv.3 `1.5`. Raw and per-run aggregate are on branch `docs/seed-20261016-evidence-sync`. The manifest was recovered and parsed from Render logs, but its GitHub file write was rejected and it is not yet preserved in the branch.
+- Runner reset has not been confirmed. The request to set `CALIBRATION_ENABLED=false` was rejected before submission; do not claim idle. No next batch until an authorized operator disables Runner and confirms the idle startup log, the manifest is committed, and cumulative evaluation is saved.
+- No public AI-level/search-budget changes.
+
+---
+
+# Current protocol-v3 evidence snapshot — seed 20261016 (follow-up pending)
+
 - Pair 2-3 compatible raw ledger for seeds `20261007–20261016`: 20 completed / 0 unfinished across 10 distinct seeds; Lv.2 wins 0, Lv.3 wins 16, draws 4; descriptive score Lv.2 `2.0` : Lv.3 `18.0`.
 - All ten seeds share source revision `a0bc620181e8101331110e457219174f6c90d413`, protocol 3, engine 7 and fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`. Seed 20261006 has a different source revision and must remain excluded.
 - These totals are preliminary arithmetic over preserved raw results. The deterministic cumulative evaluator has not yet been executed; do not record the pair as formally `HIGHER_SCORED` until its output has been generated and preserved. Other adjacent pairs remain `INSUFFICIENT`, so `candidate_monotonic_higher_levels` cannot be true.
