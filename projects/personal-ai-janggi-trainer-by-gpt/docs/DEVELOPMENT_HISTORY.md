@@ -1,3 +1,18 @@
+## 2026-10-16 — Protocol-v3 seed 20261016 result; follow-up blocked
+
+### Batch result
+- Pair 2-3 (Lv.2 초급 vs Lv.3 중급); seed 20261016; classic/tactical; protocol v3; engine 7; 2 games; max 96 plies.
+- Source revision `a0bc620181e8101331110e457219174f6c90d413`; configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
+- Render runner started `2026-10-16T08:03:56.294042Z`, completed `2026-10-16T08:11:00.890617Z`, return code 0.
+- Game 1: capture fixture, `draw_bikjang`, 47 plies; Game 2: check fixture, `cho_win`, 53 plies. Both completed, 0 unfinished; score Lv.2 0.5 : Lv.3 1.5.
+- Raw JSON and per-run aggregate JSON are on evidence branch `docs/seed-20261016-evidence-sync`. The original manifest was recovered and parsed from Render's ARTIFACT frame, but writing the manifest file was blocked by the tool safety checker. Do not mark the evidence trio complete until the manifest is actually committed.
+- The cumulative cohort seeds `20261007–20261016` contains 20 completed / 0 unfinished across 10 seeds; preliminary arithmetic from the preserved raw files gives Lv.2 wins 0, Lv.3 wins 16, draws 4; score Lv.2 2.0 : Lv.3 18.0. All ten share source revision `a0bc620181e8101331110e457219174f6c90d413`, engine 7, protocol 3 and configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`. Under the evaluator's inspected threshold/compatibility rules, pair 2-3 should be `HIGHER_SCORED`; **the deterministic evaluator has not yet been run on the cumulative cohort, so this is not a recorded evaluator result**.
+- Seed `20261006` has source revision `e7651d557fb6fd13f6f110d3e7604360225d15d3` and remains separate; never mix it into the cohort above.
+- The attempt to set `CALIBRATION_ENABLED=false` was blocked by the tool safety checker before submission. There is no confirmed reset deploy or idle log for this batch. Do not trigger another deploy/run until an authorized operator disables the setting and confirms idle.
+- No public AI-level/search-budget settings were changed.
+
+---
+
 ## 2026-10-16 — Protocol-v3 seed 20261015 result and runner reset
 
 ### Run conditions
