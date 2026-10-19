@@ -245,7 +245,7 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 - Recovered the complete seed-`20261016` manifest again from the Render `ARTIFACT BEGIN/END` log frame and wrote a local recovery copy at `/mnt/data/manifest-v3-pairs-2_3-seeds-20261016-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json` (983 bytes, valid JSON, `failures=[]`). Publishing it to GitHub remains blocked; the local copy does not count as a repository artifact.
 - All ten raw input files (seeds `20261007–20261016`) were materialized locally from the GitHub reads and each local Git blob SHA matched the original branch blob SHA. The unmodified evaluator source ran against those exact raw JSON contents with exit code `0`; the emitted JSON parsed successfully.
 - Pair `2-3`: `HIGHER_SCORED`, 20/20 completed, 0 unfinished, Lv.2 score `2.0`, Lv.3 score `18.0` (16 Lv.3 wins, 4 draws; higher-level score percentage 90%). This is descriptive evidence only. Pairs `1-2`, `3-4`, `4-5`, and `5-6` remain `INSUFFICIENT`, so `candidate_monotonic_higher_levels=false`; no public AI-level/search-budget change is authorized.
-- The full JSON output is recorded below. A standalone JSON report has also been generated in the current working environment, but has not been added as a repository artifact. Seed `20261016`'s manifest is still missing from the evidence branch, so the evidence-sync PR remains blocked.
+- The full JSON output is recorded below. A standalone JSON report has also been generated locally at `/mnt/data/aggregate-v3-pair-2_3-seeds-20261007-20261016.json` (1,794 bytes; SHA-256 `2259305b95fdf1c0e74dec5b802eceb839995548a3b0f04d25ce2908ab4e8fee`), but has not been added as a repository artifact. Seed `20261016`'s manifest is still missing from the evidence branch, so the evidence-sync PR remains blocked.
 
 ```json
 {
@@ -268,14 +268,14 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
       "games": 20,
       "completed": 20,
       "unfinished": 0,
-      "unfinished_rate": 0,
+      "unfinished_rate": 0.0,
       "lower_wins": 0,
       "higher_wins": 16,
       "draws": 4,
       "decisive_games": 16,
-      "lower_score": 2,
-      "higher_score": 18,
-      "higher_score_pct": 90,
+      "lower_score": 2.0,
+      "higher_score": 18.0,
+      "higher_score_pct": 90.0,
       "seeds": [
         20261007,
         20261008,
