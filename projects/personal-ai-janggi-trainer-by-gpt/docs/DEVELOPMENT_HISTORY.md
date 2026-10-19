@@ -2372,3 +2372,12 @@ This closes the current requested UI refinement scope. Future UI changes should 
 - Preserve the recovered seed-20261016 manifest; the GitHub file-write request was blocked by the safety checker and was not retried through an alternate write path.
 - Run and preserve the official cumulative evaluator report for seeds `20261007–20261016`.
 - Only then complete the final evidence/doc consistency review, open the evidence-sync PR, run CI and merge after checks pass.
+
+
+## 2026-10-19 — Exact-blob cumulative evaluator run
+
+- Fetched the unmodified `tools/evaluate_ai_level_evidence.py` from the active evidence branch; local source matched Git blob SHA `92563055742d2cb1f1ae51348c92a01410193487`.
+- Materialized raw seeds `20261007–20261016` from GitHub contents reads; all ten local files matched the original Git blob SHA exactly. No reduced or substituted inputs were used for the final run.
+- Ran the evaluator CLI against those ten exact raw files; process exit code was `0` and JSON output parsed. Pair 2-3 status: `HIGHER_SCORED`, 20 completed, 0 unfinished, 0 Lv.2 wins, 16 Lv.3 wins, 4 draws, score Lv.2 2.0 : Lv.3 18.0. Higher-level score percentage: 90%.
+- Pairs 1-2, 3-4, 4-5 and 5-6 remain `INSUFFICIENT`; `candidate_monotonic_higher_levels=false`. This descriptive result does not authorize public AI level or search-budget changes.
+- Full evaluator JSON output is preserved inline in `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md`. A standalone JSON report is generated locally, but is not yet stored as a repository artifact. Seed 20261016 manifest is still missing from the branch after the file write was blocked by the tool safety gate; no alternate write path was used and no PR was opened.
