@@ -4,7 +4,7 @@
 
 - Pair 2-3 compatible raw cohort for seeds `20261007–20261016`: 20 completed games / 0 unfinished across 10 seeds; Lv.2 wins 0, Lv.3 wins 16, draws 4; preliminary score Lv.2 `2.0` : Lv.3 `18.0`.
 - All ten seeds share source revision `a0bc620181e8101331110e457219174f6c90d413`, protocol 3, engine 7 and AI-level configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`. Seed 20261006 has a different source revision and remains excluded.
-- These totals are arithmetic over the preserved raw results. A read-only preflight fetched and parsed all ten raw artifacts, checked unique experiment identities, compared game outcomes with summary counts, and verified consistent fingerprint/engine/source/protocol metadata without finding errors. An independent in-memory cross-check yields 20/20 completed games, 0 unfinished, score Lv.2 `2.0` : Lv.3 `18.0`, and predicted pair status `HIGHER_SCORED`. The official deterministic evaluator has not yet been run and its report has not been preserved; do not describe the in-memory cross-check as its result. Other adjacent pairs remain `INSUFFICIENT`, so `candidate_monotonic_higher_levels` cannot be true.
+- These totals have now been evaluated by the repository's unmodified `tools/evaluate_ai_level_evidence.py` source using the exact raw JSON blob contents for all ten seeds. The source and every local input file matched their GitHub blob SHA; the CLI exited 0 and emitted `HIGHER_SCORED` for pair 2-3 (20 completed, 0 unfinished, Lv.2 `2.0` : Lv.3 `18.0`). The exact JSON output is recorded in the `Official cumulative evaluator output — 2026-10-19` section below. Other adjacent pairs remain `INSUFFICIENT`, so `candidate_monotonic_higher_levels` is false.
 - Seed 20261016 completed 2/2 games, 0 unfinished: `draw_bikjang` at 47 plies and `cho_win` at 53 plies; score Lv.2 `0.5` : Lv.3 `1.5`. Raw and per-run aggregate are on branch `docs/seed-20261016-evidence-sync`. The manifest was recovered and parsed from Render logs, but its GitHub file write was rejected and it is not yet preserved in the branch.
 - Runtime idle was observed directly in Render logs at `2026-10-16T08:12:26.009324326Z`: `Calibration runner is idle: CALIBRATION_ENABLED is not true.` This followed live deploy `dep-db8toj2vcj2c73b6kudg`. The prior environment-update request was blocked, but the runtime idle log is positive evidence of the observed running state. Do not start the next batch until the missing seed-20261016 manifest is preserved and the official cumulative evaluator output is run and saved.
 - No public AI-level/search-budget changes.
@@ -236,3 +236,92 @@ Calibration remains `INSUFFICIENT`: only 4 completed games are available against
 - Manifest: `artifacts/ai-level-calibration/manifest-v3-pairs-2_3-seeds-20261007-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
 
 The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confirmed `CALIBRATION_ENABLED=false` / idle mode. Next action: preserve and merge these files/context, then continue pair 2-3 with fresh protocol-v3 seed `20261008` using the same disabled-first, two-game bounded procedure.
+
+
+## Official cumulative evaluator output — 2026-10-19
+
+- The evaluator source fetched from this branch matched its Git blob SHA exactly: `92563055742d2cb1f1ae51348c92a01410193487`.
+- All ten raw input files (seeds `20261007–20261016`) were materialized locally from the GitHub reads and each local Git blob SHA matched the original branch blob SHA. The unmodified evaluator source ran against those exact raw JSON contents with exit code `0`; the emitted JSON parsed successfully.
+- Pair `2-3`: `HIGHER_SCORED`, 20/20 completed, 0 unfinished, Lv.2 score `2.0`, Lv.3 score `18.0` (16 Lv.3 wins, 4 draws; higher-level score percentage 90%). This is descriptive evidence only. Pairs `1-2`, `3-4`, `4-5`, and `5-6` remain `INSUFFICIENT`, so `candidate_monotonic_higher_levels=false`; no public AI-level/search-budget change is authorized.
+- The full JSON output is recorded below. A standalone JSON report has also been generated in the current working environment, but has not been added as a repository artifact. Seed `20261016`'s manifest is still missing from the evidence branch, so the evidence-sync PR remains blocked.
+
+```json
+{
+  "method": "aggregate adjacent-level calibration evidence",
+  "thresholds": {
+    "min_completed_games_per_pair": 20,
+    "max_unfinished_rate": 0.25,
+    "min_unique_seeds_per_pair": 2
+  },
+  "pairs": [
+    {
+      "pair": "1-2",
+      "status": "INSUFFICIENT",
+      "reason": "no evidence"
+    },
+    {
+      "pair": "2-3",
+      "status": "HIGHER_SCORED",
+      "experiments": 10,
+      "games": 20,
+      "completed": 20,
+      "unfinished": 0,
+      "unfinished_rate": 0,
+      "lower_wins": 0,
+      "higher_wins": 16,
+      "draws": 4,
+      "decisive_games": 16,
+      "lower_score": 2,
+      "higher_score": 18,
+      "higher_score_pct": 90,
+      "seeds": [
+        20261007,
+        20261008,
+        20261009,
+        20261010,
+        20261011,
+        20261012,
+        20261013,
+        20261014,
+        20261015,
+        20261016
+      ],
+      "setups": [
+        "classic"
+      ],
+      "fixture_modes": [
+        "tactical"
+      ],
+      "ai_level_config_fingerprints": [
+        "12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd"
+      ],
+      "engine_versions": [
+        "7"
+      ],
+      "source_revisions": [
+        "a0bc620181e8101331110e457219174f6c90d413"
+      ],
+      "calibration_protocol_versions": [
+        "3"
+      ]
+    },
+    {
+      "pair": "3-4",
+      "status": "INSUFFICIENT",
+      "reason": "no evidence"
+    },
+    {
+      "pair": "4-5",
+      "status": "INSUFFICIENT",
+      "reason": "no evidence"
+    },
+    {
+      "pair": "5-6",
+      "status": "INSUFFICIENT",
+      "reason": "no evidence"
+    }
+  ],
+  "candidate_monotonic_higher_levels": false,
+  "interpretation": "Descriptive evidence aggregation only. A candidate monotonic ordering does not by itself authorize public level or search-budget changes."
+}
+```
