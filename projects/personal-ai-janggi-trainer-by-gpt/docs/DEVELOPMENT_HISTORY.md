@@ -2352,3 +2352,23 @@ When the user chooses Han, the server correctly lets Cho make the first move, bu
 ### Product Boundary
 
 This closes the current requested UI refinement scope. Future UI changes should be driven by a concrete defect or explicit product requirement rather than continued visual iteration.
+
+
+## 2026-10-19 — Seed 20261016 evidence preflight and continuation
+
+### Work method exercised
+- Applied a task-generic execution pattern without changing Governance: parallelized independent read-only GitHub/Render checks, then validated artifacts in bounded groups to avoid the connector's tool-call limit.
+- Did not wait on an external computation; the batch had already completed. Instead, used the otherwise independent time to verify raw/aggregate/manifest consistency and current runner runtime state.
+- Stopped repeated attempts to write the seed-20261016 manifest after the tool safety checker blocked the operation; did not route around the safety gate.
+
+### Verification
+- Render logs directly showed `Calibration runner is idle: CALIBRATION_ENABLED is not true.` at `2026-10-16T08:12:26.009324326Z`, after deploy `dep-db8toj2vcj2c73b6kudg` became live. This supersedes earlier documentation that idle was unconfirmed.
+- Fetched and parsed all ten raw protocol-v3 artifacts for seeds `20261007–20261016`. Unique experiment identity, per-game/summary count consistency, and metadata compatibility (source revision, engine, protocol and config fingerprint) passed.
+- Cross-checked raw and individual aggregate for every seed. Seeds `20261007–20261015` each have a valid matching manifest with the expected seed, protocol 3, source revision `a0bc620181e8101331110e457219174f6c90d413`, and empty failures. Seed `20261016` raw and aggregate agree; the matching manifest is still absent from the branch.
+- In-memory recomputation gives 20/20 completed games, 0 unfinished, score Lv.2 2.0 : Lv.3 18.0 and expected status `HIGHER_SCORED` for pair 2-3. This is a preflight cross-check, not the official CLI execution; the official cumulative evaluator output has not been generated or preserved.
+- No public AI-level/search-budget changes, no new seed launched, and no PR opened.
+
+### Remaining gates
+- Preserve the recovered seed-20261016 manifest; the GitHub file-write request was blocked by the safety checker and was not retried through an alternate write path.
+- Run and preserve the official cumulative evaluator report for seeds `20261007–20261016`.
+- Only then complete the final evidence/doc consistency review, open the evidence-sync PR, run CI and merge after checks pass.
