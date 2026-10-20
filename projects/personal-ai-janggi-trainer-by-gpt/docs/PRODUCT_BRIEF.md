@@ -12,7 +12,7 @@ One self-directed player using a desktop browser. Multi-user play, social featur
 
 The project now has a dependency-free Janggi rules engine, match/result handling, game-record validation, engine abstraction, depth-limited search, self-play generation, training-dataset construction, model metadata, head-to-head evaluation/rating infrastructure, and a small dependency-free HTTP application layer.
 
-The browser prototype now consumes the application API for authoritative state, legal moves, move coaching, session reset, one-ply undo, and baseline-engine moves. Persistent storage and production authentication are still deferred.
+The browser trainer consumes the application API for authoritative state, legal moves, move coaching, session reset, undo, and baseline-engine moves. Server-side persistence and authentication remain deferred; v1.0 adds browser-local progress storage only.
 
 ## First useful product loop
 
@@ -23,26 +23,27 @@ The browser prototype now consumes the application API for authoritative state, 
 5. Answer training problems and see session accuracy.
 6. Return later in the same browser and review cumulative game outcomes and training progress.
 
-## In scope now
+## v1.0 in-scope target
 
-- Static, dependency-free browser shell
-- 9×10 Janggi board representation
-- Local practice-session UI
-- Dependency-free HTTP application layer
-- JSON API for health, state, reset, moves, undo, move analysis, and engine moves
-- Authoritative Janggi move legality and match rules in Python
-- Human game-record validation and training-data pipeline
-- Dependency-free search baseline
+- Static, dependency-free browser shell and single-user local practice flow
+- 9×10 Janggi board, authoritative move legality and match rules
+- Dependency-free HTTP API for health, state, reset, moves, undo and engine moves
+- Search-based gameplay AI with six selectable profiles
+- Visible move analysis/coaching, post-game review and position-training problems/answers
+- Session training accuracy plus browser-local cumulative game results and training progress (the durable local-progress UI is required remaining work, not yet complete)
+- CI, regression tests and Render release verification
+
+## Research / developer-only code (not part of the v1.0 user-facing flow)
+
+- Game-record validation for dataset eligibility and the training-data pipeline
 - Self-play and batch game generation
 - Model metadata registry and head-to-head evaluation/rating primitives
-- Minimal browser-local growth tracking: completed-game results by selected AI level and cumulative training attempts/correctness, without claiming an uncalibrated numeric Elo rating
+- AI strength calibration runner and research artifacts
 - Product and technical decision records
 
 ## Explicitly deferred
 
-- Persistent user accounts and cloud synchronization
-- Server-side database-backed game history, authenticated cloud profile, and cross-device synchronization (v1.0 uses browser-local progress only)
-- Database-backed game history
+- Server-side database-backed game history, user accounts, authenticated cloud profile, and cross-device synchronization (v1.0 uses browser-local progress only)
 - Trained neural or learned policy/value model
 - Production model hosting and model-serving infrastructure
 - Full mobile UX and accessibility audit
