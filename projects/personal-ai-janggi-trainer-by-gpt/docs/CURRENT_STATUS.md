@@ -16,6 +16,16 @@
 - Primary user: one self-directed Janggi learner using a desktop browser
 - Current priority: finish Personal AI Janggi Trainer v1.0 against [docs/V1_RELEASE_SCOPE.md](./V1_RELEASE_SCOPE.md). PR #145 (`56cbe8de496c1bae2250291bb81f7f78cfbb3149`) delivered visible analysis/review/training surfaces and browser-local cumulative practice history. PR #146 (`7dd364a4f69f7eb90d953baa135530c031e01beb`) corrected the default port fallback to Render's documented port 10000 and added startup-port regression tests. Required Workspace and Janggi CI checks passed; Render deploy `dep-dbbeqoui0phs738e4110` reached `live` and logged `Listening on http://0.0.0.0:10000`. The original port-scan failure's exact root cause is not proven. v1.0 remains open because direct browser-flow smoke is unverified and live Render `healthCheckPath` remains empty despite `render.yaml` declaring `/api/health`. The six-level calibration task remains PAUSED and is not a release gate.
 
+## Release Verification Snapshot — 2026-10-20
+
+This snapshot records read-only observations made before the documentation update itself; it is not a claim about the deployment created by this update.
+
+- Render service: `personal-ai-janggi-trainer-by-gpt`, service ID `srv-dajolip594qs73d1bkr0`, URL `https://personal-ai-janggi-trainer.onrender.com`.
+- Latest deployment observed during the recheck: `dep-dbbf251srm7s73858b5g`, commit `0338d442d04dba1521af19631360b01705d5e1e1`, status `live`. Render events report successful build/deploy; logs show `python app.py`, `Listening on http://0.0.0.0:10000`, and the service-live message.
+- Actual Render service metadata still reports `healthCheckPath: ""`, while root `render.yaml` declares `/api/health` and `app.py` implements it. The mismatch remains unresolved; the connected Render tools expose no update operation for this existing service setting.
+- Direct HTTP checks of both the root URL and `/api/health` could not reach an HTTP response: the web tool marked the URLs inaccessible and shell `curl` failed DNS resolution. This is an agent-runtime network/DNS limitation, not evidence by itself that the service is down. Live health and real browser interaction therefore remain **unverified**.
+- Editing files under this project path is included in Render's build filter and can trigger another deployment. Re-check the actual latest deployment after this documentation PR; the deployment ID above is the pre-update observation.
+
 ## Implemented Capability
 
 - Dependency-free Janggi domain and board representation
