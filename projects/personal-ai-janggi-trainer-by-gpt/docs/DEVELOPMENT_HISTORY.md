@@ -2386,3 +2386,10 @@ This closes the current requested UI refinement scope. Future UI changes should 
 - Keep `TASK-20261020-0001` **ACTIVE**. The deployed status is observed, but direct endpoint health and browser behavior are unverified, and `healthCheckPath` drift remains open.
 - Keep `TASK-20260930-0002` AI-strength calibration/ML research **PAUSED**; no new seed or public AI-level configuration change was run.
 - Remaining release gates: obtain an authorized mechanism to set the existing Render service health check to `/api/health`, then run live HTTP/real-browser acceptance cases for gameplay, visible learning surfaces, idempotent result recording, local-storage persistence, and malformed/unavailable storage recovery.
+
+
+## 2026-10-20 — documented Render health-check resolution path
+
+- Retrieved and read Render's official [Health Checks documentation](https://render.com/docs/health-checks). For a web service, the documented Dashboard path is service Settings → Health Checks → Edit → specify a path beginning with `/` → Save Changes. The intended path for this service is `/api/health`, already declared in repository `render.yaml` and implemented by `app.py`.
+- The existing service metadata still reports an empty `healthCheckPath`. The connected Render integration can read the service but exposes no update operation for this setting, and this runtime has no authenticated Dashboard UI control. No Render setting was changed.
+- Next authorized control step is to apply that documented Dashboard change, then confirm metadata and deploy status and verify a live `GET /api/health` returns a successful `2xx` or `3xx` response. Separately, perform the complete browser smoke; neither check is passed by the deploy's `live` status alone.
