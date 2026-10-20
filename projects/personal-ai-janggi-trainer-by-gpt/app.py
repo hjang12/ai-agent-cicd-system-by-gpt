@@ -718,9 +718,9 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 def main() -> None:
     host = "0.0.0.0"
-    port = int(os.environ.get("PORT", "8000"))
+    port = int(os.environ.get("PORT", "10000"))
     server = ThreadingHTTPServer((host, port), RequestHandler)
-    print(f"Listening on http://{host}:{port}")
+    print(f"Listening on http://{host}:{port}", flush=True)
     server.serve_forever()
 
 
