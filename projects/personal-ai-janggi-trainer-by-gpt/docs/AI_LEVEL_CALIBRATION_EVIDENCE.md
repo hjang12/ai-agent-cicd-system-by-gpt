@@ -328,3 +328,12 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
   "interpretation": "Descriptive evidence aggregation only. A candidate monotonic ordering does not by itself authorize public level or search-budget changes."
 }
 ```
+
+
+## Separate exploratory candidate evidence — open PR #119
+
+- Source: open draft PR [#119](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/119), which explicitly says `Do not merge`. The proposed branch changes the public Lv.6 time budget from 800 ms to 1200 ms and requests an 8-game `5-6` run. Current `main` remains at 800 ms (`janggi/ai_level.py`, blob `7e42e20fdbf3e0efdaccbe540113a3d46f126721`).
+- Push-triggered calibration run [37704139574](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/37704139574) succeeded and produced artifact `janggi-ai-level-strength-calibration` (artifact ID `11519739025`, archive SHA-256 `20e6564a6ea12d7b5c8a71ac055e826f918e2c8eb1d171a74c6abe6fd8d29f92`). The later PR-triggered calibration run `37704145952` was cancelled. The downloaded raw JSON SHA-256 is `9fea7c22b2f681909d256ff37c58f71bc6d1722d05ae78d118b1c0b8a5fc4cfe`.
+- Result: seed `20261020`, pair `5-6`, 8 completed / 0 unfinished, Lv.5 wins 8, Lv.6 wins 0, draws 0; score Lv.5 `8.0` : Lv.6 `0.0`. This is a single exploratory sample, not calibrated evidence; it does not meet the existing threshold of 20 completed games and 2 unique seeds.
+- Provenance: engine 7, source revision `d4acc992228c184e9bb3c539f9589704f2800518`, calibration protocol `1`, AI-level fingerprint `2ad3164783a429c55cf5843ac9d1036a5f1e3624d8a1e9d1b371dd795ce75f38`. These do not match the active protocol-v3 pair-2-3 cohort (source `a0bc620181e8101331110e457219174f6c90d413`, protocol `3`, fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`). Do not combine these data or treat the candidate budget as approved.
+- No public configuration change is taken from PR #119; keep it as a separate candidate experiment and do not merge it.
