@@ -296,8 +296,25 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
             "Representative legal game should yield at least one review-derived training problem",
         )
         expect(self.page.locator("#training-list button").first).to_be_visible(timeout=5_000)
+        # The regular training response intentionally omits target_move so the UI
+        # does not reveal the answer before the learner submits it. Obtain the
+        # deterministic test solution through the explicit include_solution API.
+        target = self.page.evaluate(
+            """async (problemId) => {
+              const response = await fetch('/api/training/problems', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({review_limit:20, problem_limit:5, include_solution:true})
+              });
+              if (!response.ok) throw new Error('Solution fixture request returned ' + response.status);
+              const payload = await response.json();
+              const problem = (payload.problems || []).find(item => item.problem_id === problemId);
+              return problem?.target_move || null;
+            }""",
+            problems[0]["problem_id"],
+        )
+        self.assertIsNotNone(target, "Explicit test solution was not returned for the visible problem")
         self.page.locator("#training-list button").first.click()
-        target = problems[0]["target_move"]
         self._play_move({"src": target["src"], "dst": target["dst"]})
         expect(self.page.locator("#learning-modal")).to_be_visible(timeout=15_000)
         expect(self.page.locator("#training-result")).to_be_visible()
