@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: finalize Personal AI Janggi Trainer v1.0 according to [docs/V1_RELEASE_SCOPE.md](./V1_RELEASE_SCOPE.md). The six-level statistical calibration research task is paused and is not a release gate. PR #145 (`feat/janggi-v1-learning-progress`) now implements visible analysis/review/training panels and browser-local cumulative practice history; it is open and not yet merged. CI must pass before merge. The current main application still needs the PR deployed, post-deploy smoke verification, and resolution or authorized verification of the Render health-check-path drift. Current main is `1bab9397ae83d7a6fb0fb185f5f2e77574346667` (scope/docs-only change after production code commit `7e62b04f5d8ad8794e58e75157480cedd3a1bb37`). Existing pair 2-3 evidence is research-only; do not claim all six levels are calibrated.
+- Current priority: finish Personal AI Janggi Trainer v1.0 against [docs/V1_RELEASE_SCOPE.md](./V1_RELEASE_SCOPE.md). PR #145 (`56cbe8de496c1bae2250291bb81f7f78cfbb3149`) delivered visible analysis/review/training surfaces and browser-local cumulative practice history. PR #146 (`7dd364a4f69f7eb90d953baa135530c031e01beb`) corrected the default port fallback to Render's documented port 10000 and added startup-port regression tests. Required Workspace and Janggi CI checks passed; Render deploy `dep-dbbeqoui0phs738e4110` reached `live` and logged `Listening on http://0.0.0.0:10000`. The original port-scan failure's exact root cause is not proven. v1.0 remains open because direct browser-flow smoke is unverified and live Render `healthCheckPath` remains empty despite `render.yaml` declaring `/api/health`. The six-level calibration task remains PAUSED and is not a release gate.
 
 ## Implemented Capability
 
@@ -84,7 +84,7 @@
 - Move coaching API includes `severity`, `message`, `score_delta_cp`, presentation-ready `next_action`, and stable `reason_codes` for future repeated-mistake aggregation
 - Engine move analysis includes principal variation data after authoritative legality normalization
 - Position-training problems preserve the original pre-move state, hide the target move by default, and reuse the existing coaching reason/severity contract
-- Training metrics reset with the match and are never promoted to persistent user or model-training data; problem-level repeated-mistake counts and reason-specific accuracy are derived from the same ephemeral counts, and adaptive selection uses those counts only for the current session
+- Backend/API training-session metrics and repeated-mistake counters reset with the match/session and remain ephemeral. Separately, the browser UI persists only cumulative practice aggregates and bounded personal game/training summaries in that browser's local storage; they are not server-side user data or model-training data.
 
 ## Current UI Direction
 
@@ -114,10 +114,18 @@
 - When starting as Han, the browser now shows the initial board for 900ms, displays the AI's opening-state message, then switches to the authoritative post-opening position and user turn. The server/engine flow is unchanged.
 - This completes the current UI refinement scope; no further visual redesign is planned unless a new defect or requirement is identified.
 
+## Latest Verification (2026-10-20)
+
+- PR #145 merged as `56cbe8de496c1bae2250291bb81f7f78cfbb3149`; it moved the analysis/review/training interface into visible panels and added versioned browser-local cumulative game/training records.
+- PR #146 merged as `7dd364a4f69f7eb90d953baa135530c031e01beb`. Workspace structure validation run `39369485643` and Janggi Python validation run `39369485752` both passed on the PR head, including browser JavaScript syntax, Python compilation, requirement-contract validation and the unit-test suite.
+- Render deploy `dep-dbbeqoui0phs738e4110` for the app-changing commit reached `live`; startup logs explicitly reported `Listening on http://0.0.0.0:10000`. The earlier deploy `dep-dbbdol4s728c73bb450g` failed with a port-scan timeout; the precise cause of that earlier failure remains unproven.
+- Live Render metadata still returns `healthCheckPath: ""` while repository `render.yaml` declares `/api/health`. This is tracked as Governance `ISSUE-002` and remains unresolved.
+- The connected web tool could not access either the live root URL or `/api/health`, so direct HTTP response and browser user-flow smoke are **unverified**. The v1.0 task remains ACTIVE, not complete.
+
 ## Active Execution Constraints
 
 - The authoritative workspace issue index is `../../../GOVERNANCE/docs/ACTIVE_ISSUES.md`.
-- The dedicated off-CI Render calibration runner is now the execution path for 2-3 through 5-6. New strength evidence remains provisional until the raw artifacts pass the existing provenance-aware evaluator.
+- Statistical AI-strength calibration is paused and is not part of the current v1.0 release task. The off-CI runner and retained evidence remain available for a separately resumed post-v1.0 research task; do not execute new seeds or change public AI settings under TASK-20261020-0001.
 - Live Render deployment state is verified through Render tooling, including the observed empty `healthCheckPath`; direct browser/UI smoke verification remains unavailable from this agent runtime.
 
 ## Development Safety
@@ -183,7 +191,7 @@ Verified live Render state on 2026-10-01:
 - Start: `python app.py`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`
 
-Later main commits through the documentation review are documentation-only but are inside the Janggi service build filter, so Render can legitimately redeploy them. They do not change application code or the application runtime behavior. The Render Blueprint declares `/api/health`, and the application exposes that endpoint. Direct Render metadata now **observes** the live Janggi `healthCheckPath` as an empty string, so this is a confirmed live configuration drift tracked as workspace `ISSUE-002`. The service remains `live`; this is not classified as an application outage. The connected toolset currently lacks an existing-service mutation for the health-check path.
+The Janggi service build filter includes `projects/personal-ai-janggi-trainer-by-gpt/**`, so even documentation PRs can trigger a Render deployment. As of 2026-10-20, application commit `7dd364a4f69f7eb90d953baa135530c031e01beb` was deployed live as `dep-dbbeqoui0phs738e4110`; startup logs showed the service binding to `0.0.0.0:10000`. The live Render metadata still reports an empty `healthCheckPath`, while root `render.yaml` declares `/api/health` and the app implements that endpoint. This remains confirmed configuration drift tracked as `ISSUE-002`, not proof of an application outage. The available Render tools do not expose mutation of this existing service setting, and direct browser/HTTP smoke is currently unverified.
 
 ## Explicitly Deferred
 

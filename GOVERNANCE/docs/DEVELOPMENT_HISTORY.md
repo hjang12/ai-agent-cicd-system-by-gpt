@@ -891,3 +891,13 @@ Set the existing Render service health-check path to `/api/health` through an au
 - The v1.0 scope was strengthened after source review found detailed analysis/review/training nodes under hidden runtime-compatibility markup.
 - The release acceptance criteria now explicitly require the user to see and operate post-game analysis, review summaries, and training problems/answers. Merely updating hidden DOM nodes does not count as a working feature.
 - Remaining engineering estimate was raised to approximately 10–16 hours to include visible UI integration, browser-local progress tracking and final release verification.
+
+
+## 2026-10-20 — Janggi v1.0 implementation and deployment checkpoint
+
+- PR #145 merged visible move analysis/review/training surfaces plus browser-local cumulative progress and UI/JavaScript regression validation (`56cbe8de496c1bae2250291bb81f7f78cfbb3149`).
+- Its Render deployment failed port scanning (`dep-dbbdol4s728c73bb450g`). The exact failure cause was not established; this was not treated as resolved by inference.
+- PR #146 aligned the app's fallback port to `10000`, flushed its startup log, and added startup-port regression tests. Workspace and Janggi CI passed (runs `39369485643`, `39369485752`).
+- Render deployment `dep-dbbeqoui0phs738e4110` for app commit `7dd364a4f69f7eb90d953baa135530c031e01beb` reached `live` with a confirmed `0.0.0.0:10000` listener. This confirms the follow-up deploy but not the precise cause of the previous failed deploy.
+- Live `healthCheckPath` remains empty, contrary to `render.yaml`'s `/api/health`; the mutation remains blocked by the currently connected tools and is tracked in `ISSUE-002`. Browser/HTTP smoke remains unverified.
+- `TASK-20261020-0001` remains ACTIVE; `TASK-20260930-0002` remains PAUSED through the v1.0 stabilization task. No new generic Governance rule was introduced.

@@ -2352,3 +2352,21 @@ This closes the current requested UI refinement scope. Future UI changes should 
 - Reviewing the actual browser DOM after defining the initial scope showed that detailed analysis, review and training controls/results are placed under the hidden runtime-compatibility container. Their JavaScript can update these nodes without displaying the results to the user.
 - Updated the acceptance gates to require a visible, readable post-game learning surface and to preserve the existing board-first/minimal-in-game contract.
 - Updated the remaining-work estimate to approximately 10–16 hours because this includes real UI integration as well as local persistence and release verification.
+
+
+## 2026-10-20 — v1.0 learning loop implemented; Render startup deployment recovered
+
+### Implementation and CI
+- PR #145 merged as `56cbe8de496c1bae2250291bb81f7f78cfbb3149`: exposed move analysis, review and training in visible learning surfaces; added browser-local, versioned cumulative game outcomes and training practice totals; added JavaScript syntax and UI contract checks.
+- PR #146 merged as `7dd364a4f69f7eb90d953baa135530c031e01beb`: changed the fallback port to Render's documented default `10000`, flushed the startup listener log, and added regression tests for the default and explicit `PORT` override.
+- Both required CI workflows passed on PR #146 head: Workspace structure validation run `39369485643`, Janggi Python validation run `39369485752`.
+
+### Render evidence
+- Deploy `dep-dbbdol4s728c73bb450g` for PR #145 commit `56cbe8de496c1bae2250291bb81f7f78cfbb3149` failed with a port-scan timeout and no open port detected. The actual triggering cause remains **unproven**.
+- The follow-up app deployment `dep-dbbeqoui0phs738e4110` for commit `7dd364a4f69f7eb90d953baa135530c031e01beb` reached `live` on 2026-10-20. Its runtime logs showed `Listening on http://0.0.0.0:10000` and Render's live confirmation.
+- Live service metadata still has an empty `healthCheckPath` despite root `render.yaml` specifying `/api/health`. The connected Render tools do not expose mutation for this existing service setting; Governance `ISSUE-002` remains BLOCKED.
+- The connected web tool could not access the live root URL or `/api/health`; direct HTTP/browser smoke is not claimed.
+
+### Release state
+- The visible learning/local progress implementation and automated regression checks are in main. v1.0 remains ACTIVE because interactive browser acceptance gates, actual post-deploy smoke, and authorized health-check configuration are still open.
+- AI level strength calibration remains PAUSED and is not a v1.0 release criterion.

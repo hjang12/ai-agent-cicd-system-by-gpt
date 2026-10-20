@@ -178,16 +178,17 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 - Destructive cleanup is complete; future development must target the canonical monorepo only.
 - Pre-deletion gate verification completed on 2026-09-18: both Render services pointed to the canonical monorepo, latest relevant CI runs were green, and no duplicate Render services existed.
 - A strict CI-success-before-deploy gate is not currently enforced. Render remains commit-triggered auto deploy, so CI and deployment are independently triggered.
-- Janggi Render service live metadata currently reports an empty `healthCheckPath`, while `render.yaml` and the application provide `/api/health`. The service is live, but the intended Render health-check configuration is not currently applied to the live service.
+- Janggi Render service metadata still reports an empty `healthCheckPath` on 2026-10-20, despite `render.yaml` and application code declaring/providing `/api/health`. Application commit `7dd364a4f69f7eb90d953baa135530c031e01beb` reached Render `live` as `dep-dbbeqoui0phs738e4110`; actual browser/HTTP smoke is not verified. `ISSUE-002` remains BLOCKED because the connected Render toolset cannot mutate this existing service setting.
 - The connected GitHub repository list currently exposes the GPT monorepo and the two historical project repositories; no active `personal-mcp-server` repository was present in that current list, so older documentation referring to it is treated as stale.
 
 ## Current Priority
 
-1. Resume TASK-20260930-0002 and establish measurable Level 1-6 Janggi AI strength separation with provenance-aware evidence. Pair 2-3's compatible protocol-v3 cohort on source `a0bc620181e8101331110e457219174f6c90d413` has 18/20 completed games across seeds 20261007–20261015 (Lv.2 1.5 : Lv.3 16.5; still INSUFFICIENT). Seed 20261006 uses a different source revision and is excluded from that aggregate. PR #143 syncs seed 20261015; after merge/post-merge CI, next batch is seed 20261016, followed by deterministic aggregation of compatible seeds 20261007–20261016. Keep public level/search budgets unchanged.
-2. Track and resolve the newly observed Janggi Render `healthCheckPath` drift through the active issue process; do not infer or silently normalize the live service state.
-3. Keep Repository / CI / Render state verification grounded in directly observed evidence; an explicitly returned empty value is Observed, while an omitted value remains Unknown.
-4. Use Governance 1.3.3 simplicity and evidence semantics for future operational changes; do not add automation layers without a demonstrated governance gap.
-5. Continue future development under `projects/<project>/` using the finalized common Governance.
+1. Advance TASK-20261020-0001: close Personal AI Janggi Trainer v1.0 only after the release acceptance gates are verified. PR #145 and PR #146 are merged. Latest app-changing commit `7dd364a4f69f7eb90d953baa135530c031e01beb` is live on Render as `dep-dbbeqoui0phs738e4110`; actual browser smoke is still unverified.
+2. Track and resolve Janggi Render `healthCheckPath` drift through `ISSUE-002`; do not change or infer live settings without an authorized control path.
+3. Keep TASK-20260930-0002 (AI level strength calibration) PAUSED through v1.0; its evidence and next-seed work are research-only, not release gates.
+4. Keep Repository / CI / Render state verification grounded in directly observed evidence; an explicitly returned empty value is Observed, while an omitted value remains Unknown.
+5. Use Governance simplicity/evidence semantics for future operational changes; do not add automation layers without a demonstrated gap.
+6. Continue future development under `projects/<project>/` using the finalized common Governance.
 
 ## Next Development Candidates
 
