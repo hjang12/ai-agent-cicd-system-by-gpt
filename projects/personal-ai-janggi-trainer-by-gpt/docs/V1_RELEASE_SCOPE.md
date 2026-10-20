@@ -96,13 +96,13 @@ v1.0 is complete only when all applicable gates below pass.
 
 ### Quality and deployment
 
-- [ ] `python -m compileall janggi tests tools` passes.
-- [ ] `python tools/validate_requirement_contracts.py` passes.
-- [ ] `python -m unittest discover -s tests -v` passes.
-- [ ] Run the required Workspace validation and Janggi validation CI on the release candidate.
+- [x] `python -m compileall janggi tests tools` passes.
+- [x] `python tools/validate_requirement_contracts.py` passes.
+- [x] `python -m unittest discover -s tests -v` passes.
+- [x] Run the required Workspace validation and Janggi validation CI on the release candidate (PR #146 checks passed; see checkpoint for run IDs).
 - [ ] Verify the Render service is live and the `/api/health` check/configuration is consistent.
 - [ ] Perform the available post-deploy smoke test against the live app; distinguish any test the Agent cannot execute from a test that passed.
-- [ ] Update release notes/current status/checkpoint so implemented, verified and deferred features are clearly separated.
+- [x] Update release notes/current status/checkpoint so implemented, verified and deferred features are clearly separated.
 
 ## 6. Explicit non-goals
 
@@ -119,9 +119,9 @@ The following are not part of v1.0 and must not keep the release open:
 
 Research code and existing calibration artifacts may remain in the repository. A module marked **DO NOT USE** is excluded from the v1.0 product flow; it does not imply a required source-code deletion.
 
-## 7. Estimated remaining effort
+## 7. Estimate note
 
-A reasonable planning estimate after this scope decision is **approximately 10–16 hours of engineering work**, assuming no major gameplay defect is found. This includes implementing minimal browser-local growth tracking, final integration/regression work, deployment checks and documentation. It is an estimate of active work, not a promise about elapsed time.
+The **10–16 hour** figure was a planning estimate made when the v1.0 scope was defined on 2026-10-20, before visible learning surfaces and browser-local progress were implemented. It is not a current remaining-time estimate. Current open work is determined by the unchecked acceptance criteria above: real gameplay/learning-flow smoke, browser storage recovery verification, authorized closure of live Render `healthCheckPath` drift, and post-deploy verification.
 
 ## 8. Final decision rule
 
