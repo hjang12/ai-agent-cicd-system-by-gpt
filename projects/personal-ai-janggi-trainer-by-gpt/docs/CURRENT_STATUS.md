@@ -315,3 +315,11 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 - Retested `https://personal-ai-janggi-trainer.onrender.com/` and `/api/health`: the connected web tool says the URLs are inaccessible. To distinguish a hostname-specific issue from a general runtime problem, shell DNS was also queried for `google.com`, `github.com`, and `status.render.com`; all four domains failed resolution, and `curl` to both the app and `github.com` exited 6 (`Could not resolve host`). The runtime cannot currently reach even a control domain, so no HTTP status/body was received; this does **not** prove the application is down.
 - Render service control-plane metadata still says the service is not suspended and deploy `dep-dbbf251srm7s73858b5g` is `live`. Request logs and HTTP metrics for 2026-10-20 06:45–07:30 UTC returned no records; this is inconclusive, not proof that users have made no requests.
 - Updated assessment: the failure currently reproduces in the agent's own name-resolution/access path, while there is no corroborating evidence of a Render-wide outage. Keep per-service public HTTP and real-browser acceptance **unverified** until tested from an independent external client. The empty live `healthCheckPath` remains a configuration mismatch, but it is not evidence that it caused this DNS resolution failure.
+
+
+## 2026-10-20 — user confirms the public Render endpoints work
+
+- After agent-runtime DNS failures affected the Janggi hostname and unrelated domains, the user opened both the app root and `/api/health` in their own browser and confirmed that both worked.
+- This is user-reported evidence that the service was publicly reachable at the time of the check. It corrects the earlier assessment that individual service reachability was wholly unknown; it does not amount to a full automated check by the agent or verify interactive gameplay/learning flows.
+- The agent-runtime DNS failure remains independently reproducible across unrelated domains. Do not describe it as a Render outage or change app code solely to address it.
+- The live service's empty `healthCheckPath` versus `render.yaml`'s `/api/health` remains a separate configuration-consistency item. No live service setting has been changed.

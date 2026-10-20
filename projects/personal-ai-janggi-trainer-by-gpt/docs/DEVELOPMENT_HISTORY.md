@@ -2405,3 +2405,11 @@ This closes the current requested UI refinement scope. Future UI changes should 
 ### Assessment
 - The observed failure is at the agent runtime's DNS/access layer and is more consistent with an execution-environment/network-resolution limitation than a confirmed Render-wide outage. Do not label the app down based on these failed probes.
 - The endpoint's public availability and interactive user flow still need an independent successful HTTP/browser test. The empty `healthCheckPath` is a separate configuration mismatch; there is no evidence it caused the DNS lookup failure.
+
+
+## 2026-10-20 — user verified public app and health endpoint access
+
+- User opened `https://personal-ai-janggi-trainer.onrender.com/` and `https://personal-ai-janggi-trainer.onrender.com/api/health` in their own browser and reported both were working.
+- This resolves the immediate uncertainty about whether the agent's failed probe proved an app outage: it did not. DNS lookup and `curl` failed in the agent runtime for the Janggi domain and unrelated domains (`google.com`, `github.com`, and `status.render.com`), before an HTTP response. Classify those failures as an agent-runtime access/DNS problem rather than a confirmed Render incident.
+- Scope boundary: user confirmation verifies basic public access only; full gameplay, AI turn feedback, analysis/review/training, local progress persistence and recovery still require evidence. Do not mark those browser acceptance tests as passed.
+- Render metadata still reports empty `healthCheckPath` while repository `render.yaml` declares `/api/health`. Keep that configuration mismatch separate from the runtime DNS error; no setting was changed during this check.
