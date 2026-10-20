@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: finalize Personal AI Janggi Trainer v1.0 according to [docs/V1_RELEASE_SCOPE.md](./V1_RELEASE_SCOPE.md). The six-level statistical calibration research task is paused and is not a release gate. The product still needs browser-local cumulative growth tracking, final CI/release-smoke verification, and resolution or verification of the live Render health-check-path drift. Main is `7e62b04f5d8ad8794e58e75157480cedd3a1bb37`; the app service was observed `live` on Render after that commit. Existing pair 2-3 evidence is preserved as research evidence only; do not claim all six levels are calibrated.
+- Current priority: finalize Personal AI Janggi Trainer v1.0 according to [docs/V1_RELEASE_SCOPE.md](./V1_RELEASE_SCOPE.md). The six-level statistical calibration research task is paused and is not a release gate. Code review found analysis/review/training output nodes are still inside hidden compatibility markup and therefore require visible UI wiring before v1.0. The product also needs browser-local cumulative growth tracking, final CI/release-smoke verification, and resolution or verification of the live Render health-check-path drift. Main is `7e62b04f5d8ad8794e58e75157480cedd3a1bb37`; the app service was observed `live` on Render after that commit. Existing pair 2-3 evidence is preserved as research evidence only; do not claim all six levels are calibrated.
 
 ## Implemented Capability
 
