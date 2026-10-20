@@ -289,10 +289,35 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
             re.compile(r"\bvisible\b"), timeout=3_000
         )
         expect(self.page.locator("#analysis-open")).to_be_visible(timeout=3_000)
+        before_analysis_state = self._state()
         self.page.locator("#analysis-open").click()
         expect(self.page.locator("#learning-modal")).to_be_visible(timeout=5_000)
         expect(self.page.locator("#analysis")).to_be_visible()
         self.assertIn("착수 분석", self.page.locator("#learning-modal-title").inner_text())
+        after_analysis_state = self._state()
+        self.assertEqual(before_analysis_state["status"], after_analysis_state["status"])
+        self.assertEqual(before_analysis_state["state"], after_analysis_state["state"])
+        self.page.locator("#learning-close").click()
+        self._wait_for_side_to_move("cho")
+
+    def test_ai_api_error_clears_thinking_overlay_and_recovers_the_board(self) -> None:
+        self.page.route("**/api/engine/move", lambda route: route.abort())
+        self._start_game(level="1", side="cho", setup="classic")
+        move = self._first_legal_move()
+        self._play_move(move)
+
+        self.page.wait_for_function(
+            "() => document.querySelector('#heading')?.textContent === 'AI 응수 상태 확인'",
+            timeout=20_000,
+        )
+        expect(self.page.locator("#board .board-message")).not_to_have_class(
+            re.compile(r"\\bvisible\\b"), timeout=3_000
+        )
+        self.assertIn("AI 응수 상태를 다시 확인했습니다.", self.page.locator("#game-message").inner_text())
+        recovered = self._state()
+        self.assertEqual("playing", recovered["status"])
+        self.assertEqual("han", recovered["state"]["turn"])
+        self.assertEqual(1, len(recovered["state"]["history"]))
 
     def test_review_training_answer_and_local_progress_persist_after_reload(self) -> None:
         human_move_count = {"value": 0}
