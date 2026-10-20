@@ -807,7 +807,8 @@ class TestV1LearningProgressUiContract(unittest.TestCase):
     def test_browser_local_progress_is_versioned_and_idempotent(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("personal-ai-janggi-progress-v1", html)
-        self.assertIn("version: 1, games: [], trainingDays: []", html)
+        self.assertIn("version: 1,", html)
+        self.assertIn("totals: {games: 0, wins: 0, draws: 0, losses: 0, trainingAttempts: 0, trainingCorrect: 0}", html)
         self.assertIn("window.localStorage.getItem(PROGRESS_STORAGE_KEY)", html)
         self.assertIn("window.localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progressData))", html)
         self.assertIn("if (progressData.games.some(game => game.gameId === gameId)) return;", html)
