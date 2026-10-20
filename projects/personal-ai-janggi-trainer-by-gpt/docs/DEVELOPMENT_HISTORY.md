@@ -2393,3 +2393,15 @@ This closes the current requested UI refinement scope. Future UI changes should 
 - Retrieved and read Render's official [Health Checks documentation](https://render.com/docs/health-checks). For a web service, the documented Dashboard path is service Settings → Health Checks → Edit → specify a path beginning with `/` → Save Changes. The intended path for this service is `/api/health`, already declared in repository `render.yaml` and implemented by `app.py`.
 - The existing service metadata still reports an empty `healthCheckPath`. The connected Render integration can read the service but exposes no update operation for this setting, and this runtime has no authenticated Dashboard UI control. No Render setting was changed.
 - Next authorized control step is to apply that documented Dashboard change, then confirm metadata and deploy status and verify a live `GET /api/health` returns a successful `2xx` or `3xx` response. Separately, perform the complete browser smoke; neither check is passed by the deploy's `live` status alone.
+
+
+## 2026-10-20 — recheck after suspected Render access error
+
+### New evidence
+- Render's official status page reported all systems operational with no incident reported on Oct 20, 2026 ([status.render.com](https://status.render.com/)). This global status does not guarantee this service's availability.
+- The agent runtime retried the public root and `/api/health` endpoints. The web tool could not open either URL; local shell name resolution returned no address and `curl` failed before receiving an HTTP response with `Could not resolve host` (exit code 6).
+- Render control-plane reads still show the service not suspended and deployment `dep-dbbf251srm7s73858b5g` as `live`. No newer deploy failure was present in the event history. Queried HTTP request logs and metrics returned no data for 06:45–07:30 UTC; this observation is inconclusive.
+
+### Assessment
+- The observed failure is at the agent runtime's DNS/access layer and is more consistent with an execution-environment/network-resolution limitation than a confirmed Render-wide outage. Do not label the app down based on these failed probes.
+- The endpoint's public availability and interactive user flow still need an independent successful HTTP/browser test. The empty `healthCheckPath` is a separate configuration mismatch; there is no evidence it caused the DNS lookup failure.
