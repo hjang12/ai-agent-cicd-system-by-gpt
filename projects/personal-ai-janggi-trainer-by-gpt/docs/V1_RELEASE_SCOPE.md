@@ -24,11 +24,11 @@ Percentages below are engineering estimates of current implementation maturity, 
 | Browser/API session boundary | 90% | **USE** | Isolate browser sessions; handle failed responses without leaving stale or invalid board state |
 | Search-based gameplay AI | 80% | **USE** | Return a legal move when one is available, respect bounded search, expose thinking/error states, preserve engine/domain boundary |
 | Six selectable AI profiles | 90% | **USE, WITH LIMITATION** | All six distinct search configurations remain selectable. Do not claim that the six profiles are a fully calibrated strength ladder |
-| Move analysis and coaching | 85% | **USE** | Analyze a played legal move without mutating the match; keep recommendations validated and explanations appropriately conservative |
-| Game review | 85% | **USE** | Replay the current completed record and summarize reviewed moves/reasons |
-| Position training and answer checking | 80% | **USE** | Generate valid problems from reviewed positions, check answers, and show explanations |
-| Training metrics and adaptive selection | 75% | **USE** | Preserve attempt/correctness metrics and session-level problem prioritization; add v1.0 cumulative progress storage below |
-| Personal assessment and growth tracking | 35% | **USE — MINIMAL VERSION REQUIRED** | Store completed-game results by AI level and training attempt/correctness totals in browser-local storage; show cumulative results and simple progress |
+| Move analysis and coaching | 70% | **USE** | Analyze a played legal move without mutating the match; keep recommendations validated and explanations appropriately conservative |
+| Game review | 60% | **USE** | Replay the current completed record and summarize reviewed moves/reasons |
+| Position training and answer checking | 60% | **USE** | Generate valid problems from reviewed positions, check answers, and show explanations |
+| Training metrics and adaptive selection | 65% | **USE** | Preserve attempt/correctness metrics and session-level problem prioritization; add v1.0 cumulative progress storage below |
+| Personal assessment and growth tracking | 20% | **USE — MINIMAL VERSION REQUIRED** | Store completed-game results by AI level and training attempt/correctness totals in browser-local storage; show cumulative results and simple progress |
 | Player Elo / numerical skill rating | 20% | **DO NOT USE IN v1.0** | Do not show a numeric rating until the opponent rating and relevant AI-level evidence are calibrated |
 | Self-play and training-dataset generation | 75% | **DO NOT USE IN THE PRODUCT FLOW** | Retain the research code and existing artifacts; no additional dataset generation is required to ship v1.0 |
 | Learned policy/value model and production model promotion | 40% | **DO NOT USE IN v1.0** | Existing baseline search remains the production AI; no learned-model integration is a release dependency |
@@ -77,6 +77,13 @@ v1.0 is complete only when all applicable gates below pass.
 - [ ] Verify turn enforcement, legal move validation, check/bikjang/terminal presentation, undo and replay/reset.
 - [ ] Verify results are recorded only once after a completed game.
 
+### User-visible learning surfaces
+
+- [ ] Move analysis/coaching details, review summaries and training problems/answer feedback are shown in a real visible panel or modal with readable headings and labels.
+- [ ] Post-game review/training buttons reveal the corresponding content and let the user return to the game/setup flow.
+- [ ] These panels are not left only inside the hidden runtime-compatibility container; the visible controls operate on the same authoritative result data.
+- [ ] Opening/closing the learning view preserves the game result and does not start/reset a game.
+
 ### Learning and progress
 
 - [ ] Verify analysis does not mutate the active match and invalid engine recommendations are never applied.
@@ -113,7 +120,7 @@ Research code and existing calibration artifacts may remain in the repository. A
 
 ## 7. Estimated remaining effort
 
-A reasonable planning estimate after this scope decision is **approximately 7–12 hours of engineering work**, assuming no major gameplay defect is found. This includes implementing minimal browser-local growth tracking, final integration/regression work, deployment checks and documentation. It is an estimate of active work, not a promise about elapsed time.
+A reasonable planning estimate after this scope decision is **approximately 10–16 hours of engineering work**, assuming no major gameplay defect is found. This includes implementing minimal browser-local growth tracking, final integration/regression work, deployment checks and documentation. It is an estimate of active work, not a promise about elapsed time.
 
 ## 8. Final decision rule
 
