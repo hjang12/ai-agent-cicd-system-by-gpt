@@ -5,6 +5,7 @@
 - Synchronized Governance current status, development task registry and history with the actual evaluator result and actual idle log. This was a task-state synchronization only; no new Governance efficiency rule was added.
 - Confirmed `main` remains `7e62b04f5d8ad8794e58e75157480cedd3a1bb37`; the evidence branch is ahead and has no active PR. Latest recorded Workspace/Janggi CI runs are green on `main`, but this evidence branch has no current-head CI run because no PR has been opened.
 - The two local recovery JSON files are still absent from the branch due to the blocked GitHub write. That restriction was not bypassed. No new calibration batch was launched and public AI levels/search budgets are unchanged.
+- Also inspected pre-existing draft PR #119. Its push-triggered run `37704139574` succeeded and produced one protocol-v1 seed-20261020 sample (8 games): Lv.5 won all 8 against the proposed Lv.6 1200ms candidate. It uses source `d4acc992228c184e9bb3c539f9589704f2800518` and fingerprint `2ad316...`, so it is incompatible with the current protocol-v3 cohort and does not meet the 20-game / 2-seed thresholds. The PR body says `Do not merge`; main still uses the 800ms Lv.6 budget. The separate evidence is documented in `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md`; no PR state or public config was changed.
 
 ---
 
