@@ -300,6 +300,44 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
         self.page.locator("#learning-close").click()
         self._wait_for_side_to_move("cho")
 
+    def test_check_message_is_visible_after_ai_reply(self) -> None:
+        def inject_check(route: Any) -> None:
+            response = route.fetch()
+            payload = response.json()
+            payload["snapshot"]["in_check"] = True
+            route.fulfill(response=response, json=payload)
+
+        self.page.route("**/api/engine/move", inject_check)
+        self._start_game(level="1", side="cho", setup="classic")
+        self._play_move(self._first_legal_move())
+
+        self.page.wait_for_function(
+            "() => document.querySelector('#game-message')?.textContent.includes('장군!')",
+            timeout=20_000,
+        )
+        expect(self.page.locator("#board .board-message")).to_have_class(
+            re.compile(r"\\bvisible\\b"), timeout=3_000
+        )
+        self.assertIn("장군!", self.page.locator("#board .board-message-title").inner_text())
+
+    def test_bikjang_terminal_message_is_visible(self) -> None:
+        def inject_bikjang(route: Any) -> None:
+            response = route.fetch()
+            payload = response.json()
+            payload["snapshot"]["status"] = "draw_bikjang"
+            route.fulfill(response=response, json=payload)
+
+        self.page.route("**/api/engine/move", inject_bikjang)
+        self._start_game(level="1", side="cho", setup="classic")
+        self._play_move(self._first_legal_move())
+
+        expect(self.page.locator("#match-result")).to_be_visible(timeout=20_000)
+        self.assertIn("무승부", self.page.locator("#match-result-title").inner_text())
+        expect(self.page.locator("#board .board-message")).to_have_class(
+            re.compile(r"\\bvisible\\b"), timeout=3_000
+        )
+        self.assertIn("빅장으로 무승부", self.page.locator("#board .board-message-title").inner_text())
+
     def test_ai_api_error_clears_thinking_overlay_and_recovers_the_board(self) -> None:
         self.page.route("**/api/engine/move", lambda route: route.abort())
         self._start_game(level="1", side="cho", setup="classic")
@@ -352,12 +390,15 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
         saved = self.page.evaluate("(key) => JSON.parse(window.localStorage.getItem(key))", PROGRESS_KEY)
         self.assertEqual(1, saved["totals"]["games"], "One completed game should be recorded")
         self.assertEqual(1, len(saved["games"]), "The completed game detail should be idempotent")
+        self.assertEqual("1", saved["games"][0]["level"], "The result must retain the selected AI level")
 
         self.page.locator("#postgame-review").click()
         expect(self.page.locator("#learning-modal")).to_be_visible(timeout=20_000)
         expect(self.page.locator("#review-panel")).to_be_visible()
         self.assertGreater(int(self.page.locator("#reviewed-count").inner_text()), 0)
         self.page.locator("#learning-close").click()
+        expect(self.page.locator("#match-result")).to_be_visible()
+        self.assertIn("승리", self.page.locator("#match-result-title").inner_text())
 
         self.page.locator("#postgame-training").click()
         expect(self.page.locator("#learning-modal")).to_be_visible(timeout=20_000)
@@ -396,6 +437,7 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
         saved = self.page.evaluate("(key) => JSON.parse(window.localStorage.getItem(key))", PROGRESS_KEY)
         self.assertEqual(1, saved["totals"]["trainingAttempts"])
         self.assertEqual(1, saved["totals"]["trainingCorrect"])
+        self.assertEqual("100%", self.page.locator("#training-accuracy").inner_text())
         self.assertEqual(1, saved["totals"]["games"], "Repeated renders must not record the same completed game twice")
         self.assertEqual(1, len(saved["games"]), "Completed-game history must remain idempotent")
 
@@ -405,6 +447,9 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
         self.page.locator("#progress-open").click()
         expect(self.page.locator("#progress-modal")).to_be_visible(timeout=5_000)
         self.assertIn("1전", self.page.locator("#progress-summary").inner_text())
+        level_history = self.page.locator("#progress-level-list").inner_text()
+        self.assertIn("Lv.1 입문", level_history)
+        self.assertIn("1전 · 1승 0무 0패", level_history)
         self.page.locator("#progress-close").click()
 
         self.page.reload(wait_until="domcontentloaded")
