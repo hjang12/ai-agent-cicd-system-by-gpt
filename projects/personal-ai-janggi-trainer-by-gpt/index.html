@@ -731,7 +731,12 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
     }
 
     function emptyProgressData() {
-      return {version: 1, games: [], trainingDays: []};
+      return {
+        version: 1,
+        games: [],
+        trainingDays: [],
+        totals: {games: 0, wins: 0, draws: 0, losses: 0, trainingAttempts: 0, trainingCorrect: 0}
+      };
     }
 
     function createLocalId() {
@@ -787,7 +792,21 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         nonNegativeInteger(day.correct) !== null && day.correct <= day.attempts
       ).map(day => ({date: day.date, attempts: day.attempts, correct: day.correct}))
         .sort((a,b) => a.date.localeCompare(b.date)).slice(-MAX_SAVED_TRAINING_DAYS);
-      return {version: 1, games, trainingDays};
+      const storedTotals = parsed.totals && typeof parsed.totals === 'object' ? parsed.totals : {};
+      const storedCount = (key, fallback) => nonNegativeInteger(storedTotals[key]) ?? fallback;
+      const trainingFromHistory = trainingDays.reduce((total, day) => ({
+        attempts: total.attempts + day.attempts,
+        correct: total.correct + day.correct
+      }), {attempts: 0, correct: 0});
+      const totals = {
+        games: Math.max(games.length, storedCount('games', games.length)),
+        wins: Math.max(games.filter(game => game.outcome === 'win').length, storedCount('wins', games.filter(game => game.outcome === 'win').length)),
+        draws: Math.max(games.filter(game => game.outcome === 'draw').length, storedCount('draws', games.filter(game => game.outcome === 'draw').length)),
+        losses: Math.max(games.filter(game => game.outcome === 'loss').length, storedCount('losses', games.filter(game => game.outcome === 'loss').length)),
+        trainingAttempts: Math.max(trainingFromHistory.attempts, storedCount('trainingAttempts', trainingFromHistory.attempts)),
+        trainingCorrect: Math.max(trainingFromHistory.correct, storedCount('trainingCorrect', trainingFromHistory.correct))
+      };
+      return {version: 1, games, trainingDays, totals};
     }
 
     function saveProgressData() {
@@ -823,6 +842,8 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         setup: String(currentSnapshot.setup || 'classic'), outcome, resultStatus: currentSnapshot.status,
         moveCount: Array.isArray(currentSnapshot.state?.history) ? currentSnapshot.state.history.length : 0
       });
+      progressData.totals.games += 1;
+      progressData.totals[outcome === 'win' ? 'wins' : outcome === 'draw' ? 'draws' : 'losses'] += 1;
       progressData.games = progressData.games.slice(-MAX_SAVED_GAMES);
       saveProgressData();
     }
@@ -837,23 +858,23 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       }
       day.attempts += 1;
       if (correct) day.correct += 1;
+      progressData.totals.trainingAttempts += 1;
+      if (correct) progressData.totals.trainingCorrect += 1;
       progressData.trainingDays = progressData.trainingDays.sort((a,b) => a.date.localeCompare(b.date))
         .slice(-MAX_SAVED_TRAINING_DAYS);
       saveProgressData();
     }
 
     function getProgressTotals() {
-      const training = progressData.trainingDays.reduce((total, day) => ({
-        attempts: total.attempts + day.attempts, correct: total.correct + day.correct
-      }), {attempts: 0, correct: 0});
+      const totals = progressData.totals;
       return {
-        games: progressData.games.length,
-        wins: progressData.games.filter(game => game.outcome === 'win').length,
-        draws: progressData.games.filter(game => game.outcome === 'draw').length,
-        losses: progressData.games.filter(game => game.outcome === 'loss').length,
-        trainingAttempts: training.attempts,
-        trainingCorrect: training.correct,
-        trainingAccuracy: training.attempts ? training.correct / training.attempts : null
+        games: totals.games,
+        wins: totals.wins,
+        draws: totals.draws,
+        losses: totals.losses,
+        trainingAttempts: totals.trainingAttempts,
+        trainingCorrect: totals.trainingCorrect,
+        trainingAccuracy: totals.trainingAttempts ? totals.trainingCorrect / totals.trainingAttempts : null
       };
     }
 
@@ -913,8 +934,13 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       });
 
       progressTrainingList.replaceChildren();
-      const recentTraining = [...progressData.trainingDays].reverse().slice(0, 7);
-      if (!recentTraining.length) appendEmptyMessage(progressTrainingList, '아직 훈련 답안을 제출하지 않았습니다.');
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - 6);
+      const cutoffKey = localDateKey(cutoffDate);
+      const recentTraining = [...progressData.trainingDays]
+        .filter(day => day.date >= cutoffKey)
+        .sort((a,b) => b.date.localeCompare(a.date));
+      if (!recentTraining.length) appendEmptyMessage(progressTrainingList, '최근 7일 동안 제출한 훈련 답안이 없습니다.');
       recentTraining.forEach(day => {
         const item = document.createElement('li');
         const rate = day.attempts ? Math.round(day.correct / day.attempts * 100) + '%' : '기록 없음';
