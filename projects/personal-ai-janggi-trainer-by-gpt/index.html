@@ -276,7 +276,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         <button id="learning-close" class="utility-close" type="button" aria-label="학습 창 닫기">닫기</button>
       </header>
       <div class="utility-content" id="learning-content">
-        <section id="analysis-section" class="learning-section" hidden>
+        <section id="analysis" class="learning-section" hidden>
           <h3>착수 분석</h3>
           <div class="analysis-grid">
             <div class="analysis-field"><span>내가 둔 수</span><strong id="played">—</strong></div>
@@ -290,7 +290,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
           <p class="analysis-copy" id="pv"></p>
           <div id="next-action" class="analysis-copy" hidden><strong>다음 행동:</strong> <span id="action-text"></span></div>
         </section>
-        <section id="review-section" class="learning-section" hidden>
+        <section id="review-panel" class="learning-section" hidden>
           <h3>대국 복기</h3>
           <p class="analysis-copy"><strong>검토한 착수:</strong> <span id="reviewed-count">0</span> · <strong>건너뛴 착수:</strong> <span id="review-skipped">0</span></p>
           <h4>실수·전술 신호</h4><ul id="review-reasons"></ul>
@@ -429,9 +429,25 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
     const matchResult = document.querySelector('#match-result');
     const matchResultTitle = document.querySelector('#match-result-title');
     const matchResultBadge = document.querySelector('#match-result-badge');
-    const matchResultRating = document.querySelector('#match-result-rating');
-    const matchResultDelta = document.querySelector('#match-result-delta');
-    const matchResultOpponent = document.querySelector('#match-result-opponent');
+    const matchResultLevel = document.querySelector('#match-result-level');
+    const matchResultRecord = document.querySelector('#match-result-record');
+    const matchResultTraining = document.querySelector('#match-result-training');
+    const analysisOpen = document.querySelector('#analysis-open');
+    const progressOpen = document.querySelector('#progress-open');
+    const learningModal = document.querySelector('#learning-modal');
+    const learningModalTitle = document.querySelector('#learning-modal-title');
+    const learningModalSubtitle = document.querySelector('#learning-modal-subtitle');
+    const learningClose = document.querySelector('#learning-close');
+    const learningTrainFromReview = document.querySelector('#learning-train-from-review');
+    const learningTrainClose = document.querySelector('#learning-train-close');
+    const progressModal = document.querySelector('#progress-modal');
+    const progressClose = document.querySelector('#progress-close');
+    const progressCloseBottom = document.querySelector('#progress-close-bottom');
+    const progressNote = document.querySelector('#progress-note');
+    const progressSummary = document.querySelector('#progress-summary');
+    const progressLevelList = document.querySelector('#progress-level-list');
+    const progressGameList = document.querySelector('#progress-game-list');
+    const progressTrainingList = document.querySelector('#progress-training-list');
     const matchResultNote = document.querySelector('#match-result-note');
     const postgameReview = document.querySelector('#postgame-review');
     const postgameTraining = document.querySelector('#postgame-training');
@@ -484,6 +500,9 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
     const sideOptions = [...document.querySelectorAll('[data-side]')];
     const setupOptions = [...document.querySelectorAll('[data-setup]')];
     let lastMoveCoaching = null;
+    let latestMoveAnalysis = null;
+    let latestReviewResult = null;
+    let hasTrainingResults = false;
     let snapshot = null;
     let selected = null;
     let busy = false;
@@ -491,6 +510,14 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
     let activeTrainingProblem = null;
     let trainingPosition = null;
     let pendingPlayerMove = null;
+
+    const PROGRESS_STORAGE_KEY = 'personal-ai-janggi-progress-v1';
+    const MAX_SAVED_GAMES = 100;
+    const MAX_SAVED_TRAINING_DAYS = 365;
+    let progressStorageAvailable = true;
+    let progressNotice = '대국 결과와 훈련 성과는 이 브라우저에만 저장됩니다. 다른 브라우저나 기기와 동기화되지 않습니다.';
+    let progressData = loadProgressData();
+    let activeClientGameId = createLocalId();
     let boardMessage = {title:'', subtitle:'', thinking:false};
     let boardMessageTimer = null;
     let boardMessageToken = 0;
@@ -703,9 +730,242 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       return pieceMoveHints[piece.kind] || '이 기물의 이동 규칙에 맞지 않는 수입니다.';
     }
 
+    function emptyProgressData() {
+      return {version: 1, games: [], trainingDays: []};
+    }
+
+    function createLocalId() {
+      try {
+        if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+      } catch {}
+      return 'local-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+    }
+
+    function localDateKey(date = new Date()) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return year + '-' + month + '-' + day;
+    }
+
+    function nonNegativeInteger(value) {
+      return Number.isInteger(value) && value >= 0 ? value : null;
+    }
+
+    function loadProgressData() {
+      let raw;
+      try { raw = window.localStorage.getItem(PROGRESS_STORAGE_KEY); }
+      catch {
+        progressStorageAvailable = false;
+        progressNotice = '브라우저 저장 기능을 사용할 수 없어 현재 세션에서만 기록됩니다.';
+        return emptyProgressData();
+      }
+      if (!raw) return emptyProgressData();
+      let parsed;
+      try { parsed = JSON.parse(raw); }
+      catch {
+        progressNotice = '이전에 저장된 기록을 읽을 수 없어 새 기록부터 시작합니다.';
+        return emptyProgressData();
+      }
+      if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.games) || !Array.isArray(parsed.trainingDays)) {
+        progressNotice = '저장된 기록 형식이 달라 새 기록부터 시작합니다.';
+        return emptyProgressData();
+      }
+      const games = parsed.games.filter(game =>
+        game && typeof game.gameId === 'string' && typeof game.date === 'string' &&
+        ['1','2','3','4','5','6'].includes(String(game.level)) &&
+        ['win','draw','loss'].includes(game.outcome) &&
+        ['cho','han'].includes(game.side) && typeof game.setup === 'string' &&
+        nonNegativeInteger(game.moveCount) !== null
+      ).map(game => ({
+        gameId: game.gameId, date: game.date, level: String(game.level), side: game.side,
+        setup: game.setup, outcome: game.outcome, resultStatus: String(game.resultStatus || ''),
+        moveCount: game.moveCount
+      })).slice(-MAX_SAVED_GAMES);
+      const trainingDays = parsed.trainingDays.filter(day =>
+        day && typeof day.date === 'string' && nonNegativeInteger(day.attempts) !== null &&
+        nonNegativeInteger(day.correct) !== null && day.correct <= day.attempts
+      ).map(day => ({date: day.date, attempts: day.attempts, correct: day.correct}))
+        .sort((a,b) => a.date.localeCompare(b.date)).slice(-MAX_SAVED_TRAINING_DAYS);
+      return {version: 1, games, trainingDays};
+    }
+
+    function saveProgressData() {
+      try {
+        window.localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progressData));
+        progressStorageAvailable = true;
+        return true;
+      } catch {
+        progressStorageAvailable = false;
+        progressNotice = '브라우저 저장 공간을 사용할 수 없어 기록을 이 세션에만 유지합니다.';
+        return false;
+      }
+    }
+
+    function progressOutcome(status, side) {
+      if (typeof status !== 'string' || status === 'playing') return null;
+      if (status.startsWith('draw_')) return 'draw';
+      if (status === 'cho_win') return side === 'cho' ? 'win' : 'loss';
+      if (status === 'han_win') return side === 'han' ? 'win' : 'loss';
+      return null;
+    }
+
+    function recordCompletedGame(currentSnapshot) {
+      if (!currentSnapshot || currentSnapshot.status === 'playing') return;
+      const outcome = progressOutcome(currentSnapshot.status, currentSnapshot.player_side);
+      if (!outcome) return;
+      const gameId = typeof currentSnapshot.assessment?.last_game?.game_id === 'string'
+        ? currentSnapshot.assessment.last_game.game_id : activeClientGameId;
+      if (progressData.games.some(game => game.gameId === gameId)) return;
+      progressData.games.push({
+        gameId, date: localDateKey(), level: String(currentSnapshot.ai_level || '1'),
+        side: currentSnapshot.player_side === 'han' ? 'han' : 'cho',
+        setup: String(currentSnapshot.setup || 'classic'), outcome, resultStatus: currentSnapshot.status,
+        moveCount: Array.isArray(currentSnapshot.state?.history) ? currentSnapshot.state.history.length : 0
+      });
+      progressData.games = progressData.games.slice(-MAX_SAVED_GAMES);
+      saveProgressData();
+    }
+
+    function recordTrainingAttempt(correct) {
+      if (typeof correct !== 'boolean') return;
+      const date = localDateKey();
+      let day = progressData.trainingDays.find(item => item.date === date);
+      if (!day) {
+        day = {date, attempts: 0, correct: 0};
+        progressData.trainingDays.push(day);
+      }
+      day.attempts += 1;
+      if (correct) day.correct += 1;
+      progressData.trainingDays = progressData.trainingDays.sort((a,b) => a.date.localeCompare(b.date))
+        .slice(-MAX_SAVED_TRAINING_DAYS);
+      saveProgressData();
+    }
+
+    function getProgressTotals() {
+      const training = progressData.trainingDays.reduce((total, day) => ({
+        attempts: total.attempts + day.attempts, correct: total.correct + day.correct
+      }), {attempts: 0, correct: 0});
+      return {
+        games: progressData.games.length,
+        wins: progressData.games.filter(game => game.outcome === 'win').length,
+        draws: progressData.games.filter(game => game.outcome === 'draw').length,
+        losses: progressData.games.filter(game => game.outcome === 'loss').length,
+        trainingAttempts: training.attempts,
+        trainingCorrect: training.correct,
+        trainingAccuracy: training.attempts ? training.correct / training.attempts : null
+      };
+    }
+
+    function appendProgressStat(label, value) {
+      const card = document.createElement('div');
+      card.className = 'progress-stat';
+      const name = document.createElement('span');
+      name.textContent = label;
+      const total = document.createElement('strong');
+      total.textContent = value;
+      card.append(name, total);
+      progressSummary.append(card);
+    }
+
+    function appendEmptyMessage(list, message) {
+      const item = document.createElement('li');
+      item.textContent = message;
+      list.append(item);
+    }
+
+    function renderProgressView() {
+      const totals = getProgressTotals();
+      progressNote.textContent = progressStorageAvailable
+        ? progressNotice
+        : '브라우저 저장 기능을 사용할 수 없어 기록은 현재 세션에서만 보존됩니다. 새로고침 후 유지되지 않을 수 있습니다.';
+      progressSummary.replaceChildren();
+      appendProgressStat('누적 대국', totals.games + '전');
+      appendProgressStat('승 · 무 · 패', totals.wins + ' · ' + totals.draws + ' · ' + totals.losses);
+      appendProgressStat('훈련 시도', totals.trainingAttempts + '회');
+      appendProgressStat('훈련 정답률', totals.trainingAccuracy === null ? '기록 없음' : Math.round(totals.trainingAccuracy * 100) + '%');
+
+      progressLevelList.replaceChildren();
+      const names = {'1':'입문','2':'초급','3':'중급','4':'고급','5':'상급','6':'전문'};
+      const maxGames = Math.max(1, ...['1','2','3','4','5','6'].map(level => progressData.games.filter(game => game.level === level).length));
+      ['1','2','3','4','5','6'].forEach(level => {
+        const games = progressData.games.filter(game => game.level === level);
+        const wins = games.filter(game => game.outcome === 'win').length;
+        const draws = games.filter(game => game.outcome === 'draw').length;
+        const losses = games.filter(game => game.outcome === 'loss').length;
+        const row = document.createElement('div'); row.className = 'progress-level-row';
+        const label = document.createElement('strong'); label.textContent = 'Lv.' + level + ' ' + names[level];
+        const track = document.createElement('div'); track.className = 'progress-track';
+        const fill = document.createElement('span'); fill.style.width = Math.round(games.length / maxGames * 100) + '%'; track.append(fill);
+        const result = document.createElement('span');
+        result.textContent = games.length ? games.length + '전 · ' + wins + '승 ' + draws + '무 ' + losses + '패' : '기록 없음';
+        row.append(label, track, result); progressLevelList.append(row);
+      });
+
+      progressGameList.replaceChildren();
+      const recentGames = [...progressData.games].reverse().slice(0, 10);
+      if (!recentGames.length) appendEmptyMessage(progressGameList, '아직 완료된 대국이 없습니다.');
+      recentGames.forEach(game => {
+        const item = document.createElement('li');
+        const result = game.outcome === 'win' ? '승리' : game.outcome === 'draw' ? '무승부' : '패배';
+        item.textContent = game.date + ' · Lv.' + game.level + ' ' + names[game.level] + ' · ' + result + ' · ' + game.moveCount + '수';
+        progressGameList.append(item);
+      });
+
+      progressTrainingList.replaceChildren();
+      const recentTraining = [...progressData.trainingDays].reverse().slice(0, 7);
+      if (!recentTraining.length) appendEmptyMessage(progressTrainingList, '아직 훈련 답안을 제출하지 않았습니다.');
+      recentTraining.forEach(day => {
+        const item = document.createElement('li');
+        const rate = day.attempts ? Math.round(day.correct / day.attempts * 100) + '%' : '기록 없음';
+        item.textContent = day.date + ' · ' + day.attempts + '회 시도 · ' + day.correct + '회 정답 · 정답률 ' + rate;
+        progressTrainingList.append(item);
+      });
+    }
+
+    function openProgressModal() {
+      renderProgressView();
+      progressModal.hidden = false;
+      progressModal.setAttribute('aria-hidden', 'false');
+      progressClose.focus();
+    }
+
+    function closeProgressModal() {
+      progressModal.hidden = true;
+      progressModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function showLearningModal(mode) {
+      const config = {
+        analysis: ['착수 분석', '내 수와 기준 AI의 추천을 비교합니다.'],
+        review: ['대국 복기', '최근 착수와 반복된 실수 신호를 확인합니다.'],
+        training: ['포지션 훈련', '복기에서 만든 문제를 풀어봅니다.']
+      }[mode];
+      if (!config) return;
+      if (mode === 'analysis' && !latestMoveAnalysis) return;
+      if (mode === 'review' && !latestReviewResult) return;
+      if (mode === 'training' && !hasTrainingResults) return;
+      analysisPanel.hidden = mode !== 'analysis';
+      reviewPanel.hidden = mode !== 'review';
+      trainingPanel.hidden = mode !== 'training';
+      learningModalTitle.textContent = config[0];
+      learningModalSubtitle.textContent = config[1];
+      learningModal.hidden = false;
+      learningModal.setAttribute('aria-hidden', 'false');
+      learningClose.focus();
+    }
+
+    function closeLearningModal() {
+      learningModal.hidden = true;
+      learningModal.setAttribute('aria-hidden', 'true');
+    }
+
     function updateControls() {
       const canUndo = Boolean(snapshot?.can_undo);
       reset.disabled = busy;
+      progressOpen.disabled = busy;
+      analysisOpen.disabled = busy || !latestMoveAnalysis;
+      analysisOpen.hidden = !latestMoveAnalysis;
       undo.disabled = busy || !canUndo;
       const hasHistory = Boolean(snapshot?.state?.history?.length);
       engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== snapshot?.ai_side;
@@ -718,8 +978,8 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       playerSide.disabled = busy;
       aiLevel.disabled = busy;
       const terminal = snapshot?.status && snapshot.status !== 'playing';
-      postgameReview.disabled = busy || !terminal || !reviewPanel.hidden;
-      postgameTraining.disabled = busy || !terminal || reviewPanel.hidden || !trainingPanel.hidden;
+      postgameReview.disabled = busy || !terminal;
+      postgameTraining.disabled = busy || !terminal;
       postgameReset.disabled = busy || !terminal;
     }
 
@@ -728,6 +988,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       activeTrainingProblem = null;
       trainingPosition = null;
       selected = null;
+      hasTrainingResults = false;
       trainingPanel.hidden = true;
       trainingResult.hidden = true;
       trainingResult.textContent = '';
@@ -750,6 +1011,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       }).join(' · ');
     }
     function renderTrainingProblems(result) {
+      hasTrainingResults = true;
       trainingProblems = result.problems || [];
       activeTrainingProblem = null;
       trainingPosition = null;
@@ -797,6 +1059,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
     function selectTrainingProblem(index) {
       activeTrainingProblem = trainingProblems[index];
       if (!activeTrainingProblem) return;
+      closeLearningModal();
       trainingPosition = {
         status: 'playing',
         state: activeTrainingProblem.state,
@@ -806,13 +1069,14 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       trainingResult.hidden = true;
       trainingResult.textContent = '';
       heading.textContent = '포지션 훈련 · ' + activeTrainingProblem.prompt;
-      status.textContent = '이 포지션에서 더 나은 수를 찾아보세요.';
+      status.textContent = (activeTrainingProblem.prompt || '훈련 포지션') + ' · 더 나은 수를 두세요.';
       render();
     }
 
     function renderTrainingAnswer(result) {
       trainingResult.hidden = false;
       if (result.metrics) renderTrainingMetrics(result.metrics);
+      if (result.legal && typeof result.correct === 'boolean') recordTrainingAttempt(result.correct);
       trainingResult.textContent = result.correct
         ? '정답입니다. ' + result.message
         : (result.legal ? '아쉽습니다. 추천수는 ' + formatMove(result.target_move) + ' 입니다.' : result.message);
@@ -835,6 +1099,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         heading.textContent = '포지션 훈련 문제 준비 완료';
         renderMatchResult();
         renderJourney();
+        showLearningModal('training');
       } catch (error) {
         status.textContent = error.message;
       } finally {
@@ -860,9 +1125,11 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
 
     function renderReview(result) {
       if (!result) {
+        latestReviewResult = null;
         reviewPanel.hidden = true;
         return;
       }
+      latestReviewResult = result;
       reviewPanel.hidden = false;
       reviewedCount.textContent = String(result.reviewed_moves || 0);
       reviewSkipped.textContent = String(result.skipped_moves || 0);
@@ -974,46 +1241,38 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         matchResult.hidden = true;
         return;
       }
+      recordCompletedGame(snapshot);
       matchResult.hidden = false;
-      const assessment = snapshot.assessment || {};
-      const opponent = snapshot.opponent || {};
-      const game = assessment.last_game || null;
+      const level = String(snapshot.ai_level || '1');
+      const levelNames = {'1':'입문','2':'초급','3':'중급','4':'고급','5':'상급','6':'전문'};
       const outcome = playerResultLabel(snapshot);
-      const modelName = opponent.model_id === 'baseline-search' ? '기준 AI' : (opponent.model_id || 'AI');
-      const modelVersion = opponent.model_version ? ' · ' + opponent.model_version : '';
-      matchResultTitle.textContent = outcome ? '내 기준 결과 · ' + outcome : '대국 종료';
-      matchResultBadge.textContent = game?.rating_eligible ? 'Rating 반영' : '결과만 기록';
-      matchResultRating.textContent = assessment.rating ?? '—';
-      matchResultDelta.textContent = game?.rating_eligible
-        ? (game.rating_delta > 0 ? '+' : '') + game.rating_delta
-        : '미평가';
-      matchResultOpponent.textContent = modelName + ' · Lv.' + (opponent.ai_level || snapshot.ai_level || '1');
-      matchResultNote.textContent = game?.rating_eligible
-        ? '상대 model/version' + modelVersion + '과 대국한 시점의 Rating으로 실전 평가에 반영했습니다.'
-        : '현재 AI는 강도 보정 전이므로 이번 결과는 승·무·패와 상대 model/version을 실력 증거로만 기록합니다. numeric Rating은 만들지 않습니다.';
-      postgameReview.textContent = reviewPanel.hidden ? '대국 복기 시작' : '복기 완료';
-      postgameTraining.textContent = trainingPanel.hidden ? '훈련 문제 만들기' : '훈련 진행 중';
+      const totals = getProgressTotals();
+      matchResultTitle.textContent = outcome ? '대국 결과 · ' + outcome : '대국 종료';
+      matchResultBadge.textContent = progressStorageAvailable ? '연습 기록 저장됨' : '현재 세션 기록';
+      matchResultLevel.textContent = 'Lv.' + level + ' ' + (levelNames[level] || 'AI');
+      matchResultRecord.textContent = totals.games + '전 · ' + totals.wins + '승 ' + totals.draws + '무 ' + totals.losses + '패';
+      matchResultTraining.textContent = totals.trainingAccuracy === null ? '기록 없음' :
+        Math.round(totals.trainingAccuracy * 100) + '% (' + totals.trainingAttempts + '회)';
+      matchResultNote.textContent = progressStorageAvailable
+        ? '대국 결과와 훈련 성과는 이 브라우저에 연습 통계로 저장됩니다. AI 난이도별 전적은 내 기록에서 확인할 수 있으며, 실력 Rating은 아직 제공하지 않습니다.'
+        : progressNotice + ' 이번 결과는 저장되지 않을 수 있습니다.';
+      postgameReview.textContent = latestReviewResult ? '복기 다시 보기' : '대국 복기 시작';
+      postgameTraining.textContent = hasTrainingResults ? '훈련 문제 다시 보기' : '훈련 문제 만들기';
       renderJourney();
     }
 
     function renderAssessment(assessment, opponent) {
       const a = assessment || {};
       const o = opponent || {};
-      const hasRating = a.rating !== null && a.rating !== undefined;
-      const ratingText = hasRating ? String(a.rating) : '—';
-      const statusText = assessmentStatusLabel(a.rating_status);
-      playerRating.textContent = hasRating ? ratingText : '평가 준비 중';
-      playerRatingCard.textContent = ratingText;
-      playerRecord.textContent = (a.wins || 0) + '승 ' + (a.draws || 0) + '무 ' + (a.losses || 0) + '패';
-      playerRatingStatus.textContent = statusText;
-      playerGames.textContent = String(a.games || 0);
-      playerWinRate.textContent = formatWinRate(a.win_rate || 0);
-      playerAssessmentState.textContent = statusText;
-      playerAssessmentNote.textContent = hasRating
-        ? (statusText === '임시 평가'
-          ? '평가 데이터가 쌓이는 중입니다. AI 모델이 바뀌어도 당시 상대 정보를 기준으로 기록됩니다.'
-          : '실전 대국 결과를 기준으로 계산된 사용자 Rating입니다.')
-        : '현재 AI는 아직 강도 보정 전이라 결과를 실력 증거로만 보관합니다.';
+      const totals = getProgressTotals();
+      playerRating.textContent = totals.games + '전';
+      playerRatingCard.textContent = '미제공';
+      playerRecord.textContent = totals.wins + '승 ' + totals.draws + '무 ' + totals.losses + '패';
+      playerRatingStatus.textContent = '연습 기록';
+      playerGames.textContent = String(totals.games);
+      playerWinRate.textContent = formatWinRate(totals.games ? totals.wins / totals.games : 0);
+      playerAssessmentState.textContent = '연습 기록';
+      playerAssessmentNote.textContent = 'AI 강도가 보정되지 않아 숫자 Rating은 제공하지 않습니다.';
       const playerSideValue = snapshot?.player_side || 'cho';
       const aiSideValue = snapshot?.ai_side || (playerSideValue === 'cho' ? 'han' : 'cho');
       playerCard.classList.toggle('side-cho', playerSideValue === 'cho');
@@ -1082,6 +1341,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
 
     function render() {
       const view = currentPosition();
+      recordCompletedGame(snapshot);
       renderAssessment(snapshot?.assessment, snapshot?.opponent);
       renderMatchResult();
       board.innerHTML = `
@@ -1248,6 +1508,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
             dst: move.dst
           });
           renderTrainingAnswer(result);
+          if (result.legal && typeof result.correct === 'boolean') showLearningModal('training');
           selected = null;
           render();
           heading.textContent = result.correct ? '훈련 정답' : '훈련 다시 보기';
@@ -1273,8 +1534,9 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         snapshot = moveResult;
         pendingPlayerMove = null;
         clearTrainingMode();
+        latestMoveAnalysis = preMoveAnalysis;
         renderReview(null);
-        renderAnalysis(null, null);
+        renderAnalysis(preMoveAnalysis?.analysis, preMoveAnalysis?.coaching);
         render();
 
         const humanMessage = moveEventMessage(beforeSnapshot, snapshot, beforeSnapshot.state.turn);
@@ -1379,6 +1641,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         heading.textContent = '최근 대국 복기 완료';
         renderMatchResult();
         renderJourney();
+        showLearningModal('review');
       } catch (error) {
         status.textContent = error.message;
       } finally {
@@ -1397,6 +1660,33 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
 
     settingsToggle.addEventListener('click', () => {});
     learningToggle.addEventListener('click', () => {});
+
+    analysisOpen.addEventListener('click', () => {
+      if (!latestMoveAnalysis) return;
+      renderAnalysis(latestMoveAnalysis.analysis, latestMoveAnalysis.coaching);
+      showLearningModal('analysis');
+    });
+    progressOpen.addEventListener('click', openProgressModal);
+    progressClose.addEventListener('click', closeProgressModal);
+    progressCloseBottom.addEventListener('click', closeProgressModal);
+    learningClose.addEventListener('click', closeLearningModal);
+    learningTrainClose.addEventListener('click', () => {
+      closeLearningModal();
+      trainingPosition = null;
+      activeTrainingProblem = null;
+      selected = null;
+      render();
+    });
+    learningTrainFromReview.addEventListener('click', () => {
+      closeLearningModal();
+      startTrainingProblems();
+    });
+    learningModal.addEventListener('click', event => {
+      if (event.target === learningModal) closeLearningModal();
+    });
+    progressModal.addEventListener('click', event => {
+      if (event.target === progressModal) closeProgressModal();
+    });
 
     training.addEventListener('click', startTrainingProblems);
     review.addEventListener('click', runReview);
@@ -1428,16 +1718,24 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       syncSetupOptions();
     }));
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && setupScreen.classList.contains('modal')) showGame();
+      if (event.key !== 'Escape') return;
+      if (!learningModal.hidden) closeLearningModal();
+      else if (!progressModal.hidden) closeProgressModal();
+      else if (setupScreen.classList.contains('modal')) showGame();
     });
 
     reset.addEventListener('click', async () => {
       busy = true;
       updateControls();
       try {
+        recordCompletedGame(snapshot);
+        closeLearningModal();
+        closeProgressModal();
         pendingPlayerMove = null;
         clearOpeningPreview();
         snapshot = await post('/api/reset', {setup:setup.value, player_side:playerSide.value, ai_level:aiLevel.value});
+        activeClientGameId = createLocalId();
+        latestMoveAnalysis = null;
         clearTrainingMode();
         selected = null;
         lastMoveCoaching = null;
@@ -1484,6 +1782,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       try {
         status.textContent = '내 턴을 되돌리는 중입니다…';
         snapshot = await post('/api/undo', {});
+        latestMoveAnalysis = null;
         clearTrainingMode();
         const undoMessage = '내 한 턴 되돌리기 완료 · 다시 내 차례입니다.';
         showGameMessage(undoMessage);
@@ -1541,6 +1840,8 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       } finally { busy = false; updateControls(); }
     });
 
+    renderProgressView();
+    updateControls();
     getState().catch(error => { status.textContent = error.message; });
   </script>
 </body>
