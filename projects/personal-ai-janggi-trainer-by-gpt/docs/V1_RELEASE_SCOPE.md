@@ -46,7 +46,8 @@ The smallest acceptable implementation is:
 
 - Persist the player's completed-game summary in that browser using versioned browser-local storage.
 - Keep, at minimum, date, selected AI level, side, outcome, setup, and move count for each recorded completed game.
-- Accumulate wins, draws and losses separately for each selected AI level.
+- Accumulate wins, draws and losses separately for each selected AI level. Keep all-time overall outcome totals separately from the bounded list of the latest 100 game details; label the per-level breakdown as recent-history data.
+- Preserve all-time training attempt/correct totals separately from up to 365 days of daily summaries.
 - Accumulate training attempts, correct answers and accuracy; retain enough dated summaries to show whether practice outcomes are changing over time.
 - Provide a compact progress/history view that does not crowd the active board. Access it from setup or post-game flow, not as a permanent overlay during play.
 - Make result recording idempotent so one completed game is not counted twice after rerender, reset, or repeated requests.
