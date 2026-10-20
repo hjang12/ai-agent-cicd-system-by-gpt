@@ -789,5 +789,42 @@ class TestGameFirstSetupFlowUiContract(unittest.TestCase):
         self.assertNotIn("dashboard.learning-open", html)
 
 
+
+class TestV1LearningProgressUiContract(unittest.TestCase):
+    def test_learning_results_are_outside_the_hidden_compatibility_container(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        runtime = html.split('<div id="runtime-compat"', 1)[1].split('</div>\n</main>', 1)[0]
+        for panel_id in ('analysis', 'review-panel', 'training-panel'):
+            self.assertIn(f'id="{panel_id}"', html)
+            self.assertNotIn(f'id="{panel_id}"', runtime)
+        self.assertIn('id="learning-modal"', html)
+        self.assertIn('id="analysis-open"', html)
+        self.assertIn('id="postgame-review"', html)
+        self.assertIn('id="postgame-training"', html)
+        self.assertIn('showLearningModal(\'review\')', html)
+        self.assertIn('showLearningModal(\'training\')', html)
+
+    def test_browser_local_progress_is_versioned_and_idempotent(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("personal-ai-janggi-progress-v1", html)
+        self.assertIn("version: 1, games: [], trainingDays: []", html)
+        self.assertIn("window.localStorage.getItem(PROGRESS_STORAGE_KEY)", html)
+        self.assertIn("window.localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progressData))", html)
+        self.assertIn("if (progressData.games.some(game => game.gameId === gameId)) return;", html)
+        self.assertIn("function recordTrainingAttempt(correct)", html)
+        self.assertIn("function renderProgressView()", html)
+        self.assertIn('id="progress-open"', html)
+        self.assertIn('id="progress-modal"', html)
+
+    def test_visible_results_do_not_claim_an_uncalibrated_numeric_rating(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("선택한 난이도", html)
+        self.assertIn("누적 대국", html)
+        self.assertIn("훈련 정답률", html)
+        self.assertNotIn('id="match-result-rating"', html)
+        self.assertNotIn('id="match-result-delta"', html)
+        self.assertIn("숫자 Rating은 제공하지 않습니다.", html)
+
+
 if __name__ == "__main__":
     unittest.main()
