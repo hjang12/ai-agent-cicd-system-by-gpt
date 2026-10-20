@@ -6,7 +6,7 @@ Solo Janggi learners need a focused place to turn practice into a repeatable coa
 
 ## Primary user
 
-One self-directed player using a desktop browser. Multi-user play, social features, accounts, and monetization remain outside the first MVP.
+One self-directed player using a desktop browser. Multi-user play, social features, server accounts, cloud sync, and monetization remain outside v1.0. The authoritative release boundary is [V1_RELEASE_SCOPE.md](./V1_RELEASE_SCOPE.md).
 
 ## Current backend and application foundation
 
@@ -16,13 +16,12 @@ The browser prototype now consumes the application API for authoritative state, 
 
 ## First useful product loop
 
-1. Open the trainer.
-2. Start a local practice session.
-3. See a board and a clear coaching status.
-4. Choose a legal move.
-5. Review that move against the baseline engine recommendation.
-6. Continue with the engine as an opponent or undo a recent move to retry a position.
-7. Preserve evaluated positions as training data for future model improvement.
+1. Open the trainer and choose side, AI level, and initial setup.
+2. Play a legal game against the baseline AI, with clear turn and thinking feedback.
+3. Review move quality and coaching explanations.
+4. Replay the completed game and create position-training problems.
+5. Answer training problems and see session accuracy.
+6. Return later in the same browser and review cumulative game outcomes and training progress.
 
 ## In scope now
 
@@ -36,13 +35,13 @@ The browser prototype now consumes the application API for authoritative state, 
 - Dependency-free search baseline
 - Self-play and batch game generation
 - Model metadata registry and head-to-head evaluation/rating primitives
-- Player skill-assessment foundation with unrated-game evidence, future-calibrated rating input, and opponent model/version provenance
+- Minimal browser-local growth tracking: completed-game results by selected AI level and cumulative training attempts/correctness, without claiming an uncalibrated numeric Elo rating
 - Product and technical decision records
 
 ## Explicitly deferred
 
 - Persistent user accounts and cloud synchronization
-- Durable user rating/history storage and cross-device skill profile
+- Server-side database-backed game history, authenticated cloud profile, and cross-device synchronization (v1.0 uses browser-local progress only)
 - Database-backed game history
 - Trained neural or learned policy/value model
 - Production model hosting and model-serving infrastructure
@@ -60,4 +59,5 @@ The browser prototype now consumes the application API for authoritative state, 
 - A played move can be analyzed without mutating the active game state.
 - A recent move can be undone without reproducing match-state logic in the browser.
 - Training data is generated only from records that pass the defined validation pipeline.
-- The next persistence/model/deployment decision has a documented evaluation path.
+- Completed-game outcomes and training results persist across reloads in the same browser and are clearly presented as practice statistics, not an authoritative skill rating.
+- The next server-side persistence/model/deployment decision has a documented evaluation path.
