@@ -316,7 +316,7 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
             timeout=20_000,
         )
         expect(self.page.locator("#board .board-message")).to_have_class(
-            re.compile(r"\\bvisible\\b"), timeout=3_000
+            re.compile(r"\bvisible\b"), timeout=3_000
         )
         self.assertIn("장군!", self.page.locator("#board .board-message-title").inner_text())
 
@@ -334,7 +334,7 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
         expect(self.page.locator("#match-result")).to_be_visible(timeout=20_000)
         self.assertIn("무승부", self.page.locator("#match-result-title").inner_text())
         expect(self.page.locator("#board .board-message")).to_have_class(
-            re.compile(r"\\bvisible\\b"), timeout=3_000
+            re.compile(r"\bvisible\b"), timeout=3_000
         )
         self.assertIn("빅장으로 무승부", self.page.locator("#board .board-message-title").inner_text())
 
@@ -349,7 +349,7 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
             timeout=20_000,
         )
         expect(self.page.locator("#board .board-message")).not_to_have_class(
-            re.compile(r"\\bvisible\\b"), timeout=3_000
+            re.compile(r"\bvisible\b"), timeout=3_000
         )
         self.assertIn("AI 응수 상태를 다시 확인했습니다.", self.page.locator("#game-message").inner_text())
         recovered = self._state()
