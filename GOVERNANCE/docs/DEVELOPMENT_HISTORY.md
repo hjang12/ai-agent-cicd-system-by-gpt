@@ -1,3 +1,13 @@
+## 2026-10-20 — Calibration evaluation completed; repository preservation still gated
+
+- Resumed `TASK-20260930-0002` from its project checkpoint; re-read Governance 1.4.3 and confirmed the current branch is `docs/seed-20261016-evidence-sync`, based on main `7e62b04f5d8ad8794e58e75157480cedd3a1bb37`. The branch is ahead of main and has no PR; PR #144 is not present.
+- Ran the unmodified `tools/evaluate_ai_level_evidence.py` against the exact ten raw JSON blobs for seeds `20261007–20261016`; source and input Git blob SHA checks matched and the evaluator exited 0. A second run returned byte-identical JSON. Pair 2-3 is `HIGHER_SCORED`: 20 completed / 0 unfinished; Lv.2 2.0 : Lv.3 18.0; 16 Lv.3 wins and 4 draws. Pairs 1-2, 3-4, 4-5 and 5-6 remain `INSUFFICIENT`, so `candidate_monotonic_higher_levels=false`.
+- All nine evaluator-specific unit tests passed locally against exact-source/test blobs; this does not establish full project CI success.
+- Recovered the seed `20261016` manifest from Render ARTIFACT logs, validated JSON and `failures=[]`, and confirmed Render idle via the actual log `Calibration runner is idle: CALIBRATION_ENABLED is not true.` at `2026-10-16T08:12:26.009324326Z`. No new batch was launched; public AI levels/search budgets remain unchanged.
+- Generated a local cumulative report JSON and a recovery ZIP containing it and the recovered manifest. Their hashes are recorded in the project checkpoint/evidence docs. Writes of these files to GitHub remain blocked; this operation did not route around the blocked write. Therefore no evidence-sync PR was opened and the next batch remains gated until both artifacts are repository files.
+
+---
+
 ## 2026-10-19 — Seed 20261016 result and continuation blocker
 
 - The current branch sync starts from main `7e62b04f5d8ad8794e58e75157480cedd3a1bb37`; PR #143 is merged and post-merge CI passed.
