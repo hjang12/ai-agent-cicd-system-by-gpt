@@ -875,3 +875,13 @@ The earlier conclusion was not corrected by weakening the Evidence rule. The rul
 ### Next Step
 
 Set the existing Render service health-check path to `/api/health` through an authorized Render control path, then re-read the live service metadata and deployment state.
+
+
+## 2026-10-20 — Janggi v1.0 release scope decision
+
+- Added the project-authoritative projects/personal-ai-janggi-trainer-by-gpt/docs/V1_RELEASE_SCOPE.md.
+- Transitioned the prior active task TASK-20260930-0002 to PAUSED: its complete adjacent-level calibration research is useful but is not a release gate for the user-facing Janggi trainer.
+- Created TASK-20261020-0001 for v1.0 stabilization. It includes browser-local persistence for game outcomes and training progress so the original personal growth loop is not reduced to one transient session.
+- The v1.0 user-facing product will not expose an unsupported numeric Elo rating while the selected AI opponents remain uncalibrated. It will show honest practice statistics instead.
+- No generic Governance rule was changed. This is a project scope/priority decision only.
+- Implementation and release gates remain open: browser-local growth tracking, full regression CI, live Render/health-check verification, and post-deploy smoke. No production code change was made by this scope-documentation branch.
