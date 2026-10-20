@@ -3,7 +3,7 @@ from email.message import Message
 from pathlib import Path
 from unittest.mock import patch
 
-from app import SESSION_COOKIE_NAME, RequestHandler, TrainerApplication, TrainerSessionStore
+from app import SESSION_COOKIE_NAME, RequestHandler, TrainerApplication, TrainerSessionStore, main
 from janggi import EngineAnalysis, FirstLegalEngine, GameStatus, Match, Move, Outcome, RuleSet, Side
 
 
@@ -828,6 +828,26 @@ class TestV1LearningProgressUiContract(unittest.TestCase):
         self.assertNotIn('id="match-result-rating"', html)
         self.assertNotIn('id="match-result-delta"', html)
         self.assertIn("숫자 Rating은 제공하지 않습니다.", html)
+
+
+class AppEntrypointTests(unittest.TestCase):
+    def test_main_uses_render_default_port_when_port_is_unset(self) -> None:
+        with patch.dict("os.environ", {}, clear=True):
+            with patch("app.ThreadingHTTPServer") as server_class, patch("builtins.print") as print_mock:
+                main()
+
+        server_class.assert_called_once_with(("0.0.0.0", 10000), RequestHandler)
+        server_class.return_value.serve_forever.assert_called_once_with()
+        print_mock.assert_called_once_with("Listening on http://0.0.0.0:10000", flush=True)
+
+    def test_main_honors_port_environment_override(self) -> None:
+        with patch.dict("os.environ", {"PORT": "12345"}, clear=True):
+            with patch("app.ThreadingHTTPServer") as server_class, patch("builtins.print") as print_mock:
+                main()
+
+        server_class.assert_called_once_with(("0.0.0.0", 12345), RequestHandler)
+        server_class.return_value.serve_forever.assert_called_once_with()
+        print_mock.assert_called_once_with("Listening on http://0.0.0.0:12345", flush=True)
 
 
 if __name__ == "__main__":
