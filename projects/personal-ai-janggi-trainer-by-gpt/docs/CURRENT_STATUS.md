@@ -307,3 +307,11 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 5. Use player skill-assessment evidence together with adaptive position-training selection and ephemeral session metrics, while keeping match rating separate from coaching statistics and preventing uncalibrated AI levels from producing numeric player ratings.
 6. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
 7. Keep training/evaluation interfaces stable while AI strategy evolves.
+
+
+## 2026-10-20 — distinguish Render platform status from agent-runtime DNS failure
+
+- Rechecked the official Render status page: it reports **All Systems Operational** and no incident reported on October 20, 2026 ([status page](https://status.render.com/)). This does not prove individual-service availability.
+- Retested `https://personal-ai-janggi-trainer.onrender.com/` and `/api/health`: the connected web tool says the URLs are inaccessible; shell DNS lookup returned no address and `curl` exited with code 6, `Could not resolve host`. No HTTP status/body was received, so these attempts do **not** prove the application is down.
+- Render service control-plane metadata still says the service is not suspended and deploy `dep-dbbf251srm7s73858b5g` is `live`. Request logs and HTTP metrics for 2026-10-20 06:45–07:30 UTC returned no records; this is inconclusive, not proof that users have made no requests.
+- Updated assessment: the failure currently reproduces in the agent's own name-resolution/access path, while there is no corroborating evidence of a Render-wide outage. Keep per-service public HTTP and real-browser acceptance **unverified** until tested from an independent external client. The empty live `healthCheckPath` remains a configuration mismatch, but it is not evidence that it caused this DNS resolution failure.
