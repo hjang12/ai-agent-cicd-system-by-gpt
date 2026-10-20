@@ -2326,3 +2326,23 @@ When the user chooses Han, the server correctly lets Cho make the first move, bu
 ### Product Boundary
 
 This closes the current requested UI refinement scope. Future UI changes should be driven by a concrete defect or explicit product requirement rather than continued visual iteration.
+
+
+## 2026-10-20 — v1.0 scope finalized; AI calibration research paused
+
+### Decision
+- Finalized docs/V1_RELEASE_SCOPE.md as the authoritative v1.0 product boundary.
+- v1.0 includes the complete single-user loop: setup, legal Janggi gameplay against the search baseline, move coaching, review, position training, and personal progress.
+- Added one deliberate completion item missing from the earlier "playable bot" definition: completed-game summaries and cumulative training attempts/correctness must persist in the same browser and be viewable from a compact progress/history surface.
+- User progress is reported as practice statistics (outcomes by selected AI level, training attempts/correctness/accuracy). Do not show a numeric Elo rating while the opponent level is uncalibrated.
+- Existing six AI profiles remain selectable, but the product must not claim a fully calibrated monotonic strength ladder. Full pairwise statistical calibration, learned-model promotion, self-play research, server-side history/database, accounts and cross-device sync are outside v1.0.
+- Research code/artifacts are retained; marking a module unused does not require deleting its source.
+
+### Task transition
+- Paused TASK-20260930-0002 (statistical AI-strength research); its seed-20261017 next action is superseded and must not be resumed as part of release work.
+- Started TASK-20261020-0001 (v1.0 completion) with checkpoint docs/checkpoints/TASK-20261020-0001.md.
+- Remaining release work: implement browser-local growth/history persistence, test idempotent outcome recording and safe storage recovery, run all mandatory CI/tests, and verify the live Render service and health check.
+
+### Evidence boundary
+- Current main baseline remains 7e62b04f5d8ad8794e58e75157480cedd3a1bb37; the scope decision branch is not production code and no runtime change is implied.
+- Live Render metadata still reports empty healthCheckPath even though render.yaml declares /api/health; release operations verification remains required.
