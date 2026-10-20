@@ -805,6 +805,12 @@ class TestV1LearningProgressUiContract(unittest.TestCase):
         self.assertIn('showLearningModal(\'review\')', html)
         self.assertIn('showLearningModal(\'training\')', html)
 
+    def test_training_turn_uses_the_active_position_not_the_finished_game_turn(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        click_cell = html.split("async function clickCell", 1)[1].split("async function ", 1)[0]
+        self.assertIn("current.side === view.state.turn", click_cell)
+        self.assertNotIn("current.side === snapshot.state.turn", click_cell)
+
     def test_browser_local_progress_is_versioned_and_idempotent(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn("personal-ai-janggi-progress-v1", html)
