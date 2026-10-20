@@ -885,3 +885,9 @@ Set the existing Render service health-check path to `/api/health` through an au
 - The v1.0 user-facing product will not expose an unsupported numeric Elo rating while the selected AI opponents remain uncalibrated. It will show honest practice statistics instead.
 - No generic Governance rule was changed. This is a project scope/priority decision only.
 - Implementation and release gates remain open: browser-local growth tracking, full regression CI, live Render/health-check verification, and post-deploy smoke. No production code change was made by this scope-documentation branch.
+
+
+### v1.0 scope audit addition — user-visible learning UI is a release gate
+- The v1.0 scope was strengthened after source review found detailed analysis/review/training nodes under hidden runtime-compatibility markup.
+- The release acceptance criteria now explicitly require the user to see and operate post-game analysis, review summaries, and training problems/answers. Merely updating hidden DOM nodes does not count as a working feature.
+- Remaining engineering estimate was raised to approximately 10–16 hours to include visible UI integration, browser-local progress tracking and final release verification.
