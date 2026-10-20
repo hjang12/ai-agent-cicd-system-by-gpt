@@ -2399,7 +2399,7 @@ This closes the current requested UI refinement scope. Future UI changes should 
 
 ### New evidence
 - Render's official status page reported all systems operational with no incident reported on Oct 20, 2026 ([status.render.com](https://status.render.com/)). This global status does not guarantee this service's availability.
-- The agent runtime retried the public root and `/api/health` endpoints. The web tool could not open either URL; local shell name resolution returned no address and `curl` failed before receiving an HTTP response with `Could not resolve host` (exit code 6).
+- The agent runtime retried the public root and `/api/health` endpoints. The web tool could not open either URL; shell DNS resolution also failed for the control domains `google.com`, `github.com`, and `status.render.com`. `curl` to the app and to `github.com` failed before receiving an HTTP response with `Could not resolve host` (exit code 6). This demonstrates the runtime's DNS/access path is broadly failing rather than only failing for this Render hostname.
 - Render control-plane reads still show the service not suspended and deployment `dep-dbbf251srm7s73858b5g` as `live`. No newer deploy failure was present in the event history. Queried HTTP request logs and metrics returned no data for 06:45–07:30 UTC; this observation is inconclusive.
 
 ### Assessment
