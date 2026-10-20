@@ -210,6 +210,53 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
         self._wait_for_side_to_move("han")
         self.assertIn("초", self.page.locator("#heading").inner_text())
 
+    def test_undo_reverts_a_full_turn_and_replay_applies_new_settings(self) -> None:
+        initial = self._start_game(level="2", side="cho", setup="left")
+        player_move = self._first_legal_move()
+        self._play_move(player_move)
+        self._wait_for_side_to_move("cho")
+
+        self.page.wait_for_function(
+            """async () => {
+              const response = await fetch('/api/state', {cache:'no-store'});
+              if (!response.ok) return false;
+              const state = await response.json();
+              return state.state.history.length === 2;
+            }""",
+            timeout=15_000,
+        )
+        after_turn = self._state()
+        self.assertEqual(2, len(after_turn["state"]["history"]))
+
+        self.page.locator("#undo").click()
+        self.page.wait_for_function(
+            """async () => {
+              const response = await fetch('/api/state', {cache:'no-store'});
+              if (!response.ok) return false;
+              const state = await response.json();
+              return state.state.history.length === 0 && state.state.turn === 'cho';
+            }""",
+            timeout=15_000,
+        )
+        undone = self._state()
+        self.assertEqual([], undone["state"]["history"])
+        self.assertEqual(initial["state"]["board"], undone["state"]["board"])
+
+        self.page.locator("#replay-button").click()
+        expect(self.page.locator("#setup-screen")).to_be_visible(timeout=5_000)
+        self.page.locator('.level-option[data-level="3"]').click()
+        self.page.locator('.side-option[data-side="han"]').click()
+        self.page.locator('.setup-variant[data-setup="both"]').click()
+        self.page.locator("#reset").click()
+        expect(self.page.locator("#setup-screen")).to_be_hidden(timeout=15_000)
+        replayed = self._state()
+        self.assertEqual("3", replayed["ai_level"])
+        self.assertEqual("han", replayed["player_side"])
+        self.assertEqual("both", replayed["setup"])
+        self.assertEqual("han", replayed["state"]["turn"])
+        self.assertEqual(1, len(replayed["state"]["history"]))
+        self._wait_for_side_to_move("han")
+
     def test_human_move_is_shown_before_ai_reply_and_learning_analysis_opens(self) -> None:
         self.page.add_init_script(
             """(() => {
@@ -275,6 +322,7 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
                 self._wait_for_side_to_move("cho")
             else:
                 expect(self.page.locator("#match-result")).to_be_visible(timeout=10_000)
+                self.assertIn("승리", self.page.locator("#match-result-title").inner_text())
 
         saved = self.page.evaluate("(key) => JSON.parse(window.localStorage.getItem(key))", PROGRESS_KEY)
         self.assertEqual(1, saved["totals"]["games"], "One completed game should be recorded")
@@ -323,6 +371,8 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
         saved = self.page.evaluate("(key) => JSON.parse(window.localStorage.getItem(key))", PROGRESS_KEY)
         self.assertEqual(1, saved["totals"]["trainingAttempts"])
         self.assertEqual(1, saved["totals"]["trainingCorrect"])
+        self.assertEqual(1, saved["totals"]["games"], "Repeated renders must not record the same completed game twice")
+        self.assertEqual(1, len(saved["games"]), "Completed-game history must remain idempotent")
 
         self.page.locator("#learning-close").click()
         self.page.locator("#postgame-reset").click()
