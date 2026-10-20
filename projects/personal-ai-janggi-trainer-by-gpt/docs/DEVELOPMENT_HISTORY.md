@@ -2370,3 +2370,19 @@ This closes the current requested UI refinement scope. Future UI changes should 
 ### Release state
 - The visible learning/local progress implementation and automated regression checks are in main. v1.0 remains ACTIVE because interactive browser acceptance gates, actual post-deploy smoke, and authorized health-check configuration are still open.
 - AI level strength calibration remains PAUSED and is not a v1.0 release criterion.
+
+
+## 2026-10-20 — read-only v1.0 release revalidation
+
+### Render deployment and configuration
+- Re-read service `srv-dajolip594qs73d1bkr0` (`personal-ai-janggi-trainer-by-gpt`) in the authorized Render workspace.
+- The latest deployment visible during this check was `dep-dbbf251srm7s73858b5g`, for main commit `0338d442d04dba1521af19631360b01705d5e1e1`. Render deployment state was `live`; build and deploy events succeeded. Logs recorded `python app.py`, listener `0.0.0.0:10000`, and the service-live confirmation.
+- Actual service metadata reports an empty `healthCheckPath`; `render.yaml` declares `/api/health`, and `app.py` implements `GET /api/health`. The mismatch remains tracked as Governance `ISSUE-002`. The connected Render toolset provides read-only service/config queries but no mutation for this existing service's health-check path.
+- Attempted direct access to both the root URL and `/api/health` via the web tool and shell `curl`. Neither produced an HTTP response; shell DNS lookup failed. This result is classified as **agent-runtime network/DNS blocked**, not a successful smoke test and not proof of service outage.
+- PR #147 CI evidence was rechecked: Workspace structure validation run `39370601330` and Janggi Python validation run `39370601343` both passed on its head commit `49852bb22576f5c668ebd251f1085f837356fe95`. The latest documentation-only main commit does not expose push-run data through the connected commit-run query, so no additional CI conclusion is inferred from that query.
+- As project documentation is included in the Render build filter, this record update itself can trigger a deployment. The deployment ID above is the observed pre-update snapshot; post-merge deployment state must be checked separately.
+
+### Release decision
+- Keep `TASK-20261020-0001` **ACTIVE**. The deployed status is observed, but direct endpoint health and browser behavior are unverified, and `healthCheckPath` drift remains open.
+- Keep `TASK-20260930-0002` AI-strength calibration/ML research **PAUSED**; no new seed or public AI-level configuration change was run.
+- Remaining release gates: obtain an authorized mechanism to set the existing Render service health check to `/api/health`, then run live HTTP/real-browser acceptance cases for gameplay, visible learning surfaces, idempotent result recording, local-storage persistence, and malformed/unavailable storage recovery.
