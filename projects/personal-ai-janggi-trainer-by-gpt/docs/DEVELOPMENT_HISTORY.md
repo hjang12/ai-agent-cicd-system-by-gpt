@@ -2346,3 +2346,9 @@ This closes the current requested UI refinement scope. Future UI changes should 
 ### Evidence boundary
 - Current main baseline remains 7e62b04f5d8ad8794e58e75157480cedd3a1bb37; the scope decision branch is not production code and no runtime change is implied.
 - Live Render metadata still reports empty healthCheckPath even though render.yaml declares /api/health; release operations verification remains required.
+
+
+### v1.0 scope audit addition — visible learning flow gap
+- Reviewing the actual browser DOM after defining the initial scope showed that detailed analysis, review and training controls/results are placed under the hidden runtime-compatibility container. Their JavaScript can update these nodes without displaying the results to the user.
+- Updated the acceptance gates to require a visible, readable post-game learning surface and to preserve the existing board-first/minimal-in-game contract.
+- Updated the remaining-work estimate to approximately 10–16 hours because this includes real UI integration as well as local persistence and release verification.
