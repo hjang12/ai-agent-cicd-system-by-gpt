@@ -1562,7 +1562,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         clearTrainingMode();
         latestMoveAnalysis = preMoveAnalysis;
         renderReview(null);
-        renderAnalysis(preMoveAnalysis?.analysis, preMoveAnalysis?.coaching);
+        renderAnalysis(null, null);
         render();
 
         const humanMessage = moveEventMessage(beforeSnapshot, snapshot, beforeSnapshot.state.turn);
