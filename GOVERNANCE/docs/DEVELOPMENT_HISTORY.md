@@ -24,7 +24,7 @@ The problem was not GitHub/Render access or a confirmed live service failure. Th
 
 ### Verification
 
-- To be filled after the updated branch's Workspace, Janggi Python and browser acceptance workflows complete.
+- PR #158's check outcomes are recorded directly in GitHub Actions; use those run conclusions as the verification source rather than infer outcomes from this history entry.
 
 ---
 
