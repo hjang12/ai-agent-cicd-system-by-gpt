@@ -24,7 +24,7 @@ The problem was not GitHub/Render access or a confirmed live service failure. Th
 
 ### Verification
 
-- PR #158's check outcomes are recorded directly in GitHub Actions; use those run conclusions as the verification source rather than infer outcomes from this history entry.
+- PR #158 merged as `df298d72271e7fcffb64ff04e844f2b9e9408036`. Latest `main` Workspace validation `39547417887`, Janggi Python validation `39547417889`, and post-deploy live-browser smoke `39547417902` all passed. Render deployment `dep-dbc4f967bikc73fkorh0` reached `LIVE` at 2026-10-21 05:05:33 UTC and logged `Listening on http://0.0.0.0:10000`.
 
 ---
 
