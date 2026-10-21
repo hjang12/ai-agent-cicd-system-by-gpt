@@ -2413,3 +2413,21 @@ This closes the current requested UI refinement scope. Future UI changes should 
 - This resolves the immediate uncertainty about whether the agent's failed probe proved an app outage: it did not. DNS lookup and `curl` failed in the agent runtime for the Janggi domain and unrelated domains (`google.com`, `github.com`, and `status.render.com`), before an HTTP response. Classify those failures as an agent-runtime access/DNS problem rather than a confirmed Render incident.
 - Scope boundary: user confirmation verifies basic public access only; full gameplay, AI turn feedback, analysis/review/training, local progress persistence and recovery still require evidence. Do not mark those browser acceptance tests as passed.
 - Render metadata still reports empty `healthCheckPath` while repository `render.yaml` declares `/api/health`. Keep that configuration mismatch separate from the runtime DNS error; no setting was changed during this check.
+
+
+## 2026-10-21 — PR #149 browser acceptance result and release checkpoint sync
+
+### Candidate and CI evidence
+- Latest candidate commit checked: `dc44ea8a2a8f96b563bd89a8fb42d4791328b4e2`.
+- Workspace structure validation run `39393541838`: passed.
+- Janggi Python validation run `39393541789`: passed; steps include JavaScript syntax validation, Python compilation, Requirement Contract validation, and unit tests.
+- Janggi browser acceptance run `39393541822`: passed. The job installed Playwright/Chromium and ran `python tools/browser_acceptance.py` against a locally started instance of the candidate. The script defines 10 test methods across setup/level selection, Cho/Han opening, visible move/AI-thinking sequence, analysis, check/bikjang, AI-request error recovery, undo/replay, post-game review/training, answer validation and correctness totals, local progress idempotency/reload, and malformed/unavailable storage.
+- An earlier Chromium run exposed a real training-mode defect: legal-piece selection used the underlying completed match's turn instead of the active training position's turn. The branch corrects this by using the training view's state turn.
+- The board message during AI response was changed from stale `착수 평가 중…` to the requested `AI 생각 중…`. A later test-only correction fixed the regex used to assert the board message's visible CSS class; the final Chromium run passed after that correction.
+
+### Evidence boundaries and remaining gates
+- The passing browser run is candidate-local CI evidence, not a production Render browser smoke. The live-smoke job is intentionally skipped for pull-request events and runs when a project-changing commit reaches main.
+- The user reported that both the public app root and `/api/health` opened successfully in their own browser on 2026-10-20. The agent runtime's DNS failure against multiple unrelated domains remains an access-path limitation and must not be interpreted as a Render outage.
+- Render metadata still reports an empty `healthCheckPath` while repository `render.yaml` declares `/api/health`. This configuration discrepancy is unresolved; no Render mutation was performed.
+- PR #149 remains open and unmerged. A previous normal merge attempt was blocked by the tool safety check; this control was not bypassed.
+- TASK-20261020-0001 remains ACTIVE. Release completion awaits the candidate reaching main, successful live post-deploy smoke, resolution/acceptable verification of the Render health-check discrepancy, and direct evidence for remaining unchecked release criteria. AI-strength calibration remains PAUSED.
