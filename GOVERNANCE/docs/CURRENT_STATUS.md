@@ -183,12 +183,12 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 
 ## Current Task State
 
-- Governance detailed review: `TASK-20261021-0003` — **ACTIVE** in this proposed review branch. The version 1.4.5 changes are not part of `main` unless the user agrees to the proposed Governance version change and the PR is merged.
+- Governance detailed review: `TASK-20261021-0003` — **COMPLETED**. PR #159 was approved by the user and merged as `43a4e6a175949790ab974fd63456a35da0c6d7ae`; Governance version is `1.4.5`.
 - Personal AI Janggi Trainer v1.0: `TASK-20261020-0001` — **COMPLETED**. Release acceptance and the 11-method live browser smoke passed.
 - AI-level strength calibration: `TASK-20260930-0002` — **PAUSED** post-v1.0 research. Do not run further calibration or change public AI levels/search budgets unless this task is explicitly resumed.
 - CI-success-before-deploy strict gate: `ISSUE-001` — **BLOCKED**; the authoritative details and last verification date are in `GOVERNANCE/docs/ACTIVE_ISSUES.md`.
 
-No other Development Task is currently active. Completed Task IDs remain available for history, not as current priorities.
+No Development Task is currently active. Completed Task IDs remain available for history, not as current priorities.
 
 ## Potential Future Work (Not Active Tasks)
 
