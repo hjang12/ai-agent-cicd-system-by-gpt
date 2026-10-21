@@ -75,7 +75,7 @@ v1.0 is complete only when all applicable gates below pass.
 - [x] Verify all four supported initial setups and all six AI level options can start a game.
 - [x] Verify selection/legal-destination feedback and that the player's move is visibly rendered before the AI starts thinking.
 - [x] Verify the AI-thinking indicator ends on success and the UI recovers on an API/search error.
-- [ ] Verify turn enforcement, legal move validation, check/bikjang/terminal presentation, undo and replay/reset.
+- [x] Verify turn enforcement, illegal/out-of-turn move rejection, check/bikjang/terminal presentation, undo and replay/reset. Production browser smoke run `39531901117` passed all 11 methods, including `test_server_rejects_illegal_and_out_of_turn_moves_without_mutation`, `test_check_message_is_visible_after_ai_reply`, `test_bikjang_terminal_message_is_visible`, and `test_undo_reverts_a_full_turn_and_replay_applies_new_settings`.
 - [x] Verify results are recorded only once after a completed game.
 
 ### User-visible learning surfaces
@@ -100,8 +100,9 @@ v1.0 is complete only when all applicable gates below pass.
 - [x] `python tools/validate_requirement_contracts.py` passes.
 - [x] `python -m unittest discover -s tests -v` passes.
 - [x] Run the required Workspace validation and Janggi validation CI on the release candidate (latest code head 9ebacdc1c4fb9733aa5550d5cdae401fbbfd3763: Workspace run 39519087955 and Janggi run 39519087947 both passed).
-- [ ] Verify the Render service is live and the `/api/health` check/configuration is consistent.
-- [ ] Perform the available post-deploy smoke test against the live app; distinguish any test the Agent cannot execute from a test that passed.
+- [x] Verify the deployed Render service reaches `live`, and the live smoke preflight confirms the public root, `/api/health`, and expected UI marker for main commit `1034665caedbe997d859053eebab40def78e7fe2` (deployment `dep-dbc2003ncjis73ejm660`).
+- [ ] Verify Render service metadata `healthCheckPath` matches the root `render.yaml` value `/api/health`. The endpoint responds in the live preflight, but service metadata still has an empty `healthCheckPath`; the configuration discrepancy remains unresolved and is tracked as `ISSUE-002`.
+- [x] Perform post-deploy smoke against the released main commit. Run `39531901117` passed readiness and all 11 Playwright/Chromium methods in 137.872 seconds (`OK`); prior failures in turn return and post-game review did not recur.
 - [x] Update release notes/current status/checkpoint so implemented, verified and deferred features are clearly separated.
 
 ### Evidence note — PR #149 candidate (2026-10-21)
@@ -115,11 +116,12 @@ v1.0 is complete only when all applicable gates below pass.
 
 ### Production browser smoke — 2026-10-21
 
-- PR #149 was merged as main commit `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`; Render deployment `dep-dbc19cdg1s2s738ai9k0` reached `live`. Main-push run `39527295378` passed the endpoint/UI preflight, then failed two of ten browser methods after 20-second waits for the player's turn to return.
-- PR #150 was merged as main commit `1c2156d48612c09578c2327af67fc74e7ff29016`; Render deployment `dep-dbc1qb6q1p3s73bgsig0` reached `live`. Main-push run `39530751332` passed its readiness preflight and 10 of 11 browser methods. The two prior turn-return timeouts did not recur. The remaining `test_review_training_answer_and_local_progress_persist_after_reload` failure showed the match-result screen after clicking `#postgame-review`, but `#learning-modal` was still hidden after 20 seconds and the post-game controls remained disabled.
-- The second failure is consistent with a batch-review response that did not complete before the UI timeout, but per-request timing was unavailable. Source inspection found that review, training-problem generation and answer checking re-run `review_record` for the learner's moves, and each move used the full depth-2 analyzer with two engine searches and tactical-motif scanning. Treat this as a strongly supported likely cause, not directly timed proof.
-- Candidate PR #151 separates batch review/training from detailed one-move analysis. It keeps depth-2 analysis and full motifs for the explicit analysis view, while batch review uses a depth-1 analyzer with mobility/quiescence/root-refinement work and the exhaustive motif scan disabled. Code-bearing candidate commit `63ad439e8052f4629f393a94af777fb1402a16a3` passed Workspace run `39531372415`, Janggi Python run `39531372421` (332 tests, 27.086 seconds, `OK`), and Chromium run `39531372423` (11 tests, 31.778 seconds, `OK`). These are candidate-local checks; the later documentation synchronization must pass its own latest-head checks.
-- The live Render metadata still reports an empty `healthCheckPath` while `render.yaml` declares `/api/health`. The main-push preflight verifies endpoint reachability, not configuration consistency. The complete gameplay/legal-move gate and the post-fix production smoke remain **open**.
+- PR #149 merged as main commit `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`; Render deployment `dep-dbc19cdg1s2s738ai9k0` reached `live`. Main-push run `39527295378` passed readiness but two of ten browser methods timed out while waiting for the player's turn to return.
+- PR #150 merged as main commit `1c2156d48612c09578c2327af67fc74e7ff29016`; deployment `dep-dbc1qb6q1p3s73bgsig0` reached `live`. Main-push run `39530751332` removed the turn-return timeout but failed the post-game review modal test; the modal stayed hidden after 20 seconds.
+- PR #151 merged as main commit `1034665caedbe997d859053eebab40def78e7fe2`; Render deployment `dep-dbc2003ncjis73ejm660` reached `live`. Main-push workflow run `39531901117` passed its health/UI readiness preflight and all 11 browser methods in 137.872 seconds (`OK`). The review/training persistence scenario, server-side illegal/out-of-turn rejection, check/bikjang, both opening orientations, error recovery, and undo/replay all passed against the live service. This closes the observed live gameplay/learning latency regression.
+- The accepted remediation keeps full depth-2 detailed single-move analysis and tactical motifs on explicit user request, while batch review/training uses the dedicated lower-cost analyzer. The code candidate had already passed Workspace, 332 Python tests, and 11 local Chromium tests before merge; main-push live smoke then verified the user-visible flow.
+- Current Render service metadata still returns an empty `healthCheckPath` while repository `render.yaml` declares `/api/health`. The live smoke verified that the endpoint responds, but this does not reconcile the configured health-check path. This is the only remaining unchecked release gate tracked here; `ISSUE-002` remains BLOCKED until the setting is reconciled through an authorized Dashboard path or suitable direct evidence is available.
+
 ## 6. Explicit non-goals
 
 The following are not part of v1.0 and must not keep the release open:

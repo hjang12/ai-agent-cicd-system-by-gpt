@@ -2474,3 +2474,11 @@ This closes the current requested UI refinement scope. Future UI changes should 
 - A regression test verifies that batch review and training use the dedicated analyzer rather than the detailed single-move analyzer.
 - Candidate code head `63ad439e8052f4629f393a94af777fb1402a16a3` passed Workspace run `39531372415`, Janggi Python run `39531372421` (332 tests in 27.086s, `OK`), and Chromium run `39531372423` (11 tests in 31.778s, `OK`). The later documentation sync must pass its own latest-head CI.
 - Release is still **ACTIVE**: production smoke must be rerun after candidate merge and the broader gameplay/legal-move gate remains unchecked. Live `healthCheckPath` is still empty while `render.yaml` declares `/api/health`. AI-strength calibration remains **PAUSED**.
+
+## 2026-10-21 — Live release smoke passed after review/training latency remediation
+
+- PR #151 merged as main commit `1034665caedbe997d859053eebab40def78e7fe2`. Render deployment `dep-dbc2003ncjis73ejm660` reached `live`; runtime logs reported `Listening on http://0.0.0.0:10000`.
+- Main CI passed Workspace structure validation run `39531901182`, Janggi Python validation run `39531900976`, and Janggi browser workflow run `39531901117`.
+- The main-push live-browser smoke job in run `39531901117` passed the health/UI readiness preflight and all 11 browser methods in 137.872 seconds (`OK`). All setup/level, Cho/Han opening, player move/AI response, API-error recovery, check/bikjang, illegal/out-of-turn rejection, post-game review, training-answer feedback, local persistence, and undo/replay cases passed.
+- The two player-turn timeouts from PR #149's live smoke and the review-modal timeout from PR #150's live smoke did not reproduce after PR #151's low-cost batch review/training analyzer was deployed. The latest live suite therefore closes the observed gameplay/learning latency regression.
+- Remaining release gate: the Render service's live metadata still returns an empty `healthCheckPath` although root `render.yaml` declares `/api/health`. The endpoint responded in the smoke preflight, but this does not reconcile the service-setting mismatch. Governance `ISSUE-002` remains BLOCKED pending the authorized Dashboard setting path or a documented acceptance decision. The v1.0 task remains ACTIVE only for this gate; AI calibration remains PAUSED.
