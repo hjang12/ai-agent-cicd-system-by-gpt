@@ -1,3 +1,38 @@
+## 2026-10-21 — Governance v1.4.5 detailed consistency review
+
+### Trigger
+
+The user requested a detailed Governance review after the Personal AI Janggi Trainer v1.0 effort. The review checked the common rule set, entrypoint documents, Task Registry, Active Issue Index, Workspace Current Status, changelog/history, workflow configuration, and current GitHub branch/CI state.
+
+### Findings
+
+- The generic Context Management section repeated an older recovery sequence that conflicted with the Task Registry-first procedure in §25-A-7 and the repository entrypoint.
+- Workspace Current Status simultaneously described legacy source-repository cleanup as pending and complete, treated a dated Render snapshot as if it could represent current state, and presented only completed/paused tasks under a “Current Priority” heading.
+- A completed Governance task retained a stale instruction to resume Janggi calibration even though the authoritative calibration task was PAUSED.
+- Governance had duplicate section numbering for §24, and CHANGELOG contained a duplicate top-level heading.
+- ISSUE-001's verification date was stale. A current GitHub branch response explicitly reported `main.protected=false`; the Rulesets API returned a plan restriction. No new protection or deployment gate was configured.
+
+### Decision and Implementation
+
+- Consolidated the high-level Context Recovery summary around the canonical procedure in §25-A-7 instead of adding another sequence.
+- Renamed the duplicate failure/recovery section to §24-A without renumbering following sections.
+- Corrected migration state and identified source repository commits as historical provenance; relabeled the dated Render section as a historical snapshot.
+- Split current task state from inactive future-work candidates and replaced the completed task's stale calibration instruction with a terminal note.
+- Updated ISSUE-001 with the observed branch-protection state and verification date.
+- Removed the duplicate CHANGELOG heading.
+- Added no parser, Registry, workflow, validator, state layer, application change, Render configuration change, or AI calibration run.
+
+### Verification
+
+- User approved Governance v1.4.5 before merge, in accordance with §15.
+- PR #159: https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/159
+- PR Workspace validation passed: run 39561842230.
+- PR #159 squash-merged on 2026-10-21 as `43a4e6a175949790ab974fd63456a35da0c6d7ae`.
+- Post-merge Workspace validation passed: run [39562565447](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39562565447), head `43a4e6a175949790ab974fd63456a35da0c6d7ae`.
+- Changes are Governance/documentation-only; no Janggi application behavior, Render service setting, or calibration evidence was changed.
+
+---
+
 ## 2026-10-21 — Governance v1.4.4: prevent stale deferred items resurfacing
 
 ### Trigger
