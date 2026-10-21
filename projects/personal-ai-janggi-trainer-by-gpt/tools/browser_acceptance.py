@@ -391,6 +391,16 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
         self.assertEqual(1, saved["totals"]["games"], "One completed game should be recorded")
         self.assertEqual(1, len(saved["games"]), "The completed game detail should be idempotent")
         self.assertEqual("1", saved["games"][0]["level"], "The result must retain the selected AI level")
+        self.assertEqual(
+            "1전",
+            self.page.locator("#player-rating").inner_text(),
+            "The visible player profile should show recorded games, not a numeric skill rating",
+        )
+        self.assertIn(
+            "실력 Rating은 아직 제공하지 않습니다.",
+            self.page.locator("#match-result-note").inner_text(),
+            "The terminal result must be explicit that numerical skill rating is not provided",
+        )
 
         self.page.locator("#postgame-review").click()
         expect(self.page.locator("#learning-modal")).to_be_visible(timeout=20_000)
