@@ -2446,3 +2446,17 @@ This closes the current requested UI refinement scope. Future UI changes should 
 - These checks ran against a locally started candidate, not the production Render deployment. PR #149 remained open and unmerged.
 - Review found a dated pre-documentation-update Render snapshot duplicated in `CURRENT_STATUS.md` and the task checkpoint/history. The duplicate block was removed from `CURRENT_STATUS.md` to keep that file focused on compact current context; the detailed evidence remains in the checkpoint/history.
 - The checkpoint was aligned with the branch-head CI results. The previous normal merge attempt remains blocked by the tool safety check; no alternate merge path was used.
+
+## 2026-10-21 — Main release smoke exposed delayed player-turn response
+
+### Observed release result
+- PR #149 merged as `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`; Render deploy `dep-dbc19cdg1s2s738ai9k0` for that commit reached `live`.
+- Main-push Workspace run `39527295406` and Janggi Python run `39527295421` passed.
+- Live smoke run `39527295378` passed the root/`/api/health`/updated-UI readiness check, but the browser suite failed two of ten methods: the review/training persistence scenario and undo/replay scenario timed out after 20 seconds waiting for the user's turn to return after a move. The other eight methods passed.
+- Render CPU samples during the run reached the observed `0.15` CPU limit. Per-request latency traces were unavailable; the specific root cause is therefore not proven.
+
+### Source finding and candidate correction
+- Source review confirmed that the browser previously awaited `/api/analyze/move` before posting the human move and requesting AI response. That endpoint runs two analysis-engine searches plus tactical-risk/motif calculations, placing detailed analysis ahead of the user's next turn. This is a plausible contributor to the observed delay, not a proven sole cause.
+- Candidate PR #150 defers detailed analysis until the user opens the analysis panel and uses the server-retained pre-move position so that analysis remains tied to the last human move without changing the active match. The established separate `/api/move` then `/api/engine/move` sequence is preserved for AI-error recovery.
+- Code-bearing candidate `9e84ba19e29ec43d993721d5d94392f8b2be5888` passed Workspace validation run `39530148603`, Janggi Python validation run `39530148620`, and browser acceptance run `39530148609` (11 tests in 79.181s, `OK`). The later documentation synchronization must pass its own latest-head CI before merge.
+- The live Render `healthCheckPath` remains empty while `render.yaml` declares `/api/health`; main smoke verified endpoint reachability but did not resolve the configuration drift. v1.0 remains ACTIVE and AI-strength calibration remains PAUSED.

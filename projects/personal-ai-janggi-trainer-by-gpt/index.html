@@ -501,6 +501,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
     const setupOptions = [...document.querySelectorAll('[data-setup]')];
     let lastMoveCoaching = null;
     let latestMoveAnalysis = null;
+    let lastPlayedMove = null;
     let latestReviewResult = null;
     let hasTrainingResults = false;
     let snapshot = null;
@@ -990,8 +991,8 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
       const canUndo = Boolean(snapshot?.can_undo);
       reset.disabled = busy;
       progressOpen.disabled = busy;
-      analysisOpen.disabled = busy || !latestMoveAnalysis;
-      analysisOpen.hidden = !latestMoveAnalysis;
+      analysisOpen.disabled = busy || !lastPlayedMove || Boolean(trainingPosition);
+      analysisOpen.hidden = !lastPlayedMove || Boolean(trainingPosition);
       undo.disabled = busy || !canUndo;
       const hasHistory = Boolean(snapshot?.state?.history?.length);
       engine.disabled = busy || snapshot?.status !== 'playing' || snapshot?.state?.turn !== snapshot?.ai_side;
@@ -1549,26 +1550,19 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         render();
         await waitForPaint();
 
-        let preMoveAnalysis = null;
-        try {
-          preMoveAnalysis = await post('/api/analyze/move', move);
-        } catch {
-          preMoveAnalysis = null;
-        }
-
         const moveResult = await post('/api/move', move);
         snapshot = moveResult;
         pendingPlayerMove = null;
         clearTrainingMode();
-        latestMoveAnalysis = preMoveAnalysis;
+        lastPlayedMove = {src:[...move.src], dst:[...move.dst]};
+        latestMoveAnalysis = null;
+        lastMoveCoaching = null;
         renderReview(null);
         renderAnalysis(null, null);
         render();
 
         const humanMessage = moveEventMessage(beforeSnapshot, snapshot, beforeSnapshot.state.turn);
-        if (preMoveAnalysis?.coaching) {
-          setMoveComment(preMoveAnalysis.coaching);
-        } else if (humanMessage) {
+        if (humanMessage) {
           setMoveComment(null, humanMessage);
         } else {
           setMoveComment(null, '착수가 반영되었습니다.');
@@ -1687,10 +1681,23 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
     settingsToggle.addEventListener('click', () => {});
     learningToggle.addEventListener('click', () => {});
 
-    analysisOpen.addEventListener('click', () => {
-      if (!latestMoveAnalysis) return;
-      renderAnalysis(latestMoveAnalysis.analysis, latestMoveAnalysis.coaching);
-      showLearningModal('analysis');
+    analysisOpen.addEventListener('click', async () => {
+      if (busy || !lastPlayedMove) return;
+      busy = true;
+      updateControls();
+      try {
+        if (!latestMoveAnalysis) {
+          status.textContent = '최근 착수를 분석하는 중입니다…';
+          latestMoveAnalysis = await post('/api/analyze/last-move', {});
+        }
+        renderAnalysis(latestMoveAnalysis.analysis, latestMoveAnalysis.coaching);
+        showLearningModal('analysis');
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        busy = false;
+        updateControls();
+      }
     });
     progressOpen.addEventListener('click', openProgressModal);
     progressClose.addEventListener('click', closeProgressModal);
@@ -1762,6 +1769,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         snapshot = await post('/api/reset', {setup:setup.value, player_side:playerSide.value, ai_level:aiLevel.value});
         activeClientGameId = createLocalId();
         latestMoveAnalysis = null;
+        lastPlayedMove = null;
         clearTrainingMode();
         selected = null;
         lastMoveCoaching = null;
@@ -1809,6 +1817,7 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline
         status.textContent = '내 턴을 되돌리는 중입니다…';
         snapshot = await post('/api/undo', {});
         latestMoveAnalysis = null;
+        lastPlayedMove = null;
         clearTrainingMode();
         const undoMessage = '내 한 턴 되돌리기 완료 · 다시 내 차례입니다.';
         showGameMessage(undoMessage);

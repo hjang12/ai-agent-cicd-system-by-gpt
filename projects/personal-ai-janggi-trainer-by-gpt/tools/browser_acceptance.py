@@ -201,6 +201,65 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
                 self.assertEqual([], state["state"]["history"])
                 self.assertEqual(90, len(state["state"]["board"]))
 
+    def test_server_rejects_illegal_and_out_of_turn_moves_without_mutation(self) -> None:
+        self._start_game(level="1", side="han", setup="classic")
+        initial = self._state()
+        player_move = next(
+            move for move in initial["legal_moves"]
+            if move.get("src") is not None and move.get("dst") is not None
+        )
+
+        # A same-square move has a real source piece but is not a legal move.
+        invalid_move = {"src": player_move["src"], "dst": player_move["src"]}
+        invalid_response = self.page.evaluate(
+            """async (move) => {
+              const response = await fetch('/api/move', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(move)
+              });
+              return {status: response.status, body: await response.json()};
+            }""",
+            invalid_move,
+        )
+        self.assertEqual(400, invalid_response["status"], invalid_response["body"])
+        self.assertEqual(initial["state"], self._state()["state"])
+
+        # Apply one legal human move directly through the real HTTP API. It is now
+        # the AI's turn; /api/move must refuse a move even if that move is legal
+        # for the current side-to-move.
+        accepted_response = self.page.evaluate(
+            """async (move) => {
+              const response = await fetch('/api/move', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(move)
+              });
+              return {status: response.status, body: await response.json()};
+            }""",
+            player_move,
+        )
+        self.assertEqual(200, accepted_response["status"], accepted_response["body"])
+        after_player_move = self._state()
+        self.assertEqual("cho", after_player_move["state"]["turn"])
+        ai_move = next(
+            move for move in after_player_move["legal_moves"]
+            if move.get("src") is not None and move.get("dst") is not None
+        )
+        wrong_turn_response = self.page.evaluate(
+            """async (move) => {
+              const response = await fetch('/api/move', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(move)
+              });
+              return {status: response.status, body: await response.json()};
+            }""",
+            ai_move,
+        )
+        self.assertEqual(400, wrong_turn_response["status"], wrong_turn_response["body"])
+        self.assertEqual(after_player_move["state"], self._state()["state"])
+
     def test_han_side_waits_for_ai_opening_and_returns_the_turn_to_han(self) -> None:
         state = self._start_game(level="1", side="han", setup="classic")
         self.assertEqual("han", state["player_side"])
@@ -274,6 +333,8 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
         expect(self.page.locator("#setup-screen")).to_be_visible(timeout=10_000)
         self._start_game(level="1", side="cho", setup="classic")
         move = self._first_legal_move()
+        requests_before_analysis: list[str] = []
+        self.page.on("request", lambda request: requests_before_analysis.append(request.url))
         self._play_move(move)
         self.page.wait_for_function(
             "() => document.querySelector('#board .board-message-title')?.textContent === 'AI 생각 중…'",
@@ -289,9 +350,14 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
             re.compile(r"\bvisible\b"), timeout=3_000
         )
         expect(self.page.locator("#analysis-open")).to_be_visible(timeout=3_000)
+        self.assertFalse(
+            any(url.endswith("/api/analyze/move") or url.endswith("/api/analyze/last-move")
+                for url in requests_before_analysis),
+            "Detailed move analysis must not block the AI response; it should be requested only when the user opens analysis",
+        )
         before_analysis_state = self._state()
         self.page.locator("#analysis-open").click()
-        expect(self.page.locator("#learning-modal")).to_be_visible(timeout=5_000)
+        expect(self.page.locator("#learning-modal")).to_be_visible(timeout=45_000)
         expect(self.page.locator("#analysis")).to_be_visible()
         self.assertIn("착수 분석", self.page.locator("#learning-modal-title").inner_text())
         after_analysis_state = self._state()

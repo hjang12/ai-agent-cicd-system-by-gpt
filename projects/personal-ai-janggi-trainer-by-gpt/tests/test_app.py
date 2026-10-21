@@ -216,6 +216,26 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(response["analysis"]["move"]["dst"], [0, 4])
         self.assertEqual(response["snapshot"]["state"], before["state"])
 
+    def test_analyze_last_move_uses_saved_pre_move_position_after_ai_reply(self):
+        app = TrainerApplication()
+        initial = app.snapshot()
+        move = initial["legal_moves"][0]
+        app.play({"src": move["src"], "dst": move["dst"]})
+        app.engine_move()
+        current = app.snapshot()
+
+        response = app.analyze_last_move()
+
+        self.assertEqual(move["src"], response["analysis"]["move"]["src"])
+        self.assertEqual(move["dst"], response["analysis"]["move"]["dst"])
+        self.assertEqual("cho", response["analysis"]["perspective"])
+        self.assertEqual(current["state"], response["snapshot"]["state"])
+        self.assertEqual(current["status"], response["snapshot"]["status"])
+
+        app.reset()
+        with self.assertRaises(ValueError):
+            app.analyze_last_move()
+
     def test_analyze_move_reports_recommendation_coaching_tactical_risk_and_pv(self):
         app = TrainerApplication()
         response = app.analyze_move({"src": [0, 3], "dst": [0, 4]})
@@ -412,7 +432,8 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("pieceMoveHints", html)
         self.assertIn("상은 2칸×3칸 또는 3칸×2칸", html)
         self.assertIn("explainIllegalMove(selected, [stateX, stateY], view)", html)
-        self.assertIn("post('/api/analyze/move', move)", html)
+        self.assertNotIn("post('/api/analyze/move', move)", html)
+        self.assertIn("post('/api/analyze/last-move', {})", html)
         self.assertIn("post('/api/move', move)", html)
         self.assertIn("AI 생각 중…", html)
         self.assertNotIn("착수 평가 중…", html)

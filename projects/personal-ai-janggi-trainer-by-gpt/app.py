@@ -85,6 +85,8 @@ class TrainerApplication:
         self.opponent_model_version = None
         self._game_id = f"game-{secrets.token_urlsafe(12)}"
         self._assessment_recorded = False
+        self._last_player_position = None
+        self._last_player_move = None
 
     def snapshot(self) -> dict[str, object]:
         with self._lock:
@@ -138,6 +140,8 @@ class TrainerApplication:
             self.training_metrics.reset()
             self._game_id = f"game-{secrets.token_urlsafe(12)}"
             self._assessment_recorded = False
+            self._last_player_position = None
+            self._last_player_move = None
             if self.match.status.value == "playing" and self.match.state.turn is self.ai_side:
                 self._apply_ai_move()
             return self.snapshot()
@@ -146,7 +150,10 @@ class TrainerApplication:
         move = self._move_from_payload(payload)
         with self._lock:
             self._ensure_player_turn()
+            state_before = self.match.state
             self.match = self.match.play(move)
+            self._last_player_position = state_before
+            self._last_player_move = move
             self._finalize_assessment_if_terminal()
             return self.snapshot()
 
@@ -200,6 +207,8 @@ class TrainerApplication:
                         self.match = self.match.play(engine_analysis.best_move)
 
                 self._finalize_assessment_if_terminal()
+                self._last_player_position = state_before
+                self._last_player_move = move
                 return {
                     "player_analysis": _analysis_to_dict(player_analysis),
                     "player_coaching": _coaching_to_dict(player_coaching),
@@ -218,6 +227,8 @@ class TrainerApplication:
             self.match = self.match.undo()
             if last_move_was_ai and self.match.state.history:
                 self.match = self.match.undo()
+            self._last_player_position = None
+            self._last_player_move = None
             return self.snapshot()
 
     def can_undo(self) -> bool:
@@ -237,6 +248,22 @@ class TrainerApplication:
         move = self._move_from_payload(payload)
         with self._lock:
             analysis = self.analyzer.analyze_move(self.match.state, move)
+            coaching = coach_move(analysis)
+            return {
+                "analysis": _analysis_to_dict(analysis),
+                "coaching": _coaching_to_dict(coaching),
+                "snapshot": self.snapshot(),
+            }
+
+    def analyze_last_move(self) -> dict[str, object]:
+        """Analyze the last player's move from its saved pre-move position."""
+        with self._lock:
+            if self._last_player_position is None or self._last_player_move is None:
+                raise ValueError("no player move is available for analysis")
+            analysis = self.analyzer.analyze_move(
+                self._last_player_position,
+                self._last_player_move,
+            )
             coaching = coach_move(analysis)
             return {
                 "analysis": _analysis_to_dict(analysis),
@@ -691,6 +718,9 @@ class RequestHandler(BaseHTTPRequestHandler):
                 return
             if path == "/api/analyze/move":
                 self._send_json(application.analyze_move(self._read_json()))
+                return
+            if path == "/api/analyze/last-move":
+                self._send_json(application.analyze_last_move())
                 return
             if path == "/api/engine/move":
                 self._send_json(application.engine_move())
