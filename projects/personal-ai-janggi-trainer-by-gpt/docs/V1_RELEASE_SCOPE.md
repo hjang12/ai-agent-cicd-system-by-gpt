@@ -75,7 +75,7 @@ v1.0 is complete only when all applicable gates below pass.
 - [x] Verify all four supported initial setups and all six AI level options can start a game.
 - [x] Verify selection/legal-destination feedback and that the player's move is visibly rendered before the AI starts thinking.
 - [x] Verify the AI-thinking indicator ends on success and the UI recovers on an API/search error.
-- [ ] Verify turn enforcement, legal move validation, check/bikjang/terminal presentation, undo and replay/reset.
+- [x] Verify turn enforcement, legal move validation, check/bikjang/terminal presentation, undo and replay/reset (live Chromium run `39531901117` passed the full 11-test suite, including illegal/out-of-turn rejection, check/bikjang messages, and undo/replay).
 - [x] Verify results are recorded only once after a completed game.
 
 ### User-visible learning surfaces
@@ -100,8 +100,9 @@ v1.0 is complete only when all applicable gates below pass.
 - [x] `python tools/validate_requirement_contracts.py` passes.
 - [x] `python -m unittest discover -s tests -v` passes.
 - [x] Run the required Workspace validation and Janggi validation CI on the release candidate (latest code head 9ebacdc1c4fb9733aa5550d5cdae401fbbfd3763: Workspace run 39519087955 and Janggi run 39519087947 both passed).
-- [ ] Verify the Render service is live and the `/api/health` check/configuration is consistent.
-- [ ] Perform the available post-deploy smoke test against the live app; distinguish any test the Agent cannot execute from a test that passed.
+- [x] Verify the Render service is live and the deployed app's `/api/health` endpoint returns a healthy response.
+- [ ] Reconcile live Render `healthCheckPath` metadata with root `render.yaml` (`/api/health`). The current service setting is empty even though the endpoint responds; the connected Render tooling exposes no mutation for this existing setting.
+- [x] Perform the post-deploy smoke test against the live app. Main-push run `39531901117` passed readiness and all 11 Chromium test methods.
 - [x] Update release notes/current status/checkpoint so implemented, verified and deferred features are clearly separated.
 
 ### Evidence note — PR #149 candidate (2026-10-21)
@@ -115,11 +116,12 @@ v1.0 is complete only when all applicable gates below pass.
 
 ### Production browser smoke — 2026-10-21
 
-- PR #149 was merged as main commit `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`; Render deployment `dep-dbc19cdg1s2s738ai9k0` reached `live`. Main-push run `39527295378` passed the endpoint/UI preflight, then failed two of ten browser methods after 20-second waits for the player's turn to return.
-- PR #150 was merged as main commit `1c2156d48612c09578c2327af67fc74e7ff29016`; Render deployment `dep-dbc1qb6q1p3s73bgsig0` reached `live`. Main-push run `39530751332` passed its readiness preflight and 10 of 11 browser methods. The two prior turn-return timeouts did not recur. The remaining `test_review_training_answer_and_local_progress_persist_after_reload` failure showed the match-result screen after clicking `#postgame-review`, but `#learning-modal` was still hidden after 20 seconds and the post-game controls remained disabled.
-- The second failure is consistent with a batch-review response that did not complete before the UI timeout, but per-request timing was unavailable. Source inspection found that review, training-problem generation and answer checking re-run `review_record` for the learner's moves, and each move used the full depth-2 analyzer with two engine searches and tactical-motif scanning. Treat this as a strongly supported likely cause, not directly timed proof.
-- Candidate PR #151 separates batch review/training from detailed one-move analysis. It keeps depth-2 analysis and full motifs for the explicit analysis view, while batch review uses a depth-1 analyzer with mobility/quiescence/root-refinement work and the exhaustive motif scan disabled. Code-bearing candidate commit `63ad439e8052f4629f393a94af777fb1402a16a3` passed Workspace run `39531372415`, Janggi Python run `39531372421` (332 tests, 27.086 seconds, `OK`), and Chromium run `39531372423` (11 tests, 31.778 seconds, `OK`). These are candidate-local checks; the later documentation synchronization must pass its own latest-head checks.
-- The live Render metadata still reports an empty `healthCheckPath` while `render.yaml` declares `/api/health`. The main-push preflight verifies endpoint reachability, not configuration consistency. The complete gameplay/legal-move gate and the post-fix production smoke remain **open**.
+- PR #149 main commit `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`, Render deployment `dep-dbc19cdg1s2s738ai9k0`: initial smoke run `39527295378` passed readiness but timed out in two turn-return scenarios.
+- PR #150 main commit `1c2156d48612c09578c2327af67fc74e7ff29016`, Render deployment `dep-dbc1qb6q1p3s73bgsig0`: smoke run `39530751332` passed 10/11 methods; the remaining failure was the post-game review modal staying hidden after a 20-second wait.
+- PR #151 merged as main commit `1034665caedbe997d859053eebab40def78e7fe2`. Render deployment `dep-dbc2003ncjis73ejm660` reached `live` and logged `Listening on http://0.0.0.0:10000`.
+- Main-push workflow run `39531901117` passed live readiness (`/api/health` returned the expected healthy payload and the released UI marker was present) and all 11 Chromium test methods. The log reports `Ran 11 tests in 137.872s` and `OK`. The previously failing review/training/local-progress scenario now passes, as do the server rejection of illegal/out-of-turn moves and the undo/replay scenario.
+- The same main commit passed Workspace structure validation run `39531901182` and Janggi Python validation run `39531900976`.
+- This closes the observed production gameplay/review/training smoke failures. It does not fix the separate Render configuration mismatch: live service metadata still reports an empty `healthCheckPath` while root `render.yaml` declares `/api/health`. Endpoint reachability is now verified; configuration consistency remains the only unchecked release gate in this scope.
 ## 6. Explicit non-goals
 
 The following are not part of v1.0 and must not keep the release open:
@@ -137,7 +139,7 @@ Research code and existing calibration artifacts may remain in the repository. A
 
 ## 7. Estimate note
 
-The **10–16 hour** figure was a planning estimate made when the v1.0 scope was defined on 2026-10-20, before visible learning surfaces and browser-local progress were implemented. It is not a current remaining-time estimate. Current open work is determined by the unchecked acceptance criteria above: complete legal-move/turn/terminal regression review, live Render healthCheckPath drift resolution or evidence that it does not affect live health, and post-deploy browser smoke against the released commit.
+The **10–16 hour** figure was a planning estimate made when the v1.0 scope was defined on 2026-10-20, before visible learning surfaces and browser-local progress were implemented. It is not a current remaining-time estimate. The post-deploy live-browser smoke and combined gameplay/legal-move gate now pass. The only remaining unchecked release item is reconciling the empty live Render `healthCheckPath` metadata with root `render.yaml`'s `/api/health` setting.
 
 ## 8. Final decision rule
 

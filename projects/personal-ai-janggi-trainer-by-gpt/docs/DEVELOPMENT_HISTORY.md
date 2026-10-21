@@ -2474,3 +2474,12 @@ This closes the current requested UI refinement scope. Future UI changes should 
 - A regression test verifies that batch review and training use the dedicated analyzer rather than the detailed single-move analyzer.
 - Candidate code head `63ad439e8052f4629f393a94af777fb1402a16a3` passed Workspace run `39531372415`, Janggi Python run `39531372421` (332 tests in 27.086s, `OK`), and Chromium run `39531372423` (11 tests in 31.778s, `OK`). The later documentation sync must pass its own latest-head CI.
 - Release is still **ACTIVE**: production smoke must be rerun after candidate merge and the broader gameplay/legal-move gate remains unchecked. Live `healthCheckPath` is still empty while `render.yaml` declares `/api/health`. AI-strength calibration remains **PAUSED**.
+
+## 2026-10-21 — Production review/training regression resolved and live smoke green
+
+- PR #151 merged through the normal GitHub path as `1034665caedbe997d859053eebab40def78e7fe2`. Render deployment `dep-dbc2003ncjis73ejm660` reached `live` on that commit.
+- Main-push Workspace validation `39531901182` and Janggi Python validation `39531900976` passed.
+- Main-push live-browser smoke `39531901117` passed readiness (expected UI marker and healthy `/api/health`) and all 11 Chromium test methods in 137.872 seconds (`OK`).
+- The previously failing `test_review_training_answer_and_local_progress_persist_after_reload` now passes, along with the server-side illegal/out-of-turn move rejection and undo/replay tests. The two turn-return timeouts from run `39527295378` and the review-modal failure from run `39530751332` did not recur. This resolves the production review/training latency issue (ISSUE-003), which is no longer an active issue.
+- The release scope's combined gameplay/legal-move/turn/terminal/undo/replay criterion and post-deploy smoke criterion are now backed by passing live-browser evidence.
+- Live Render service metadata still reports an empty `healthCheckPath` while root `render.yaml` declares `/api/health`. The live preflight confirms endpoint reachability but not metadata consistency. ISSUE-002 remains BLOCKED; use an authorized Dashboard path for the setting change. v1.0 remains ACTIVE until this final configuration-consistency gate is resolved. AI-strength calibration remains PAUSED.

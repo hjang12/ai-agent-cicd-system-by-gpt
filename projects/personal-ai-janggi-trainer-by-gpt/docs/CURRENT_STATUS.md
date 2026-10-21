@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: finish Personal AI Janggi Trainer v1.0 against [docs/V1_RELEASE_SCOPE.md](./V1_RELEASE_SCOPE.md). PR #149 merged as `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`; PR #150 merged as `1c2156d48612c09578c2327af67fc74e7ff29016`. Render deployments `dep-dbc19cdg1s2s738ai9k0` and `dep-dbc1qb6q1p3s73bgsig0` both reached `live`. Main smoke runs `39527295378` and `39530751332` passed readiness, but respectively failed two turn-return tests and one review-modal test (10/11 passed; review modal remained hidden after 20 seconds). Candidate PR #151 separates detailed single-move analysis from the lower-cost batch review/training analyzer. Code candidate `63ad439e8052f4629f393a94af777fb1402a16a3` passed Workspace `39531372415`, Python `39531372421`, and Chromium `39531372423`; the latest documentation head still needs CI. Live Render `healthCheckPath` remains empty despite `render.yaml` declaring `/api/health`, so v1.0 remains open. AI-strength calibration stays PAUSED.
+- Current priority: finish Personal AI Janggi Trainer v1.0 against [docs/V1_RELEASE_SCOPE.md](./V1_RELEASE_SCOPE.md). PR #151 merged as `1034665caedbe997d859053eebab40def78e7fe2`; Render deploy `dep-dbc2003ncjis73ejm660` is `live`. Main Workspace run `39531901182`, Janggi Python run `39531900976`, and live-browser smoke run `39531901117` passed; the live Chromium suite reports 11/11 methods passed in 137.872 seconds, including review/training/local progress, illegal/out-of-turn API rejection, and undo/replay. The review/training latency issue is resolved. v1.0 remains ACTIVE only because live Render metadata still has an empty `healthCheckPath` while root `render.yaml` declares `/api/health`; connected Render tools cannot mutate that existing setting. AI-strength calibration remains PAUSED.
 
 ## Implemented Capability
 
@@ -116,10 +116,11 @@
 
 ## Latest Release Verification (2026-10-21)
 
-- PR #149 merged as main commit `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`; Render deploy `dep-dbc19cdg1s2s738ai9k0` reached `live`. Live smoke run `39527295378` passed readiness, but two of ten browser methods timed out while waiting for the player's turn to return.
-- PR #150 merged as main commit `1c2156d48612c09578c2327af67fc74e7ff29016`; Render deploy `dep-dbc1qb6q1p3s73bgsig0` reached `live`. Live smoke run `39530751332` passed readiness and 10/11 browser methods; the remaining review/training persistence test found that the post-game review modal stayed hidden after 20 seconds and the UI remained busy. Exact API timing was not available.
-- Candidate PR #151 (`fix/janggi-review-latency-20261021`) introduces a lightweight batch-review analyzer while preserving full depth-2 detailed analysis for the user-opened analysis view. Code head `63ad439e8052f4629f393a94af777fb1402a16a3` passed Workspace `39531372415`, Python/unit validation `39531372421` (332 tests, 27.086s, `OK`), and Chromium acceptance `39531372423` (11 tests, 31.778s, `OK`). Documentation sync must pass its own latest-head CI before merge.
-- Live service metadata still reports `healthCheckPath: ""` while root `render.yaml` declares `/api/health`. Both live preflight stages have verified public endpoint/UI readiness; this does not resolve the config mismatch. v1.0 remains ACTIVE and AI-strength calibration remains PAUSED.
+- PR #151 merged to `main` as code commit `1034665caedbe997d859053eebab40def78e7fe2`. Render deploy `dep-dbc2003ncjis73ejm660` reached `live` and logged the expected port `10000`.
+- Required main CI passed: Workspace run `39531901182` and Janggi Python run `39531900976`.
+- Main-push live-browser smoke run `39531901117` passed. The readiness preflight confirmed the deployed UI marker and healthy `/api/health` response. All 11 Chromium test methods passed in 137.872s (`OK`), including the previously failing post-game review/training/local-progress scenario, server-side illegal/out-of-turn rejection, and undo/replay.
+- This resolves the production review/training delay tracked as ISSUE-003. The combined gameplay/legal-move acceptance criterion and post-deploy smoke gate are checked in the release scope.
+- Live Render metadata still reports `healthCheckPath: ""` while root `render.yaml` declares `/api/health`. Endpoint reachability is verified, but the configuration mismatch remains unmodified and is tracked as ISSUE-002 (`BLOCKED`). Therefore v1.0 remains ACTIVE until the service setting is reconciled through an authorized Dashboard path. AI-strength calibration remains PAUSED.
 
 ## Development Safety
 
@@ -283,10 +284,9 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 
 ## Known Next Targets
 
-1. Verify and merge PR #151 only after the actual latest branch head passes Workspace, Janggi Python, and browser acceptance CI through the normal permitted path.
-2. Verify the Render deployment for the merged commit and rerun live browser smoke; specifically confirm player turn handoff, post-game review modal, training-problem/answer flow, progress persistence, and undo/replay.
-3. Complete the wider gameplay/legal-move regression gate and reconcile the live Render `healthCheckPath` through an authorized setting path.
-4. Resume AI-level calibration only after all v1.0 release gates are closed, as a separate post-v1.0 task. Do not execute calibration seeds or change public AI-level configuration under the current release task.
+1. Reconcile the live Render `healthCheckPath` via an authorized Dashboard action (Settings → Health Checks → Edit → `/api/health` → Save); the connected Render tools do not expose this mutation for the existing service.
+2. Re-read service metadata and the resulting deploy after the setting change. If the configuration is consistent and all release gates remain passed, close `TASK-20261020-0001` and v1.0.
+3. Keep AI-strength calibration/ML research paused until it is separately resumed after v1.0.
 
 ## 2026-10-20 — distinguish Render platform status from agent-runtime DNS failure
 
