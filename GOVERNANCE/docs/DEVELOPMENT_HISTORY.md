@@ -1,3 +1,33 @@
+## 2026-10-21 — Governance v1.4.4: prevent stale deferred items resurfacing
+
+### Trigger
+
+The user reported that an optional platform configuration difference kept appearing in new Chat openings even though its canonical Active Issue status was already DEFERRED/P3 and the Janggi v1.0 release was complete. Inspection found contradictory copies in the completed Task Registry row, project CURRENT_STATUS, release Checkpoint and historical diagnostic notes. The completed Task still linked the deferred issue under `Active PR / Issue`, and old checkpoint/current-context text had been repeatedly reinterpreted as current work.
+
+### Root Cause
+
+The problem was not GitHub/Render access or a confirmed live service failure. The reporting path failed to apply the registry's Task Status and the Active Issue Index's DEFERRED classification as the current authority, while duplicated older snapshots made stale states easy to over-weight during recovery.
+
+### Decision
+
+- Task Registry status is authoritative for task execution eligibility; a Checkpoint Next Action is executable only for an ACTIVE Task.
+- DEFERRED items remain in the canonical Active Issue Index but are suppressed from routine recovery/status reports until directly requested, the recorded revisit condition occurs, or new direct evidence materially changes risk.
+- Keep chronological evidence in Development History, but remove/condense obsolete statements from current-facing status and completed checkpoints rather than repeating them in reports.
+- No new parser, registry, workflow, or state layer was added. The relevant task/context/status boundaries are clarified in Governance 1.4.4.
+
+### Implementation
+
+- Added the deferred-item reporting boundary and Task Status precedence to `GOVERNANCE/GOVERNANCE.md`.
+- Updated the canonical Active Issue operating rule, Governance version references and changelog.
+- Removed deferred-item copies from current priority summaries and the completed Janggi release context; replaced stale calibration next-action text with an explicit paused-state note.
+- Recorded this follow-up as `TASK-20261021-0002` and provided a final-state checkpoint.
+
+### Verification
+
+- PR #158's check outcomes are recorded directly in GitHub Actions; use those run conclusions as the verification source rather than infer outcomes from this history entry.
+
+---
+
 ## 2026-10-16 — Seed 20261015 and source-revision aggregation guard
 
 - PR #142 merged as `3220242d49a8b44721d9cfb55177d23b7ffbd805`; its post-merge Workspace validation run 38869526955 and Janggi test run 38869526933 both passed.

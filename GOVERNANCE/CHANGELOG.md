@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.4.4] - 2026-10-21
+
+### Clarified
+
+- Context Recovery에서 Task Registry의 현재 Status를 Checkpoint의 Next Action보다 우선하고, `ACTIVE` Task의 현재 Next Action만 실행 대상으로 검토하도록 명확화.
+- `DEFERRED` 항목은 일반 복구·무관한 작업 보고에서 반복하지 않고, 직접 질문·명시된 재검토 조건·위험을 바꾸는 새 증거가 있을 때만 다시 보고하도록 명확화.
+- Current Status / Checkpoint에 누적된 과거 중간 상태를 현재 지시로 취급하지 않고, current-facing 문서의 상충·중복을 정리하며 상세 이력은 History에 보존하도록 명확화.
+
+### Review Trigger
+
+- 2026-10-21: 이미 완료된 v1.0 Task와 `DEFERRED`로 분류된 플랫폼 후속 항목이 Registry, 프로젝트 CURRENT_STATUS, 완료 Checkpoint에 중복·상충된 상태로 남아, 새 Chat의 정상 복구에서도 무관한 후속 보고로 반복 노출됨.
+
+### Decision
+
+- 새 registry, parser, workflow 또는 state layer는 추가하지 않는다.
+- 기존 Task Registry / Active Issue Index / CURRENT_STATUS / Checkpoint / DEVELOPMENT_HISTORY의 역할과 우선순위를 명확히 하고, 중복된 current-facing 내용을 정리한다.
+- `DEFERRED` 후속 항목은 명시된 재검토 조건이 충족되기 전까지 현재 Task / Blocker로 취급하지 않는다.
+
 ## [1.4.3] - 2026-10-16
 
 ### Clarified

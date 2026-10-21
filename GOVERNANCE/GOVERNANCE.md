@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.4.3**
+**Governance Version: 1.4.4**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -1101,7 +1101,16 @@ AI는 Active Issue를 장기간 방치하지 않는다. 작업을 수행할 때 
 
 상세 이력과 현재 상태를 동일 문서에 누적하지 않는다. Active Issue는 현재 운영 상태에 집중하고, 과거의 상세 과정은 History / ADR / GitHub Issue에 남긴다.
 
+### DEFERRED 항목과 과거 상태의 보고 경계
+
+- `DEFERRED`는 현재 실행할 Task나 현재 Blocker가 아니다. 일반적인 Context Recovery, 무관한 작업의 진행 보고, 최종 요약에서는 다시 나열하지 않는다.
+- 다음 중 하나일 때만 다시 보고한다: 사용자가 해당 항목을 직접 질문함, `ACTIVE_ISSUES.md`에 적힌 Revisit Condition이 발생함, 또는 새로 관찰한 증거가 실제 위험·사용자 영향에 중대한 변화를 입증함. 이때 현재 상태, 발동한 조건, 실행 가능한 해결 조치를 한 번에 간결하게 제시한다.
+- 현재 이슈 상태는 `ACTIVE_ISSUES.md`가 단일 원본이다. 완료 Task의 `Active PR / Issue`, 우선순위 요약, 완료 Checkpoint에 deferred 항목을 반복 복제하지 않는다.
+- `DEVELOPMENT_HISTORY.md`는 당시 관찰과 과거 결정을 보존하는 시간순 이력이다. 그 안의 과거 상태·Next Action은 현재 지시가 아니다. 현재 상태 문서나 Checkpoint에 오래된 중간 상태가 현재 요약과 충돌하면 두 상태를 모두 재보고하지 말고 current-facing 문서를 바로잡거나 과거 기록임을 명확히 표시한다.
+- Checkpoint의 `Next Action`은 Task Registry 상태가 `ACTIVE`이고 현재 Repository / CI / Deployment 증거와도 일치할 때만 실행한다. `COMPLETED` / `ARCHIVED` Task의 남은 문구는 이력이며, `PAUSED` / `BLOCKED` Task는 정해진 재개 조건 또는 blocker 해소 확인 없이 실행하지 않는다.
+
 ---
+
 
 ## 24. 실패 및 복구 기록
 
@@ -1360,6 +1369,8 @@ Governance
 → Deployment State
 
 Repository와 기존 Chat 설명이 다르면 실제 Repository와 공식 Context 문서를 Source of Truth로 사용하고 차이를 보고한다.
+
+Context Recovery에서는 먼저 Task Registry의 현재 Status를 확정한 뒤 해당 Task의 Context / Checkpoint를 읽는다. `Next Action` 문구만을 근거로 Task 상태를 역추론하지 않는다. `ACTIVE`로 식별된 Task에 대해서만 Checkpoint의 Next Action을 실행 대상으로 검토하며, 완료·일시정지·차단 상태의 과거 Next Action은 현재 지시로 승격하지 않는다.
 
 새 Chat에서 복구한 정보가 불충분하면 **추측으로 개발을 계속하지 않고**, 필요한 정보가 있는 범위에서 조사·검증한 뒤 Context를 갱신한다. Task 후보가 여러 개이고 Request만으로 선택할 수 없으면 필요한 최소 범위만 사용자에게 확인한다.
 

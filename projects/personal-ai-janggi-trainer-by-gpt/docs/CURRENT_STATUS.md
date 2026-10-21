@@ -3,7 +3,7 @@
 ## Governance
 
 - Common Governance Repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Governance Version: `1.4.3`
+- Governance Version: `1.4.4`
 - Governance status: active baseline on `main`
 - Project context entrypoint: `AGENT_START.md`
 
@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: Personal AI Janggi Trainer v1.0 is **complete**. Latest main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` is deployed live as `dep-dbc26arm8hqs73bcbmbg`; main CI Workspace `39533158998`, Python `39533159009`, and live-browser smoke `39533158968` passed. The live smoke passed all 11 tests in 128.597s (`OK`). The optional Render HTTP `healthCheckPath` mismatch is `ISSUE-002` (`DEFERRED`, P3), not a release blocker: Render defaults to TCP checks when the HTTP path is omitted, while `/api/health` and the live browser suite pass. AI-level calibration remains PAUSED. The temporary-guidance trial (`TASK-20261021-0001`) was closed on 2026-10-21 at the user's direction because no independent, measurable benefit was established. Governance rules/version remain unchanged; AI-level calibration remains paused as post-v1.0 research.
+- Current priority: Personal AI Janggi Trainer v1.0 is **complete**. Application code commit `1034665caedbe997d859053eebab40def78e7fe2` passed live-browser smoke run `39531901117` (11/11 tests in 137.872s); final post-release documentation/evidence commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` passed live-browser smoke run `39533158968` (11/11 in 128.597s). These are the final app-facing acceptance results. AI-level calibration remains PAUSED, and the temporary-guidance trial is COMPLETED.
 
 ## Implemented Capability
 
@@ -119,8 +119,8 @@
 - Main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` includes the final release evidence synchronization. Render deployment `dep-dbc26arm8hqs73bcbmbg` reached `live`, and main-push smoke `39533158968` passed readiness and all 11 Playwright/Chromium tests in 128.597 seconds (`OK`).
 - Main CI passed Workspace `39533158998` and Janggi Python validation `39533159009`. The release test covers setup/levels, both sides, move/AI sequence, recovery, check/bikjang, illegal/out-of-turn requests, post-game review, training, local progress, and undo/replay. Earlier turn-return and review-modal failures did not recur.
 - v1.0 product and production-smoke gates are complete. PRs #149, #150, #151 and #153 are merged.
-- Render metadata still reports `healthCheckPath: ""` while root `render.yaml` declares `/api/health`. Render documentation says HTTP health checks are optional and default TCP checks apply when no HTTP path is configured. The endpoint and complete live browser suite passed. This is deferred, non-blocking Governance `ISSUE-002` (P3), not a current release blocker.
-- Governance task `TASK-20261020-0001` is complete. AI-level calibration remains paused. Temporary-guidance trial `TASK-20261021-0001` is complete; no Governance rule/version change was made. AI-level calibration remains paused as post-v1.0 research.
+- v1.0 release gates are complete; previously observed optional platform configuration differences are not product blockers and are kept in the canonical issue index only when a concrete revisit condition applies.
+- Governance task `TASK-20261020-0001` (v1.0 release) is complete. Temporary-guidance trial `TASK-20261021-0001` is also complete. The follow-up Context Recovery consistency task `TASK-20261021-0002` clarified Governance v1.4.4 so deferred follow-ups and completed Checkpoint actions are not resurfaced as current work. AI-level calibration remains paused as post-v1.0 research.
 
 ## Development Safety
 
@@ -185,7 +185,7 @@ Verified live Render state on 2026-10-01:
 - Start: `python app.py`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`
 
-The Janggi service build filter includes `projects/personal-ai-janggi-trainer-by-gpt/**`, so even documentation PRs can trigger a Render deployment. As of 2026-10-20, application commit `7dd364a4f69f7eb90d953baa135530c031e01beb` was deployed live as `dep-dbbeqoui0phs738e4110`; startup logs showed the service binding to `0.0.0.0:10000`. The live Render metadata still reports an empty `healthCheckPath`, while root `render.yaml` declares `/api/health` and the app implements that endpoint. This remains confirmed configuration drift tracked as `ISSUE-002`, not proof of an application outage. The available Render tools do not expose mutation of this existing service setting, and direct browser/HTTP smoke is currently unverified.
+The Janggi service build filter includes `projects/personal-ai-janggi-trainer-by-gpt/**`, so documentation PRs can trigger a Render deployment. Historical deployment records and the latest verified production smoke are maintained in the release evidence above and `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md`; do not treat this dated 2026-10-20 deployment snapshot as the current service state.
 
 ## Explicitly Deferred
 
@@ -271,7 +271,7 @@ Calibration remains `INSUFFICIENT`: only 4 completed games are available against
 - Aggregate: `artifacts/ai-level-calibration/aggregate-v3-pair-2_3-seeds-20261007-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
 - Manifest: `artifacts/ai-level-calibration/manifest-v3-pairs-2_3-seeds-20261007-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
 
-The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confirmed `CALIBRATION_ENABLED=false` / idle mode. Next action: preserve and merge these files/context, then continue pair 2-3 with fresh protocol-v3 seed `20261008` using the same disabled-first, two-game bounded procedure.
+Historical calibration note (2026-10-16; superseded by the 2026-10-20 PAUSED decision): the runner was idle after the earlier batch. The old proposed next seed is historical only and must not be executed unless TASK-20260930-0002 is explicitly resumed.
 - PR smoke calibration pipeline remains operational for bounded validation only.
 - Smoke configuration remains: 2 games per adjacent pair, 4 plies per game; its 0/10 completed result is not playing-strength evidence.
 - The calibration request runner now supports repository-root request files through `GITHUB_WORKSPACE`; PR #76 added the request path and PR #78 corrected the working-directory path resolution.
@@ -284,20 +284,20 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 
 ## Known Next Targets
 
-1. No v1.0 release work remains. Keep the optional `healthCheckPath` mismatch deferred unless Blueprint synchronization or explicit HTTP-health-monitoring requirements make it relevant.
-2. Continue trial-only use of temporary work instructions during real work; evaluate against Governance §§25-A-8, 27, and 28 before proposing minimal evidence-backed rule changes.
-3. Keep AI-level calibration/ML research paused until a separate post-v1.0 research task is intentionally resumed.
+- No ACTIVE Development Task is registered for this project. The v1.0 release task and temporary-guidance trial are COMPLETED.
+- AI-level calibration/ML research remains PAUSED. Do not run further calibration seeds, train models, or change public AI-level/search-budget settings unless it is explicitly resumed as a separate task.
+- Start future work only from a matching ACTIVE Task or a new explicit user request; completed checkpoints are evidence, not pending-work lists.
 
 ## 2026-10-20 — distinguish Render platform status from agent-runtime DNS failure
 
 - Rechecked the official Render status page: it reports **All Systems Operational** and no incident reported on October 20, 2026 ([status page](https://status.render.com/)). This does not prove individual-service availability.
 - Retested `https://personal-ai-janggi-trainer.onrender.com/` and `/api/health`: the connected web tool says the URLs are inaccessible. To distinguish a hostname-specific issue from a general runtime problem, shell DNS was also queried for `google.com`, `github.com`, and `status.render.com`; all four domains failed resolution, and `curl` to both the app and `github.com` exited 6 (`Could not resolve host`). The runtime cannot currently reach even a control domain, so no HTTP status/body was received; this does **not** prove the application is down.
 - Render service control-plane metadata still says the service is not suspended and deploy `dep-dbbf251srm7s73858b5g` is `live`. Request logs and HTTP metrics for 2026-10-20 06:45–07:30 UTC returned no records; this is inconclusive, not proof that users have made no requests.
-- Updated assessment: the failure currently reproduces in the agent's own name-resolution/access path, while there is no corroborating evidence of a Render-wide outage. Keep per-service public HTTP and real-browser acceptance **unverified** until tested from an independent external client. The empty live `healthCheckPath` remains a configuration mismatch, but it is not evidence that it caused this DNS resolution failure.
+- Historical assessment at 2026-10-20: the agent runtime's DNS failure reproduced across unrelated domains, so no HTTP response was received then. This was superseded by the 2026-10-21 main-push live-browser smoke, which passed all 11 tests; do not treat this dated diagnostic as the current service state.
 
 ## 2026-10-20 — user confirms the public Render endpoints work
 
 - After agent-runtime DNS failures affected the Janggi hostname and unrelated domains, the user opened both the app root and `/api/health` in their own browser and confirmed that both worked.
 - This is user-reported evidence that the service was publicly reachable at the time of the check. It corrects the earlier assessment that individual service reachability was wholly unknown; it does not amount to a full automated check by the agent or verify interactive gameplay/learning flows.
 - The agent-runtime DNS failure remains independently reproducible across unrelated domains. Do not describe it as a Render outage or change app code solely to address it.
-- The live service's empty `healthCheckPath` versus `render.yaml`'s `/api/health` remains a separate configuration-consistency item. No live service setting has been changed.
+- This historical user-side check concerned public endpoint reachability only; later automated live-browser results are recorded above.
