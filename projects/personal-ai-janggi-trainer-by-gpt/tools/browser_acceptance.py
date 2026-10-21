@@ -333,6 +333,8 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
         expect(self.page.locator("#setup-screen")).to_be_visible(timeout=10_000)
         self._start_game(level="1", side="cho", setup="classic")
         move = self._first_legal_move()
+        requests_before_analysis: list[str] = []
+        self.page.on("request", lambda request: requests_before_analysis.append(request.url))
         self._play_move(move)
         self.page.wait_for_function(
             "() => document.querySelector('#board .board-message-title')?.textContent === 'AI 생각 중…'",
@@ -348,9 +350,14 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
             re.compile(r"\bvisible\b"), timeout=3_000
         )
         expect(self.page.locator("#analysis-open")).to_be_visible(timeout=3_000)
+        self.assertFalse(
+            any(url.endswith("/api/analyze/move") or url.endswith("/api/analyze/last-move")
+                for url in requests_before_analysis),
+            "Detailed move analysis must not block the AI response; it should be requested only when the user opens analysis",
+        )
         before_analysis_state = self._state()
         self.page.locator("#analysis-open").click()
-        expect(self.page.locator("#learning-modal")).to_be_visible(timeout=5_000)
+        expect(self.page.locator("#learning-modal")).to_be_visible(timeout=45_000)
         expect(self.page.locator("#analysis")).to_be_visible()
         self.assertIn("착수 분석", self.page.locator("#learning-modal-title").inner_text())
         after_analysis_state = self._state()

@@ -216,6 +216,26 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(response["analysis"]["move"]["dst"], [0, 4])
         self.assertEqual(response["snapshot"]["state"], before["state"])
 
+    def test_analyze_last_move_uses_saved_pre_move_position_after_ai_reply(self):
+        app = TrainerApplication()
+        initial = app.snapshot()
+        move = initial["legal_moves"][0]
+        app.play({"src": move["src"], "dst": move["dst"]})
+        app.engine_move()
+        current = app.snapshot()
+
+        response = app.analyze_last_move()
+
+        self.assertEqual(move["src"], response["analysis"]["move"]["src"])
+        self.assertEqual(move["dst"], response["analysis"]["move"]["dst"])
+        self.assertEqual("cho", response["analysis"]["perspective"])
+        self.assertEqual(current["state"], response["snapshot"]["state"])
+        self.assertEqual(current["status"], response["snapshot"]["status"])
+
+        app.reset()
+        with self.assertRaises(ValueError):
+            app.analyze_last_move()
+
     def test_analyze_move_reports_recommendation_coaching_tactical_risk_and_pv(self):
         app = TrainerApplication()
         response = app.analyze_move({"src": [0, 3], "dst": [0, 4]})
