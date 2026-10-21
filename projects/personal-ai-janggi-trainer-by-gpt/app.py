@@ -25,6 +25,7 @@ ENGINE_SEARCH_DEPTH = 1
 ENGINE_QUIESCENCE_DEPTH = 0
 ENGINE_ROOT_REFINEMENT_COUNT = 0
 ANALYSIS_SEARCH_DEPTH = 2
+REVIEW_SEARCH_DEPTH = 1
 DEFAULT_PLAYER_SIDE = Side.CHO
 DEFAULT_AI_SIDE = Side.HAN
 DEFAULT_AI_LEVEL = AILevel.BEGINNER
@@ -78,6 +79,19 @@ class TrainerApplication:
         self.engine = NegamaxEngine(get_ai_level(self.ai_level).config)
         self.analysis_engine = NegamaxEngine(SearchConfig(depth=ANALYSIS_SEARCH_DEPTH))
         self.analyzer = Analyzer(self.analysis_engine)
+        self.review_engine = NegamaxEngine(
+            SearchConfig(
+                depth=REVIEW_SEARCH_DEPTH,
+                mobility_weight=0,
+                quiescence_depth=0,
+                root_refinement_count=0,
+                adaptive_ordering=False,
+            )
+        )
+        self.review_analyzer = Analyzer(
+            self.review_engine,
+            include_tactical_motifs=False,
+        )
         self.training_metrics = TrainingSessionMetrics()
         self.player_id = f"session-{secrets.token_urlsafe(12)}"
         self.assessment = PlayerSkillAssessment(self.player_id)
@@ -286,7 +300,7 @@ class TrainerApplication:
             )
             review = review_record(
                 record,
-                self.analyzer,
+                self.review_analyzer,
                 max_moves=limit,
                 side=self.player_side,
             )
@@ -314,7 +328,7 @@ class TrainerApplication:
             )
             review = review_record(
                 record,
-                self.analyzer,
+                self.review_analyzer,
                 max_moves=review_limit,
                 side=self.player_side,
             )
@@ -350,7 +364,7 @@ class TrainerApplication:
             )
             review = review_record(
                 record,
-                self.analyzer,
+                self.review_analyzer,
                 max_moves=DEFAULT_REVIEW_LIMIT,
                 side=self.player_side,
             )
