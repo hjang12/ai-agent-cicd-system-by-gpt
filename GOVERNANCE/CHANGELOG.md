@@ -19,7 +19,7 @@
 
 - 기존 Task Registry / Active Issue Index / CURRENT_STATUS / Checkpoint / History 역할을 유지한다.
 - 새 parser, registry, workflow 또는 state layer를 추가하지 않는다.
-- Governance 버전 변경은 사용자 합의 전까지 제안 상태로 유지하며, 이 PR은 병합되지 않은 검토안이다.
+- Governance §15에 따라 사용자 승인을 받은 뒤 PR #159를 2026-10-21에 squash-merge했다. Merge commit: `43a4e6a175949790ab974fd63456a35da0c6d7ae`.
 
 ## [1.4.4] - 2026-10-21
 
