@@ -183,11 +183,10 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 
 ## Current Priority
 
-1. Continue `TASK-20261021-0001`: trial the temporary work instructions during real tasks and evaluate their effects against existing Governance §§25-A-8, 27 and 28. Keep Governance rule text unchanged until evidence demonstrates a genuine, recurring gap.
-2. `TASK-20261020-0001` (Personal AI Janggi Trainer v1.0) is **COMPLETED**. Latest main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` is deployed live as `dep-dbc26arm8hqs73bcbmbg`. Main CI passed Workspace `39533158998`, Janggi Python `39533159009`, and live-browser smoke `39533158968`; all 11 production browser tests passed in 128.597 seconds.
+1. `TASK-20261021-0001` (temporary-guidance trial) is **COMPLETED**. Closed on 2026-10-21 at the user's direction because no independent, measurable benefit from continuing the temporary instructions was established. The repeated `healthCheckPath` release-blocker was a stale classification/context synchronization problem; existing Governance §§25-A-8, 27 and 28 are sufficient without a new rule. Do not continue the temporary instruction package or change Governance rules/version unless repeated evidence later demonstrates a genuine gap.
+2. `TASK-20261020-0001` (Personal AI Janggi Trainer v1.0) is **COMPLETED**. The release scope passed main CI and 11 production browser smoke tests; see the v1.0 scope and task checkpoint for the acceptance evidence.
 3. `ISSUE-002` (Render `healthCheckPath` config drift) is **DEFERRED/P3**, not a release blocker. Render's documented default TCP health checks remain active when the optional HTTP path is omitted; `/api/health` and the complete live-browser suite passed.
-4. Keep `TASK-20260930-0002` (AI-level strength calibration) **PAUSED**. Do not resume calibration as part of v1.0 closure.
-
+4. Keep `TASK-20260930-0002` (AI-level strength calibration) **PAUSED**. It is post-v1.0 research, not an unfinished v1.0 release gate.
 ## Next Development Candidates
 
 - Expand monorepo-wide validation only when a new shared boundary or deployment invariant is introduced.
