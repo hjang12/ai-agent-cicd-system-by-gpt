@@ -16,16 +16,6 @@
 - Primary user: one self-directed Janggi learner using a desktop browser
 - Current priority: finish Personal AI Janggi Trainer v1.0 against [docs/V1_RELEASE_SCOPE.md](./V1_RELEASE_SCOPE.md). PR #145 (`56cbe8de496c1bae2250291bb81f7f78cfbb3149`) delivered visible analysis/review/training surfaces and browser-local cumulative practice history. PR #146 (`7dd364a4f69f7eb90d953baa135530c031e01beb`) corrected the default port fallback to Render's documented port 10000 and added startup-port regression tests. Required Workspace and Janggi CI checks passed; Render deploy `dep-dbbeqoui0phs738e4110` reached `live` and logged `Listening on http://0.0.0.0:10000`. The original port-scan failure's exact root cause is not proven. v1.0 remains open because direct browser-flow smoke is unverified and live Render `healthCheckPath` remains empty despite `render.yaml` declaring `/api/health`. The six-level calibration task remains PAUSED and is not a release gate.
 
-## Release Verification Snapshot — 2026-10-20
-
-This snapshot records read-only observations made before the documentation update itself; it is not a claim about the deployment created by this update.
-
-- Render service: `personal-ai-janggi-trainer-by-gpt`, service ID `srv-dajolip594qs73d1bkr0`, URL `https://personal-ai-janggi-trainer.onrender.com`.
-- Latest deployment observed during the recheck: `dep-dbbf251srm7s73858b5g`, commit `0338d442d04dba1521af19631360b01705d5e1e1`, status `live`. Render events report successful build/deploy; logs show `python app.py`, `Listening on http://0.0.0.0:10000`, and the service-live message.
-- Actual Render service metadata still reports `healthCheckPath: ""`, while root `render.yaml` declares `/api/health` and `app.py` implements it. The mismatch remains unresolved; the connected Render tools expose no update operation for this existing service setting. Render documents the manual path as service Settings → Health Checks → Edit → enter `/api/health` → Save Changes ([official guide](https://render.com/docs/health-checks)); this agent does not have an authorized Dashboard UI operation to apply it.
-- Direct HTTP checks of both the root URL and `/api/health` could not reach an HTTP response: the web tool marked the URLs inaccessible and shell `curl` failed DNS resolution. This is an agent-runtime network/DNS limitation, not evidence by itself that the service is down. Live health and real browser interaction therefore remain **unverified**.
-- Editing files under this project path is included in Render's build filter and can trigger another deployment. Re-check the actual latest deployment after this documentation PR; the deployment ID above is the pre-update observation.
-
 ## Implemented Capability
 
 - Dependency-free Janggi domain and board representation
@@ -308,7 +298,6 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 6. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
 7. Keep training/evaluation interfaces stable while AI strategy evolves.
 
-
 ## 2026-10-20 — distinguish Render platform status from agent-runtime DNS failure
 
 - Rechecked the official Render status page: it reports **All Systems Operational** and no incident reported on October 20, 2026 ([status page](https://status.render.com/)). This does not prove individual-service availability.
@@ -316,14 +305,12 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 - Render service control-plane metadata still says the service is not suspended and deploy `dep-dbbf251srm7s73858b5g` is `live`. Request logs and HTTP metrics for 2026-10-20 06:45–07:30 UTC returned no records; this is inconclusive, not proof that users have made no requests.
 - Updated assessment: the failure currently reproduces in the agent's own name-resolution/access path, while there is no corroborating evidence of a Render-wide outage. Keep per-service public HTTP and real-browser acceptance **unverified** until tested from an independent external client. The empty live `healthCheckPath` remains a configuration mismatch, but it is not evidence that it caused this DNS resolution failure.
 
-
 ## 2026-10-20 — user confirms the public Render endpoints work
 
 - After agent-runtime DNS failures affected the Janggi hostname and unrelated domains, the user opened both the app root and `/api/health` in their own browser and confirmed that both worked.
 - This is user-reported evidence that the service was publicly reachable at the time of the check. It corrects the earlier assessment that individual service reachability was wholly unknown; it does not amount to a full automated check by the agent or verify interactive gameplay/learning flows.
 - The agent-runtime DNS failure remains independently reproducible across unrelated domains. Do not describe it as a Render outage or change app code solely to address it.
 - The live service's empty `healthCheckPath` versus `render.yaml`'s `/api/health` remains a separate configuration-consistency item. No live service setting has been changed.
-
 
 ## Candidate Verification Update — 2026-10-21
 

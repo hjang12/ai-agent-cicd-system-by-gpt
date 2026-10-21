@@ -2439,3 +2439,10 @@ This closes the current requested UI refinement scope. Future UI changes should 
 - The updated candidate passed Workspace structure validation run `39519087955`, Janggi Python validation run `39519087947`, and Playwright/Chromium browser acceptance run `39519088050`.
 - The browser log reports `Ran 10 tests in 88.762s` and `OK`; the new no-rating assertions execute in the review/training/progress persistence scenario.
 - This closes the candidate-local evidence gap for the no-numeric-rating criterion. It does not close the wider gameplay/legal-move gate or production-release verification: PR #149 remains unmerged, the live Render smoke job is skipped on PR events, and live service `healthCheckPath` remains empty while `render.yaml` declares `/api/health`.
+
+## 2026-10-21 — Branch-head revalidation and release-context cleanup
+
+- PR #149 branch head `d8725225a4e34a0e222d93de1ca2e5e98dd149c3` passed Workspace validation run `39519490460`, Janggi Python validation run `39519490378`, and Janggi browser acceptance run `39519490467`. The browser-acceptance job completed successfully; the production-only `live-browser-smoke` job was skipped for the pull-request event as designed.
+- These checks ran against a locally started candidate, not the production Render deployment. PR #149 remained open and unmerged.
+- Review found a dated pre-documentation-update Render snapshot duplicated in `CURRENT_STATUS.md` and the task checkpoint/history. The duplicate block was removed from `CURRENT_STATUS.md` to keep that file focused on compact current context; the detailed evidence remains in the checkpoint/history.
+- The checkpoint was aligned with the branch-head CI results. The previous normal merge attempt remains blocked by the tool safety check; no alternate merge path was used.
