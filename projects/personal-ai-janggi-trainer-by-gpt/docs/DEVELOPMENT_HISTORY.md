@@ -2431,3 +2431,11 @@ This closes the current requested UI refinement scope. Future UI changes should 
 - Render metadata still reports an empty `healthCheckPath` while repository `render.yaml` declares `/api/health`. This configuration discrepancy is unresolved; no Render mutation was performed.
 - PR #149 remains open and unmerged. A previous normal merge attempt was blocked by the tool safety check; this control was not bypassed.
 - TASK-20261020-0001 remains ACTIVE. Release completion awaits the candidate reaching main, successful live post-deploy smoke, resolution/acceptable verification of the Render health-check discrepancy, and direct evidence for remaining unchecked release criteria. AI-strength calibration remains PAUSED.
+
+
+## 2026-10-21 — Explicit no-numeric-rating browser regression
+
+- Added browser acceptance assertions to candidate code revision `9ebacdc1c4fb9733aa5550d5cdae401fbbfd3763`: after a completed game, the visible player profile must show the game count (for example, `1전`) rather than a numeric skill rating, and the terminal result must explicitly state that numerical Rating is not provided.
+- The updated candidate passed Workspace structure validation run `39519087955`, Janggi Python validation run `39519087947`, and Playwright/Chromium browser acceptance run `39519088050`.
+- The browser log reports `Ran 10 tests in 88.762s` and `OK`; the new no-rating assertions execute in the review/training/progress persistence scenario.
+- This closes the candidate-local evidence gap for the no-numeric-rating criterion. It does not close the wider gameplay/legal-move gate or production-release verification: PR #149 remains unmerged, the live Render smoke job is skipped on PR events, and live service `healthCheckPath` remains empty while `render.yaml` declares `/api/health`.
