@@ -1161,7 +1161,11 @@ Session과 Turn은 이 Governance의 표준 용어로 사용하지 않는다. �
 - Repository와 공식 Context가 Chat 설명보다 우선한다.
 - 상태가 불일치하면 실제 상태를 확인하고 current-facing 문서를 바로잡는다.
 
-### 25-A-3. Development Task Registry
+### 25-A-3. Development Work Continuity
+
+Development Work Continuity는 Chat 전환이나 Agent Work 중단 뒤에도 Task를 필요한 상태와 근거를 보존한 채 재개하는 능력이다. 성공 기준은 이전 대화를 그대로 기억하는 것이 아니라, 현재 Task와 권한 있는 Next Action을 공식 기록과 실제 상태에서 복구하는 것이다.
+
+### 25-A-4. Development Task Registry
 
 `GOVERNANCE/docs/DEVELOPMENT_TASKS.md`는 Task의 식별·상태·Context / Checkpoint 경로를 제공하는 단일 탐색 인덱스다. 상세 이력이나 구현 상태를 중복 저장하지 않는다.
 
@@ -1184,7 +1188,7 @@ Task 선택 순서:
 
 가장 최근에 수정된 Task라는 이유만으로 자동 선택하지 않는다. Workspace Task의 Context는 `GOVERNANCE/docs/`, Project Task의 Context는 해당 `projects/<project>/docs/`에서 관리한다.
 
-### 25-A-4. Development Context
+### 25-A-5. Development Context
 
 새 Chat에서 재개할 수 있도록 해당 Task에 필요한 정보만 유지한다.
 
@@ -1198,7 +1202,7 @@ Task 선택 순서:
 
 CURRENT_STATUS는 현재 상태, ACTIVE_ISSUES는 Workspace 미해결 이슈, DEVELOPMENT_HISTORY / ADR / Evidence는 상세 이력의 원본이다. 같은 사실을 여러 current-facing 문서에 별도로 복제하지 않는다.
 
-### 25-A-5. Checkpoint
+### 25-A-6. Checkpoint
 
 Checkpoint는 고정된 시간 간격으로 만들거나 Chat을 강제로 종료하기 위한 장치가 아니다. 다음과 같은 의미 있는 상태 변화에서 Context를 갱신한다.
 
@@ -1208,7 +1212,7 @@ Checkpoint는 고정된 시간 간격으로 만들거나 Chat을 강제로 종�
 
 Checkpoint에는 Task ID와 상태, 현재 Branch / Commit, 완료·진행 작업, 실제 검증 결과, 이슈·결정, 그리고 Task 상태에 맞는 Next Action 또는 종료 결과를 기록한다. ACTIVE가 아닌 Task의 과거 Next Action을 실행 지시로 남기지 않는다.
 
-### 25-A-6. 단일 Context Recovery 순서
+### 25-A-7. 단일 Context Recovery 순서
 
 1. Workspace 시작 지침과 Governance를 확인한다.
 2. `DEVELOPMENT_TASKS.md`에서 요청에 맞는 Task와 현재 Status를 확정한다.
@@ -1219,7 +1223,7 @@ Checkpoint에는 Task ID와 상태, 현재 Branch / Commit, 완료·진행 작�
 
 Task Status를 먼저 확정한다. Checkpoint나 History의 Next Action을 근거로 Status를 역추론하지 않는다. ACTIVE Task의 Next Action만 실행 후보이며, PAUSED / BLOCKED Task는 재개 조건 확인 전까지 실행하지 않는다. 복구가 불충분하면 추측으로 구현하지 말고 가능한 범위에서 조사해 기록을 갱신한다.
 
-### 25-A-7. Interaction 및 실행 경계
+### 25-A-8. Interaction 및 실행 경계
 
 Interaction에 고정된 최대 시간을 두지 않고, 경과시간만을 이유로 작업을 강제 종료하지 않는다. 플랫폼 Context / Token / Tool / Runtime 한계, 외부 작업의 대기, 안전한 Checkpoint 지점, 사용자 중단 요청 또는 중요한 사람의 판단 필요가 실제 중단 사유가 될 수 있다.
 
@@ -1227,7 +1231,7 @@ Interaction에 고정된 최대 시간을 두지 않고, 경과시간만을 이�
 
 사용자의 중단 요청은 가장 이른 안전한 시점에 따른다. 그 밖의 중단은 실제 원인과 완료 범위·남은 Action을 Checkpoint에 남긴다. 실행 가능한 Action이 남았는데 Agent가 먼저 종료한 경우를 기술적 Blocker로 기록하지 않는다.
 
-### 25-A-8. 진행 보고와 효율
+#### 진행 보고와 효율
 
 - 의미 있는 검증, 독립 단계 완료, 계획 변경 또는 효율 저하 시 현재 초점·확인된 결과·다음 Action·중요한 위험을 간결하게 보고한다.
 - 고정된 보고 주기, 미리 정한 총 마일스톤 수, 기본 Interaction 일련번호를 강제하지 않는다.
