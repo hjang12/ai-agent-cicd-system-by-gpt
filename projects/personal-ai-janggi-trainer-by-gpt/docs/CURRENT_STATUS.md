@@ -116,7 +116,7 @@
 
 ## Latest Release Verification (2026-10-21)
 
-- PR #149, #150, and #151 are merged. Latest main commit: `1034665caedbe997d859053eebab40def78e7fe2`.
+- PR #149, #150, and #151 are merged. Latest application-code commit: `1034665caedbe997d859053eebab40def78e7fe2`. A subsequent documentation-only main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` also deployed live as `dep-dbc26arm8hqs73bcbmbg`; its live-browser smoke run `39533158968` passed all 11 tests in 128.597 seconds (`OK`).
 - Render deployment `dep-dbc2003ncjis73ejm660` for that commit is `live`; service startup log confirms `Listening on http://0.0.0.0:10000`.
 - Main CI passed Workspace run `39531901182`, Janggi Python run `39531900976`, and live-browser smoke run `39531901117`.
 - The live smoke passed all 11 Playwright/Chromium methods in 137.872 seconds (`OK`), including game startup combinations, both player-side openings, move/AI sequencing and error recovery, check/bikjang, illegal/out-of-turn request rejection, review/training, browser-local persistence, and undo/replay. The two earlier turn-return timeouts and the review-modal failure no longer reproduce.
