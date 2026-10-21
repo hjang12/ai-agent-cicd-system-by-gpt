@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.4.5] - 2026-10-21
+
+### Corrected
+
+- Context Recovery의 일반 개요가 오래된 별도 순서 대신 §25-A-7의 단일 절차를 따르도록 정리.
+- 중복 번호였던 실패 및 복구 기록을 §24-A로 구분.
+- Workspace CURRENT_STATUS에서 완료된 저장소 정리 작업을 대기 상태로 표시하던 문구와 날짜가 지난 Render 상태를 현재 사실처럼 읽을 수 있는 표현을 바로잡음.
+- 완료된 Governance Task에 남아 있던 캘리브레이션 재개 문구를 종료 기록으로 변경해 현재 PAUSED 상태와 분리.
+- CHANGELOG 중간의 중복 최상위 제목을 제거하여 1.3.3 검토 완료 항목을 해당 버전 기록 아래에 유지.
+- CI/deploy strict gate 이슈의 실제 확인 날짜와 현재 관찰 결과를 갱신.
+
+### Review Trigger
+
+- 2026-10-21 상세 리뷰에서 1.4.4의 상태 권한 규칙은 올바르지만, 일부 요약 문서가 이전 상태나 별도의 복구 순서를 계속 보유하고 있는 것을 확인함.
+
+### Decision
+
+- 기존 Task Registry / Active Issue Index / CURRENT_STATUS / Checkpoint / History 역할을 유지한다.
+- 새 parser, registry, workflow 또는 state layer를 추가하지 않는다.
+- Governance 버전 변경은 사용자 합의 전까지 제안 상태로 유지하며, 이 PR은 병합되지 않은 검토안이다.
+
 ## [1.4.4] - 2026-10-21
 
 ### Clarified
@@ -106,8 +127,6 @@
 
 - Render service metadata 응답에 healthCheckPath 필드가 반환되지 않은 것을 실제 빈 설정으로 오판한 사례.
 - 오판 후 추가된 context consistency validator 자체가 문서 형식과 Git checkout 조건을 잘못 가정하면서 연속 CI 실패를 만든 사례.
-
-# Changelog
 
 ### Review Completion
 

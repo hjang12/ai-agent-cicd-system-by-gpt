@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.4.4**
+**Governance Version: 1.4.5**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -1112,7 +1112,7 @@ AI는 Active Issue를 장기간 방치하지 않는다. 작업을 수행할 때 
 ---
 
 
-## 24. 실패 및 복구 기록
+## 24-A. 실패 및 복구 기록
 
 중요한 실패도 프로젝트 지식으로 취급한다.
 
@@ -1149,20 +1149,18 @@ Prevention
 
 새로운 AI Coding Agent 또는 새로운 ChatGPT 대화에서 기존 개발 상태를 빠르게 복원할 수 있도록 핵심 Context를 GitHub에 저장한다.
 
-권장 복구 순서는 다음과 같다.
+Context Recovery의 단일 기준 순서는 §25-A-7에 정의한다. 이 절은 개요만 제공하며, 별도 순서 목록을 중복 유지하지 않는다.
 
 ```text
-Governance
-→ CURRENT_STATUS
-→ ACTIVE_ISSUES
-→ README
-→ ARCHITECTURE
-→ DEVELOPMENT_HISTORY
-→ ADR
-→ Evidence
-→ Actual Code
-→ CI / Deployment State
+Governance / 시작 지침
+→ Request와 일치하는 Development Task 및 현재 Status
+→ Task가 지정한 Workspace / Project Context와 Checkpoint
+→ 실제 Repository / Branch / Commit 상태
+→ 관련 PR / Issue / CI / Deployment 상태
+→ 필요한 경우에만 관련 Architecture / Requirement Contract / History / ADR / Evidence
 ```
+
+Task Status는 Development Task Registry에서 확정한다. Checkpoint나 History의 오래된 `Next Action`은 Task Status를 대체하지 않는다.
 
 새 Agent는 기존 채팅의 내용을 추측해서 복원하지 않는다.
 
