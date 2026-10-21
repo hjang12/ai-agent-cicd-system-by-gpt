@@ -2,8 +2,9 @@
 
 ## Governance
 
-- Governance Version: `1.4.6` (canonical version file: `GOVERNANCE/VERSION`)
-- Status: Active baseline on `main`
+- Main Governance baseline: `1.4.5`
+- Proposed Governance version in this review branch: `1.4.6` (the branch's `GOVERNANCE/VERSION`)
+- Status: `main` remains on 1.4.5; PR #160 is open and the 1.4.6 proposal is not active on `main`.
 - Current canonical workspace repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Default / working branch: `main`
 - Main branch protection: not enabled
@@ -180,7 +181,7 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 
 ## Current Task State
 
-- Governance consistency/simplicity review: `TASK-20261021-0004` — **ACTIVE** on the review branch. PR and verification details will be recorded in its Checkpoint; Governance 1.4.6 is not part of `main` until user approval and merge.
+- Governance consistency/simplicity review: `TASK-20261021-0004` — **ACTIVE** on the review branch; PR #160 is open. Governance 1.4.6 is not part of `main` until user approval and merge.
 - Previous Governance review: `TASK-20261021-0003` — **COMPLETED** through PR #159; Governance 1.4.5 is the current `main` baseline until this proposal is approved.
 - Personal AI Janggi Trainer v1.0: `TASK-20261020-0001` — **COMPLETED**. Release acceptance and the 11-method live browser smoke passed.
 - AI-level strength calibration: `TASK-20260930-0002` — **PAUSED** post-v1.0 research. Do not run further calibration or change public AI levels/search budgets unless explicitly resumed.
