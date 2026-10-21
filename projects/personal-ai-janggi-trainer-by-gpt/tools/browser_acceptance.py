@@ -201,6 +201,65 @@ class JanggiBrowserAcceptanceTests(unittest.TestCase):
                 self.assertEqual([], state["state"]["history"])
                 self.assertEqual(90, len(state["state"]["board"]))
 
+    def test_server_rejects_illegal_and_out_of_turn_moves_without_mutation(self) -> None:
+        self._start_game(level="1", side="han", setup="classic")
+        initial = self._state()
+        player_move = next(
+            move for move in initial["legal_moves"]
+            if move.get("src") is not None and move.get("dst") is not None
+        )
+
+        # A same-square move has a real source piece but is not a legal move.
+        invalid_move = {"src": player_move["src"], "dst": player_move["src"]}
+        invalid_response = self.page.evaluate(
+            """async (move) => {
+              const response = await fetch('/api/move', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(move)
+              });
+              return {status: response.status, body: await response.json()};
+            }""",
+            invalid_move,
+        )
+        self.assertEqual(400, invalid_response["status"], invalid_response["body"])
+        self.assertEqual(initial["state"], self._state()["state"])
+
+        # Apply one legal human move directly through the real HTTP API. It is now
+        # the AI's turn; /api/move must refuse a move even if that move is legal
+        # for the current side-to-move.
+        accepted_response = self.page.evaluate(
+            """async (move) => {
+              const response = await fetch('/api/move', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(move)
+              });
+              return {status: response.status, body: await response.json()};
+            }""",
+            player_move,
+        )
+        self.assertEqual(200, accepted_response["status"], accepted_response["body"])
+        after_player_move = self._state()
+        self.assertEqual("cho", after_player_move["state"]["turn"])
+        ai_move = next(
+            move for move in after_player_move["legal_moves"]
+            if move.get("src") is not None and move.get("dst") is not None
+        )
+        wrong_turn_response = self.page.evaluate(
+            """async (move) => {
+              const response = await fetch('/api/move', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(move)
+              });
+              return {status: response.status, body: await response.json()};
+            }""",
+            ai_move,
+        )
+        self.assertEqual(400, wrong_turn_response["status"], wrong_turn_response["body"])
+        self.assertEqual(after_player_move["state"], self._state()["state"])
+
     def test_han_side_waits_for_ai_opening_and_returns_the_turn_to_han(self) -> None:
         state = self._start_game(level="1", side="han", setup="classic")
         self.assertEqual("han", state["player_side"])
