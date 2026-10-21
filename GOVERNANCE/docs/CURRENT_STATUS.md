@@ -83,7 +83,7 @@ Current Active Issue Index: `GOVERNANCE/docs/ACTIVE_ISSUES.md`
 Current active items are maintained in `GOVERNANCE/docs/ACTIVE_ISSUES.md`:
 
 - `ISSUE-001` — CI-success-before-deploy strict gate is not enforced; the current verification date is maintained in the Active Issue Index.
-- `ISSUE-002` — Render Janggi service has an observed empty live `healthCheckPath` while the repository Blueprint declares `/api/health`; current service deployment is still live.
+- `ISSUE-002` — DEFERRED/P3. Render `healthCheckPath` metadata differs from `render.yaml`, but default TCP health checks apply when the optional HTTP path is omitted; the latest deployment and all 11 production browser smoke tests passed. This is not a release blocker.
 - Render service metadata observability limitation is documented below as a known limitation, not as an active application or deployment issue.
 
 This section is only a navigation summary. The authoritative current status, priority, next action, blocker, and verification date are maintained in `ACTIVE_ISSUES.md`.
@@ -152,7 +152,7 @@ Deployment verification:
 - The Janggi Render service has been independently verified live; exact deployment IDs and runtime snapshots belong in dated verification/history records.
 - Time Dashboard deploy `dep-damckue7bikc73b4p7ng`: `live`; build succeeded; `python timefolio_server.py` started; a `HEAD /` request returned HTTP 200; Render reported the service live at its primary URL.
 - Time Dashboard had one immediate cutover build failure because `requirements.txt` was not found, followed by a successful retry after the service Root Directory was correctly applied.
-- Current connected Render metadata **observes** `healthCheckPath` as an empty string for the Janggi service. The repository Blueprint declares `/api/health`, and the Janggi application exposes that endpoint. This is now confirmed live configuration drift, not an Unknown/observability-only state.
+- Current connected Render metadata **observes** `healthCheckPath` as an empty string for the Janggi service, while the repository Blueprint declares `/api/health`. This is confirmed configuration drift, but it is non-blocking for v1.0: Render documents HTTP health checks as optional and defaults to TCP checks when no HTTP path is configured; the live `/api/health` preflight and all 11 production browser smoke tests passed.
 
 The available Render toolset still does not expose an update operation for existing service Git Repository / Root Directory settings; the actual cutover was performed in the Render Dashboard and then verified through the connected Render API/tooling. No duplicate services were created.
 
@@ -178,17 +178,15 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 - Destructive cleanup is complete; future development must target the canonical monorepo only.
 - Pre-deletion gate verification completed on 2026-09-18: both Render services pointed to the canonical monorepo, latest relevant CI runs were green, and no duplicate Render services existed.
 - A strict CI-success-before-deploy gate is not currently enforced. Render remains commit-triggered auto deploy, so CI and deployment are independently triggered.
-- Janggi Render service metadata still reports an empty `healthCheckPath` on 2026-10-20, despite `render.yaml` and application code declaring/providing `/api/health`. Application commit `7dd364a4f69f7eb90d953baa135530c031e01beb` reached Render `live` as `dep-dbbeqoui0phs738e4110`; actual browser/HTTP smoke is not verified. `ISSUE-002` remains BLOCKED because the connected Render toolset cannot mutate this existing service setting.
+- Janggi Render service metadata still reports an empty `healthCheckPath` despite `render.yaml` declaring `/api/health`. The latest deployed main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` is live as `dep-dbc26arm8hqs73bcbmbg`; main-push run `39533158968` passed readiness and all 11 browser tests. Render defaults to TCP checks when the optional HTTP path is omitted, so `ISSUE-002` is DEFERRED/P3 configuration hygiene, not a release blocker.
 - The connected GitHub repository list currently exposes the GPT monorepo and the two historical project repositories; no active `personal-mcp-server` repository was present in that current list, so older documentation referring to it is treated as stale.
 
 ## Current Priority
 
-1. Advance TASK-20261020-0001: close Personal AI Janggi Trainer v1.0 only after the release acceptance gates are verified. PR #145 and PR #146 are merged. Latest app-changing commit `7dd364a4f69f7eb90d953baa135530c031e01beb` is live on Render as `dep-dbbeqoui0phs738e4110`; actual browser smoke is still unverified.
-2. Track and resolve Janggi Render `healthCheckPath` drift through `ISSUE-002`; do not change or infer live settings without an authorized control path.
-3. Keep TASK-20260930-0002 (AI level strength calibration) PAUSED through v1.0; its evidence and next-seed work are research-only, not release gates.
-4. Keep Repository / CI / Render state verification grounded in directly observed evidence; an explicitly returned empty value is Observed, while an omitted value remains Unknown.
-5. Use Governance simplicity/evidence semantics for future operational changes; do not add automation layers without a demonstrated gap.
-6. Continue future development under `projects/<project>/` using the finalized common Governance.
+1. Continue `TASK-20261021-0001`: trial the temporary work instructions during real tasks and evaluate their effects against existing Governance §§25-A-8, 27 and 28. Keep Governance rule text unchanged until evidence demonstrates a genuine, recurring gap.
+2. `TASK-20261020-0001` (Personal AI Janggi Trainer v1.0) is **COMPLETED**. Latest main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` is deployed live as `dep-dbc26arm8hqs73bcbmbg`. Main CI passed Workspace `39533158998`, Janggi Python `39533159009`, and live-browser smoke `39533158968`; all 11 production browser tests passed in 128.597 seconds.
+3. `ISSUE-002` (Render `healthCheckPath` config drift) is **DEFERRED/P3**, not a release blocker. Render's documented default TCP health checks remain active when the optional HTTP path is omitted; `/api/health` and the complete live-browser suite passed.
+4. Keep `TASK-20260930-0002` (AI-level strength calibration) **PAUSED**. Do not resume calibration as part of v1.0 closure.
 
 ## Next Development Candidates
 
