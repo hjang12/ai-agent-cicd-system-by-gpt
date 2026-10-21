@@ -2460,3 +2460,17 @@ This closes the current requested UI refinement scope. Future UI changes should 
 - Candidate PR #150 defers detailed analysis until the user opens the analysis panel and uses the server-retained pre-move position so that analysis remains tied to the last human move without changing the active match. The established separate `/api/move` then `/api/engine/move` sequence is preserved for AI-error recovery.
 - Code-bearing candidate `9e84ba19e29ec43d993721d5d94392f8b2be5888` passed Workspace validation run `39530148603`, Janggi Python validation run `39530148620`, and browser acceptance run `39530148609` (11 tests in 79.181s, `OK`). The later documentation synchronization must pass its own latest-head CI before merge.
 - The live Render `healthCheckPath` remains empty while `render.yaml` declares `/api/health`; main smoke verified endpoint reachability but did not resolve the configuration drift. v1.0 remains ACTIVE and AI-strength calibration remains PAUSED.
+
+## 2026-10-21 — Review/training smoke timeout and bounded batch analyzer
+
+### Production evidence
+- PR #150 merged as main commit `1c2156d48612c09578c2327af67fc74e7ff29016`; Render deploy `dep-dbc1qb6q1p3s73bgsig0` reached `live`.
+- Main-push smoke run `39530751332` passed readiness and 10 of 11 browser methods. The previously failing turn-return scenarios passed. The remaining `test_review_training_answer_and_local_progress_persist_after_reload` test failed after it clicked `#postgame-review`: `#learning-modal` was still hidden after 20 seconds and the post-game controls remained disabled while the terminal result was visible.
+- The client remaining in its busy state strongly suggests the review request had not completed within the test timeout. Render CPU samples during the run were below the prior run's observed 0.15 limit, but no per-request duration was available; exact request timing and sole root cause remain unproven.
+- Source review confirmed that batch review, training-problem generation, and training-answer checking run `review_record` repeatedly and that the detailed analyzer performs two depth-2 engine searches plus tactical-risk/motif work for each reviewed player move.
+
+### Candidate remediation
+- PR #151 adds a dedicated low-cost batch analyzer (depth 1, no mobility/quiescence/root-refinement work, tactical-motif scan disabled) for review, problem generation, and answer checking. The detailed single-move analysis used by the explicit analysis panel retains the original depth-2 engine and full motif scanning.
+- A regression test verifies that batch review and training use the dedicated analyzer rather than the detailed single-move analyzer.
+- Candidate code head `63ad439e8052f4629f393a94af777fb1402a16a3` passed Workspace run `39531372415`, Janggi Python run `39531372421` (332 tests in 27.086s, `OK`), and Chromium run `39531372423` (11 tests in 31.778s, `OK`). The later documentation sync must pass its own latest-head CI.
+- Release is still **ACTIVE**: production smoke must be rerun after candidate merge and the broader gameplay/legal-move gate remains unchecked. Live `healthCheckPath` is still empty while `render.yaml` declares `/api/health`. AI-strength calibration remains **PAUSED**.

@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: finish Personal AI Janggi Trainer v1.0 against [docs/V1_RELEASE_SCOPE.md](./V1_RELEASE_SCOPE.md). PR #149 merged as `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`, and Render deployment `dep-dbc19cdg1s2s738ai9k0` reached `live`. Main CI passed Workspace run `39527295406` and Janggi Python run `39527295421`, but production browser smoke run `39527295378` failed two of ten interaction tests after 20-second turn-return timeouts; its health/UI preflight passed. Candidate PR #150 defers detailed move analysis until the user explicitly opens the analysis view; its code commit `9e84ba19e29ec43d993721d5d94392f8b2be5888` passed candidate CI (Workspace `39530148603`, Python `39530148620`, Chromium `39530148609`). The current PR documentation sync still requires latest-head CI. Live Render `healthCheckPath` remains empty despite `render.yaml` declaring `/api/health`, so v1.0 remains open. The six-level calibration task stays PAUSED and is not a release gate.
+- Current priority: finish Personal AI Janggi Trainer v1.0 against [docs/V1_RELEASE_SCOPE.md](./V1_RELEASE_SCOPE.md). PR #149 merged as `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`; PR #150 merged as `1c2156d48612c09578c2327af67fc74e7ff29016`. Render deployments `dep-dbc19cdg1s2s738ai9k0` and `dep-dbc1qb6q1p3s73bgsig0` both reached `live`. Main smoke runs `39527295378` and `39530751332` passed readiness, but respectively failed two turn-return tests and one review-modal test (10/11 passed; review modal remained hidden after 20 seconds). Candidate PR #151 separates detailed single-move analysis from the lower-cost batch review/training analyzer. Code candidate `63ad439e8052f4629f393a94af777fb1402a16a3` passed Workspace `39531372415`, Python `39531372421`, and Chromium `39531372423`; the latest documentation head still needs CI. Live Render `healthCheckPath` remains empty despite `render.yaml` declaring `/api/health`, so v1.0 remains open. AI-strength calibration stays PAUSED.
 
 ## Implemented Capability
 
@@ -98,7 +98,7 @@
 - Engine/search/API boundaries remain unchanged; the UI consumes the same snapshots and analysis/coaching interfaces.
 - UX-004 drawer contract was superseded by UX-005 to reflect this setup-first/replay-modal architecture.
 
-## Latest Verification (2026-10-02)
+## UI / turn-flow verification (2026-10-02)
 
 - PR #100 (`feat: redesign Janggi trainer as mobile game UI`) merged to `main` as `2d36b9c5346d86c672e5c7ad039f31b58dea6b6b` and deployed live to Render as deploy `dep-davgfmuq1p3s73d9fipg`.
 - The final Chromium scenario suite passed for the setup-first UI before merge. It covered setup-only initial entry, Lv.6/Han start, replay modal open/cancel, Cho/Lv.2 replay start, human move before AI, compact move evaluation, and responsive single-screen states at 1024×768, 820×1180, 390×844, 360×800, and 320×568.
@@ -114,19 +114,12 @@
 - When starting as Han, the browser now shows the initial board for 900ms, displays the AI's opening-state message, then switches to the authoritative post-opening position and user turn. The server/engine flow is unchanged.
 - This completes the current UI refinement scope; no further visual redesign is planned unless a new defect or requirement is identified.
 
-## Latest Verification (2026-10-20)
+## Latest Release Verification (2026-10-21)
 
-- PR #145 merged as `56cbe8de496c1bae2250291bb81f7f78cfbb3149`; it moved the analysis/review/training interface into visible panels and added versioned browser-local cumulative game/training records.
-- PR #146 merged as `7dd364a4f69f7eb90d953baa135530c031e01beb`. Workspace structure validation run `39369485643` and Janggi Python validation run `39369485752` both passed on the PR head, including browser JavaScript syntax, Python compilation, requirement-contract validation and the unit-test suite.
-- Render deploy `dep-dbbeqoui0phs738e4110` for the app-changing commit reached `live`; startup logs explicitly reported `Listening on http://0.0.0.0:10000`. The earlier deploy `dep-dbbdol4s728c73bb450g` failed with a port-scan timeout; the precise cause of that earlier failure remains unproven.
-- Live Render metadata still returns `healthCheckPath: ""` while repository `render.yaml` declares `/api/health`. This is tracked as Governance `ISSUE-002` and remains unresolved.
-- The connected web tool could not access either the live root URL or `/api/health`, so direct HTTP response and browser user-flow smoke are **unverified**. The v1.0 task remains ACTIVE, not complete.
-
-## Active Execution Constraints
-
-- The authoritative workspace issue index is `../../../GOVERNANCE/docs/ACTIVE_ISSUES.md`.
-- Statistical AI-strength calibration is paused and is not part of the current v1.0 release task. The off-CI runner and retained evidence remain available for a separately resumed post-v1.0 research task; do not execute new seeds or change public AI settings under TASK-20261020-0001.
-- Live Render deployment state is verified through Render tooling, including the observed empty `healthCheckPath`; direct browser/UI smoke verification remains unavailable from this agent runtime.
+- PR #149 merged as main commit `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`; Render deploy `dep-dbc19cdg1s2s738ai9k0` reached `live`. Live smoke run `39527295378` passed readiness, but two of ten browser methods timed out while waiting for the player's turn to return.
+- PR #150 merged as main commit `1c2156d48612c09578c2327af67fc74e7ff29016`; Render deploy `dep-dbc1qb6q1p3s73bgsig0` reached `live`. Live smoke run `39530751332` passed readiness and 10/11 browser methods; the remaining review/training persistence test found that the post-game review modal stayed hidden after 20 seconds and the UI remained busy. Exact API timing was not available.
+- Candidate PR #151 (`fix/janggi-review-latency-20261021`) introduces a lightweight batch-review analyzer while preserving full depth-2 detailed analysis for the user-opened analysis view. Code head `63ad439e8052f4629f393a94af777fb1402a16a3` passed Workspace `39531372415`, Python/unit validation `39531372421` (332 tests, 27.086s, `OK`), and Chromium acceptance `39531372423` (11 tests, 31.778s, `OK`). Documentation sync must pass its own latest-head CI before merge.
+- Live service metadata still reports `healthCheckPath: ""` while root `render.yaml` declares `/api/health`. Both live preflight stages have verified public endpoint/UI readiness; this does not resolve the config mismatch. v1.0 remains ACTIVE and AI-strength calibration remains PAUSED.
 
 ## Development Safety
 
@@ -290,13 +283,10 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 
 ## Known Next Targets
 
-1. Verify the game-first UI and human-vs-AI turn loop against the live service, then close any remaining gameplay/UX defects.
-2. Resume calibration for adjacent pairs 2-3, 3-4, 4-5, and 5-6 with sufficient seeded completed-game evidence before changing public AI level search budgets.
-3. Upgrade baseline AI strength in measured stages, using the existing deterministic search benchmarks and keeping move legality as the authoritative boundary.
-4. Refine bounded tactical analysis only when fixtures reveal a clear coaching gap; avoid silently escalating heuristic signals into strong tactical claims.
-5. Use player skill-assessment evidence together with adaptive position-training selection and ephemeral session metrics, while keeping match rating separate from coaching statistics and preventing uncalibrated AI levels from producing numeric player ratings.
-6. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
-7. Keep training/evaluation interfaces stable while AI strategy evolves.
+1. Verify and merge PR #151 only after the actual latest branch head passes Workspace, Janggi Python, and browser acceptance CI through the normal permitted path.
+2. Verify the Render deployment for the merged commit and rerun live browser smoke; specifically confirm player turn handoff, post-game review modal, training-problem/answer flow, progress persistence, and undo/replay.
+3. Complete the wider gameplay/legal-move regression gate and reconcile the live Render `healthCheckPath` through an authorized setting path.
+4. Resume AI-level calibration only after all v1.0 release gates are closed, as a separate post-v1.0 task. Do not execute calibration seeds or change public AI-level configuration under the current release task.
 
 ## 2026-10-20 — distinguish Render platform status from agent-runtime DNS failure
 
@@ -311,13 +301,3 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 - This is user-reported evidence that the service was publicly reachable at the time of the check. It corrects the earlier assessment that individual service reachability was wholly unknown; it does not amount to a full automated check by the agent or verify interactive gameplay/learning flows.
 - The agent-runtime DNS failure remains independently reproducible across unrelated domains. Do not describe it as a Render outage or change app code solely to address it.
 - The live service's empty `healthCheckPath` versus `render.yaml`'s `/api/health` remains a separate configuration-consistency item. No live service setting has been changed.
-
-## Candidate Verification Update — 2026-10-21
-
-- Latest tested code revision on PR #149: `9ebacdc1c4fb9733aa5550d5cdae401fbbfd3763`. Workspace validation run `39519087955`, Janggi Python validation run `39519087947`, and Playwright/Chromium browser acceptance run `39519088050` all completed successfully.
-- The browser suite ran 10 test methods against a locally started instance of the candidate. Coverage includes six AI profiles × four setups, Cho/Han opening behavior, visible human-move/AI-thinking sequencing, check/bikjang messages, API-error recovery, undo/replay, visible analysis/review/training, answer feedback and correctness totals, idempotent result recording, progress across reload/new match, and malformed/unavailable local storage.
-- The browser suite now also asserts that the visible player profile shows the recorded game count rather than a numeric skill rating, and that the terminal result explicitly says numerical Rating is not provided. The no-numeric-rating acceptance item is backed by this passing candidate-local test.
-- This evidence is candidate-local CI, not production Render browser smoke. The PR workflow's live-smoke job is skipped for pull-request events and runs after a project-changing commit reaches main. A final CI recheck is required on the updated documentation branch head.
-- The user confirmed the public app root and `/api/health` both open successfully from their browser on 2026-10-20. The agent runtime's cross-domain DNS failures are an access-path limitation, not evidence that the Render service is down.
-- Latest Render control-plane observation remains deployment `dep-dbbf251srm7s73858b5g` for main commit `0338d442d04dba1521af19631360b01705d5e1e1`, status `live`. The existing service's `healthCheckPath` metadata remains empty while `render.yaml` declares `/api/health`; that configuration has not been changed.
-- v1.0 remains in progress until PR #149 reaches main, live post-deploy smoke passes, the Render health-check discrepancy is resolved or shown not to affect live health, and the remaining unchecked gameplay/legal-move criterion is verified. AI-strength calibration remains paused.
