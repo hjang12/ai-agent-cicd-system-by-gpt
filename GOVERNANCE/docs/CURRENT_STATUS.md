@@ -93,7 +93,7 @@ This section is only a navigation summary. The authoritative current status, pri
 ### Personal AI Janggi Trainer
 
 - Canonical path: `projects/personal-ai-janggi-trainer-by-gpt/`
-- Source snapshot: `hjang12/personal-ai-janggi-trainer-by-gpt` @ `83932421217f149de46e6e23b89aff9d92467a11`
+- Historical imported source commit: `hjang12/personal-ai-janggi-trainer-by-gpt` @ `83932421217f149de46e6e23b89aff9d92467a11`
 - Latest central fixes are included after migration.
 - Domain, engine, search, coaching, training/evaluation, and browser/API layers are present as documented in the project Context.
 - Current CI: `.github/workflows/janggi-validation.yml`
@@ -105,7 +105,7 @@ This section is only a navigation summary. The authoritative current status, pri
 ### Time Dashboard
 
 - Canonical path: `projects/time-dashboard-by-gpt/`
-- Source snapshot: `hjang12/time-dashboard-by-gpt` @ `fb8e98baa7a81a610c2ccbf767f2995fb9af0a3f`
+- Historical imported source commit: `hjang12/time-dashboard-by-gpt` @ `fb8e98baa7a81a610c2ccbf767f2995fb9af0a3f`
 - Primary server: `timefolio_server.py`
 - Backend regression test suite is preserved under `tests/`.
 - Current CI: `.github/workflows/time-dashboard-ci.yml`
@@ -135,7 +135,7 @@ Current root workflows:
 
 The first monorepo Janggi validation/benchmark runs failed because the migrated test/benchmark files still reflected pre-monorepo assumptions. The subsequent fixes are now green. The actual current GitHub Actions result, not the historical failure, is the operative state.
 
-## Render State — Verified 2026-10-01
+## Render Cutover Snapshot — Verified 2026-10-01 (Historical)
 
 Render workspace: `My Workspace` (`tea-da7sjdgu01pc73bsno6g`).
 
@@ -146,17 +146,17 @@ Render service cutover is complete. Both existing services now use the canonical
 | `personal-ai-janggi-trainer-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/personal-ai-janggi-trainer-by-gpt` | `main` | yes | active |
 | `time-dashboard-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/time-dashboard-by-gpt` | `main` | yes | active |
 
-Both services are active and their latest cutover deployments are `live`.
+At the time of this dated cutover check, both services were active and their then-latest cutover deployments were `live`. This is historical evidence, not a current live-state assertion; verify Render directly when a task depends on current availability.
 
-Deployment verification:
+Historical deployment verification:
 - The Janggi Render service has been independently verified live; exact deployment IDs and runtime snapshots belong in dated verification/history records.
 - Time Dashboard deploy `dep-damckue7bikc73b4p7ng`: `live`; build succeeded; `python timefolio_server.py` started; a `HEAD /` request returned HTTP 200; Render reported the service live at its primary URL.
 - Time Dashboard had one immediate cutover build failure because `requirements.txt` was not found, followed by a successful retry after the service Root Directory was correctly applied.
 - Historical Render settings observations are retained in `DEVELOPMENT_HISTORY.md`; they are not current release blockers and are not repeated in this status summary.
 
-The available Render toolset still does not expose an update operation for existing service Git Repository / Root Directory settings; the actual cutover was performed in the Render Dashboard and then verified through the connected Render API/tooling. No duplicate services were created.
+At the time of cutover, the connected Render toolset did not expose an update operation for existing service Git Repository / Root Directory settings; the cutover was performed in the Render Dashboard and verified through the connected Render API/tooling. No duplicate services were created.
 
-Current migration state is **GitHub-complete / Render-cutover-complete / legacy-repository-cleanup-pending**.
+Migration state is **complete**: monorepo consolidation, Render cutover, and legacy source-repository cleanup were completed after the pre-deletion verification gate on 2026-09-18. References to former project repositories above are historical provenance only.
 
 ## Canonical Operating Model
 
@@ -181,13 +181,18 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 - Optional platform configuration follow-ups remain tracked only in `GOVERNANCE/docs/ACTIVE_ISSUES.md` and are excluded from current priorities unless their revisit conditions occur.
 - The connected GitHub repository list currently exposes the GPT monorepo and the two historical project repositories; no active `personal-mcp-server` repository was present in that current list, so older documentation referring to it is treated as stale.
 
-## Current Priority
+## Current Task State
 
-1. `TASK-20261021-0002` (deferred-status and Context Recovery consistency) is **COMPLETED**. Registry, Governance v1.4.4, current summaries and the completed Janggi checkpoint now agree on the current state and reporting conditions.
-2. `TASK-20261021-0001` (temporary-guidance trial) is **COMPLETED** at the user's direction. No separate temporary instruction package remains active.
-3. `TASK-20261020-0001` (Personal AI Janggi Trainer v1.0) is **COMPLETED**; release acceptance and the 11-method live browser smoke passed.
-4. Keep `TASK-20260930-0002` (AI-level strength calibration) **PAUSED**. It is post-v1.0 research, not an unfinished v1.0 release gate.
-## Next Development Candidates
+- Governance detailed review: `TASK-20261021-0003` — **ACTIVE** in this proposed review branch. The version 1.4.5 changes are not part of `main` unless the user agrees to the proposed Governance version change and the PR is merged.
+- Personal AI Janggi Trainer v1.0: `TASK-20261020-0001` — **COMPLETED**. Release acceptance and the 11-method live browser smoke passed.
+- AI-level strength calibration: `TASK-20260930-0002` — **PAUSED** post-v1.0 research. Do not run further calibration or change public AI levels/search budgets unless this task is explicitly resumed.
+- CI-success-before-deploy strict gate: `ISSUE-001` — **BLOCKED**; the authoritative details and last verification date are in `GOVERNANCE/docs/ACTIVE_ISSUES.md`.
+
+No other Development Task is currently active. Completed Task IDs remain available for history, not as current priorities.
+
+## Potential Future Work (Not Active Tasks)
+
+The items below are candidates only, not an execution queue. Do not start them automatically; create/select an ACTIVE Development Task from a new explicit request.
 
 - Expand monorepo-wide validation only when a new shared boundary or deployment invariant is introduced.
 - Add higher-value service smoke/browser checks where justified.
