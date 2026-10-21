@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: Personal AI Janggi Trainer v1.0 is **complete**. Latest main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` is deployed live as `dep-dbc26arm8hqs73bcbmbg`; main CI Workspace `39533158998`, Python `39533159009`, and live-browser smoke `39533158968` passed. The live smoke passed all 11 tests in 128.597s (`OK`). The optional Render HTTP `healthCheckPath` mismatch is `ISSUE-002` (`DEFERRED`, P3), not a release blocker: Render defaults to TCP checks when the HTTP path is omitted, while `/api/health` and the live browser suite pass. AI-level calibration remains PAUSED. The current higher-priority activity is the trial and evidence-based evaluation of temporary work instructions; do not change Governance rules without evidence of a real gap.
+- Current priority: Personal AI Janggi Trainer v1.0 is **complete**. Latest main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` is deployed live as `dep-dbc26arm8hqs73bcbmbg`; main CI Workspace `39533158998`, Python `39533159009`, and live-browser smoke `39533158968` passed. The live smoke passed all 11 tests in 128.597s (`OK`). The optional Render HTTP `healthCheckPath` mismatch is `ISSUE-002` (`DEFERRED`, P3), not a release blocker: Render defaults to TCP checks when the HTTP path is omitted, while `/api/health` and the live browser suite pass. AI-level calibration remains PAUSED. The temporary-guidance trial (`TASK-20261021-0001`) was closed on 2026-10-21 at the user's direction because no independent, measurable benefit was established. Governance rules/version remain unchanged; AI-level calibration remains paused as post-v1.0 research.
 
 ## Implemented Capability
 
@@ -120,7 +120,7 @@
 - Main CI passed Workspace `39533158998` and Janggi Python validation `39533159009`. The release test covers setup/levels, both sides, move/AI sequence, recovery, check/bikjang, illegal/out-of-turn requests, post-game review, training, local progress, and undo/replay. Earlier turn-return and review-modal failures did not recur.
 - v1.0 product and production-smoke gates are complete. PRs #149, #150, #151 and #153 are merged.
 - Render metadata still reports `healthCheckPath: ""` while root `render.yaml` declares `/api/health`. Render documentation says HTTP health checks are optional and default TCP checks apply when no HTTP path is configured. The endpoint and complete live browser suite passed. This is deferred, non-blocking Governance `ISSUE-002` (P3), not a current release blocker.
-- Governance task `TASK-20261020-0001` is complete. AI-level calibration remains paused. Continue the higher-priority temporary-guidance trial and evidence-based Governance evaluation.
+- Governance task `TASK-20261020-0001` is complete. AI-level calibration remains paused. Temporary-guidance trial `TASK-20261021-0001` is complete; no Governance rule/version change was made. AI-level calibration remains paused as post-v1.0 research.
 
 ## Development Safety
 
