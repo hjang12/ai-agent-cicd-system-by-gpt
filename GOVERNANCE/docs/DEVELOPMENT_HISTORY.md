@@ -901,3 +901,10 @@ Set the existing Render service health-check path to `/api/health` through an au
 - Render deployment `dep-dbbeqoui0phs738e4110` for app commit `7dd364a4f69f7eb90d953baa135530c031e01beb` reached `live` with a confirmed `0.0.0.0:10000` listener. This confirms the follow-up deploy but not the precise cause of the previous failed deploy.
 - Live `healthCheckPath` remains empty, contrary to `render.yaml`'s `/api/health`; the mutation remains blocked by the currently connected tools and is tracked in `ISSUE-002`. Browser/HTTP smoke remains unverified.
 - `TASK-20261020-0001` remains ACTIVE; `TASK-20260930-0002` remains PAUSED through the v1.0 stabilization task. No new generic Governance rule was introduced.
+
+
+## 2026-10-21 — v1.0 closure and temporary-guidance evaluation resumed
+
+- Personal AI Janggi Trainer v1.0's latest main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` deployed live as `dep-dbc26arm8hqs73bcbmbg`. Main-push live-browser smoke run `39533158968` passed all 11 tests in 128.597 seconds; Workspace and Python CI also passed.
+- The mismatch between the Render service's empty `healthCheckPath` metadata and root `render.yaml`'s `/api/health` remains factual, but official platform documentation confirms the HTTP path is optional and default TCP checks apply when omitted. The live endpoint and full browser smoke passed, so the mismatch was reclassified as deferred P3 configuration hygiene instead of blocking release.
+- `TASK-20261020-0001` is COMPLETED. New ACTIVE Task `TASK-20261021-0001` resumes the user-requested, trial-only evaluation of temporary work instructions against existing Governance §§25-A-8, 27 and 28. No Governance rule file or version changed.

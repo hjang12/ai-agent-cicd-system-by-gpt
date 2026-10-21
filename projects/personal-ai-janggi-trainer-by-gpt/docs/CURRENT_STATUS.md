@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: final v1.0 release closure for `hjang12/ai-agent-cicd-system-by-gpt`, target `projects/personal-ai-janggi-trainer-by-gpt/`. PR #151 is merged as `1034665caedbe997d859053eebab40def78e7fe2`; Render deployment `dep-dbc2003ncjis73ejm660` is `live`. Main CI passed Workspace `39531901182`, Python `39531900976`, and live-browser smoke `39531901117`; the live smoke passed all 11 browser tests in 137.872s (`OK`). The gameplay, review/training, persistence and undo/replay gates now pass. One blocker remains: service metadata `healthCheckPath` is empty while `render.yaml` declares `/api/health`; this is Governance `ISSUE-002` (`BLOCKED`) because the available Render integration cannot change this existing setting and no Dashboard UI action is available here. Keep the v1.0 Task ACTIVE only for that issue; AI-strength calibration remains PAUSED.
+- Current priority: Personal AI Janggi Trainer v1.0 is **complete**. Latest main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` is deployed live as `dep-dbc26arm8hqs73bcbmbg`; main CI Workspace `39533158998`, Python `39533159009`, and live-browser smoke `39533158968` passed. The live smoke passed all 11 tests in 128.597s (`OK`). The optional Render HTTP `healthCheckPath` mismatch is `ISSUE-002` (`DEFERRED`, P3), not a release blocker: Render defaults to TCP checks when the HTTP path is omitted, while `/api/health` and the live browser suite pass. AI-level calibration remains PAUSED. The current higher-priority activity is the trial and evidence-based evaluation of temporary work instructions; do not change Governance rules without evidence of a real gap.
 
 ## Implemented Capability
 
@@ -116,12 +116,11 @@
 
 ## Latest Release Verification (2026-10-21)
 
-- PR #149, #150, and #151 are merged. Latest application-code commit: `1034665caedbe997d859053eebab40def78e7fe2`. A subsequent documentation-only main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` also deployed live as `dep-dbc26arm8hqs73bcbmbg`; its live-browser smoke run `39533158968` passed all 11 tests in 128.597 seconds (`OK`).
-- Render deployment `dep-dbc2003ncjis73ejm660` for that commit is `live`; service startup log confirms `Listening on http://0.0.0.0:10000`.
-- Main CI passed Workspace run `39531901182`, Janggi Python run `39531900976`, and live-browser smoke run `39531901117`.
-- The live smoke passed all 11 Playwright/Chromium methods in 137.872 seconds (`OK`), including game startup combinations, both player-side openings, move/AI sequencing and error recovery, check/bikjang, illegal/out-of-turn request rejection, review/training, browser-local persistence, and undo/replay. The two earlier turn-return timeouts and the review-modal failure no longer reproduce.
-- One release blocker remains: current Render service metadata reports `healthCheckPath: ""` while root `render.yaml` declares `/api/health`. Endpoint reachability is verified by smoke preflight, but the configured path mismatch is not resolved. Governance `ISSUE-002` remains BLOCKED due lack of an authorized setting-mutation path in the connected Render tools; no Dashboard UI action is available in this environment.
-- v1.0 remains ACTIVE only for this health-check configuration gate. AI-strength calibration remains PAUSED and is not a release gate.
+- Main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` includes the final release evidence synchronization. Render deployment `dep-dbc26arm8hqs73bcbmbg` reached `live`, and main-push smoke `39533158968` passed readiness and all 11 Playwright/Chromium tests in 128.597 seconds (`OK`).
+- Main CI passed Workspace `39533158998` and Janggi Python validation `39533159009`. The release test covers setup/levels, both sides, move/AI sequence, recovery, check/bikjang, illegal/out-of-turn requests, post-game review, training, local progress, and undo/replay. Earlier turn-return and review-modal failures did not recur.
+- v1.0 product and production-smoke gates are complete. PRs #149, #150, #151 and #153 are merged.
+- Render metadata still reports `healthCheckPath: ""` while root `render.yaml` declares `/api/health`. Render documentation says HTTP health checks are optional and default TCP checks apply when no HTTP path is configured. The endpoint and complete live browser suite passed. This is deferred, non-blocking Governance `ISSUE-002` (P3), not a current release blocker.
+- Governance task `TASK-20261020-0001` is complete. AI-level calibration remains paused. Continue the higher-priority temporary-guidance trial and evidence-based Governance evaluation.
 
 ## Development Safety
 
@@ -285,9 +284,9 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 
 ## Known Next Targets
 
-1. Resolve the existing Render service `healthCheckPath` mismatch using the authorized Dashboard path Settings → Health Checks → Edit → set `/api/health` → Save Changes, then re-read service metadata.
-2. Verify the deployed service remains live after the settings update and record the resulting evidence in the release checkpoint and Governance issue index.
-3. Close `TASK-20261020-0001` once the release health-check configuration criterion is resolved. Keep AI-strength calibration/ML research PAUSED until a separate post-v1.0 task is intentionally resumed.
+1. No v1.0 release work remains. Keep the optional `healthCheckPath` mismatch deferred unless Blueprint synchronization or explicit HTTP-health-monitoring requirements make it relevant.
+2. Continue trial-only use of temporary work instructions during real work; evaluate against Governance §§25-A-8, 27, and 28 before proposing minimal evidence-backed rule changes.
+3. Keep AI-level calibration/ML research paused until a separate post-v1.0 research task is intentionally resumed.
 
 ## 2026-10-20 — distinguish Render platform status from agent-runtime DNS failure
 
