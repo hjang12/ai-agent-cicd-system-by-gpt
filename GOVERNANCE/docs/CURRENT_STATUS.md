@@ -1,199 +1,62 @@
 # Current Status
 
-## Governance
-
-- Main Governance baseline: `1.4.5`
-- Proposed Governance version in this review branch: `1.4.6` (the branch's `GOVERNANCE/VERSION`)
-- Status: `main` remains on 1.4.5; PR #160 is open and the 1.4.6 proposal is not active on `main`.
-- Current canonical workspace repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Default / working branch: `main`
-- Main branch protection: not enabled
-- CI/CD strict deploy gate: not enforced; Render remains commit-triggered auto deploy
-
 ## Canonical Workspace
 
-The GPT development workspace is a private GitHub monorepo.
+- Repository: `hjang12/ai-agent-cicd-system-by-gpt`
+- Default branch: `main`
+- Common Governance rule: `GOVERNANCE/GOVERNANCE.md`
+- Canonical Governance version file: `GOVERNANCE/VERSION`
+- Proposal under review: PR #160; its `1.4.6` version is not active on `main` until user approval and merge.
+- `main` branch protection is not enabled. A strict CI-success-before-deploy gate is not enforced; authoritative status and blocker are in `GOVERNANCE/docs/ACTIVE_ISSUES.md` (`ISSUE-001`).
 
-```text
-hjang12/ai-agent-cicd-system-by-gpt/
-├── GOVERNANCE/
-├── projects/
-│   ├── personal-ai-janggi-trainer-by-gpt/
-│   └── time-dashboard-by-gpt/
-├── .github/workflows/
-└── render.yaml
-```
+## Canonical Navigation
 
-### Canonical paths
+- `AGENT_START.md` / `AGENTS.md` — Workspace startup and operating instructions
+- `GOVERNANCE/GOVERNANCE.md` — shared rules
+- `GOVERNANCE/docs/DEVELOPMENT_TASKS.md` — Task selection and Status
+- `GOVERNANCE/docs/ACTIVE_ISSUES.md` — current unresolved Workspace issues
+- `GOVERNANCE/docs/checkpoints/` and each Task's listed Checkpoint — recoverable task state
+- `projects/<project>/AGENT_START.md`, `AGENTS.md`, and `docs/CURRENT_STATUS.md` — project-specific navigation and current facts
+- `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md`, ADRs and project Evidence — historical decisions and detailed results
+- `GOVERNANCE/CHANGELOG.md` — Governance version history
 
-- `AGENT_START.md` — workspace-level agent startup entrypoint
-- `AGENTS.md` — workspace-level agent rules
-- `GOVERNANCE/GOVERNANCE.md` — common operating rules
-- `GOVERNANCE/docs/CURRENT_STATUS.md` — this workspace status
-- `GOVERNANCE/docs/ACTIVE_ISSUES.md` — AI-managed current unresolved issue index
-- `GOVERNANCE/docs/DEVELOPMENT_TASKS.md` — Workspace Development Task Registry
-- `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md` — long-term governance/workspace history
-- `GOVERNANCE/docs/ADR/` — architecture and operating decisions
-- `projects/<project>/AGENT_START.md` — project Chat startup entrypoint
-- `projects/<project>/AGENTS.md` — project-specific agent rules
-- `projects/<project>/docs/CURRENT_STATUS.md` — project context
-- `.github/workflows/` — monorepo CI and benchmark workflows
-- `render.yaml` — monorepo Render Blueprint
-
-
-## Development Work Continuity
-
-This workspace uses ChatGPT + AI Agent as the primary interactive development interface.
-
-- Chat is a temporary working interface; GitHub and project Context documents remain the Source of Truth.
-- Current development continuity is managed through Development Task, Development Task Registry, Development Context, Checkpoint, and Context Recovery.
-- Chat transitions are allowed whenever platform/context constraints or work structure make a new Chat safer or more efficient.
-- No fixed time-based forced Chat cutoff is used. Checkpoints are state-based.
-- Interaction has no fixed maximum duration; an Interaction ends with its final response, not with an intermediate progress report. A safe interruption may end it earlier after preserving recoverable state.
-- Intermediate reports show actual status while Agent Work continues; after a final response, do not imply that the Agent is still working in the background. Any independently running external process is reported separately.
-- Before a final response, re-check the ACTIVE Task's official Checkpoint and live execution state. Continue an explicit, authorized, feasible Next Action within the same Interaction; if work must stop, record the actual reason and distinguish a necessary boundary from avoidable Agent-side early termination.
-- Report meaningful milestones using the current phase, verified outcomes, next action, and material plan changes; do not use a fixed total milestone count by default.
-- For long-running or efficiency-sensitive work, distinguish total elapsed time from measured process/computation time and observed waiting; mark unmeasured intervals as unknown rather than inventing a breakdown.
-- Agent Work may be divided into Agent Work Segments when Context / Token / Tool / Runtime / external-work boundaries make continued execution unsafe or inefficient.
-- Long-running Agent Work is supported as part of long-running Development Tasks, but does not imply unbounded or uninterrupted execution.
-- User pause/stop requests are honored at the earliest safe interruption point, with Checkpoint / Context preservation when needed.
-- Current platform/plan/model limits are treated as Platform Constraints rather than hard-coded Governance invariants.
-
-Canonical continuity records:
-- GOVERNANCE/docs/DEVELOPMENT_TASKS.md
-- projects/<project>/docs/CURRENT_STATUS.md
-- GOVERNANCE/docs/ACTIVE_ISSUES.md
-- DEVELOPMENT_HISTORY.md
-- ADR / Requirement Contract / evidence records
-- GitHub Commit / PR / CI state
-
-## Development Execution Paths
-
-The workspace separates short validation from long-running computation.
-
-- Fast CI is the default path for bounded, repeatable Build / Test / Regression / structural validation.
-- Long-running work such as Janggi AI level calibration, large benchmarks, self-play, and training/data generation uses a separate execution path when CI runtime/quota is not appropriate.
-- Long-running execution results are recorded as Evidence / Checkpoint / Context with execution conditions and version metadata.
-- A prepared runner or workflow is not treated as executed computation until actual results are produced.
-- Continuation across Chat changes is Repository-based; a long manual Continuation Prompt is not required for normal recovery.
-
-## Active Issues
-
-Current Active Issue Index: `GOVERNANCE/docs/ACTIVE_ISSUES.md`
-
-Current active items are maintained in `GOVERNANCE/docs/ACTIVE_ISSUES.md`:
-
-- `ISSUE-001` — CI-success-before-deploy strict gate is not enforced; the current verification date is maintained in the Active Issue Index.
-- Deferred follow-ups stay in `GOVERNANCE/docs/ACTIVE_ISSUES.md`; do not duplicate them into current priorities or routine recovery summaries unless their recorded revisit condition is met.
-- Render service metadata observability limitation is documented below as a known limitation, not as an active application or deployment issue.
-
-This section is only a navigation summary. The authoritative current status, priority, next action, blocker, and verification date are maintained in `ACTIVE_ISSUES.md`.
-
-## Project Status
-
-### Personal AI Janggi Trainer
-
-- Canonical path: `projects/personal-ai-janggi-trainer-by-gpt/`
-- Historical imported source commit: `hjang12/personal-ai-janggi-trainer-by-gpt` @ `83932421217f149de46e6e23b89aff9d92467a11`
-- Latest central fixes are included after migration.
-- Domain, engine, search, coaching, training/evaluation, and browser/API layers are present as documented in the project Context.
-- Current CI: `.github/workflows/janggi-validation.yml`
-- Search benchmark: `.github/workflows/janggi-search-benchmark.yml`
-- Workspace validation: `.github/workflows/workspace-validation.yml`
-- Fast Janggi validation is maintained by `.github/workflows/janggi-validation.yml`; exact run IDs and result snapshots belong in dated verification/history records.
-- Render cutover is complete: the existing service now points to the canonical monorepo and the project Root Directory.
-
-### Time Dashboard
-
-- Canonical path: `projects/time-dashboard-by-gpt/`
-- Historical imported source commit: `hjang12/time-dashboard-by-gpt` @ `fb8e98baa7a81a610c2ccbf767f2995fb9af0a3f`
-- Primary server: `timefolio_server.py`
-- Backend regression test suite is preserved under `tests/`.
-- Current CI: `.github/workflows/time-dashboard-ci.yml`
-- Time Dashboard CI remains configured separately; no current review change was made to that project.
-- Render cutover is complete: the existing service now points to the canonical monorepo and the project Root Directory.
-
-## Migration Record
-
-The monorepo consolidation was committed to `main` on 2026-09-18.
-
-Key commits:
-
-- `1d91810ba4389205801e751ef0856eb82e4dd583` — consolidate Governance and GPT projects
-- `92cf6a38532886a6cb92afacc3d3e817c65b3571` — fix monorepo agent metadata and PWA icon type
-- `dbd6b52432a628a4b92e4fd586be0fae26672325` — fix validation/benchmark semantics
-
-The former project repositories were deleted after the pre-deletion verification gate on 2026-09-18. Their commit references remain in the governance history as historical source metadata. The canonical development location is the monorepo.
-
-## CI/CD State
-
-Current root workflows:
-
-- Janggi validation — governed by the mandatory fast CI workflow; exact execution snapshots are recorded with the relevant commit.
-- Janggi search benchmark — maintained by the dedicated search benchmark workflow; exact execution snapshots are recorded with the relevant commit.
-- Time Dashboard CI — maintained by the dedicated project workflow; exact execution snapshots are recorded with the relevant commit.
-- Workspace structure validation — mandatory monorepo structural gate; exact execution snapshots are recorded with the relevant commit.
-
-The first monorepo Janggi validation/benchmark runs failed because the migrated test/benchmark files still reflected pre-monorepo assumptions. The subsequent fixes are now green. The actual current GitHub Actions result, not the historical failure, is the operative state.
-
-## Render Cutover Snapshot — Verified 2026-10-01 (Historical)
-
-Render workspace: `My Workspace` (`tea-da7sjdgu01pc73bsno6g`).
-
-Render service cutover is complete. Both existing services now use the canonical monorepo with project-specific Root Directories:
-
-| Service | Repository | Root Directory | Branch | Auto Deploy | State |
-| --- | --- | --- | --- | --- | --- |
-| `personal-ai-janggi-trainer-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/personal-ai-janggi-trainer-by-gpt` | `main` | yes | active |
-| `time-dashboard-by-gpt` | `hjang12/ai-agent-cicd-system-by-gpt` | `projects/time-dashboard-by-gpt` | `main` | yes | active |
-
-At the time of this dated cutover check, both services were active and their then-latest cutover deployments were `live`. This is historical evidence, not a current live-state assertion; verify Render directly when a task depends on current availability.
-
-Historical deployment verification:
-- The Janggi Render service has been independently verified live; exact deployment IDs and runtime snapshots belong in dated verification/history records.
-- Time Dashboard deploy `dep-damckue7bikc73b4p7ng`: `live`; build succeeded; `python timefolio_server.py` started; a `HEAD /` request returned HTTP 200; Render reported the service live at its primary URL.
-- Time Dashboard had one immediate cutover build failure because `requirements.txt` was not found, followed by a successful retry after the service Root Directory was correctly applied.
-- Historical Render settings observations are retained in `DEVELOPMENT_HISTORY.md`; they are not current release blockers and are not repeated in this status summary.
-
-At the time of cutover, the connected Render toolset did not expose an update operation for existing service Git Repository / Root Directory settings; the cutover was performed in the Render Dashboard and verified through the connected Render API/tooling. No duplicate services were created.
-
-Migration state is **complete**: monorepo consolidation, Render cutover, and legacy source-repository cleanup were completed after the pre-deletion verification gate on 2026-09-18. References to former project repositories above are historical provenance only.
-
-## Canonical Operating Model
-
-```text
-Requirement
-→ AI Coding Agent
-→ Monorepo project path
-→ CI / Verification
-→ Render deployment
-→ Post-deployment verification
-→ Documentation / History update
-```
-
-Chat history is temporary. The monorepo Repository is the long-term Source of Truth.
-
-## Known Limitations / Pending Work
-
-- Monorepo consolidation and deletion of the two former project repositories completed on 2026-09-18 after the pre-deletion verification gate. Snapshot provenance and historical verification are documented in `GOVERNANCE/MIGRATION.md` and ADR-0002; all new development targets this monorepo.
-- A strict CI-success-before-deploy gate is not currently enforced. Render remains commit-triggered auto deploy, so CI and deployment are independently triggered.
-- Optional platform configuration follow-ups remain tracked only in `GOVERNANCE/docs/ACTIVE_ISSUES.md` and are excluded from current priorities unless their revisit conditions occur.
+These files have distinct responsibilities. Do not copy the same current status or executable Next Action into multiple current-facing documents.
 
 ## Current Task State
 
-- Governance consistency/simplicity review: `TASK-20261021-0004` — **ACTIVE** on the review branch; PR #160 is open. Governance 1.4.6 is not part of `main` until user approval and merge.
-- Previous Governance review: `TASK-20261021-0003` — **COMPLETED** through PR #159; Governance 1.4.5 is the current `main` baseline until this proposal is approved.
-- Personal AI Janggi Trainer v1.0: `TASK-20261020-0001` — **COMPLETED**. Release acceptance and the 11-method live browser smoke passed.
-- AI-level strength calibration: `TASK-20260930-0002` — **PAUSED** post-v1.0 research. Do not run further calibration or change public AI levels/search budgets unless explicitly resumed.
-- CI-success-before-deploy strict gate: `ISSUE-001` — **BLOCKED**; the canonical issue record is `GOVERNANCE/docs/ACTIVE_ISSUES.md`.
+- Governance consistency/simplicity review: `TASK-20261021-0004` — **ACTIVE** on `governance/review-simplicity-20261021`; PR #160 is open. Governance version 1.4.6 is a proposal and requires explicit user approval before merge.
+- Previous Governance review: `TASK-20261021-0003` — **COMPLETED** through PR #159.
+- Personal AI Janggi Trainer v1.0: `TASK-20261020-0001` — **COMPLETED**; final production browser smoke passed 11/11 tests. Project release evidence is in `projects/personal-ai-janggi-trainer-by-gpt/docs/V1_RELEASE_SCOPE.md` and its final Checkpoint.
+- Janggi AI-level calibration: `TASK-20260930-0002` — **PAUSED** post-v1.0 research. Do not run more seeds or change public AI-level/search-budget settings unless explicitly resumed.
+- No separate active Janggi feature task is registered.
 
-Only `TASK-20261021-0004` is currently ACTIVE in this proposal. Completed tasks are closure records, not current priorities.
+The Task Registry Status is authoritative for whether a Next Action may run. Completed Task summaries and historical Checkpoint actions are not current instructions.
 
-## Potential Future Work (Not Active Tasks)
+## Projects and Verification
 
-The items below are candidates only, not an execution queue. Do not start them automatically; create/select an ACTIVE Development Task from a new explicit request.
+### Personal AI Janggi Trainer
+- Canonical path: `projects/personal-ai-janggi-trainer-by-gpt/`
+- Required Python / contract validation: `.github/workflows/janggi-validation.yml`
+- Browser acceptance: `.github/workflows/janggi-browser-acceptance.yml`
+- Search benchmark: `.github/workflows/janggi-search-benchmark.yml`
+- Concise current product state: `projects/personal-ai-janggi-trainer-by-gpt/docs/CURRENT_STATUS.md`
 
-- Expand monorepo-wide validation only when a new shared boundary or deployment invariant is introduced.
-- Add higher-value service smoke/browser checks where justified.
-- Continue Janggi coaching/search work only from documented fixtures and regression evidence.
-- Continue Time Dashboard parser/reliability improvements without crossing the UI/backend boundary.
+### Time Dashboard
+- Canonical path: `projects/time-dashboard-by-gpt/`
+- CI: `.github/workflows/time-dashboard-ci.yml`
+- Project-specific status: `projects/time-dashboard-by-gpt/docs/CURRENT_STATUS.md`
+
+### Workspace and deployment
+- Workspace structural validation: `.github/workflows/workspace-validation.yml`
+- Render service topology and desired configuration: root `render.yaml` and project status documents.
+- Commits touching project paths can trigger documentation-only Render deployments. Verify the current deployment directly after relevant merges; dated LIVE snapshots in history are not current-state evidence.
+- The configured Render auto-deploy path is not proof that deployment waits for CI success. Track the strict-gate limitation under `ISSUE-001`; do not claim enforced CI-before-deploy.
+
+## Migration Status
+
+Monorepo consolidation and deletion of the two former project repositories completed on 2026-09-18 after the pre-deletion verification gate. Original source commit SHAs are provenance only; they do not imply the former repositories or their full Git histories remain accessible. The canonical development location is this monorepo. Details belong in `GOVERNANCE/MIGRATION.md` and ADR-0002.
+
+## Context Recovery
+
+Use the single procedure in §25-A-7 of `GOVERNANCE/GOVERNANCE.md`: identify the Request-matching Task and Status first, then read its designated Context / Checkpoint and verify actual GitHub / CI / Deployment state. Open the detailed project/architecture/history documents only when the Task needs them.
+

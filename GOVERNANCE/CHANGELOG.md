@@ -14,6 +14,7 @@
 - 템플릿과 ADR / Migration / Checkpoint의 오래된 Repository 경로, 작업 상태, 중복 필드를 정리.
 - Current Status의 Governance 버전 중복 표기를 줄이고 canonical `GOVERNANCE/VERSION`을 단일 원본으로 지정.
 - Governance 본문을 43.1KB / 1,759줄에서 32.8KB / 1,425줄로 줄이고, Janggi CURRENT_STATUS를 33.0KB에서 5.7KB로 축약.
+- Workspace CURRENT_STATUS를 약 13.3KB에서 간결한 상태·탐색 인덱스로 축약하고, Migration / Task / CI 세부 기록을 각 원본 문서로 되돌림.
 - Janggi `CURRENT_STATUS.md`를 현재 상태 중심 요약으로 줄이고, 상세 UI·아키텍처·benchmark·calibration 기록은 기존 전용 문서에서 관리.
 - 실행하지 않은 calibration seed 20261016을 현재 지시가 아닌 과거 계획으로 표시하고, DNS incident를 현재 서비스 상태가 아닌 날짜가 있는 History에 보존.
 
