@@ -19,7 +19,7 @@
 - DEFERRED `ISSUE-002`의 오래된 “latest deployment” 인용을 가장 최근에 직접 검증된 main 배포와 live-browser smoke Evidence로 갱신하되, 상태 및 재검토 조건은 유지.
 - Janggi `CURRENT_STATUS.md`를 현재 상태 중심 요약으로 줄이고, 상세 UI·아키텍처·benchmark·calibration 기록은 기존 전용 문서에서 관리.
 - 실행하지 않은 calibration seed 20261016을 현재 지시가 아닌 과거 계획으로 표시하고, DNS incident를 현재 서비스 상태가 아닌 날짜가 있는 History에 보존.
-- AI 캘리브레이션의 PAUSED Checkpoint, Calibration Operations 및 Evidence 문서에서 남은 과거 Next Action과 protocol-v2 현재 지시를 과거 기록으로 명시하고, 실제 재개 조건과 현재 상태를 한곳에 정리.
+- AI 캘리브레이션의 447줄 PAUSED Checkpoint를 짧은 상태·증거·재개 게이트·원본 경로 요약으로 축약. Seed별 실행 결과는 기존 Development History / Evidence와 Artifact에 보존하고, 역사적 Next Action은 실행 불가한 과거 계획으로 명시.
 
 ### Review Trigger
 
