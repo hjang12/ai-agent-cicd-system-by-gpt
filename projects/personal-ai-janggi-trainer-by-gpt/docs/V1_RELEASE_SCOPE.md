@@ -1,7 +1,7 @@
 # Personal AI Janggi Trainer — v1.0 Release Scope
 
 **Decision date:** 2026-10-20  
-**Status:** v1.0 release acceptance gates passed on 2026-10-21. The optional Render HTTP health-check setting drift is documented as a deferred P3 follow-up and does not block release.
+**Status:** v1.0 release acceptance gates passed on 2026-10-21. All verified release gates are complete; non-blocking platform housekeeping remains outside the release scope.
 
 ## 1. Product definition
 
