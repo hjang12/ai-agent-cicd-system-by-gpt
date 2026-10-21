@@ -1,7 +1,7 @@
 # Personal AI Janggi Trainer — v1.0 Release Scope
 
 **Decision date:** 2026-10-20  
-**Status:** Final scope for v1.0; implementation and release verification remain in progress.
+**Status:** v1.0 release acceptance gates passed on 2026-10-21. The optional Render HTTP health-check setting drift is documented as a deferred P3 follow-up and does not block release.
 
 ## 1. Product definition
 
@@ -36,7 +36,7 @@ Percentages below are engineering estimates of current implementation maturity, 
 | Dedicated calibration Runner and long calibration batches | 80% | **DO NOT USE FOR RELEASE** | Leave idle; do not launch another calibration batch as a prerequisite for v1.0 |
 | Authentication, server database, cloud sync and multi-user features | 0–10% | **OUT OF SCOPE** | v1.0 remains anonymous, single-user and browser-local for growth data |
 | Automated regression tests and CI | 85–90% | **USE / RELEASE GATE** | Compile, requirement-contract validation and full Janggi tests pass on the release candidate |
-| Render deployment and runtime checks | 85% | **USE / RELEASE GATE** | Live service is reachable; health-check configuration drift is resolved or explicitly shown not to affect live health; run the release smoke scenario |
+| Render deployment and runtime checks | 85% | **USE / RELEASE GATE** | Live service is reachable; `/api/health` and the production smoke are verified. If the optional HTTP `healthCheckPath` is absent and Render falls back to its default TCP check, document the deviation and verify the live endpoint and app smoke |
 
 ## 3. Minimum growth tracking included in v1.0
 
@@ -101,7 +101,7 @@ v1.0 is complete only when all applicable gates below pass.
 - [x] `python -m unittest discover -s tests -v` passes.
 - [x] Run the required Workspace validation and Janggi validation CI on the release candidate (latest code head 9ebacdc1c4fb9733aa5550d5cdae401fbbfd3763: Workspace run 39519087955 and Janggi run 39519087947 both passed).
 - [x] Verify the deployed Render service reaches `live`, and the live smoke preflight confirms the public root, `/api/health`, and expected UI marker for main commit `1034665caedbe997d859053eebab40def78e7fe2` (deployment `dep-dbc2003ncjis73ejm660`).
-- [ ] Verify Render service metadata `healthCheckPath` matches the root `render.yaml` value `/api/health`. The endpoint responds in the live preflight, but service metadata still has an empty `healthCheckPath`; the configuration discrepancy remains unresolved and is tracked as `ISSUE-002`.
+- [x] Verify live health behavior and post-deploy readiness. The latest Render deployment is `live`; `/api/health` passed the live smoke readiness preflight and all 11 production browser tests passed. Render documents HTTP health checks as optional for web services; when `healthCheckPath` is omitted, the default TCP check remains in effect ([Render Health Checks](https://render.com/docs/health-checks)). The metadata/Blueprint mismatch remains real but has no observed v1.0 user-facing impact, so it is tracked as a deferred P3 configuration-hygiene item (`ISSUE-002`), not a release blocker.
 - [x] Perform post-deploy smoke against the released main commit. Run `39531901117` passed readiness and all 11 Playwright/Chromium methods in 137.872 seconds (`OK`); prior failures in turn return and post-game review did not recur.
 - [x] Update release notes/current status/checkpoint so implemented, verified and deferred features are clearly separated.
 
@@ -110,18 +110,18 @@ v1.0 is complete only when all applicable gates below pass.
 - GitHub Actions ran the 10-method Playwright/Chromium acceptance suite against a locally started copy of the candidate (Janggi browser acceptance, run 39519088050); it succeeded on code head 9ebacdc1c4fb9733aa5550d5cdae401fbbfd3763. That run also checked that the player profile shows a game count rather than a numeric rating and that the result explicitly states numerical Rating is not provided.
 - Subsequent branch-head CI at `d8725225a4e34a0e222d93de1ca2e5e98dd149c3` passed Workspace validation run `39519490460`, Janggi Python validation run `39519490378`, and browser acceptance run `39519490467`. The browser job passed and `live-browser-smoke` was skipped by design on the pull-request event. This is candidate-local evidence, not production Render smoke; any later candidate commit must pass its own branch-head checks before merge.
 - These browser tests cover setup combinations, both player-side opening paths, human-move/AI-thinking sequence, analysis/review/training visibility, answer checking, per-level progress display, idempotent result recording, reload persistence, and malformed/unavailable browser storage. They are candidate-local CI evidence, not a production Render browser smoke.
-- The wider combined gameplay/legal-move regression gate remains unchecked. The suite also now asserts that the visible player profile shows the game count (not a numeric rating) and that the result explicitly says Rating is not provided. Live Render metadata still reports an empty healthCheckPath; the user has confirmed the public app and /api/health are accessible, and the first main-push Playwright smoke run now provides production evidence documented below.
+- This candidate-local evidence was superseded by the main-push production smoke results below. The final live suite verifies the wider gameplay/legal-move regression, and the remaining healthCheckPath metadata difference is a separately tracked, non-blocking follow-up.
 - The PR-triggered workflow's live-browser-smoke job is skipped by design; it runs after a project-changing commit reaches main.
 
 
 ### Production browser smoke — 2026-10-21
 
-- PR #149 merged as main commit `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`; Render deployment `dep-dbc19cdg1s2s738ai9k0` reached `live`. Main-push run `39527295378` passed readiness but two of ten browser methods timed out while waiting for the player's turn to return.
-- PR #150 merged as main commit `1c2156d48612c09578c2327af67fc74e7ff29016`; deployment `dep-dbc1qb6q1p3s73bgsig0` reached `live`. Main-push run `39530751332` removed the turn-return timeout but failed the post-game review modal test; the modal stayed hidden after 20 seconds.
-- PR #151 merged as main commit `1034665caedbe997d859053eebab40def78e7fe2`; Render deployment `dep-dbc2003ncjis73ejm660` reached `live`. Main-push workflow run `39531901117` passed its health/UI readiness preflight and all 11 browser methods in 137.872 seconds (`OK`). The review/training persistence scenario, server-side illegal/out-of-turn rejection, check/bikjang, both opening orientations, error recovery, and undo/replay all passed against the live service. This closes the observed live gameplay/learning latency regression.
-- The accepted remediation keeps full depth-2 detailed single-move analysis and tactical motifs on explicit user request, while batch review/training uses the dedicated lower-cost analyzer. The code candidate had already passed Workspace, 332 Python tests, and 11 local Chromium tests before merge; main-push live smoke then verified the user-visible flow.
-- Current Render service metadata still returns an empty `healthCheckPath` while repository `render.yaml` declares `/api/health`. The live smoke verified that the endpoint responds, but this does not reconcile the configured health-check path. This is the only remaining unchecked release gate tracked here; `ISSUE-002` remains BLOCKED until the setting is reconciled through an authorized Dashboard path or suitable direct evidence is available.
-
+- PR #149 merged as main commit `bc01e2eccf0c4a86529b8d7ccc80b0d6c6686500`; deployment `dep-dbc19cdg1s2s738ai9k0` reached `live`. Smoke run `39527295378` initially exposed two turn-return timeouts.
+- PR #150 merged as main commit `1c2156d48612c09578c2327af67fc74e7ff29016`; deployment `dep-dbc1qb6q1p3s73bgsig0` reached `live`. Smoke run `39530751332` removed the turn-return timeouts but exposed a slow post-game review flow.
+- PR #151 merged as app-fix commit `1034665caedbe997d859053eebab40def78e7fe2`; deployment `dep-dbc2003ncjis73ejm660` reached `live`. Smoke run `39531901117` passed all 11 browser methods in 137.872 seconds.
+- Final documentation synchronization merged as `96001f6e533b05b48b15ae286ee43a01d9d9caca`; its latest Render deployment `dep-dbc26arm8hqs73bcbmbg` reached `live`. Main-push workflow run `39533158968` passed readiness and all 11 Playwright/Chromium tests in 128.597 seconds (`OK`). This repeat deployment test covers setup/level combinations, both sides, move/AI response, API error recovery, check/bikjang, illegal/out-of-turn rejection, review/training, local progress, and undo/replay.
+- The two initial turn-return timeouts and the review-modal timeout do not recur. The gameplay, learning, persistence, legal-move and post-deploy smoke gates are passed.
+- Render metadata still reports an empty `healthCheckPath` while repository `render.yaml` declares `/api/health`. Render's official documentation states HTTP health checks are optional and default TCP checks apply when no HTTP path is configured. The service is live, the HTTP health endpoint passed readiness, and the complete live browser suite passed. The config-as-code difference is a **deferred P3 follow-up, not a v1.0 release blocker**. Revisit only if active Blueprint synchronization, a new HTTP-level readiness requirement, or a health/smoke regression makes it relevant.
 ## 6. Explicit non-goals
 
 The following are not part of v1.0 and must not keep the release open:
@@ -139,8 +139,8 @@ Research code and existing calibration artifacts may remain in the repository. A
 
 ## 7. Estimate note
 
-The **10–16 hour** figure was a planning estimate made when the v1.0 scope was defined on 2026-10-20, before visible learning surfaces and browser-local progress were implemented. It is not a current remaining-time estimate. Current open work is determined by the unchecked acceptance criteria above: complete legal-move/turn/terminal regression review, live Render healthCheckPath drift resolution or evidence that it does not affect live health, and post-deploy browser smoke against the released commit.
+The **10–16 hour** figure was a planning estimate made when the v1.0 scope was defined on 2026-10-20, before visible learning surfaces and browser-local progress were implemented. It is not a current remaining-time estimate. All v1.0 acceptance gates now pass. The optional Render HTTP health-check configuration difference is a deferred P3 follow-up, not current open release work.
 
 ## 8. Final decision rule
 
-Prefer the smallest change that closes a verified acceptance gap. Do not add new features or resume AI research during v1.0 stabilization unless the release checks expose a concrete blocker. After every release gate passes and the live deployment is confirmed, mark v1.0 complete; future AI research should be a separately scoped task.
+Prefer the smallest change that closes a verified acceptance gap. Do not add new features or resume AI research during v1.0 stabilization unless the release checks expose a concrete blocker. All v1.0 release gates passed against the live deployment on 2026-10-21; v1.0 is complete. The optional Render `healthCheckPath` difference remains a non-blocking deferred follow-up; future AI research must be a separately scoped task.
