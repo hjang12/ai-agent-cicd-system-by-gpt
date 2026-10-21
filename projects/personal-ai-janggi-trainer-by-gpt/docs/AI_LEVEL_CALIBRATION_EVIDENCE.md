@@ -67,7 +67,7 @@ New calibration artifacts record:
 
 The evaluator rejects incompatible AI-level configuration fingerprints, engine versions, or calibration protocol versions within the same adjacent pair. It also rejects mixing legacy artifacts without provenance metadata with provenance-aware artifacts, or mixing legacy artifacts with protocol-aware artifacts.
 
-Legacy 1-2 evidence remains valid as a historical evidence set because both artifacts share the same legacy schema. Protocol-v1 evidence for pair 2-3 remains a separate historical/exploratory set. New calibration runs should use protocol-v2 provenance-aware artifacts and must not mix protocol-v1 and protocol-v2 evidence.
+Historical protocol-transition note: the 1-2 artifacts share a legacy schema, and protocol-v1 / protocol-v2 evidence for pair 2-3 remain separate exploratory sets. Subsequent evidence collection moved to protocol-v3 as recorded below. This paragraph does not authorize a new run; the Task is now PAUSED, and any resumption requires an explicit user decision and current-state revalidation.
 
 ## Collected evidence
 
@@ -179,7 +179,7 @@ The aggregate evaluator still reports `INSUFFICIENT`: only 2 completed games and
 - Aggregate: `artifacts/ai-level-calibration/aggregate-2-3-classic-v3-tactical.json`
 - Manifest: `artifacts/ai-level-calibration/manifest-v3-pairs-2_3-seeds-20261006-setup-classic-fixture-tactical-g2-p96-src-e7651d557fb6.json`
 
-Next action: continue protocol-v3 evidence collection for pair 2-3 with a fresh seed, retaining the disabled-first / bounded-run / preserve-artifacts / disable-after-run procedure. Do not change public AI-level budgets from this pilot.
+Historical next action at the 2026-10-06 pilot snapshot (not executable now): continue protocol-v3 evidence collection with a fresh seed. The Task was subsequently paused on 2026-10-20; do not run any seed unless explicitly resumed. Do not change public AI-level budgets from this pilot.
 
 
 ### Protocol-v3 follow-up — seed 20261007
@@ -211,4 +211,4 @@ Calibration remains `INSUFFICIENT`: only 4 completed games are available against
 - Aggregate: `artifacts/ai-level-calibration/aggregate-v3-pair-2_3-seeds-20261007-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
 - Manifest: `artifacts/ai-level-calibration/manifest-v3-pairs-2_3-seeds-20261007-setup-classic-fixture-tactical-g2-p96-src-a0bc620181e8.json`
 
-The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confirmed `CALIBRATION_ENABLED=false` / idle mode. Next action: preserve and merge these files/context, then continue pair 2-3 with fresh protocol-v3 seed `20261008` using the same disabled-first, two-game bounded procedure.
+The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confirmed `CALIBRATION_ENABLED=false` / idle mode. Historical next action at the 2026-10-07 snapshot (not executable now): preserve and merge these files/context, then continue pair 2-3 with seed `20261008`. This plan is superseded by the PAUSED status dated 2026-10-20; do not execute unless the Task is explicitly resumed.
