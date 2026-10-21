@@ -185,7 +185,7 @@ Verified live Render state on 2026-10-01:
 - Start: `python app.py`
 - URL: `https://personal-ai-janggi-trainer.onrender.com`
 
-The Janggi service build filter includes `projects/personal-ai-janggi-trainer-by-gpt/**`, so even documentation PRs can trigger a Render deployment. As of 2026-10-20, application commit `7dd364a4f69f7eb90d953baa135530c031e01beb` was deployed live as `dep-dbbeqoui0phs738e4110`; startup logs showed the service binding to `0.0.0.0:10000`. The live Render metadata still reports an empty `healthCheckPath`, while root `render.yaml` declares `/api/health` and the app implements that endpoint. This remains confirmed configuration drift tracked as `ISSUE-002`, not proof of an application outage. The available Render tools do not expose mutation of this existing service setting, and direct browser/HTTP smoke is currently unverified.
+The Janggi service build filter includes `projects/personal-ai-janggi-trainer-by-gpt/**`, so documentation PRs can trigger a Render deployment. Historical deployment records and the latest verified production smoke are maintained in the release evidence above and `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md`; do not treat this dated 2026-10-20 deployment snapshot as the current service state.
 
 ## Explicitly Deferred
 
