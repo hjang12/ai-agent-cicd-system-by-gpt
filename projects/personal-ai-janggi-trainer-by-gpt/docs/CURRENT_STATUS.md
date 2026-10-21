@@ -323,3 +323,13 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 - This is user-reported evidence that the service was publicly reachable at the time of the check. It corrects the earlier assessment that individual service reachability was wholly unknown; it does not amount to a full automated check by the agent or verify interactive gameplay/learning flows.
 - The agent-runtime DNS failure remains independently reproducible across unrelated domains. Do not describe it as a Render outage or change app code solely to address it.
 - The live service's empty `healthCheckPath` versus `render.yaml`'s `/api/health` remains a separate configuration-consistency item. No live service setting has been changed.
+
+
+## Candidate Verification Update — 2026-10-21
+
+- PR #149 current verification candidate is `dc44ea8a2a8f96b563bd89a8fb42d4791328b4e2`; its Workspace validation (`39393541838`), Janggi Python validation (`39393541789`), and Playwright/Chromium browser acceptance (`39393541822`) runs all completed successfully.
+- The Chromium run executes 10 browser-acceptance test methods against a local instance of the candidate. It verifies setup selection across six AI profiles and four setups, both Cho/Han opening paths, visible human-move/AI-thinking sequencing, check and bikjang messages, AI-error recovery, undo/replay, visible analysis/review/training interactions, training answer feedback, idempotent result recording, progress across reload/new match, and malformed/unavailable local-storage recovery.
+- This does not yet prove that the same candidate is deployed to Render. On pull-request events, the workflow's live-browser-smoke job is skipped by design; it runs after a project-changing commit reaches main.
+- The user confirmed the public app root and `/api/health` both open successfully from their browser on 2026-10-20. The agent runtime's cross-domain DNS failures are an agent access-path limitation, not evidence that the Render service is down.
+- Latest Render control-plane observation remains deployment `dep-dbbf251srm7s73858b5g` for main commit `0338d442d04dba1521af19631360b01705d5e1e1`, status `live`. The existing service's `healthCheckPath` metadata remains empty while `render.yaml` declares `/api/health`; this setting is not changed.
+- v1.0 remains in progress until PR #149's candidate reaches main, the live post-deploy smoke passes, and the remaining release checks—including the wider gameplay/legal-move gate and unsupported numeric-rating check—are verified. AI strength calibration remains paused.
