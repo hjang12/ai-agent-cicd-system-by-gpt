@@ -1,10 +1,10 @@
-# Current protocol-v3 evidence snapshot — 2026-10-16
+# Protocol-v3 evidence snapshot — 2026-10-16 (historical; calibration task now paused)
 
 ## Compatible cohort for adjacent pair 2-3
 
 - Seeds `20261007–20261015` share source revision `a0bc620181e8101331110e457219174f6c90d413`, protocol v3, engine 7, setup `classic`, fixture `tactical`, and AI-level configuration fingerprint `12679f7a449e00888979a5dc4ff5a398697785372f3a870ac5fa99d020aee3fd`.
 - This cohort contains 18 completed games / 0 unfinished across 9 unique seeds. Outcomes: Lv.2 wins 0, Lv.3 wins 15, draws 3; descriptive score Lv.2 `1.5` : Lv.3 `16.5`.
-- Evidence evaluator status remains `INSUFFICIENT` because the compatible cohort has 18/20 required completed games. Seed `20261016` is the next bounded run. After it completes, aggregate the compatible raw JSON for seeds `20261007–20261016` with `tools/evaluate_ai_level_evidence.py`, preserve the cumulative report, and record the actual returned status.
+- At this snapshot date, the compatible cohort had 18/20 required completed games. Seed `20261016` was proposed as the next bounded run but was not executed before Task `TASK-20260930-0002` was paused on 2026-10-20. Do not execute that or another seed unless the Task is explicitly resumed. If resumed, revalidate the source revision and plan before running anything.
 - Seed `20261006` is separately preserved with source revision `e7651d557fb6fd13f6f110d3e7604360225d15d3`. It must not be mixed into the `a0bc620181e8101331110e457219174f6c90d413` cohort: `tools/evaluate_ai_level_evidence.py` rejects a pair-level aggregation containing mixed source revisions. The raw ledger has 20 completed games across seeds `20261006–20261015`, but that is not a valid single provenance-compatible 20-game evidence set.
 - No public AI-level settings, evaluation parameters, or search budgets change on the basis of this snapshot.
 

@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.4.6] - 2026-10-21
+
+### Corrected and Simplified
+
+- §9의 자율 실행·중단 기준을 §14와 중복 정의하지 않고 단일 승인 정책을 참조하도록 정리.
+- §25 및 §30의 별도 복구 순서·시작 프롬프트 규칙을 제거하고 §25-A-7 / §25-A-13 / §25-A-14를 단일 기준으로 지정.
+- §26의 중복 Evidence / Traceability 흐름을 §11, §20, §27 참조로 축약.
+- 기존 자동 배포와 Gate 우회·직접 Production 변경의 승인 경계를 구분하고, CI→배포 순서는 플랫폼에서 실제로 강제되는지 별도로 검증하도록 명확화.
+- Task Registry의 Next Action과 완료 Task 종료 요약을 구분하도록 명확화.
+- 템플릿과 ADR / Migration / Checkpoint의 오래된 Repository 경로, 작업 상태, 중복 필드를 정리.
+- Current Status의 Governance 버전 중복 표기를 줄이고 canonical `GOVERNANCE/VERSION`을 단일 원본으로 지정.
+- Janggi `CURRENT_STATUS.md`를 현재 상태 중심 요약으로 줄이고, 상세 UI·아키텍처·benchmark·calibration 기록은 기존 전용 문서에서 관리.
+- 실행하지 않은 calibration seed 20261016을 현재 지시가 아닌 과거 계획으로 표시하고, DNS incident를 현재 서비스 상태가 아닌 날짜가 있는 History에 보존.
+
+### Review Trigger
+
+- 2026-10-21 상세 Governance 리뷰에서 현재 규칙과 별개로 구형 템플릿 경로, 완료 Checkpoint의 오래된 실행 지시, ADR / Migration 기록의 현재형 모순, 여러 위치에 복제된 동일 규칙이 확인됨.
+
+### Decision
+
+- 새 validator, parser, workflow, Registry 또는 상태 계층은 추가하지 않는다.
+- 기존 문서의 단일 원본을 명확히 하고, 역사적 사실은 날짜를 명시하며, 실행 가능한 Next Action은 ACTIVE Task에만 둔다.
+- Governance 버전 1.4.6은 사용자 승인 전까지 제안 브랜치에서만 유지한다.
+
 ## [1.4.5] - 2026-10-21
 
 ### Corrected

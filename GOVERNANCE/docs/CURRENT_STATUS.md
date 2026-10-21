@@ -2,7 +2,7 @@
 
 ## Governance
 
-- Governance Version: `1.4.4`
+- Governance Version: `1.4.6` (canonical version file: `GOVERNANCE/VERSION`)
 - Status: Active baseline on `main`
 - Current canonical workspace repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Default / working branch: `main`
@@ -174,21 +174,19 @@ Chat history is temporary. The monorepo Repository is the long-term Source of Tr
 
 ## Known Limitations / Pending Work
 
-- The former `personal-ai-janggi-trainer-by-gpt` and `time-dashboard-by-gpt` source repositories were deleted after the pre-deletion verification gate on 2026-09-18.
-- Destructive cleanup is complete; future development must target the canonical monorepo only.
-- Pre-deletion gate verification completed on 2026-09-18: both Render services pointed to the canonical monorepo, latest relevant CI runs were green, and no duplicate Render services existed.
+- Monorepo consolidation and deletion of the two former project repositories completed on 2026-09-18 after the pre-deletion verification gate. Snapshot provenance and historical verification are documented in `GOVERNANCE/MIGRATION.md` and ADR-0002; all new development targets this monorepo.
 - A strict CI-success-before-deploy gate is not currently enforced. Render remains commit-triggered auto deploy, so CI and deployment are independently triggered.
 - Optional platform configuration follow-ups remain tracked only in `GOVERNANCE/docs/ACTIVE_ISSUES.md` and are excluded from current priorities unless their revisit conditions occur.
-- The connected GitHub repository list currently exposes the GPT monorepo and the two historical project repositories; no active `personal-mcp-server` repository was present in that current list, so older documentation referring to it is treated as stale.
 
 ## Current Task State
 
-- Governance detailed review: `TASK-20261021-0003` — **COMPLETED**. PR #159 was approved by the user and merged as `43a4e6a175949790ab974fd63456a35da0c6d7ae`; Governance version is `1.4.5`.
+- Governance consistency/simplicity review: `TASK-20261021-0004` — **ACTIVE** on the review branch. PR and verification details will be recorded in its Checkpoint; Governance 1.4.6 is not part of `main` until user approval and merge.
+- Previous Governance review: `TASK-20261021-0003` — **COMPLETED** through PR #159; Governance 1.4.5 is the current `main` baseline until this proposal is approved.
 - Personal AI Janggi Trainer v1.0: `TASK-20261020-0001` — **COMPLETED**. Release acceptance and the 11-method live browser smoke passed.
-- AI-level strength calibration: `TASK-20260930-0002` — **PAUSED** post-v1.0 research. Do not run further calibration or change public AI levels/search budgets unless this task is explicitly resumed.
-- CI-success-before-deploy strict gate: `ISSUE-001` — **BLOCKED**; the authoritative details and last verification date are in `GOVERNANCE/docs/ACTIVE_ISSUES.md`.
+- AI-level strength calibration: `TASK-20260930-0002` — **PAUSED** post-v1.0 research. Do not run further calibration or change public AI levels/search budgets unless explicitly resumed.
+- CI-success-before-deploy strict gate: `ISSUE-001` — **BLOCKED**; the canonical issue record is `GOVERNANCE/docs/ACTIVE_ISSUES.md`.
 
-No Development Task is currently active. Completed Task IDs remain available for history, not as current priorities.
+Only `TASK-20261021-0004` is currently ACTIVE in this proposal. Completed tasks are closure records, not current priorities.
 
 ## Potential Future Work (Not Active Tasks)
 

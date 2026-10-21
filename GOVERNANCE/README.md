@@ -17,8 +17,10 @@ GOVERNANCE/
 ├── MIGRATION.md
 ├── docs/
 │   ├── CURRENT_STATUS.md
+│   ├── ACTIVE_ISSUES.md
 │   ├── DEVELOPMENT_TASKS.md
 │   ├── DEVELOPMENT_HISTORY.md
+│   ├── checkpoints/
 │   └── ADR/
 └── templates/
 ```

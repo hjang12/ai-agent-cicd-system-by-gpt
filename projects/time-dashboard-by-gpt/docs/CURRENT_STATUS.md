@@ -3,7 +3,7 @@
 ## Governance
 
 - Common Governance Repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Governance Version: `1.3.1`
+- Governance version is maintained in the canonical `GOVERNANCE/VERSION`; read that file at task start instead of maintaining a duplicate value here.
 - Governance status: active baseline on `main`
 - Project context entrypoint: `AGENT_START.md`
 

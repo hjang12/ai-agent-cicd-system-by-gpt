@@ -2,44 +2,12 @@
 
 ## YYYY-MM-DD — Change Title
 
-### Requirement
+- Task:
+- Requirement / Problem:
+- Decision / User direction:
+- Implementation / Changed files:
+- Verification / Evidence:
+- Deployment (if applicable):
+- Outcome / remaining risk:
 
-### Problem / Context
-
-### Development Work Continuity
-
-- Development Task:
-- Checkpoint:
-- Context Recovery:
-- Chat Transition:
-
-### Options Considered
-
-1.
-2.
-3.
-
-### AI Proposal
-
-### User Decision
-
-### Decision / Reason
-
-### Implementation
-
-### Changed Files
-
-### Verification
-
-- Test:
-- Condition:
-- Result:
-- Evidence:
-
-### Deployment
-
-### Result
-
-### Known Issues
-
-### Next Step
+> Keep only relevant fields. This is historical evidence, not the current task list. Store executable Next Action in the Task Registry / Checkpoint only while the task is ACTIVE.

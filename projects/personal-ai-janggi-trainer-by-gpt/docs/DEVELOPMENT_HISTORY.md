@@ -1,3 +1,11 @@
+## 2026-10-20 — Agent runtime DNS failure distinguished from service status
+
+- The connected runtime failed DNS resolution for the Janggi hostname and unrelated control domains `google.com`, `github.com`, and `status.render.com`; `curl` returned exit code 6 (`Could not resolve host`). No HTTP response was received, so this did not establish an application outage.
+- At that time Render control-plane metadata showed the service was not suspended and a deployment was `live`; the user independently confirmed the app root and `/api/health` worked in their browser.
+- The later 2026-10-21 main-push live-browser smoke passed all 11 tests (run `39533158968`). The runtime DNS failure is historical evidence about the agent execution environment, not a current service status or a reason to change application code.
+
+---
+
 ## 2026-10-16 — Protocol-v3 seed 20261015 result and runner reset
 
 ### Run conditions

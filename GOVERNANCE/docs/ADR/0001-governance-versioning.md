@@ -1,34 +1,37 @@
-# ADR-0001: Governance 규칙의 독립 저장소 및 버전 관리
+# ADR-0001: Governance 규칙의 버전 관리와 Source of Truth
 
 ## Status
 
-Accepted for Governance v1.0.0
+Accepted — versioning principles remain active. The separate-repository topology in the original decision was superseded by ADR-0002 on 2026-09-18.
 
 ## Context
 
-AI Coding Agent 운영 규칙이 개별 프로젝트 또는 ChatGPT 대화에만 존재하면 새 Agent가 과거의 결정과 운영 경험을 안정적으로 복구하기 어렵다. 또한 실제 프로젝트를 진행하면서 발견되는 운영상의 문제를 규칙 자체에 반영하려면 규칙에도 독립적인 변경 이력이 필요하다.
+AI Coding Agent의 공통 운영 규칙이 Chat 또는 개별 프로젝트에만 존재하면 새 Agent가 과거 결정과 운영 경험을 안정적으로 복구하기 어렵다. 실제 운영 문제를 규칙에 반영하려면 Governance에도 추적 가능한 변경 이력이 필요하다.
 
 ## Decision
 
-AI Coding Agent의 공통 개발·운영 규칙을 `ai-agent-cicd-system` GitHub Repository에서 독립적으로 관리한다.
+Governance는 버전·변경 이력·현재 상태가 추적 가능한 Repository 문서로 관리한다. 처음에는 별도 Repository를 사용했으나, ADR-0002의 monorepo 통합 이후 현재 경로는 다음과 같다.
 
-공식 Governance 문서는 `GOVERNANCE.md`, 현재 버전은 `VERSION`, 변경 이력은 `CHANGELOG.md`, 현재 상태는 `docs/CURRENT_STATUS.md`, 장기 개발 이력은 `docs/DEVELOPMENT_HISTORY.md`에서 관리한다.
+- 공통 규칙: `GOVERNANCE/GOVERNANCE.md`
+- 현재 버전의 단일 원본: `GOVERNANCE/VERSION`
+- 변경 이력: `GOVERNANCE/CHANGELOG.md`
+- 현재 Workspace 상태: `GOVERNANCE/docs/CURRENT_STATUS.md`
+- 장기 이력: `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md`
 
 ## Reason
 
-- 프로젝트 코드와 운영 규칙의 수명주기를 분리할 수 있다.
-- 새로운 프로젝트와 새로운 Agent가 동일한 기준선을 참조할 수 있다.
-- 운영 규칙 자체도 코드와 유사하게 변경·검증·승인·배포의 대상으로 관리할 수 있다.
-- 실제 개발 경험을 Governance 개선으로 연결할 수 있다.
+- 프로젝트와 Chat을 넘어 동일한 운영 기준을 재사용할 수 있다.
+- 규칙 변경을 검토·승인·검증하고 실제 운영 결과와 연결할 수 있다.
+- 새 Agent가 공식 상태와 과거 의사결정을 구분할 수 있다.
 
 ## Consequences
 
-- 프로젝트를 시작하거나 이어받을 때 Governance Repository를 함께 확인해야 한다.
-- 운영 규칙 변경은 Version과 Changelog를 갱신해야 한다.
-- 실제 프로젝트의 적용 결과와 Governance 변경의 연결 관계를 기록해야 한다.
+- 시작 시 canonical Workspace와 Governance 경로를 확인한다.
+- Governance 변경에는 버전·Changelog·관련 Context를 동기화한다.
+- Repository topology는 ADR-0002 및 현재 저장소 구조를 기준으로 하며, 이 ADR의 이전 별도 Repository 설명을 현재 구조로 해석하지 않는다.
 
 ## Revisit Condition
 
-- Governance Repository의 규모가 커져 문서 탐색 비용이 과도하게 증가하는 경우
-- 프로젝트별 규칙과 공통 규칙의 경계가 불명확해지는 경우
-- 자동화된 정책 검증 또는 배포 체계가 별도의 구조를 요구하는 경우
+- Governance 탐색·유지 비용이 과도해지는 경우
+- 공통 규칙과 프로젝트별 예외의 경계가 불명확해지는 경우
+- 운영 규칙 검증·승인·배포 구조를 바꿀 필요가 생기는 경우

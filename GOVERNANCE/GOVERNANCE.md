@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.4.5**
+**Governance Version: 1.4.6**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -301,37 +301,9 @@ AI Agent가 테스트 실패를 스스로 분석하고 수정하는 자동 반�
 - 구조적 변경 감지
 - Production 영향 감지
 
-### 자율 실행 판단 기준
+### 자율 실행과 중단 기준
 
-AI Agent는 변경을 실행하기 전에 다음 세 가지를 독립적으로 확인한다.
-
-1. **Execution Capability** — 필요한 Repository / Tool / Platform 권한과 실행 수단을 가지고 있는가?
-2. **Policy / Project Compatibility** — Governance, AGENTS.md, Project Plan, Requirement, Architecture Constraint 및 기타 현재 유효한 개발지침과 충돌하지 않는가?
-3. **Authority / Risk** — 해당 변경이 Human Approval이 필요한 위험 범위에 해당하지 않는가?
-
-세 조건을 모두 충족하면 AI가 자율적으로 발견 → 분석 → 수정 → 검증 → 기록까지 수행한다.
-
-### 자율 실행을 중단해야 하는 경우
-
-다음 중 하나라도 해당하면 AI는 기술적으로 구현 가능하더라도 임의 실행하지 않는다.
-
-- 필요한 권한, Tool 또는 외부 시스템 조작 수단이 없어 끝까지 완료할 수 없음
-- Governance 또는 개발지침을 위반하는 변경이 됨
-- Project Plan, Requirement, Architecture Constraint 또는 승인된 Decision과 충돌함
-- 상충하는 문서 또는 요구사항 때문에 의도와 권한을 안전하게 판정할 수 없음
-- Human Approval이 필요한 위험 범위에 해당함
-
-특히 **제한을 우회하거나 지침을 임의로 변경하여 자동화를 계속하는 것을 금지한다.**
-
-이 경우 문제를 해결한 것으로 표시하지 않고, 다음을 보고한다.
-
-- 관찰된 문제 또는 충돌
-- 확인된 원인 또는 제약
-- AI가 수행한 범위
-- 검증 결과
-- 해결할 수 없는 이유
-- 필요한 사용자 판단 또는 외부 조치
-- 계속 진행할 경우 발생할 영향
+변경 실행 전 자율 실행 가능 여부, 지침·기획과의 합치, 권한·위험 판단 및 중단·보고 기준은 §14의 단일 기준을 적용한다. 이 절에서는 자동 수정 반복의 제한과 재시도 Escalation에 집중하며, 동일한 승인 조건을 별도로 정의하지 않는다.
 
 ### 자동 수정 Escalation
 
@@ -387,6 +359,8 @@ Requirement
 ```
 
 CI는 단순한 자동 테스트가 아니라 **Agent와 개발자의 변경을 통제하는 Quality Gate**로 활용한다.
+
+위 흐름은 의도한 품질 경로이며, 플랫폼이 실제로 CI 성공을 배포의 필수 선행조건으로 강제한다는 보장은 아니다. Workflow, branch protection, deployment trigger를 직접 확인하고 CI와 배포가 독립적으로 실행되면 Active Issue로 추적한다. CI 통과 결과만으로 CI-gated deployment라고 표현하지 않는다.
 
 가능한 경우 다음을 독립적으로 확인한다.
 
@@ -630,6 +604,12 @@ AI는 위 상황을 우회하기 위해 지침을 무시하거나, 요구사항�
 
 목표는 모든 AI 행동을 사람이 승인하는 것이 아니라 **위험도가 높은 결정에만 Human Approval을 배치하고, 나머지는 자율적으로 처리하는 것**이다.
 
+### 기존 자동 배포와 Production 승인 경계
+
+이미 구성된 CI/CD 파이프라인을 통한 일반 코드 배포는 프로젝트에서 정한 필수 검증을 확인하고 §14의 자율 실행 조건을 충족하면 일상적인 개발 작업으로 처리할 수 있으며, 배포마다 별도 승인을 요구하지 않는다.
+
+다만 검증 실패 또는 미확인 상태를 무시하거나 Gate를 우회하는 배포, 기존 파이프라인 밖에서 수행하는 직접 Production 변경, 배포 정책·권한·핵심 인프라 변경, 파괴적·비가역적 작업은 별도 승인을 받는다. Platform이 CI 성공을 배포 선행조건으로 강제하지 못하면 이를 통제된 것으로 간주하지 않고 Active Issue로 추적하며, 실제 배포 순서와 검증 결과를 정확히 보고한다.
+
 ### 보고 원칙
 
 자율적으로 해결하지 못한 문제와 규정/기획 충돌은 숨기지 않는다.
@@ -727,7 +707,7 @@ Production Change
 Destructive Action
 ```
 
-특히 Production Database 삭제, Production Service 삭제, 중요 데이터 삭제, Secret 변경, Production 인증/권한 변경, Production 배포, 복구 불가능한 변경은 자동 수행을 제한한다.
+특히 Production Database/Service 삭제, 중요 데이터 삭제, Secret 또는 Production 인증/권한 변경, 검증 Gate를 우회하거나 기존 파이프라인 밖에서 수행하는 Production 변경, 복구 불가능한 변경은 자동 수행을 제한한다.
 
 가능한 한 다음 방어 원칙을 적용한다.
 
@@ -1149,24 +1129,7 @@ Prevention
 
 새로운 AI Coding Agent 또는 새로운 ChatGPT 대화에서 기존 개발 상태를 빠르게 복원할 수 있도록 핵심 Context를 GitHub에 저장한다.
 
-Context Recovery의 단일 기준 순서는 §25-A-7에 정의한다. 이 절은 개요만 제공하며, 별도 순서 목록을 중복 유지하지 않는다.
-
-```text
-Governance / 시작 지침
-→ Request와 일치하는 Development Task 및 현재 Status
-→ Task가 지정한 Workspace / Project Context와 Checkpoint
-→ 실제 Repository / Branch / Commit 상태
-→ 관련 PR / Issue / CI / Deployment 상태
-→ 필요한 경우에만 관련 Architecture / Requirement Contract / History / ADR / Evidence
-```
-
-Task Status는 Development Task Registry에서 확정한다. Checkpoint나 History의 오래된 `Next Action`은 Task Status를 대체하지 않는다.
-
-새 Agent는 기존 채팅의 내용을 추측해서 복원하지 않는다.
-
-**현재 Repository, 현재 프로젝트 문서, 실제 CI/CD 상태를 우선 확인한다.**
-
-채팅과 Repository가 충돌하면 충돌 사실을 보고하고 공식 Repository와 프로젝트 문서를 기준으로 판단한다.
+Context Recovery의 단일 절차는 §25-A-7에 정의한다. 이 절에서는 별도의 순서 목록을 유지하지 않는다.
 
 ---
 
@@ -1520,47 +1483,9 @@ GitHub: hjang12/ai-agent-cicd-system-by-gpt
 이 원칙의 목적은 Chat의 기억을 보존하는 것이 아니라, **개발 작업의 Source of Truth를 Chat에서 Repository와 공식 Context로 이동시키는 것**이다.
 
 
-## 26. Evidence와 Traceability 관리
+## 26. Evidence와 Traceability 참조
 
-중요한 변경은 가능한 범위에서 다음 흐름을 추적할 수 있도록 한다.
-
-```text
-Requirement
-   ↓
-Decision
-   ↓
-Code Change
-   ↓
-Commit
-   ↓
-Build
-   ↓
-Test
-   ↓
-Deployment
-   ↓
-Post-deployment Verification
-   ↓
-Evidence
-```
-
-프로젝트와 Evidence 규모가 커지면 식별자를 사용할 수 있다.
-
-Evidence에는 가능하면 최소한 다음 정보를 포함한다.
-
-```text
-Evidence ID
-Requirement / Change
-Commit
-Environment
-Configuration
-Test Command / Procedure
-Result
-Timestamp
-Related Artifact
-```
-
-실제 수행하지 않은 검증을 수행했다고 기록하지 않는다. 추정 결과를 실제 결과처럼 기록하지 않는다.
+Evidence의 관찰 범위와 기록 원칙은 §11, Requirement부터 검증 결과까지의 추적성은 §20, 실제 사실과 추론의 구분은 §27을 따른다. 같은 흐름이나 필드 목록을 별도로 복제하지 않는다.
 
 ---
 
@@ -1706,15 +1631,9 @@ Problem
 
 
 
-## 30. 시작 프롬프트 최소화 원칙
+## 30. 시작 프롬프트 최소화
 
-새로운 AI Coding Agent를 시작할 때 Governance 전문을 매번 복사하지 않는다.
-
-운영 규칙은 이 Repository에서 관리하고, 시작 메시지는 **Governance Repository의 위치만 알려주는 수준으로 최소화**한다.
-
-권장 시작 메시지는 `AGENT_START.md`를 기준으로 한다.
-
-Agent는 시작 후 해당 파일에서 안내하는 Governance와 현재 프로젝트 문서를 읽어야 한다.
+새 Chat의 복구 메시지와 Repository 식별 규칙은 §25-A-13 및 §25-A-14를 따른다. 이 절에서는 별도의 시작 프롬프트 형식이나 복구 절차를 중복 정의하지 않는다.
 
 ---
 

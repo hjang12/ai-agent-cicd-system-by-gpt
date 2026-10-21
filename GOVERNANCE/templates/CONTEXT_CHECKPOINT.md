@@ -1,54 +1,33 @@
 # Context Checkpoint
 
-## Development Task
-
+## Task
 - Task ID:
-- Task:
+- Task Status (must match Registry):
 - Goal:
 
 ## Current State
+- Branch / Commit:
+- Active PR / Issue:
+- State / Blocker:
 
-- Current Branch:
-- Current Commit:
-- Active PR:
-- Active Issue:
-- Current Status:
-- Current Interaction:
-- Current Agent Work Segment:
-- Execution Boundary / Pause Reason:
-
-## Completed Work
-
-- 
-
-## Work In Progress
-
-- 
+## Completed / In Progress
+- Completed:
+- In progress:
 
 ## Verification
-
-- Test / Command:
+- Check / Condition:
 - Result:
 - Evidence:
 
-## Decisions / Constraints
-
-- 
-
-## Known Issues / Blockers
-
+## Decision / Constraint
 - 
 
 ## Next Action
+- Executable only when Task Registry Status is ACTIVE. For other states, record the closure or explicit resume condition instead.
 
-- 
-
-## Chat Transition / Recovery
-
-- Reason for checkpoint:
-- Recommended recovery starting point:
-- Additional context references:
+## External Execution (only when applicable)
+- Process / last observed state / last checked at:
+- Safe next check or recovery path:
 
 ## Timestamp
-
 - Date / Time:
