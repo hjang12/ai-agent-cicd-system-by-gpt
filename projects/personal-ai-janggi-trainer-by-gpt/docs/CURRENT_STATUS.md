@@ -120,7 +120,7 @@
 - Main CI passed Workspace `39533158998` and Janggi Python validation `39533159009`. The release test covers setup/levels, both sides, move/AI sequence, recovery, check/bikjang, illegal/out-of-turn requests, post-game review, training, local progress, and undo/replay. Earlier turn-return and review-modal failures did not recur.
 - v1.0 product and production-smoke gates are complete. PRs #149, #150, #151 and #153 are merged.
 - v1.0 release gates are complete; previously observed optional platform configuration differences are not product blockers and are kept in the canonical issue index only when a concrete revisit condition applies.
-- Governance task `TASK-20261020-0001` is complete. AI-level calibration remains paused. Temporary-guidance trial `TASK-20261021-0001` is complete; no Governance rule/version change was made. AI-level calibration remains paused as post-v1.0 research.
+- Governance task `TASK-20261020-0001` (v1.0 release) is complete. Temporary-guidance trial `TASK-20261021-0001` is also complete. The follow-up Context Recovery consistency task `TASK-20261021-0002` clarified Governance v1.4.4 so deferred follow-ups and completed Checkpoint actions are not resurfaced as current work. AI-level calibration remains paused as post-v1.0 research.
 
 ## Development Safety
 
