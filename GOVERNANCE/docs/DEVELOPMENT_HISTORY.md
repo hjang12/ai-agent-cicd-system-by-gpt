@@ -908,3 +908,10 @@ Set the existing Render service health-check path to `/api/health` through an au
 - Personal AI Janggi Trainer v1.0's latest main commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` deployed live as `dep-dbc26arm8hqs73bcbmbg`. Main-push live-browser smoke run `39533158968` passed all 11 tests in 128.597 seconds; Workspace and Python CI also passed.
 - The mismatch between the Render service's empty `healthCheckPath` metadata and root `render.yaml`'s `/api/health` remains factual, but official platform documentation confirms the HTTP path is optional and default TCP checks apply when omitted. The live endpoint and full browser smoke passed, so the mismatch was reclassified as deferred P3 configuration hygiene instead of blocking release.
 - `TASK-20261020-0001` is COMPLETED. New ACTIVE Task `TASK-20261021-0001` resumes the user-requested, trial-only evaluation of temporary work instructions against existing Governance §§25-A-8, 27 and 28. No Governance rule file or version changed.
+
+## 2026-10-21 — Temporary-guidance trial closed
+
+- Closed `TASK-20261021-0001` at the user's direction after reviewing the observed v1.0 release work and the recurring `healthCheckPath` status issue.
+- The temporary guidance did not demonstrate an independent, measurable benefit over existing Governance §§25-A-8, 27 and 28. The repeated blocker was caused by stale task/status classification and context synchronization, not by a demonstrated gap in the rule text.
+- Stop applying the temporary instruction package as a separate set of instructions. Keep Governance rule text and version `1.4.3` unchanged. Reconsider only if repeated future evidence shows a genuine gap.
+- This trial closure does not change the v1.0 product scope: v1.0 is complete as defined; six AI levels are not statistically calibrated, numeric player Elo remains excluded, and cloud sync/multi-user features remain out of scope.
