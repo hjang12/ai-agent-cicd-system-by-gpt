@@ -297,3 +297,27 @@ The runner reset deploy `dep-db8miufavr4c73dga81g` reached `live` and logs confi
 5. Use player skill-assessment evidence together with adaptive position-training selection and ephemeral session metrics, while keeping match rating separate from coaching statistics and preventing uncalibrated AI levels from producing numeric player ratings.
 6. Use targeted runtime profiling only when a concrete latency target exists; avoid noisy wall-clock thresholds in mandatory CI.
 7. Keep training/evaluation interfaces stable while AI strategy evolves.
+
+## 2026-10-20 — distinguish Render platform status from agent-runtime DNS failure
+
+- Rechecked the official Render status page: it reports **All Systems Operational** and no incident reported on October 20, 2026 ([status page](https://status.render.com/)). This does not prove individual-service availability.
+- Retested `https://personal-ai-janggi-trainer.onrender.com/` and `/api/health`: the connected web tool says the URLs are inaccessible. To distinguish a hostname-specific issue from a general runtime problem, shell DNS was also queried for `google.com`, `github.com`, and `status.render.com`; all four domains failed resolution, and `curl` to both the app and `github.com` exited 6 (`Could not resolve host`). The runtime cannot currently reach even a control domain, so no HTTP status/body was received; this does **not** prove the application is down.
+- Render service control-plane metadata still says the service is not suspended and deploy `dep-dbbf251srm7s73858b5g` is `live`. Request logs and HTTP metrics for 2026-10-20 06:45–07:30 UTC returned no records; this is inconclusive, not proof that users have made no requests.
+- Updated assessment: the failure currently reproduces in the agent's own name-resolution/access path, while there is no corroborating evidence of a Render-wide outage. Keep per-service public HTTP and real-browser acceptance **unverified** until tested from an independent external client. The empty live `healthCheckPath` remains a configuration mismatch, but it is not evidence that it caused this DNS resolution failure.
+
+## 2026-10-20 — user confirms the public Render endpoints work
+
+- After agent-runtime DNS failures affected the Janggi hostname and unrelated domains, the user opened both the app root and `/api/health` in their own browser and confirmed that both worked.
+- This is user-reported evidence that the service was publicly reachable at the time of the check. It corrects the earlier assessment that individual service reachability was wholly unknown; it does not amount to a full automated check by the agent or verify interactive gameplay/learning flows.
+- The agent-runtime DNS failure remains independently reproducible across unrelated domains. Do not describe it as a Render outage or change app code solely to address it.
+- The live service's empty `healthCheckPath` versus `render.yaml`'s `/api/health` remains a separate configuration-consistency item. No live service setting has been changed.
+
+## Candidate Verification Update — 2026-10-21
+
+- Latest tested code revision on PR #149: `9ebacdc1c4fb9733aa5550d5cdae401fbbfd3763`. Workspace validation run `39519087955`, Janggi Python validation run `39519087947`, and Playwright/Chromium browser acceptance run `39519088050` all completed successfully.
+- The browser suite ran 10 test methods against a locally started instance of the candidate. Coverage includes six AI profiles × four setups, Cho/Han opening behavior, visible human-move/AI-thinking sequencing, check/bikjang messages, API-error recovery, undo/replay, visible analysis/review/training, answer feedback and correctness totals, idempotent result recording, progress across reload/new match, and malformed/unavailable local storage.
+- The browser suite now also asserts that the visible player profile shows the recorded game count rather than a numeric skill rating, and that the terminal result explicitly says numerical Rating is not provided. The no-numeric-rating acceptance item is backed by this passing candidate-local test.
+- This evidence is candidate-local CI, not production Render browser smoke. The PR workflow's live-smoke job is skipped for pull-request events and runs after a project-changing commit reaches main. A final CI recheck is required on the updated documentation branch head.
+- The user confirmed the public app root and `/api/health` both open successfully from their browser on 2026-10-20. The agent runtime's cross-domain DNS failures are an access-path limitation, not evidence that the Render service is down.
+- Latest Render control-plane observation remains deployment `dep-dbbf251srm7s73858b5g` for main commit `0338d442d04dba1521af19631360b01705d5e1e1`, status `live`. The existing service's `healthCheckPath` metadata remains empty while `render.yaml` declares `/api/health`; that configuration has not been changed.
+- v1.0 remains in progress until PR #149 reaches main, live post-deploy smoke passes, the Render health-check discrepancy is resolved or shown not to affect live health, and the remaining unchecked gameplay/legal-move criterion is verified. AI-strength calibration remains paused.

@@ -1,0 +1,88 @@
+name: Janggi browser acceptance
+
+on:
+  pull_request:
+    paths:
+      - 'projects/personal-ai-janggi-trainer-by-gpt/**'
+      - '.github/workflows/janggi-browser-acceptance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'projects/personal-ai-janggi-trainer-by-gpt/**'
+      - '.github/workflows/janggi-browser-acceptance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-acceptance:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: projects/personal-ai-janggi-trainer-by-gpt
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install Playwright
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright==1.64.0
+          python -m playwright install --with-deps chromium
+      - name: Run local Chromium acceptance suite
+        run: python tools/browser_acceptance.py
+
+  live-browser-smoke:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: projects/personal-ai-janggi-trainer-by-gpt
+    env:
+      JANGGI_BASE_URL: https://personal-ai-janggi-trainer.onrender.com
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install Playwright
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright==1.64.0
+          python -m playwright install --with-deps chromium
+      - name: Wait for the release build and health endpoint
+        run: |
+          python - <<'PY'
+          import json
+          import time
+          import urllib.error
+          import urllib.request
+
+          base = "https://personal-ai-janggi-trainer.onrender.com"
+          deadline = time.monotonic() + 600
+          last_error = None
+          while time.monotonic() < deadline:
+              try:
+                  with urllib.request.urlopen(base + "/api/health", timeout=10) as response:
+                      health = json.loads(response.read().decode("utf-8"))
+                  with urllib.request.urlopen(base + "/", timeout=10) as response:
+                      html = response.read().decode("utf-8")
+                  if (health.get("status") == "ok"
+                          and "AI 생각 중…" in html
+                          and "착수 평가 중…" not in html):
+                      print("The released browser UI and health endpoint are responding.")
+                      break
+                  last_error = "The expected updated UI marker is not live yet."
+              except (OSError, ValueError, urllib.error.URLError) as exc:
+                  last_error = repr(exc)
+              time.sleep(5)
+          else:
+              raise SystemExit("Live release did not become ready within 10 minutes: " + str(last_error))
+          PY
+      - name: Run real-browser smoke against the live app
+        run: python tools/browser_acceptance.py

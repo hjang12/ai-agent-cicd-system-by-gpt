@@ -414,7 +414,8 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertIn("explainIllegalMove(selected, [stateX, stateY], view)", html)
         self.assertIn("post('/api/analyze/move', move)", html)
         self.assertIn("post('/api/move', move)", html)
-        self.assertIn("착수 평가 중…", html)
+        self.assertIn("AI 생각 중…", html)
+        self.assertNotIn("착수 평가 중…", html)
         self.assertIn("내 수가 반영되었습니다.", html)
         self.assertIn("AI가 수를 계산하는 중입니다…", html)
         self.assertIn("장군!", html)
@@ -803,6 +804,12 @@ class TestV1LearningProgressUiContract(unittest.TestCase):
         self.assertIn('id="postgame-training"', html)
         self.assertIn('showLearningModal(\'review\')', html)
         self.assertIn('showLearningModal(\'training\')', html)
+
+    def test_training_turn_uses_the_active_position_not_the_finished_game_turn(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        click_cell = html.split("async function clickCell", 1)[1].split("async function ", 1)[0]
+        self.assertIn("current.side === view.state.turn", click_cell)
+        self.assertNotIn("current.side === snapshot.state.turn", click_cell)
 
     def test_browser_local_progress_is_versioned_and_idempotent(self):
         html = INDEX_HTML.read_text(encoding="utf-8")

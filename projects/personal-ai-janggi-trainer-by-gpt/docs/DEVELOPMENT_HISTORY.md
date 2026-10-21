@@ -2370,3 +2370,79 @@ This closes the current requested UI refinement scope. Future UI changes should 
 ### Release state
 - The visible learning/local progress implementation and automated regression checks are in main. v1.0 remains ACTIVE because interactive browser acceptance gates, actual post-deploy smoke, and authorized health-check configuration are still open.
 - AI level strength calibration remains PAUSED and is not a v1.0 release criterion.
+
+
+## 2026-10-20 — read-only v1.0 release revalidation
+
+### Render deployment and configuration
+- Re-read service `srv-dajolip594qs73d1bkr0` (`personal-ai-janggi-trainer-by-gpt`) in the authorized Render workspace.
+- The latest deployment visible during this check was `dep-dbbf251srm7s73858b5g`, for main commit `0338d442d04dba1521af19631360b01705d5e1e1`. Render deployment state was `live`; build and deploy events succeeded. Logs recorded `python app.py`, listener `0.0.0.0:10000`, and the service-live confirmation.
+- Actual service metadata reports an empty `healthCheckPath`; `render.yaml` declares `/api/health`, and `app.py` implements `GET /api/health`. The mismatch remains tracked as Governance `ISSUE-002`. The connected Render toolset provides read-only service/config queries but no mutation for this existing service's health-check path.
+- Attempted direct access to both the root URL and `/api/health` via the web tool and shell `curl`. Neither produced an HTTP response; shell DNS lookup failed. This result is classified as **agent-runtime network/DNS blocked**, not a successful smoke test and not proof of service outage.
+- PR #147 CI evidence was rechecked: Workspace structure validation run `39370601330` and Janggi Python validation run `39370601343` both passed on its head commit `49852bb22576f5c668ebd251f1085f837356fe95`. The latest documentation-only main commit does not expose push-run data through the connected commit-run query, so no additional CI conclusion is inferred from that query.
+- As project documentation is included in the Render build filter, this record update itself can trigger a deployment. The deployment ID above is the observed pre-update snapshot; post-merge deployment state must be checked separately.
+
+### Release decision
+- Keep `TASK-20261020-0001` **ACTIVE**. The deployed status is observed, but direct endpoint health and browser behavior are unverified, and `healthCheckPath` drift remains open.
+- Keep `TASK-20260930-0002` AI-strength calibration/ML research **PAUSED**; no new seed or public AI-level configuration change was run.
+- Remaining release gates: obtain an authorized mechanism to set the existing Render service health check to `/api/health`, then run live HTTP/real-browser acceptance cases for gameplay, visible learning surfaces, idempotent result recording, local-storage persistence, and malformed/unavailable storage recovery.
+
+
+## 2026-10-20 — documented Render health-check resolution path
+
+- Retrieved and read Render's official [Health Checks documentation](https://render.com/docs/health-checks). For a web service, the documented Dashboard path is service Settings → Health Checks → Edit → specify a path beginning with `/` → Save Changes. The intended path for this service is `/api/health`, already declared in repository `render.yaml` and implemented by `app.py`.
+- The existing service metadata still reports an empty `healthCheckPath`. The connected Render integration can read the service but exposes no update operation for this setting, and this runtime has no authenticated Dashboard UI control. No Render setting was changed.
+- Next authorized control step is to apply that documented Dashboard change, then confirm metadata and deploy status and verify a live `GET /api/health` returns a successful `2xx` or `3xx` response. Separately, perform the complete browser smoke; neither check is passed by the deploy's `live` status alone.
+
+
+## 2026-10-20 — recheck after suspected Render access error
+
+### New evidence
+- Render's official status page reported all systems operational with no incident reported on Oct 20, 2026 ([status.render.com](https://status.render.com/)). This global status does not guarantee this service's availability.
+- The agent runtime retried the public root and `/api/health` endpoints. The web tool could not open either URL; shell DNS resolution also failed for the control domains `google.com`, `github.com`, and `status.render.com`. `curl` to the app and to `github.com` failed before receiving an HTTP response with `Could not resolve host` (exit code 6). This demonstrates the runtime's DNS/access path is broadly failing rather than only failing for this Render hostname.
+- Render control-plane reads still show the service not suspended and deployment `dep-dbbf251srm7s73858b5g` as `live`. No newer deploy failure was present in the event history. Queried HTTP request logs and metrics returned no data for 06:45–07:30 UTC; this observation is inconclusive.
+
+### Assessment
+- The observed failure is at the agent runtime's DNS/access layer and is more consistent with an execution-environment/network-resolution limitation than a confirmed Render-wide outage. Do not label the app down based on these failed probes.
+- The endpoint's public availability and interactive user flow still need an independent successful HTTP/browser test. The empty `healthCheckPath` is a separate configuration mismatch; there is no evidence it caused the DNS lookup failure.
+
+
+## 2026-10-20 — user verified public app and health endpoint access
+
+- User opened `https://personal-ai-janggi-trainer.onrender.com/` and `https://personal-ai-janggi-trainer.onrender.com/api/health` in their own browser and reported both were working.
+- This resolves the immediate uncertainty about whether the agent's failed probe proved an app outage: it did not. DNS lookup and `curl` failed in the agent runtime for the Janggi domain and unrelated domains (`google.com`, `github.com`, and `status.render.com`), before an HTTP response. Classify those failures as an agent-runtime access/DNS problem rather than a confirmed Render incident.
+- Scope boundary: user confirmation verifies basic public access only; full gameplay, AI turn feedback, analysis/review/training, local progress persistence and recovery still require evidence. Do not mark those browser acceptance tests as passed.
+- Render metadata still reports empty `healthCheckPath` while repository `render.yaml` declares `/api/health`. Keep that configuration mismatch separate from the runtime DNS error; no setting was changed during this check.
+
+
+## 2026-10-21 — PR #149 browser acceptance result and release checkpoint sync
+
+### Candidate and CI evidence
+- Latest candidate commit checked: `dc44ea8a2a8f96b563bd89a8fb42d4791328b4e2`.
+- Workspace structure validation run `39393541838`: passed.
+- Janggi Python validation run `39393541789`: passed; steps include JavaScript syntax validation, Python compilation, Requirement Contract validation, and unit tests.
+- Janggi browser acceptance run `39393541822`: passed. The job installed Playwright/Chromium and ran `python tools/browser_acceptance.py` against a locally started instance of the candidate. The script defines 10 test methods across setup/level selection, Cho/Han opening, visible move/AI-thinking sequence, analysis, check/bikjang, AI-request error recovery, undo/replay, post-game review/training, answer validation and correctness totals, local progress idempotency/reload, and malformed/unavailable storage.
+- An earlier Chromium run exposed a real training-mode defect: legal-piece selection used the underlying completed match's turn instead of the active training position's turn. The branch corrects this by using the training view's state turn.
+- The board message during AI response was changed from stale `착수 평가 중…` to the requested `AI 생각 중…`. A later test-only correction fixed the regex used to assert the board message's visible CSS class; the final Chromium run passed after that correction.
+
+### Evidence boundaries and remaining gates
+- The passing browser run is candidate-local CI evidence, not a production Render browser smoke. The live-smoke job is intentionally skipped for pull-request events and runs when a project-changing commit reaches main.
+- The user reported that both the public app root and `/api/health` opened successfully in their own browser on 2026-10-20. The agent runtime's DNS failure against multiple unrelated domains remains an access-path limitation and must not be interpreted as a Render outage.
+- Render metadata still reports an empty `healthCheckPath` while repository `render.yaml` declares `/api/health`. This configuration discrepancy is unresolved; no Render mutation was performed.
+- PR #149 remains open and unmerged. A previous normal merge attempt was blocked by the tool safety check; this control was not bypassed.
+- TASK-20261020-0001 remains ACTIVE. Release completion awaits the candidate reaching main, successful live post-deploy smoke, resolution/acceptable verification of the Render health-check discrepancy, and direct evidence for remaining unchecked release criteria. AI-strength calibration remains PAUSED.
+
+
+## 2026-10-21 — Explicit no-numeric-rating browser regression
+
+- Added browser acceptance assertions to candidate code revision `9ebacdc1c4fb9733aa5550d5cdae401fbbfd3763`: after a completed game, the visible player profile must show the game count (for example, `1전`) rather than a numeric skill rating, and the terminal result must explicitly state that numerical Rating is not provided.
+- The updated candidate passed Workspace structure validation run `39519087955`, Janggi Python validation run `39519087947`, and Playwright/Chromium browser acceptance run `39519088050`.
+- The browser log reports `Ran 10 tests in 88.762s` and `OK`; the new no-rating assertions execute in the review/training/progress persistence scenario.
+- This closes the candidate-local evidence gap for the no-numeric-rating criterion. It does not close the wider gameplay/legal-move gate or production-release verification: PR #149 remains unmerged, the live Render smoke job is skipped on PR events, and live service `healthCheckPath` remains empty while `render.yaml` declares `/api/health`.
+
+## 2026-10-21 — Branch-head revalidation and release-context cleanup
+
+- PR #149 branch head `d8725225a4e34a0e222d93de1ca2e5e98dd149c3` passed Workspace validation run `39519490460`, Janggi Python validation run `39519490378`, and Janggi browser acceptance run `39519490467`. The browser-acceptance job completed successfully; the production-only `live-browser-smoke` job was skipped for the pull-request event as designed.
+- These checks ran against a locally started candidate, not the production Render deployment. PR #149 remained open and unmerged.
+- Review found a dated pre-documentation-update Render snapshot duplicated in `CURRENT_STATUS.md` and the task checkpoint/history. The duplicate block was removed from `CURRENT_STATUS.md` to keep that file focused on compact current context; the detailed evidence remains in the checkpoint/history.
+- The checkpoint was aligned with the branch-head CI results. The previous normal merge attempt remains blocked by the tool safety check; no alternate merge path was used.

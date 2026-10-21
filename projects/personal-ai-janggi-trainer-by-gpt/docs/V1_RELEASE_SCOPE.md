@@ -71,38 +71,46 @@ v1.0 is complete only when all applicable gates below pass.
 
 ### Gameplay
 
-- [ ] Start a game in each player-side orientation and verify the correct side moves first.
-- [ ] Verify all four supported initial setups and all six AI level options can start a game.
-- [ ] Verify selection/legal-destination feedback and that the player's move is visibly rendered before the AI starts thinking.
-- [ ] Verify the AI-thinking indicator ends on success and the UI recovers on an API/search error.
+- [x] Start a game in each player-side orientation and verify the correct side moves first.
+- [x] Verify all four supported initial setups and all six AI level options can start a game.
+- [x] Verify selection/legal-destination feedback and that the player's move is visibly rendered before the AI starts thinking.
+- [x] Verify the AI-thinking indicator ends on success and the UI recovers on an API/search error.
 - [ ] Verify turn enforcement, legal move validation, check/bikjang/terminal presentation, undo and replay/reset.
-- [ ] Verify results are recorded only once after a completed game.
+- [x] Verify results are recorded only once after a completed game.
 
 ### User-visible learning surfaces
 
-- [ ] Move analysis/coaching details, review summaries and training problems/answer feedback are shown in a real visible panel or modal with readable headings and labels.
-- [ ] Post-game review/training buttons reveal the corresponding content and let the user return to the game/setup flow.
-- [ ] These panels are not left only inside the hidden runtime-compatibility container; the visible controls operate on the same authoritative result data.
-- [ ] Opening/closing the learning view preserves the game result and does not start/reset a game.
+- [x] Move analysis/coaching details, review summaries and training problems/answer feedback are shown in a real visible panel or modal with readable headings and labels.
+- [x] Post-game review/training buttons reveal the corresponding content and let the user return to the game/setup flow.
+- [x] These panels are not left only inside the hidden runtime-compatibility container; the visible controls operate on the same authoritative result data.
+- [x] Opening/closing the learning view preserves the game result and does not start/reset a game.
 
 ### Learning and progress
 
-- [ ] Verify analysis does not mutate the active match and invalid engine recommendations are never applied.
-- [ ] Verify review, generated training problems, answer checking and explanations on a representative game.
-- [ ] Verify training attempt/correctness metrics are accurate.
-- [ ] Verify completed-game and training summaries survive a page reload and a new match in the same browser.
-- [ ] Verify outcomes are separated by selected AI level and that no unsupported numeric rating is displayed.
-- [ ] Verify malformed/missing local progress data fails safely and does not prevent playing.
+- [x] Verify analysis does not mutate the active match and invalid engine recommendations are never applied.
+- [x] Verify review, generated training problems, answer checking and explanations on a representative game.
+- [x] Verify training attempt/correctness metrics are accurate.
+- [x] Verify completed-game and training summaries survive a page reload and a new match in the same browser.
+- [x] Verify outcomes are separated by selected AI level and that no unsupported numeric rating is displayed.
+- [x] Verify malformed/missing local progress data fails safely and does not prevent playing.
 
 ### Quality and deployment
 
 - [x] `python -m compileall janggi tests tools` passes.
 - [x] `python tools/validate_requirement_contracts.py` passes.
 - [x] `python -m unittest discover -s tests -v` passes.
-- [x] Run the required Workspace validation and Janggi validation CI on the release candidate (PR #146 checks passed; see checkpoint for run IDs).
+- [x] Run the required Workspace validation and Janggi validation CI on the release candidate (latest code head 9ebacdc1c4fb9733aa5550d5cdae401fbbfd3763: Workspace run 39519087955 and Janggi run 39519087947 both passed).
 - [ ] Verify the Render service is live and the `/api/health` check/configuration is consistent.
 - [ ] Perform the available post-deploy smoke test against the live app; distinguish any test the Agent cannot execute from a test that passed.
 - [x] Update release notes/current status/checkpoint so implemented, verified and deferred features are clearly separated.
+
+### Evidence note — PR #149 candidate (2026-10-21)
+
+- GitHub Actions ran the 10-method Playwright/Chromium acceptance suite against a locally started copy of the candidate (Janggi browser acceptance, run 39519088050); it succeeded on code head 9ebacdc1c4fb9733aa5550d5cdae401fbbfd3763. That run also checked that the player profile shows a game count rather than a numeric rating and that the result explicitly states numerical Rating is not provided.
+- Subsequent branch-head CI at `d8725225a4e34a0e222d93de1ca2e5e98dd149c3` passed Workspace validation run `39519490460`, Janggi Python validation run `39519490378`, and browser acceptance run `39519490467`. The browser job passed and `live-browser-smoke` was skipped by design on the pull-request event. This is candidate-local evidence, not production Render smoke; any later candidate commit must pass its own branch-head checks before merge.
+- These browser tests cover setup combinations, both player-side opening paths, human-move/AI-thinking sequence, analysis/review/training visibility, answer checking, per-level progress display, idempotent result recording, reload persistence, and malformed/unavailable browser storage. They are candidate-local CI evidence, not a production Render browser smoke.
+- The wider combined gameplay/legal-move regression gate remains unchecked. The suite also now asserts that the visible player profile shows the game count (not a numeric rating) and that the result explicitly says Rating is not provided. Live Render metadata still reports an empty healthCheckPath; the user has confirmed the public app and /api/health are accessible, but a Playwright run against the released commit has not yet occurred.
+- The PR-triggered workflow's live-browser-smoke job is skipped by design; it runs after a project-changing commit reaches main.
 
 ## 6. Explicit non-goals
 
@@ -121,7 +129,7 @@ Research code and existing calibration artifacts may remain in the repository. A
 
 ## 7. Estimate note
 
-The **10–16 hour** figure was a planning estimate made when the v1.0 scope was defined on 2026-10-20, before visible learning surfaces and browser-local progress were implemented. It is not a current remaining-time estimate. Current open work is determined by the unchecked acceptance criteria above: real gameplay/learning-flow smoke, browser storage recovery verification, authorized closure of live Render `healthCheckPath` drift, and post-deploy verification.
+The **10–16 hour** figure was a planning estimate made when the v1.0 scope was defined on 2026-10-20, before visible learning surfaces and browser-local progress were implemented. It is not a current remaining-time estimate. Current open work is determined by the unchecked acceptance criteria above: complete legal-move/turn/terminal regression review, live Render healthCheckPath drift resolution or evidence that it does not affect live health, and post-deploy browser smoke against the released commit.
 
 ## 8. Final decision rule
 
