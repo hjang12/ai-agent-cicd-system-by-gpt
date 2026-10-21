@@ -1,90 +1,51 @@
 # Current Status
 
-## Governance
+## Source of Truth
 
-- Common Governance Repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Governance version is maintained in the canonical `GOVERNANCE/VERSION`; read that file at task start instead of maintaining a duplicate value here.
-- Governance status: active baseline on `main`
-- Project context entrypoint: `AGENT_START.md`
+- Workspace: `hjang12/ai-agent-cicd-system-by-gpt`
+- Project path: `projects/time-dashboard-by-gpt/`
+- Branch: `main`
+- Governance rules/version: read the canonical Workspace `GOVERNANCE/GOVERNANCE.md` and `GOVERNANCE/VERSION`.
+- This file is a current-state navigation summary. Historical observations are dated and are not proof of current platform state.
 
 ## Product
 
-- Project: Time Dashboard
-- Canonical Repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Project Path: `projects/time-dashboard-by-gpt/`
-- Default branch: `main`
-- Current runtime: Python
-- Production service: Render Web Service `time-dashboard-by-gpt`
-- Current operating model: personal web dashboard / PWA-style browser experience
+Time Dashboard is a Python web dashboard / PWA-style browser experience.
 
-## Project Structure
+- Backend and HTTP server: `timefolio_server.py`
+- Browser UI: `timefolio_dashboard.html`, `install.html`
+- Manifest / assets: `manifest.json`, `assets/`
+- Regression tests: `tests/`
 
-- `timefolio_server.py` — primary HTTP server and backend/data handling
-- `timefolio_dashboard.html` — dashboard UI
-- `install.html` — installation / PWA-oriented landing page
-- `manifest.json` — web app manifest
-- `assets/` — web assets
-- `tests/` — backend regression tests
+Keep data fetching/parsing and UI presentation separated. Parser changes require aligned regression tests.
 
-## CI/CD
+## Verification
 
-GitHub Actions workflow: `../../.github/workflows/time-dashboard-ci.yml` (repository-root path `.github/workflows/time-dashboard-ci.yml`)
-
-- Trigger: push to `main` and pull requests
-- Python: `3.12`
+- CI workflow: `.github/workflows/time-dashboard-ci.yml`
+- Runtime: Python 3.12
 - Compile: `python -m py_compile timefolio_server.py`
-- Test: `python -m unittest discover -s tests -p 'test_*.py'`
+- Tests: `python -m unittest discover -s tests -p 'test_*.py'`
+- Query GitHub Actions for the current result; this file does not serve as live CI evidence.
 
-Render target Blueprint:
+## Render
 
-- Root Blueprint: `../../render.yaml`
-- Service name: `time-dashboard-by-gpt`
-- Desired Repository: `hjang12/ai-agent-cicd-system-by-gpt`
+- Service: `time-dashboard-by-gpt`
+- Canonical repository: `hjang12/ai-agent-cicd-system-by-gpt`
 - Desired Root Directory: `projects/time-dashboard-by-gpt`
 - Branch: `main`
 - Region: Oregon
 - Build: `pip install -r requirements.txt`
 - Start: `python timefolio_server.py`
+- URL: https://time-dashboard.onrender.com
+- Root Blueprint: `../../render.yaml`
 
-Verified live Render state on 2026-09-18:
-- Service: `time-dashboard-by-gpt`
-- Repository: `hjang12/ai-agent-cicd-system-by-gpt`
-- Root Directory: `projects/time-dashboard-by-gpt`
-- Branch: `main`
-- Auto Deploy: enabled
-- Latest live deployment commit: `7a7cd7636e50f69deccb4928db1dd20dd4344c77`
-- Deployment: `dep-damckue7bikc73b4p7ng`
-- Deployment status: `live`
-- Build: succeeded (`pip install -r requirements.txt`)
-- Start: `python timefolio_server.py`
-- Smoke: Render logs show `HEAD /` and `GET /` returning HTTP 200
-- URL: `https://time-dashboard.onrender.com`
+Historical snapshot — verified 2026-09-18: deployment `dep-damckue7bikc73b4p7ng` was LIVE on commit `7a7cd7636e50f69deccb4928db1dd20dd4344c77`; build succeeded and Render logs showed `HEAD /` and `GET /` returning HTTP 200. This is historical evidence, not a statement of the service's current state. Verify the current service and live health-check setting directly when relevant.
 
-The service is now running from the canonical monorepo. The Render Blueprint now declares `/api/health` as the health check path. The live Service setting should be verified after the next deployment because the connected Render service settings are independently managed.
+## Deferred
 
-## Monorepo Operation
-
-This project is developed under the canonical workspace repository `hjang12/ai-agent-cicd-system-by-gpt`. The sibling project boundaries are maintained by project-local paths and root-level CI path filters.
-
-## Development Rules
-
-- `timefolio_server.py` is the primary backend reference.
-- Changes to external TimeETF data parsing must keep parser tests aligned.
-- Keep web UI concerns separate from data collection/parsing logic.
-- Prefer minimal changes and review the need/license implications of new dependencies.
-- Preserve the current Render `main` auto-deploy setup unless there is a deliberate operational change.
-
-## Explicitly Deferred / Not Yet Established
-
-- Separate database persistence
-- Authentication / multi-user functionality
+- Separate database persistence and authentication/multi-user functionality
 - Production-grade observability and rate limiting
 - Additional automated browser/end-to-end coverage
 - Agentic execution inside GitHub Actions
 
-## Known Next Targets
-
-1. Verify and strengthen the backend parser/data handling behavior with regression coverage.
-2. Improve dashboard reliability without unnecessarily coupling UI and backend data logic.
-3. Add higher-value automated smoke or browser checks when the product justifies them.
-4. Keep deployment and Context documentation synchronized with actual GitHub/Render state.
+These are scope notes, not active tasks. The Workspace Task Registry determines which development work is currently active. Future improvements must not be started just because they appear in this list.
