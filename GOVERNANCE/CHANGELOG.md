@@ -10,7 +10,7 @@
 - §25-A의 연속성 규칙을 14개 기존 참조 번호를 유지하면서 약 350줄에서 145줄로 압축하고, 핵심 Task 상태·복구·Next Action·중단·보고 조건을 보존.
 - §22의 개발 흐름과 §32의 최종 원칙을 반복된 정책 정의가 아닌 짧은 탐색·해석 기준으로 정리.
 - 기존 자동 배포와 Gate 우회·직접 Production 변경의 승인 경계를 구분하고, CI→배포 순서는 플랫폼에서 실제로 강제되는지 별도로 검증하도록 명확화.
-- Task Registry의 Next Action과 완료 Task 종료 요약을 구분하도록 명확화.
+- Task Registry의 `State Summary`를 탐색용 요약으로 한정하고, 실행 가능한 상세 `Next Action`은 지정된 Checkpoint 한곳에만 두도록 정리.
 - 템플릿과 ADR / Migration / Checkpoint의 오래된 Repository 경로, 작업 상태, 중복 필드를 정리.
 - Current Status의 Governance 버전 중복 표기를 줄이고 canonical `GOVERNANCE/VERSION`을 단일 원본으로 지정.
 - Governance 본문을 43.1KB / 1,759줄에서 32.8KB / 1,425줄로 줄이고, Janggi CURRENT_STATUS를 33.0KB에서 5.7KB로 축약.
