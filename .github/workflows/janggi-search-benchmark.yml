@@ -41,3 +41,5 @@ jobs:
         run: PYTHONPATH=. python tools/benchmark_selective_deepening.py
       - name: Run timed Lv6 profile benchmark
         run: PYTHONPATH=. python tools/benchmark_timed_level_profile.py
+      - name: Run evaluation legality cost benchmark
+        run: PYTHONPATH=. python tools/benchmark_evaluation_cost.py
