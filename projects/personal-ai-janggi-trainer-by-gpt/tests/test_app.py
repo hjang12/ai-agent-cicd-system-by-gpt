@@ -341,6 +341,25 @@ class TrainerApplicationTests(unittest.TestCase):
         self.assertEqual(response["analysis"]["principal_variation"], [])
         self.assertEqual(response["snapshot"]["state"], before["state"])
 
+    def test_batch_review_and_training_use_lightweight_analyzer(self):
+        app = TrainerApplication()
+        move = app.snapshot()["legal_moves"][0]
+        app.play({"src": move["src"], "dst": move["dst"]})
+
+        class ExplodingDetailedAnalyzer:
+            def analyze_move(self, state, move):
+                raise AssertionError("batch review must not invoke detailed on-demand analysis")
+
+        app.analyzer = ExplodingDetailedAnalyzer()
+
+        review = app.review({"limit": 5})
+        training = app.training_problems({"review_limit": 5, "problem_limit": 5})
+
+        self.assertEqual(1, review["reviewed_moves"])
+        self.assertEqual(1, training["reviewed_moves"])
+        self.assertLess(app.review_analyzer.engine.config.depth, app.analysis_engine.config.depth)
+        self.assertFalse(app.review_analyzer.include_tactical_motifs)
+
     def test_review_aggregates_current_learner_moves(self):
         app = TrainerApplication()
         app.play({"src": [0, 3], "dst": [0, 4]})

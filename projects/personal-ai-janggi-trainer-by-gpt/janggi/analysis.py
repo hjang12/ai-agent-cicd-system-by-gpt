@@ -63,8 +63,9 @@ class MoveAnalysis:
 class Analyzer:
     """Build a stable analysis result around a pluggable engine backend."""
 
-    def __init__(self, engine: Engine) -> None:
+    def __init__(self, engine: Engine, *, include_tactical_motifs: bool = True) -> None:
         self.engine = engine
+        self.include_tactical_motifs = include_tactical_motifs
 
     def analyze_move(self, state: GameState, move: Move) -> MoveAnalysis:
         validate_engine_move(self.engine, state, move)
@@ -80,7 +81,11 @@ class Analyzer:
         after_state = state.apply(move)
         gives_check = after_state.is_in_check(state.turn.opponent)
         destination_attacked, tactical_risk = _destination_risk(after_state, move, state.turn)
-        tactical_motifs = _tactical_motifs(after_state, move, state.turn)
+        tactical_motifs = (
+            _tactical_motifs(after_state, move, state.turn)
+            if self.include_tactical_motifs
+            else ()
+        )
         after = validate_engine_analysis(after_state, self.engine.analyze(after_state))
         score_after = _score_from_mover_perspective(after, state.turn)
         score_before = _score_from_mover_perspective(before, state.turn)
