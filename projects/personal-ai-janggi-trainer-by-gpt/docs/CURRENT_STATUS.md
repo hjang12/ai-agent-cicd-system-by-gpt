@@ -14,7 +14,7 @@
 - Project Path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Default branch: `main`
 - Primary user: one self-directed Janggi learner using a desktop browser
-- Current priority: Personal AI Janggi Trainer v1.0 is **complete**. Application code commit `1034665caedbe997d859053eebab40def78e7fe2` passed the final live-browser smoke (run `39531901117`, 11/11 tests in 137.872s); documentation/evidence commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` also passed live smoke run `39533158968` (11/11 in 128.597s). Current workspace main is `595bc82808fcb7604149aa5aa17715d26854d059`; the latest documentation-only deployment `dep-dbc41mlg1s2s738d5h9g` is LIVE and main CI runs `39544792341`, `39544792262`, and `39544792175` passed. AI-level calibration remains PAUSED. Temporary-guidance trial `TASK-20261021-0001` is COMPLETED; no temporary instruction package remains active.
+- Current priority: Personal AI Janggi Trainer v1.0 is **complete**. Application code commit `1034665caedbe997d859053eebab40def78e7fe2` passed live-browser smoke run `39531901117` (11/11 tests in 137.872s); final post-release documentation/evidence commit `96001f6e533b05b48b15ae286ee43a01d9d9caca` passed live-browser smoke run `39533158968` (11/11 in 128.597s). These are the final app-facing acceptance results. AI-level calibration remains PAUSED, and the temporary-guidance trial is COMPLETED.
 
 ## Implemented Capability
 
