@@ -1,3 +1,26 @@
+## 2026-10-22 — Workspace CI version-consistency guard
+
+### Trigger
+- The Workspace validation workflow covered `tools/**` on `push`, but its `pull_request.paths` omitted that path. A tool-only PR could skip the Workspace validator.
+- Governance version information was duplicated across the canonical `GOVERNANCE/VERSION`, the Governance header, the latest Changelog entry, and the active version statement in Workspace CURRENT_STATUS, with no automated consistency check.
+
+### Implementation
+- PR #164 added `tools/**` to the Workspace validation PR path filter.
+- Extended the existing `tools/validate_workspace.py` validator to compare the canonical version with those three current-facing references.
+- Added five standard-library regression tests: matching versions, Governance-header drift, Changelog drift, CURRENT_STATUS drift, and an invalid canonical version.
+- Registered the work as `TASK-20261022-0002`; no Governance policy/version, application source, Render configuration, or paused calibration settings changed.
+
+### Verification and limitation
+- Final PR-head Workspace validation run [39742003392](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39742003392) succeeded. Both the focused version-consistency test step and the existing structure/Render Blueprint validation step passed.
+- PR #164 was squash-merged to `main` as `fb1e0240ba4047a7097cbd0223d185eb315c1355`.
+- The available workflow-run lookup exposed the PR-triggered run, but not a directly queryable post-merge `push` run for the merge commit. That post-merge run is recorded as **UNKNOWN**, not PASS. The merge is supported by the successful final PR-head verification; no claim is made about the unobserved post-merge run.
+
+### Result
+- The Workspace validation path now runs for pull requests that change its own tooling, and common Governance version drift is checked by existing CI.
+- The Task is closed with the observed verification and the post-merge observation limitation preserved in its Checkpoint.
+
+---
+
 ## 2026-10-22 — Governance 1.4.7 documentation cleanup
 
 ### Trigger
