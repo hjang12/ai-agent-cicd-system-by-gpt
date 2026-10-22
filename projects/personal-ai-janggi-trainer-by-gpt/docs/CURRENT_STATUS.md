@@ -73,4 +73,6 @@ Detailed design: `ARCHITECTURE.md`, `AI_MODEL_ARCHITECTURE.md`, `SEARCH.md`, `CO
 
 ## Current Work State
 
-No active Janggi Development Task is registered. Start future project work only from a matching ACTIVE Task or a new explicit request. Completed v1.0 checkpoints and historical Next Action text are evidence only; AI-level calibration remains PAUSED.
+- UI visual refinement: `TASK-20261022-0003` — ACTIVE; a post-v1.0 presentation improvement that preserves UX-001, UX-002, UX-003, UX-005 and all gameplay behavior.
+- AI-level calibration remains PAUSED; no new calibration seeds or public AI-level/search-budget changes are authorized by this task.
+- The v1.0 release remains complete. This follow-up is a separately scoped UI polish task, not a reopened release gate.
