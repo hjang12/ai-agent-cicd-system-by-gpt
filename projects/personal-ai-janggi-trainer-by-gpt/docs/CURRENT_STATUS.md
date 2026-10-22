@@ -20,7 +20,7 @@ Personal AI Janggi Trainer v1.0 is **complete**. No v1.0 release action remains 
 - Player skill-assessment/evaluation foundations, self-play data generation and an experimental linear value model; learned models remain evidence-only and are not promoted to production.
 - Browser trainer and HTTP API with isolated in-memory sessions; browser-local progress is not a cloud account or cross-device history.
 
-Detailed design: `ARCHITECTURE.md`, `AI_MODEL_ARCHITECTURE.md`, `SEARCH.md`, `COACHING.md`, `EVALUATION.md`, `PLAYER_ASSESSMENT.md`, `TRAINING_PROBLEMS.md` and `API.md`.
+Detailed design: `ARCHITECTURE.md`, `AI_MODEL_ARCHITECTURE.md`, `SEARCH.md`, `COACHING.md`, `EVALUATION.md`, `MODELS.md`, `RATINGS.md`, `PLAYER_ASSESSMENT.md`, `TRAINING_PROBLEMS.md` and `API.md`.
 
 ## UI / Requirement Contracts
 
