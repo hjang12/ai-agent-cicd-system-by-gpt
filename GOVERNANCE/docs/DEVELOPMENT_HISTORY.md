@@ -1,3 +1,19 @@
+## 2026-10-22 — Governance 1.4.7 documentation cleanup
+
+### Trigger
+- The unused-file audit found that root `ACTIVE_ISSUES.md` was only a stale navigation pointer, `GOVERNANCE/templates/CHANGE_RECORD.md` had no repository references and duplicated established History / Checkpoint fields, and ADR-0002 contained an outdated deployment-status sentence.
+- The Janggi model metadata and rating documents described real modules but were not discoverable from the primary project navigation.
+
+### Outcome
+- User approved Governance 1.4.7; PR #163 merged on 2026-10-22.
+- Removed the root issue-index pointer while retaining `GOVERNANCE/docs/ACTIVE_ISSUES.md` as the canonical issue register.
+- Removed the unreferenced Change Record template; retained task Checkpoints and Development History as the records of work and evidence.
+- Reframed the 2026-09-18 ADR-0002 deployment statement as historical and linked it to current status and evidence.
+- Added model architecture, evaluation, model registry, and rating documents to the Janggi README / CURRENT_STATUS navigation.
+- Workspace structure validation, Janggi Python validation, and Janggi browser acceptance passed on the PR head. No application source, AI-level/search settings, calibration artifacts, or deployment configuration changed.
+
+---
+
 ## 2026-10-22 — ISSUE-001 resolved and Governance review closed
 
 ### Outcome
