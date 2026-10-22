@@ -73,6 +73,10 @@ See `docs/API.md` for the transport contract, `docs/ARCHITECTURE.md` for module 
 - `docs/SEARCH.md` — current search architecture and benchmark interpretation
 - `docs/SEARCH_BENCHMARK_HISTORY.md` — persistent search benchmark decision history
 - `docs/AI_LEVELS.md` — AI level and future version-promotion strategy
+- `docs/AI_MODEL_ARCHITECTURE.md` — model and engine evolution boundaries
+- `docs/EVALUATION.md` — model-vs-model evaluation and tournament summaries
+- `docs/MODELS.md` — model metadata registry contract
+- `docs/RATINGS.md` — Elo rating calculations and model-rating policy
 - `../../.github/workflows/janggi-validation.yml` — Python 3.12 compile/test validation
 - `../../.github/workflows/janggi-search-benchmark.yml` — deterministic search benchmark
 

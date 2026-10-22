@@ -6,7 +6,7 @@
 - Default branch: `main`
 - Common Governance rule: `GOVERNANCE/GOVERNANCE.md`
 - Canonical Governance version file: `GOVERNANCE/VERSION`
-- Governance 1.4.6 is active on `main`, adopted by PR #160 squash merge `a65ef98be8d83b2992e40c226159c2ef683cbb8c` on 2026-10-22.
+- Governance 1.4.7 is active on `main` following user approval and PR #163 merge on 2026-10-22. Governance 1.4.6 was adopted by PR #160 squash merge `a65ef98be8d83b2992e40c226159c2ef683cbb8c` as the preceding version.
 - GitHub `main` branch protection remains disabled (separate from deployment gating). Render CI-before-deploy gating is active on both production services and was verified against the 2026-10-22 main deployment; `ISSUE-001` is resolved.
 
 ## Canonical Navigation
