@@ -98,4 +98,4 @@ The former `personal-ai-janggi-trainer-by-gpt` and `time-dashboard-by-gpt` sourc
 
 The repository Blueprint declares `/api/health` for both services, but the live Render Service settings still report an empty `healthCheckPath`. This remains a platform-setting hardening item rather than a migration blocker.
 
-The current deployment policy also remains commit-triggered auto deploy; a strict CI-success-before-deploy gate is not yet enforced by the available platform/integration controls.
+At this 2026-09-18 snapshot, deployment was still commit-triggered and a strict CI-success-before-deploy gate was not yet enforced. This is historical status only: the gate was subsequently configured and directly verified on 2026-10-22. See `GOVERNANCE/docs/CURRENT_STATUS.md` for current status and `GOVERNANCE/docs/DEVELOPMENT_HISTORY.md` for the verification evidence.
