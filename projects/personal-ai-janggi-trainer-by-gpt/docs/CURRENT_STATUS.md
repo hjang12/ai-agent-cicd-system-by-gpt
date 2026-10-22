@@ -46,7 +46,7 @@ Detailed design: `ARCHITECTURE.md`, `AI_MODEL_ARCHITECTURE.md`, `SEARCH.md`, `CO
 - Search benchmark: `.github/workflows/janggi-search-benchmark.yml`; deterministic node/legal-move work, with historical results in `SEARCH_BENCHMARK_HISTORY.md`.
 - Workspace structural validation: `.github/workflows/workspace-validation.yml`.
 - Browser acceptance: `.github/workflows/janggi-browser-acceptance.yml`; PR and main-push events run local Chromium tests as a pre-deploy CI gate; `workflow_dispatch` runs the production live smoke after deployment, avoiding a circular wait with Render's CI-gated deployment.
-- Do not infer that CI blocks production deployment: root Render services currently use commit-triggered auto-deploy, and the Workspace's strict CI-success-before-deploy gate remains tracked separately as `ISSUE-001`.
+- Root Render services now use `autoDeployTrigger: checksPass`; the actual service settings and post-merge deploy timing were verified on 2026-10-22 (main commit `d74f114149bf5c016e509ab94e3d08b887d00adb`). The Workspace CI-before-deploy gate issue `ISSUE-001` is resolved. GitHub branch protection remains a separate control.
 
 ## Render Deployment
 
