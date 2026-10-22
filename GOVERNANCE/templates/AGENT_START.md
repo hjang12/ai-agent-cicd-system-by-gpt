@@ -1,10 +1,10 @@
 # AI Agent 시작
 
-공통 운영 규칙:
-`https://github.com/hjang12/ai-agent-cicd-system`
+> 이 템플릿은 canonical monorepo의 `projects/<project>/AGENT_START.md`에 사용합니다.
 
-먼저 해당 Repository의 `GOVERNANCE.md`를 확인하고, 이어서 이 프로젝트의 `docs/CURRENT_STATUS.md`와 관련 Context 문서를 확인한 후 작업을 시작하세요.
+공통 Governance:
+`../../GOVERNANCE/GOVERNANCE.md`
 
-실제 Repository 코드·문서·CI/CD·배포 상태가 기존 채팅 내용과 다르면 추측하지 말고 현재 Repository 상태를 Source of Truth로 사용하세요.
+먼저 Workspace root의 `AGENT_START.md`와 공통 Governance를 따르세요. `GOVERNANCE/docs/DEVELOPMENT_TASKS.md`에서 Request에 맞는 Task를 식별하고, 지정된 Context / Checkpoint와 이 프로젝트의 `AGENTS.md` 및 `docs/CURRENT_STATUS.md`를 확인한 뒤 실제 Repository·CI·배포 상태를 검증하세요.
 
-현재 프로젝트의 핵심 코드 구조와 테스트 구조를 이해한 후 최소 변경으로 작업하세요.
+기존 채팅과 실제 Repository 상태가 다르면 실제 Repository와 실행 결과를 기준으로 합니다. 프로젝트 외부의 Source of Truth 경로나 별도 Repository를 임의로 가정하지 않습니다.

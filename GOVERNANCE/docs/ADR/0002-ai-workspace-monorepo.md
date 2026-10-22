@@ -59,7 +59,7 @@ Render도 하나의 Git Repository를 source로 사용하되, **배포 단위는
 - Repository 전체 history가 각 원본 Project Repository의 Git history를 그대로 보존하지는 않는다.
 - Binary 파일 이동/변환 시 source snapshot과 byte-for-byte 동일성이 깨질 수 있다. Time Dashboard icon이 이에 해당한다.
 - Render Service 전환은 기존 service 설정 변경과 배포 검증이 필요한 별도 운영 단계다.
-- Destructive cleanup of old repositories remains a separate lifecycle step.
+- The destructive cleanup of old project repositories was completed on 2026-09-18 after the pre-deletion verification gate; see Post-Decision Status.
 
 ## Migration
 
@@ -78,7 +78,7 @@ Follow-up fixes:
 - `92cf6a38532886a6cb92afacc3d3e817c65b3571`
 - `dbd6b52432a628a4b92e4fd586be0fae26672325`
 
-The source repositories remain available as historical snapshots. Future development should target the monorepo paths, not the old repositories.
+The former project source repositories were deleted after the pre-deletion verification gate on 2026-09-18. The snapshot SHAs above identify the imported source state; they do not imply that the original repositories or their full Git histories remain accessible. Future development targets the monorepo paths only.
 
 ## Verification
 

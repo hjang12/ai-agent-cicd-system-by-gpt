@@ -10,12 +10,11 @@ The adjacent-level calibration workload has a dedicated Render execution service
 
 ## Current boundary
 
-- Fast GitHub Actions validation is operational, but long-running calibration remains intentionally off-CI.
-- Do not move adjacent-level calibration back into the normal PR/push validation path; preserve the fast-correctness vs strength-evidence separation.
-- Existing valid evidence remains authoritative as recorded in `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md`.
-- The 1-2 pair is evidence-sufficient: 21/22 games completed, 4.545% unfinished, 2 seeds.
-- Pair 2-3 has 8 completed protocol-v1 games across three seeds, but remains `INSUFFICIENT`; pairs 3-4, 4-5, and 5-6 also lack sufficient evidence.
-- Protocol-v2 integration passed CI, but seed 20261005 produced two uninformative 2/3-ply bikjang draws. Protocol-v3 rebuilds synthetic fixtures on a blocker-preserving board, fails the run on trivial early bikjang, and isolates request-scoped manifests/logs. This v3 work must pass project and workspace CI before compute; never mix protocol-v1, v2, and v3 evidence.
+- Calibration Task `TASK-20260930-0002` is **PAUSED** as post-v1.0 research. Do not run a seed, enable the runner, merge a calibration change, or change public level/search-budget settings unless the user explicitly resumes the Task and the Registry status is ACTIVE.
+- Calibration compute stays off the normal PR/push CI path; fast correctness checks and long-running strength evidence remain separate.
+- The last preserved compatible protocol-v3 pair 2-3 snapshot (2026-10-16) has 18 completed / 0 unfinished across seeds `20261007–20261015`, source revision `a0bc620181e8101331110e457219174f6c90d413`, descriptive score Lv.2 `1.5` : Lv.3 `16.5`; evaluator status remains `INSUFFICIENT`. See `docs/AI_LEVEL_CALIBRATION_EVIDENCE.md`.
+- Pair 1-2's sufficient result and protocol-v1/v2/v3 evidence are historical evidence sets. Do not mix artifacts across incompatible protocols, source revisions, engine versions, or AI-level fingerprints.
+- Procedures and commands below are reference material only; they are not authorization or a current Next Action while the Task is PAUSED. If resumed, first verify the current code revision, Task status, evidence plan, and actual runner state.
 
 ## Off-CI execution
 

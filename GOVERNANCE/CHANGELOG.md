@@ -1,5 +1,36 @@
 # Changelog
 
+## [1.4.6] - 2026-10-21
+
+### Corrected and Simplified
+
+- §9의 자율 실행·중단 기준을 §14와 중복 정의하지 않고 단일 승인 정책을 참조하도록 정리.
+- §25 및 §30의 별도 복구 순서·시작 프롬프트 규칙을 제거하고 §25-A-7 / §25-A-13 / §25-A-14를 단일 기준으로 지정.
+- §26의 중복 Evidence / Traceability 흐름을 §11, §20, §27 참조로 축약.
+- §25-A의 연속성 규칙을 14개 기존 참조 번호를 유지하면서 약 350줄에서 145줄로 압축하고, 핵심 Task 상태·복구·Next Action·중단·보고 조건을 보존.
+- §22의 개발 흐름과 §32의 최종 원칙을 반복된 정책 정의가 아닌 짧은 탐색·해석 기준으로 정리.
+- 기존 자동 배포와 Gate 우회·직접 Production 변경의 승인 경계를 구분하고, CI→배포 순서는 플랫폼에서 실제로 강제되는지 별도로 검증하도록 명확화.
+- Task Registry의 `State Summary`를 탐색용 요약으로 한정하고, 실행 가능한 상세 `Next Action`은 지정된 Checkpoint 한곳에만 두도록 정리.
+- 템플릿과 ADR / Migration / Checkpoint의 오래된 Repository 경로, 작업 상태, 중복 필드를 정리.
+- Current Status의 Governance 버전 중복 표기를 줄이고 canonical `GOVERNANCE/VERSION`을 단일 원본으로 지정.
+- Governance 본문을 43.1KB / 1,759줄에서 32.8KB / 1,425줄로 줄이고, Janggi CURRENT_STATUS를 33.0KB에서 5.7KB로 축약.
+- Workspace CURRENT_STATUS를 약 13.3KB에서 간결한 상태·탐색 인덱스로 축약하고, Migration / Task / CI 세부 기록을 각 원본 문서로 되돌림.
+- Time Dashboard CURRENT_STATUS의 2026-09-18 Render 검증을 명시적으로 과거 기록으로 표시하고, 미래 개선 후보를 활성 Task 목록과 분리.
+- DEFERRED `ISSUE-002`의 오래된 “latest deployment” 인용을 가장 최근에 직접 검증된 main 배포와 live-browser smoke Evidence로 갱신하되, 상태 및 재검토 조건은 유지.
+- Janggi `CURRENT_STATUS.md`를 현재 상태 중심 요약으로 줄이고, 상세 UI·아키텍처·benchmark·calibration 기록은 기존 전용 문서에서 관리.
+- 실행하지 않은 calibration seed 20261016을 현재 지시가 아닌 과거 계획으로 표시하고, DNS incident를 현재 서비스 상태가 아닌 날짜가 있는 History에 보존.
+- AI 캘리브레이션의 447줄 PAUSED Checkpoint를 짧은 상태·증거·재개 게이트·원본 경로 요약으로 축약. Seed별 실행 결과는 기존 Development History / Evidence와 Artifact에 보존하고, 역사적 Next Action은 실행 불가한 과거 계획으로 명시.
+
+### Review Trigger
+
+- 2026-10-21 상세 Governance 리뷰에서 현재 규칙과 별개로 구형 템플릿 경로, 완료 Checkpoint의 오래된 실행 지시, ADR / Migration 기록의 현재형 모순, 여러 위치에 복제된 동일 규칙이 확인됨.
+
+### Decision
+
+- 새 validator, parser, workflow, Registry 또는 상태 계층은 추가하지 않는다.
+- 기존 문서의 단일 원본을 명확히 하고, 역사적 사실은 날짜를 명시하며, 실행 가능한 Next Action은 ACTIVE Task에만 둔다.
+- Governance 버전 1.4.6은 사용자 승인 전까지 제안 브랜치에서만 유지한다.
+
 ## [1.4.5] - 2026-10-21
 
 ### Corrected

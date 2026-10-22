@@ -1,58 +1,26 @@
 # Current Status
 
-## Project
+> 현재 상태만 기록합니다. 장기 이력과 상세 실험 결과는 History / Evidence 문서에 둡니다.
 
-- Project Name:
-- Current Version:
-- Current Commit:
-- Current Branch:
-
-## Deployment
-
-- Environment:
-- Service:
-- Deployment Status:
+## Current State
+- Project:
+- Status: ACTIVE / PAUSED / BLOCKED / COMPLETED
+- Current Version / Branch / Commit:
 - Last Verified:
 
-## Architecture State
+## Product / Architecture
+- Goal:
+- Main components:
+- Implemented capabilities (summary):
+- Current limitations / decisions:
 
-- Runtime:
-- Framework:
-- Key Components:
+## Verification / Deployment (when relevant)
+- Required checks and latest result:
+- Service / Environment:
+- Deployment state and verification time:
 
-## Implemented Features
-
-- 
-
-## Known Issues
-
-- 
-
-## Current Limitations
-
-- 
-
-## Pending Decisions
-
-- 
-
-## Next Development Target
-
-- 
-
-## Last Verification
-
-- Test:
-- Result:
-- Evidence:
-
-
-## Development Work Continuity
-
-- Development Task:
-- Current Checkpoint:
-- Current State:
-- Next Action:
-- Active PR / Issue:
-- Last Context Recovery:
-- Long-running Work State:
+## Development Continuity
+- Active Development Task:
+- Context / Checkpoint:
+- Current blocker:
+- Next Action (only when Task Registry Status is ACTIVE):

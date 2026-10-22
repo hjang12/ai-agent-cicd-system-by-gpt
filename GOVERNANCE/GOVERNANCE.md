@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.4.5**
+**Governance Version: 1.4.6**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -301,37 +301,9 @@ AI Agent가 테스트 실패를 스스로 분석하고 수정하는 자동 반�
 - 구조적 변경 감지
 - Production 영향 감지
 
-### 자율 실행 판단 기준
+### 자율 실행과 중단 기준
 
-AI Agent는 변경을 실행하기 전에 다음 세 가지를 독립적으로 확인한다.
-
-1. **Execution Capability** — 필요한 Repository / Tool / Platform 권한과 실행 수단을 가지고 있는가?
-2. **Policy / Project Compatibility** — Governance, AGENTS.md, Project Plan, Requirement, Architecture Constraint 및 기타 현재 유효한 개발지침과 충돌하지 않는가?
-3. **Authority / Risk** — 해당 변경이 Human Approval이 필요한 위험 범위에 해당하지 않는가?
-
-세 조건을 모두 충족하면 AI가 자율적으로 발견 → 분석 → 수정 → 검증 → 기록까지 수행한다.
-
-### 자율 실행을 중단해야 하는 경우
-
-다음 중 하나라도 해당하면 AI는 기술적으로 구현 가능하더라도 임의 실행하지 않는다.
-
-- 필요한 권한, Tool 또는 외부 시스템 조작 수단이 없어 끝까지 완료할 수 없음
-- Governance 또는 개발지침을 위반하는 변경이 됨
-- Project Plan, Requirement, Architecture Constraint 또는 승인된 Decision과 충돌함
-- 상충하는 문서 또는 요구사항 때문에 의도와 권한을 안전하게 판정할 수 없음
-- Human Approval이 필요한 위험 범위에 해당함
-
-특히 **제한을 우회하거나 지침을 임의로 변경하여 자동화를 계속하는 것을 금지한다.**
-
-이 경우 문제를 해결한 것으로 표시하지 않고, 다음을 보고한다.
-
-- 관찰된 문제 또는 충돌
-- 확인된 원인 또는 제약
-- AI가 수행한 범위
-- 검증 결과
-- 해결할 수 없는 이유
-- 필요한 사용자 판단 또는 외부 조치
-- 계속 진행할 경우 발생할 영향
+변경 실행 전 자율 실행 가능 여부, 지침·기획과의 합치, 권한·위험 판단 및 중단·보고 기준은 §14의 단일 기준을 적용한다. 이 절에서는 자동 수정 반복의 제한과 재시도 Escalation에 집중하며, 동일한 승인 조건을 별도로 정의하지 않는다.
 
 ### 자동 수정 Escalation
 
@@ -387,6 +359,8 @@ Requirement
 ```
 
 CI는 단순한 자동 테스트가 아니라 **Agent와 개발자의 변경을 통제하는 Quality Gate**로 활용한다.
+
+위 흐름은 의도한 품질 경로이며, 플랫폼이 실제로 CI 성공을 배포의 필수 선행조건으로 강제한다는 보장은 아니다. Workflow, branch protection, deployment trigger를 직접 확인하고 CI와 배포가 독립적으로 실행되면 Active Issue로 추적한다. CI 통과 결과만으로 CI-gated deployment라고 표현하지 않는다.
 
 가능한 경우 다음을 독립적으로 확인한다.
 
@@ -630,6 +604,12 @@ AI는 위 상황을 우회하기 위해 지침을 무시하거나, 요구사항�
 
 목표는 모든 AI 행동을 사람이 승인하는 것이 아니라 **위험도가 높은 결정에만 Human Approval을 배치하고, 나머지는 자율적으로 처리하는 것**이다.
 
+### 기존 자동 배포와 Production 승인 경계
+
+이미 구성된 CI/CD 파이프라인을 통한 일반 코드 배포는 프로젝트에서 정한 필수 검증을 확인하고 §14의 자율 실행 조건을 충족하면 일상적인 개발 작업으로 처리할 수 있으며, 배포마다 별도 승인을 요구하지 않는다.
+
+다만 검증 실패 또는 미확인 상태를 무시하거나 Gate를 우회하는 배포, 기존 파이프라인 밖에서 수행하는 직접 Production 변경, 배포 정책·권한·핵심 인프라 변경, 파괴적·비가역적 작업은 별도 승인을 받는다. Platform이 CI 성공을 배포 선행조건으로 강제하지 못하면 이를 통제된 것으로 간주하지 않고 Active Issue로 추적하며, 실제 배포 순서와 검증 결과를 정확히 보고한다.
+
 ### 보고 원칙
 
 자율적으로 해결하지 못한 문제와 규정/기획 충돌은 숨기지 않는다.
@@ -727,7 +707,7 @@ Production Change
 Destructive Action
 ```
 
-특히 Production Database 삭제, Production Service 삭제, 중요 데이터 삭제, Secret 변경, Production 인증/권한 변경, Production 배포, 복구 불가능한 변경은 자동 수행을 제한한다.
+특히 Production Database/Service 삭제, 중요 데이터 삭제, Secret 또는 Production 인증/권한 변경, 검증 Gate를 우회하거나 기존 파이프라인 밖에서 수행하는 Production 변경, 복구 불가능한 변경은 자동 수행을 제한한다.
 
 가능한 한 다음 방어 원칙을 적용한다.
 
@@ -903,50 +883,11 @@ AI의 제안과 사용자의 결정을 동일한 것으로 기록하지 않는�
 
 
 
-## 22. 최종 개발 방향
+## 22. 개발 흐름 요약
 
-최종적으로 다음 구조를 지향한다.
+개발 흐름은 요구사항 확인 → 권한·위험 판단(§14) → 구현 → 검증(§10–11) → 승인 필요 여부 확인 → GitHub / CI/CD → 배포 검증(§18) → 기록과 피드백으로 진행한다. 이 절은 탐색용 요약이며, 세부 승인·검증 규칙은 해당 절만 기준으로 한다.
 
-```text
-User Requirement
-        ↓
-Context / Policy / Project Plan Check
-        ↓
-AI Coding Agent
-        ↓
-Capability / Authority Check
-        ↓
-Architecture / Code / Model Development
-        ↓
-Automated Verification
-        ↓
-Evidence
-        ↓
-Conditional Human Approval
-        ↓
-GitHub
-        ↓
-CI/CD
-        ↓
-Deployment
-        ↓
-Post-deployment Verification
-        ↓
-Observability
-        ↓
-Feedback / Improvement
-        ↺
-```
-
-여기서 Human Approval은 모든 변경에 적용하지 않는다. 일반적인 기술 변경은 AI가 자율적으로 실행하고 검증한다.
-
-단, 자율 실행 전에 **(1) 실제로 실행할 능력이 있는지, (2) 현재 개발지침과 프로젝트 기획에 부합하는지, (3) 권한과 위험 범위 안에 있는지**를 확인한다.
-
-세 조건 중 하나라도 충족되지 않으면 자동화를 억지로 지속하지 않는다. AI는 우회 실행, 지침의 임의 변경, 요구사항의 임의 축소/변경을 하지 않고 문제와 필요한 사람의 판단을 보고한다.
-
-프로젝트 규모가 커지더라도 동일한 원칙을 확장할 수 있도록 설계한다.
-
-**현재의 빠른 구현보다 장기적인 유지보수성, 재사용성, 확장성, 검증 가능성, 재현성 및 안정성을 우선한다.**
+---
 
 ## 23. 프로젝트 지식 및 개발 이력 관리
 
@@ -1149,418 +1090,158 @@ Prevention
 
 새로운 AI Coding Agent 또는 새로운 ChatGPT 대화에서 기존 개발 상태를 빠르게 복원할 수 있도록 핵심 Context를 GitHub에 저장한다.
 
-Context Recovery의 단일 기준 순서는 §25-A-7에 정의한다. 이 절은 개요만 제공하며, 별도 순서 목록을 중복 유지하지 않는다.
-
-```text
-Governance / 시작 지침
-→ Request와 일치하는 Development Task 및 현재 Status
-→ Task가 지정한 Workspace / Project Context와 Checkpoint
-→ 실제 Repository / Branch / Commit 상태
-→ 관련 PR / Issue / CI / Deployment 상태
-→ 필요한 경우에만 관련 Architecture / Requirement Contract / History / ADR / Evidence
-```
-
-Task Status는 Development Task Registry에서 확정한다. Checkpoint나 History의 오래된 `Next Action`은 Task Status를 대체하지 않는다.
-
-새 Agent는 기존 채팅의 내용을 추측해서 복원하지 않는다.
-
-**현재 Repository, 현재 프로젝트 문서, 실제 CI/CD 상태를 우선 확인한다.**
-
-채팅과 Repository가 충돌하면 충돌 사실을 보고하고 공식 Repository와 프로젝트 문서를 기준으로 판단한다.
+Context Recovery의 단일 절차는 §25-A-7에 정의한다. 이 절에서는 별도의 순서 목록을 유지하지 않는다.
 
 ---
 
 
-## 25-A. Chat 기반 Agent 개발과 Development Work Continuity
+## 25-A. Chat 기반 개발의 연속성
 
-이 Workspace는 AI Coding Agent를 이용한 **대화형(Chat-based) 개발 방식**을 사용한다. 따라서 개발 작업이 특정 Chat 또는 특정 Agent 실행의 지속 여부에 종속되지 않도록 **Development Work Continuity(개발 작업 연속성)**를 Governance의 운영 목표로 관리한다.
+Chat은 작업 인터페이스이며 Source of Truth가 아니다. 장기 작업의 상태는 Development Task, 공식 Context, Checkpoint 및 실제 Repository/CI/Deployment 상태로 복구한다.
 
 ### 25-A-1. Canonical Terminology
 
-Governance에서는 다음 용어를 공식적으로 사용한다.
-
-| 용어 | 정의 |
+| 용어 | 의미 |
 | --- | --- |
-| **Chat** | ChatGPT UI에서 하나의 독립적인 채팅방 또는 대화 단위 |
-| **Request** | 사용자가 Agent에 전달한 하나의 요청 |
-| **Agent Work** | Request를 해결하기 위해 Agent가 수행하는 실제 분석·수정·검증·기록 작업 |
-| **Agent Work Segment** | 하나의 Agent Work를 수행하는 동안 Context·Token·Tool·Runtime·외부 작업 대기 등의 실행 경계에 따라 구분되는 하나의 실행 구간. Agent Work의 논리적 연속성을 보존하면서 필요하면 여러 Segment로 분할할 수 있다. |
-| **Response** | Agent Work의 결과, 중간 진행 상황 또는 안전한 중단 상태를 사용자에게 전달하는 답변. 중간 진행 보고와 최종 응답을 구분한다. |
-| **Interaction** | 하나의 Request가 시작되어 Agent Work가 수행되고 해당 Request의 최종 응답이 반환되는 상호작용 단위. 중간 진행 보고만으로 종료되지 않으며 고정된 최대 시간으로 정의하지 않는다. |
-| **Development Task** | 하나의 개발 목표를 달성하기 위해 하나 이상의 Chat과 Interaction에 걸쳐 수행될 수 있는 지속적인 개발 작업 단위 |
-| **Development Context** | Development Task를 현재 시점에서 이해하고 재개하는 데 필요한 상태 정보 |
-| **Checkpoint** | Development Context를 다른 Chat 또는 후속 Agent Work에서 복구할 수 있도록 기록한 특정 시점의 작업 상태 |
-| **Context Recovery** | 새 Chat 또는 중단된 Agent Work에서 Checkpoint와 Repository 상태를 기준으로 Development Context를 다시 확보하는 과정 |
-| **Development Work Continuity** | Chat 변경, Agent Work 중단, Context 제한 또는 플랫폼 제약이 발생해도 Development Task를 계속 수행할 수 있는 능력 |
-| **Long-running Agent Work** | 하나의 Development Task를 위해 Agent Work가 장시간 지속되는 상태. 장시간 지속은 무제한 또는 무중단 실행을 의미하지 않으며, 필요하면 여러 Agent Work Segment / Interaction / Checkpoint로 나눌 수 있다. |
+| Chat | 독립된 대화방 |
+| Request | 사용자의 요청 |
+| Agent Work | Request를 해결하는 분석·수정·검증·기록 |
+| Agent Work Segment | Context / Token / Tool / Runtime 경계에 따라 나눈 실행 구간 |
+| Interaction | Request부터 최종 응답까지의 상호작용. 중간 보고는 종료가 아님 |
+| Development Task | 여러 Chat / Interaction에 걸칠 수 있는 지속적인 목표 |
+| Development Context | Task를 복구하는 데 필요한 현재 상태 |
+| Checkpoint | Context의 특정 시점 기록 |
+| Context Recovery | 공식 기록과 실제 상태를 확인해 Task를 재개하는 과정 |
 
-Session과 Turn은 이 Governance의 canonical terminology로 사용하지 않는다. 외부 문서에서 해당 용어가 사용된 경우에도 실제 범위를 확인하여 Chat, Interaction, Agent Work 등 적절한 용어로 해석한다.
+Session과 Turn은 이 Governance의 표준 용어로 사용하지 않는다. 외부 시스템 용어는 실제 의미에 맞춰 해석한다.
 
-### 25-A-2. Chat은 임시 작업 공간이다
+### 25-A-2. Chat과 Source of Truth
 
-Chat은 개발 작업을 수행하는 인터페이스이며 프로젝트의 공식 Source of Truth가 아니다.
-
-다음 원칙을 적용한다.
-
-- Chat의 이전 내용만으로 장기 개발 상태를 보존하지 않는다.
-- Chat이 길어지거나, 플랫폼 제약이 발생하거나, 사용자가 새 Chat을 시작하거나, 현재 Chat/Agent Work를 계속하기 어려운 경우 **Chat Transition**을 정상적인 운영 방법으로 취급한다.
-- Chat이 변경되어도 Development Task 자체를 중단된 것으로 간주하지 않는다.
-- Repository와 프로젝트 Context 문서가 Chat보다 우선한다.
-- Chat의 세부 대화가 복구되지 않더라도 Development Context가 복구되면 작업을 계속할 수 있도록 설계한다.
+- 이전 Chat의 기억만으로 현재 상태를 추측하지 않는다.
+- Chat이 바뀌어도 Task 자체가 새로 시작되거나 완료되는 것은 아니다.
+- Repository와 공식 Context가 Chat 설명보다 우선한다.
+- 상태가 불일치하면 실제 상태를 확인하고 current-facing 문서를 바로잡는다.
 
 ### 25-A-3. Development Work Continuity
 
-Development Work Continuity는 다음을 보장하는 것을 목표로 한다.
-
-Development Task
-    ↓
-현재 Chat에서 Agent Work 수행
-    ↓
-Checkpoint 기록
-    ↓
-Chat 변경 / 작업 중단 / 플랫폼 제약
-    ↓
-새 Chat
-    ↓
-Context Recovery
-    ↓
-동일 Development Task 재개
-
-Development Work Continuity의 성공 기준은 **같은 Chat의 대화 내용을 그대로 유지하는 것**이 아니라 **현재 Development Task를 필요한 상태와 근거를 잃지 않고 재개할 수 있는 것**이다.
+Development Work Continuity는 Chat 전환이나 Agent Work 중단 뒤에도 Task를 필요한 상태와 근거를 보존한 채 재개하는 능력이다. 성공 기준은 이전 대화를 그대로 기억하는 것이 아니라, 현재 Task와 권한 있는 Next Action을 공식 기록과 실제 상태에서 복구하는 것이다.
 
 ### 25-A-4. Development Task Registry
 
-Workspace에는 하나 이상의 Development Task가 동시에 존재할 수 있다. 따라서 Context Recovery는 단순히 "마지막으로 작업한 프로젝트"를 복구하는 방식으로 수행하지 않는다.
+`GOVERNANCE/docs/DEVELOPMENT_TASKS.md`는 Task의 식별·상태·Context / Checkpoint 경로를 제공하는 단일 탐색 인덱스다. 상세 이력이나 구현 상태를 중복 저장하지 않는다.
 
-현재 Development Task의 식별과 탐색을 위해 다음 Registry를 사용한다.
+Task ID 형식은 `TASK-YYYYMMDD-NNNN`이다. 생성 날짜와 일련번호를 사용하며, 만든 뒤 ID를 변경하지 않는다.
 
-`GOVERNANCE/docs/DEVELOPMENT_TASKS.md`
+상태의 의미와 실행 가능성은 다음과 같다.
 
-Development Task Registry는 다음 역할을 한다.
+- `ACTIVE`: 요청과 일치할 경우 자동 복구 후 실행 가능.
+- `PAUSED`: 사용자가 재개 의도를 명확히 보이기 전에는 실행하지 않는다.
+- `BLOCKED`: Blocker가 해소됐는지 확인하기 전에는 실행하지 않는다.
+- `COMPLETED` / `ARCHIVED`: 이력으로만 참조하며 기본 작업 후보에서 제외한다.
 
-- 현재 Workspace에서 관리 중인 Development Task의 목록과 상태를 제공한다.
-- Task ID와 Project / Workspace 범위를 연결한다.
-- 각 Task의 공식 Context와 현재 Checkpoint 위치를 제공한다.
-- Active PR / Issue, Next Action, 마지막 상태 갱신 시점을 빠르게 확인할 수 있게 한다.
-- 상세 구현 내용이나 장기 이력을 저장하는 문서가 아니라 **Task 선택과 Context Recovery를 위한 navigation index**로 사용한다.
+Task 선택 순서:
+1. 사용자가 지정한 Task ID를 우선한다.
+2. Project / 작업 주제가 명확하면 해당 범위의 Task를 찾는다.
+3. 일치하는 ACTIVE Task가 하나면 선택한다.
+4. 후보가 PAUSED / BLOCKED뿐이면 상태를 무시하고 재개하지 않는다.
+5. 실행 가능한 ACTIVE 후보가 여럿이고 요청만으로 구분되지 않으면 필요한 최소한의 확인을 한다.
+6. 기존 Task가 없고 새로운 목표이면 Registry에 추가한 뒤 시작한다.
 
-#### Task ID
+가장 최근에 수정된 Task라는 이유만으로 자동 선택하지 않는다. Workspace Task의 Context는 `GOVERNANCE/docs/`, Project Task의 Context는 해당 `projects/<project>/docs/`에서 관리한다.
 
-Task ID는 다음 형식을 사용한다.
+### 25-A-5. Development Context
 
-`TASK-YYYYMMDD-NNNN`
+새 Chat에서 재개할 수 있도록 해당 Task에 필요한 정보만 유지한다.
 
-- 날짜는 Task가 Registry에 처음 등록된 날짜를 사용한다.
-- `NNNN`은 해당 날짜의 4자리 일련번호다.
-- Task ID는 생성 후 변경하지 않는다.
-- Project 이름이나 상태를 Task ID에 넣지 않는다.
-- Task가 프로젝트나 범위를 변경하더라도 기존 Task ID를 유지한다.
+- Task ID / 목표 / 상태
+- 현재 Branch / Commit, Active PR / Issue
+- 완료 및 진행 중 작업
+- 검증 결과와 Evidence
+- 중요한 요구사항·결정·제약
+- Blocker 및 Next Action
+- 필요한 경우 Deployment / CI / 외부 프로세스 상태
 
-#### Task Status
+CURRENT_STATUS는 현재 상태, ACTIVE_ISSUES는 Workspace 미해결 이슈, DEVELOPMENT_HISTORY / ADR / Evidence는 상세 이력의 원본이다. 같은 사실을 여러 current-facing 문서에 별도로 복제하지 않는다.
 
-Registry의 기본 상태는 다음과 같다.
+### 25-A-6. Checkpoint
 
-- `ACTIVE` — 현재 작업 대상으로 유지되는 Task
-- `PAUSED` — 상태를 보존한 채 의도적으로 일시정지된 Task
-- `BLOCKED` — 외부 제약 또는 결정 대기로 진행할 수 없는 Task
-- `COMPLETED` — 목표 달성 및 검증이 완료된 Task
-- `ARCHIVED` — 완료/취소 후 장기 보관만 필요한 Task
+Checkpoint는 고정된 시간 간격으로 만들거나 Chat을 강제로 종료하기 위한 장치가 아니다. 다음과 같은 의미 있는 상태 변화에서 Context를 갱신한다.
 
-Completed / Archived Task는 Task ID와 이력을 보존한다.
+- 독립 단계, 설계 결정, PR 생성·병합이 끝남
+- 중요한 Test / Benchmark / Deployment 검증이 끝남
+- 사용자 중단, Tool / Platform 제약 또는 Chat 전환이 필요해짐
 
-현재 작업 후보를 탐색할 때는 ACTIVE / PAUSED / BLOCKED 상태를 확인할 수 있지만, **자동으로 재개할 수 있는 상태는 ACTIVE뿐이다.**
-- ACTIVE: Request가 해당 Task로 식별되면 자동으로 복구·재개할 수 있다.
-- PAUSED: 의도적으로 일시정지된 상태이므로 명시적인 재개 의도가 확인될 때까지 자동으로 실행 Task로 선택하지 않는다.
-- BLOCKED: 현재 진행할 수 없는 상태이므로 일반적인 "계속해" 요청만으로 실행 Task로 재개하지 않는다. Blocker 해소 여부를 확인한다.
-- COMPLETED / ARCHIVED: 기본 작업 후보에서 제외하며 명시적인 이력 조회 또는 후속 작업 요청이 있을 때만 참조한다.
+Checkpoint에는 Task ID와 상태, 현재 Branch / Commit, 완료·진행 작업, 실제 검증 결과, 이슈·결정, 그리고 Task 상태에 맞는 Next Action 또는 종료 결과를 기록한다. ACTIVE가 아닌 Task의 과거 Next Action을 실행 지시로 남기지 않는다.
 
-#### Task 선택 원칙
+### 25-A-7. 단일 Context Recovery 순서
 
-Context Recovery에서는 다음 순서로 복구 대상 Task를 결정한다.
+1. Workspace 시작 지침과 Governance를 확인한다.
+2. `DEVELOPMENT_TASKS.md`에서 요청에 맞는 Task와 현재 Status를 확정한다.
+3. `ACTIVE_ISSUES.md`를 확인한다.
+4. Registry가 지정한 Workspace / Project의 `AGENT_START.md`, `AGENTS.md`, `CURRENT_STATUS.md` 및 Checkpoint를 읽는다.
+5. 필요한 README / Architecture / Requirement Contract / ADR / History / Evidence만 확인한다.
+6. 현재 Repository의 Branch / Commit / Code와 관련 PR / CI / Deployment 상태를 직접 검증한다.
 
-1. 사용자가 Task ID를 직접 지정한 경우 해당 Task를 사용한다.
-2. 사용자가 프로젝트 또는 작업 주제를 명확하게 지정한 경우 Registry에서 해당 범위의 관련 Task를 탐색한다.
-3. 관련 범위에서 ACTIVE Task가 하나뿐이면 해당 Task를 선택한다.
-4. 관련 후보가 PAUSED 또는 BLOCKED뿐이라면 상태를 무시하고 자동 실행하지 않는다. 사용자의 재개 의도 또는 Blocker 해소 여부를 확인한다.
-5. 여러 개의 실행 가능한 ACTIVE Task가 후보이고 Request만으로 구분할 수 없으면 임의로 "가장 최근 Task"를 선택하지 않는다. 필요한 최소 범위만 사용자에게 확인한다.
-6. 기존 Task가 없고 Request가 새로운 개발 목표를 시작하는 경우 새로운 Task ID를 생성하여 Registry에 등록한 후 작업을 시작한다.
+Task Status를 먼저 확정한다. Checkpoint나 History의 Next Action을 근거로 Status를 역추론하지 않는다. ACTIVE Task의 Next Action만 실행 후보이며, PAUSED / BLOCKED Task는 재개 조건 확인 전까지 실행하지 않는다. 복구가 불충분하면 추측으로 구현하지 말고 가능한 범위에서 조사해 기록을 갱신한다.
 
-시간순의 Last Task는 **자동 복구 기준이 아니다.** Registry의 Updated 시간은 탐색을 돕기 위한 정보일 뿐 Task 선택을 결정하지 않는다.
+### 25-A-8. Interaction 및 실행 경계
 
-#### Task와 Context의 저장 위치
+Interaction에 고정된 최대 시간을 두지 않고, 경과시간만을 이유로 작업을 강제 종료하지 않는다. 플랫폼 Context / Token / Tool / Runtime 한계, 외부 작업의 대기, 안전한 Checkpoint 지점, 사용자 중단 요청 또는 중요한 사람의 판단 필요가 실제 중단 사유가 될 수 있다.
 
-Registry는 Workspace에 통합하여 관리하지만 상세 Context와 Checkpoint는 Task가 속한 영역에 보존한다.
+중간 진행 보고는 Interaction을 종료하지 않는다. 다음 Action이 명확하고 권한·위험·지침상 허용되며 실행 가능하면 사용자 허락을 반복해서 기다리지 말고 계속 진행한다. 최종 응답은 작업을 끝내는 응답이며, 그 뒤 AI가 백그라운드에서 계속 일하는 것처럼 표현하지 않는다. 별도 Runner 등이 실제 실행 중인 경우에만 외부 실행 상태를 분리해 보고한다.
 
-- Workspace / Governance Task → `GOVERNANCE/docs/`
-- Project Task → 해당 `projects/<project>/docs/`
-- Task별 상세 Checkpoint는 해당 영역의 `checkpoints/` 아래에 저장한다.
-- Registry에는 해당 Context / Checkpoint 경로만 기록한다.
+사용자의 중단 요청은 가장 이른 안전한 시점에 따른다. 그 밖의 중단은 실제 원인과 완료 범위·남은 Action을 Checkpoint에 남긴다. 실행 가능한 Action이 남았는데 Agent가 먼저 종료한 경우를 기술적 Blocker로 기록하지 않는다.
 
-따라서 여러 프로젝트의 Task는 하나의 Registry에서 식별할 수 있지만, 프로젝트별 상세 Context가 하나의 통합 파일에 섞이지 않는다.
+#### 진행 보고와 효율
 
-### 25-A-5. Development Context 최소 구성
-
-
-Development Task를 새 Chat에서 재개할 수 있도록 가능한 범위에서 다음 정보를 유지한다. Task Registry의 Task ID를 함께 유지하며, Task Registry가 지정한 Context / Checkpoint 경로를 사용한다.
-
-- Task ID
-- 현재 Development Task / 목표
-- Current Branch
-- Current Commit
-- Active PR 또는 관련 GitHub Issue
-- 완료된 작업
-- 진행 중인 작업
-- 실제 검증 결과
-- Active Issues / Blocker
-- 중요한 Requirement / Decision / Constraint
-- 현재 미확정 사항
-- 다음 작업(Next Action)
-- 필요한 경우 Deployment / CI / Benchmark 상태
-- 관련 Evidence / Artifact
-
-정보는 가능한 한 다음 저장소와 문서에 분산하여 기록하되, 현재 상태 판단은 CURRENT_STATUS.md, 미해결 문제는 ACTIVE_ISSUES.md, 상세 이력은 DEVELOPMENT_HISTORY.md / ADR / GitHub 기록을 기준으로 한다.
-
-### 25-A-6. Checkpoint 운영
-
-Checkpoint는 **고정된 시간 간격으로 강제 생성하지 않는다.** 특히 "10분마다 Chat을 종료한다"와 같은 시간 기반 강제 중단 규칙을 두지 않는다.
-
-대신 다음과 같은 의미 있는 상태 변화가 발생할 때 Checkpoint를 기록하거나 관련 Context 문서를 갱신한다.
-
-- 독립적인 개발 단계 또는 작업 목표가 완료됨
-- 주요 설계 또는 운영 결정이 내려짐
-- PR 생성, 갱신 또는 Merge
-- 중요한 Test / Benchmark / Deployment 검증이 완료됨
-- Long-running Agent Work를 일시 중단할 필요가 생김
-- 새 Chat으로 전환할 가능성이 높아짐
-- 사용자 요청으로 작업이 중단됨
-- 플랫폼 / 권한 / 실행 한계로 현재 작업을 직접 계속하기 어려움
-
-Checkpoint는 최소한 다음을 빠르게 확인할 수 있어야 한다.
-
-Current Development Task
-Current State
-Current Branch / Commit
-Active PR / Issue
-Completed Work
-Verification
-Active Issues / Blocker
-Important Decisions
-Next Action
-
-### 25-A-7. Context Recovery
-
-새 Chat 또는 중단 후 작업을 재개할 때 Agent는 기존 Chat의 기억을 추측하여 복구하지 않는다.
-
-기본 복구 순서는 다음과 같다.
-
-Governance
-→ DEVELOPMENT_TASKS
-→ ACTIVE_ISSUES
-→ AGENT_START / AGENTS
-→ Task가 지정한 Project / Workspace Context
-→ CURRENT_STATUS
-→ Checkpoint가 있는 경우 Task Registry가 지정한 Checkpoint
-→ README / ARCHITECTURE / Requirement Contracts
-→ DEVELOPMENT_HISTORY / ADR / Evidence
-→ Actual Repository Code
-→ GitHub PR / Issue / CI State
-→ Deployment State
-
-Repository와 기존 Chat 설명이 다르면 실제 Repository와 공식 Context 문서를 Source of Truth로 사용하고 차이를 보고한다.
-
-Context Recovery에서는 먼저 Task Registry의 현재 Status를 확정한 뒤 해당 Task의 Context / Checkpoint를 읽는다. `Next Action` 문구만을 근거로 Task 상태를 역추론하지 않는다. `ACTIVE`로 식별된 Task에 대해서만 Checkpoint의 Next Action을 실행 대상으로 검토하며, 완료·일시정지·차단 상태의 과거 Next Action은 현재 지시로 승격하지 않는다.
-
-새 Chat에서 복구한 정보가 불충분하면 **추측으로 개발을 계속하지 않고**, 필요한 정보가 있는 범위에서 조사·검증한 뒤 Context를 갱신한다. Task 후보가 여러 개이고 Request만으로 선택할 수 없으면 필요한 최소 범위만 사용자에게 확인한다.
-
-### 25-A-8. Interaction 및 Agent Work 실행 경계
-
-Interaction에는 **고정된 최대 시간 제한을 두지 않는다.** 정상 종료 기준은 경과 시간이나 중간 진행 보고가 아니라 해당 Request의 **최종 응답(Final Response)** 이 반환되는 것이다. 진행 보고 후 Agent Work를 동일 Interaction 안에서 계속 수행할 수 있다.
-
-Agent Work가 하나의 Interaction 안에서 수행되더라도 다음과 같은 실행 경계가 존재할 수 있다.
-
-- Context 또는 Token 여유가 부족해져 현재 상태를 안전하게 계속 유지하기 어려워짐
-- Tool 또는 Runtime 실행 제한에 접근함
-- 외부 CI / Benchmark / 배포 작업이 장시간 대기를 요구함
-- 추가 진행에 사용자 또는 Human Decision이 필요함
-- 안전한 Checkpoint 지점에 도달함
-- 사용자가 일시정지 또는 중단을 요청함
-
-이 경우 Agent는 가능한 가장 안전한 중단 지점에서 현재 상태를 보존하고 필요한 Checkpoint / Context를 기록한 뒤 `Response`를 반환하여 해당 Interaction을 종료할 수 있다.
-
-사용자의 일시정지 또는 중단 요청은 작업의 우선 종료 신호로 취급한다. 즉시 중단이 기술적으로 불가능한 외부 Tool / 실행이 진행 중인 경우에는 **현재 실행을 안전하게 정리할 수 있는 최초의 지점에서 중단하고**, 확인된 상태와 다음 Action을 기록한다.
-
-하나의 Interaction 또는 Agent Work를 더 오래 수행할 수 있다는 사실을 이유로 무기한 실행하거나, 고정된 시간 동안만 실행하기 위해 작업을 강제로 잘라내지 않는다.
-
-#### 진행 보고와 최종 응답의 구분
-
-- 중간 진행 보고는 사용자가 현재 상태를 파악하도록 돕는 보고이며, 보고 후에도 동일 Interaction 안에서 작업을 계속할 수 있다. 다음 단계가 명확하고 권한·위험·개발지침 문제가 없으면 보고마다 사용자 허락을 기다리지 않고 자율적으로 계속한다.
-- 최종 응답은 해당 Interaction을 종료한다. 최종 응답 후 Agent가 계속 작업 중인 것처럼 표현하지 않는다. 외부 Runner / CI / 배포 / 자동화 프로세스가 실제로 계속 실행되는 경우에만 이를 Agent의 작업과 분리하여 외부 실행 상태, 마지막 확인 시각 및 다음 확인 방법을 명시한다. 실행 중인 외부 프로세스가 없으면 AI 작업도 종료된 상태임을 분명히 한다.
-- 진행 상태를 보고할 때 필요에 따라 `중간 보고 · 작업 진행 중`, `최종 보고 · 인터랙션 종료`, `판단 대기 · 작업 일시정지`, `외부 작업 실행 중`처럼 명확한 상태 문구를 사용한다. 상태 문구는 실제 실행 상태와 일치해야 하며, UI에 없는 지속 실행 능력을 암시해서는 안 된다.
-
-#### 최종 응답 전 Next Action 점검
-
-- 최종 응답으로 Interaction을 끝내기 전에 ACTIVE Development Task, 공식 Checkpoint의 `Next Action`, 실제 Git / CI / Deployment / 외부 실행 상태를 다시 확인한다.
-- 현재 하위 작업을 마쳤더라도 다음 Action이 명확하고, 권한·위험·정책상 허용되며, 기술적으로 실행 가능하다면 **같은 Interaction에서 다음 Action까지 계속한다.** 중간 보고를 최종 응답으로 대신하거나, 배치 하나의 완료 또는 Runner가 idle이라는 사실만으로 활성 Development Task를 끝내지 않는다.
-- 작업을 중간에 종료해야 한다면 사용자 중단 요청, 확인된 기술/플랫폼/권한 제약, 필요한 사용자 판단, Context / Token / Tool / Runtime 한계 등 실제 이유를 Checkpoint에 기록하고 완료된 범위와 남은 Next Action을 구분한다. 다음 Action이 실행 가능했는데 Agent가 종료를 선택했다면 이를 기술적 Blocker로 포장하지 말고 **불필요한 Agent 측 조기 종료**로 명시한다.
-- 이미 알려진 Next Action이 실행 가능하고 사용자가 작업 지속을 요청하거나 기대하는 경우, 새 사용자 지시를 기다리며 멈추지 말고 Context를 복구해 이어간다.
-
-#### 마일스톤 및 작업 효율 가시성
-
-- 의미 있는 검증 결과, 독립적인 실행 배치의 종료, 중요한 결정 지점, 계획 변경 또는 효율 저하가 확인되는 시점에 진행 상황을 보고한다. 고정된 시간 간격마다 불필요한 보고를 반복하지 않으며, 장시간·고비용 작업은 결과를 보존할 수 있는 제한된 실행 구간으로 나누어 운영한다.
-- 보고에는 작업 단계 또는 현재 초점, 확인된 완료 결과, 다음 작업, 중요한 위험·막힘 및 효율에 대한 판단을 간결하게 포함한다. 사용자가 식별을 요청했거나 추적상 이점이 분명한 경우를 제외하고 매 Interaction에 일련번호를 표시하지 않는다.
-- **마일스톤의 총 개수를 미리 고정해 진행률 분모로 표시하지 않는다.** 계획이 변경될 수 있으므로 현재 단계, 완료된 결과, 다음 작업을 중심으로 설명한다. 계획이나 순서가 바뀌면 변경 이유와 영향도 함께 알린다.
-- 장시간 실행이나 사용자가 효율을 확인하고 싶어 하는 작업에서는 전체 경과시간과 실제 측정 가능한 연산·프로세스 실행시간, 확인 가능한 대기시간을 구분한다. 로그나 도구로 측정되지 않은 구간을 사실인 것처럼 작업시간 또는 대기시간으로 단정하지 않고, 추정치와 미측정 구간을 명시한다. 프로세스 경과시간을 CPU 연산시간이라고 표현하지 않는다.
-- 배치 사이의 반복 재배포·상태 확인, 진행 없는 재시도, 긴 미설명 간격 또는 결과 대비 과도한 소요가 감지되면 현재 방식을 재평가한다. 안전한 지점에서 증거와 Checkpoint를 보존하고 더 효율적인 경로로 전환하거나, 중요한 사용자 판단이 필요한 경우 근거와 선택지를 보고하고 일시정지한다.
-
+- 의미 있는 검증, 독립 단계 완료, 계획 변경 또는 효율 저하 시 현재 초점·확인된 결과·다음 Action·중요한 위험을 간결하게 보고한다.
+- 고정된 보고 주기, 미리 정한 총 마일스톤 수, 기본 Interaction 일련번호를 강제하지 않는다.
+- 장시간 작업에서는 총 경과시간, 측정된 실행시간, 관찰 가능한 대기시간을 구분하고, 측정하지 못한 구간은 미확인으로 둔다.
+- 진행 없는 반복 확인·재시도·재배포가 나타나면 방식을 재평가하고, 안전한 지점에서 Evidence를 보존해 더 효율적인 경로로 전환한다.
 
 ### 25-A-9. Long-running Agent Work
 
-Long-running Agent Work 자체를 금지하지 않는다. 다만 이는 **장기적인 Development Task를 지원하는 운영 방식**이지, 하나의 Agent Work가 플랫폼 한계를 무시한 채 무제한으로 실행되어야 한다는 의미가 아니다.
-
-- 장시간 CI / Benchmark / 외부 실행 결과만을 기다리며 전체 Agent Work를 무기한 붙잡지 않는다.
-- 장시간 대기와 독립적인 개발·분석 작업이 있으면 가능한 경우 분리하여 진행한다.
-- Context / Token / Tool / Runtime 제약에 접근하면 안전한 Agent Work Segment에서 Checkpoint를 남기고 종료할 수 있다.
-- 하나의 Agent Work가 길어지는 경우에도 필요한 상태를 Segment 단위로 보존하여 후속 Interaction에서 재개할 수 있어야 한다.
-- 외부 작업이 진행 중이더라도 이미 확인된 사실과 다음 Action을 기록하여 이후 Chat에서 재개할 수 있게 한다.
-- 실행이 중단되었다고 해서 미검증 결과를 성공으로 기록하지 않는다.
-- 사용자에게 중간 중단이 필요한 경우에도 작업을 버리는 것이 아니라 현재 상태를 Checkpoint로 남긴 후 종료한다.
-
-장시간 Agent Work의 종료 여부는 **경과 시간 자체가 아니라 현재 상태, Context / Token 여유, 검증 가능성, Tool / Runtime 제약, 외부 작업 상태, 작업의 독립성 및 Development Context의 보존 여부**를 기준으로 판단한다.
+장시간 작업은 하나의 무제한 실행이 아니라 필요 시 여러 Segment / Interaction / Checkpoint를 통해 수행할 수 있다. 외부 CI / Benchmark 결과를 기다리는 동안 독립적인 분석이 가능하면 분리해 진행한다. 중단은 실행 결과가 검증됐다는 뜻이 아니며, 실제 프로세스의 마지막 관찰 상태를 기록한다.
 
 ### 25-A-10. Chat Transition
 
-다음과 같은 경우 새 Chat으로 전환할 수 있으며, 이는 실패나 작업 초기화로 간주하지 않는다.
-
-- 현재 Chat의 맥락이 너무 커져 Context Recovery가 오히려 더 안전한 경우
-- Chat 또는 Agent Work가 플랫폼 제약으로 더 이상 안정적으로 진행되지 않는 경우
-- 사용자가 새 Chat을 시작한 경우
-- 현재 작업과 새로운 개발 주제가 명확히 분리되는 경우
-- 장기 작업의 Checkpoint가 충분히 축적되어 새 Chat에서 재개하는 편이 효율적인 경우
-
-새 Chat으로 전환하기 전 가능한 경우 Checkpoint / CURRENT_STATUS / DEVELOPMENT_HISTORY를 최신 상태로 정리한다.
+현재 Chat이 너무 길거나 불안정하거나, 작업 주제가 분리되거나, Checkpoint로 재개하는 편이 더 안전하면 새 Chat으로 전환할 수 있다. 전환 전 가능한 경우 Context와 Checkpoint를 최신화한다. 전환은 Task 완료나 재시작을 뜻하지 않는다.
 
 ### 25-A-11. 플랫폼 및 요금제 제약
 
-ChatGPT Plan, Model, Context, Tool, Runtime 및 기타 플랫폼 특성으로 인해 Chat 또는 Agent Work에 제약이 발생할 수 있다.
-
-이 제약은 **Platform Constraint**로 취급한다.
-
-특정 현재 요금제(예: Free)의 구체적인 한계나 동작을 Governance의 불변 규칙으로 하드코딩하지 않는다. 현재 사용 중인 요금제, 모델 및 플랫폼 제약은 Workspace / Project의 CURRENT_STATUS.md 또는 관련 운영 기록에서 관리한다.
-
-플랫폼이 제공하는 Memory / Personalization은 개발 작업 연속성을 보조할 수 있지만 이를 유일한 보존 수단으로 사용하지 않는다.
-
-사용자 선호, 응답 스타일과 같은 **Personalization**은 Development Context와 구분한다. 개발 작업의 연속성은 Repository와 공식 Context 기록으로 보장한다.
+현재 모델·요금제·Tool의 변동 가능한 제한은 영구적인 Governance 규칙으로 하드코딩하지 않는다. 필요하면 CURRENT_STATUS 또는 해당 운영 기록에 보존한다. Memory / Personalization은 보조 수단이며 Development Context의 유일한 저장 위치가 아니다.
 
 ### 25-A-12. Continuity Failure
 
-다음 중 하나가 발생하면 이를 **Development Work Continuity 장애 또는 위험**으로 취급한다.
+다음은 Context 복구 장애 또는 위험이다: Task·현재 상태·Next Action을 복구할 수 없음, 중요한 요구사항·결정이 사라짐, 실제 Repository / CI / Deployment와 Context가 불일치함, 또는 중단된 외부 실행 상태를 복구할 수 없음.
 
-- 새 Chat에서 현재 Development Task를 복구할 수 없음
-- Current State / Next Action / Active Issue가 불명확함
-- Chat 전환 후 중요한 사용자 요구사항 또는 결정이 사라짐
-- 실제 Git / CI / Deployment 상태와 Context 문서가 불일치함
-- Long-running Agent Work 중 중간 상태를 복구할 수 없음
+이 경우 문제와 영향, 확인된 상태, 부족한 정보, 복구 조치 및 재발 방지 필요성을 기록한다. 반복 문제는 §28의 Governance Gap 검토를 따른다.
 
-이 경우 Agent는 문제를 숨기지 않고:
+### 25-A-13. Repository 기반 재개
 
-문제
-→ 영향
-→ 현재 확인 가능한 상태
-→ 복구를 위해 필요한 정보
-→ Context / Checkpoint 보강
-→ 재발 방지 제안
+긴 Continuation Prompt는 필수 상태 저장 수단이 아니다. 기본 재개는 Registry → Task Context / Checkpoint → 실제 GitHub / CI / Deployment 검증 순서로 한다. “계속 진행해”처럼 요청이 단순해도 ACTIVE Task가 명확하면 자동으로 복구하고 실행 가능한 Next Action부터 이어간다. 같은 복구 문제가 반복되면 사용자의 Prompt를 늘리기 전에 Governance / Context 구조를 검토한다.
 
-순으로 처리한다.
+### 25-A-14. 최소 Continuation Message
 
-반복적으로 발생하는 Continuity 문제는 Governance 개선 대상으로 승격한다.
-
-
-### 25-A-13. Continuation Prompt와 Repository 기반 복구
-
-새 Chat에서 Development Task를 이어가기 위해 **긴 수동 Continuation Prompt를 필수 보존 수단으로 사용하지 않는다.**
-
-기본 복구 경로는 다음과 같다.
-
-```text
-새 Chat
-→ Development Task Registry
-→ Project / Workspace Context
-→ Checkpoint
-→ 실제 Git / CI / Deployment 상태 검증
-→ Agent Work 재개
-```
-
-Continuation Prompt는 현재 Request의 즉시 작업 의도를 전달하거나 Repository에 아직 기록되지 않은 일시적인 사용자 지시를 전달하는 등 보조적인 경우에만 사용한다.
-
-Continuation Prompt가 Repository / Context / Checkpoint에 기록된 공식 상태를 대체해서는 안 된다.
-
-새 Chat에서 사용자가 단순히 **“계속 진행해”**, **“이어서 해”**와 같이 요청한 경우, Agent는 가능한 범위에서 현재 ACTIVE Development Task를 Repository 기반으로 자동 복구하고 작업을 계속한다. 긴 이전 Chat 전문이나 별도의 대형 시작 프롬프트를 사용자에게 다시 요구하는 것을 기본 절차로 삼지 않는다.
-
-동일한 Continuity 문제가 반복되어 매번 긴 수동 Prompt가 필요해진다면 이를 개인 대화의 불편으로만 처리하지 않고 **Governance / Context 구조의 결함 가능성**으로 검토한다.
-
-### 25-A-14. Minimal Chat Continuation Message
-
-새 Chat에서 Development Task를 이어갈 때 사용자가 매번 긴 Project Context를 복사할 필요가 없도록 한다. Repository의 Governance, Development Task Registry, Context, Checkpoint 및 실제 Git / CI / Deployment 상태가 공식 복구 수단이다.
-
-새 Chat의 정상적인 재개 메시지는 다음 수준으로 충분하다.
+정상적인 새 Chat 재개 메시지는 다음이면 충분하다.
 
 ```text
 이 저장소 작업 이어서 진행해.
 Governance 기준으로 현재 ACTIVE Task와 Checkpoint를 자동 복구하고 Next Action부터 계속해.
 ```
 
-Repository를 새 Agent가 아직 식별하지 못할 가능성이 있는 환경에서는 **저장소 식별자만 한 줄 추가**할 수 있다.
+필요한 경우 Repository 식별자만 추가한다.
 
 ```text
 GitHub: hjang12/ai-agent-cicd-system-by-gpt
 ```
 
-따라서 새 Chat에서 전체 기능 목록, 최근 작업 내역, 긴 기술 설명, 이전 Chat 전문, 수동으로 작성한 상태 보고서를 반복해서 요구하지 않는다. Agent가 이 최소 정보만으로 공식 Context와 실제 상태를 복구하지 못한다면 그것을 사용자에게 긴 Prompt 작성을 요구할 사유로 처리하지 않고 **Context Recovery / Governance 개선 문제로 먼저 검토**한다.
-
-이 원칙의 목적은 Chat의 기억을 보존하는 것이 아니라, **개발 작업의 Source of Truth를 Chat에서 Repository와 공식 Context로 이동시키는 것**이다.
+Agent가 이 정보만으로 공식 Context를 복구하지 못하면 긴 이전 대화 전문을 요구하기 전에 Context Recovery 문제로 조사한다.
 
 
-## 26. Evidence와 Traceability 관리
+## 26. Evidence와 Traceability 참조
 
-중요한 변경은 가능한 범위에서 다음 흐름을 추적할 수 있도록 한다.
-
-```text
-Requirement
-   ↓
-Decision
-   ↓
-Code Change
-   ↓
-Commit
-   ↓
-Build
-   ↓
-Test
-   ↓
-Deployment
-   ↓
-Post-deployment Verification
-   ↓
-Evidence
-```
-
-프로젝트와 Evidence 규모가 커지면 식별자를 사용할 수 있다.
-
-Evidence에는 가능하면 최소한 다음 정보를 포함한다.
-
-```text
-Evidence ID
-Requirement / Change
-Commit
-Environment
-Configuration
-Test Command / Procedure
-Result
-Timestamp
-Related Artifact
-```
-
-실제 수행하지 않은 검증을 수행했다고 기록하지 않는다. 추정 결과를 실제 결과처럼 기록하지 않는다.
+Evidence의 관찰 범위와 기록 원칙은 §11, Requirement부터 검증 결과까지의 추적성은 §20, 실제 사실과 추론의 구분은 §27을 따른다. 같은 흐름이나 필드 목록을 별도로 복제하지 않는다.
 
 ---
 
@@ -1706,15 +1387,9 @@ Problem
 
 
 
-## 30. 시작 프롬프트 최소화 원칙
+## 30. 시작 프롬프트 최소화
 
-새로운 AI Coding Agent를 시작할 때 Governance 전문을 매번 복사하지 않는다.
-
-운영 규칙은 이 Repository에서 관리하고, 시작 메시지는 **Governance Repository의 위치만 알려주는 수준으로 최소화**한다.
-
-권장 시작 메시지는 `AGENT_START.md`를 기준으로 한다.
-
-Agent는 시작 후 해당 파일에서 안내하는 Governance와 현재 프로젝트 문서를 읽어야 한다.
+새 Chat의 복구 메시지와 Repository 식별 규칙은 §25-A-13 및 §25-A-14를 따른다. 이 절에서는 별도의 시작 프롬프트 형식이나 복구 절차를 중복 정의하지 않는다.
 
 ---
 
@@ -1739,20 +1414,11 @@ Review Condition
 
 ## 32. 최종 원칙
 
-다음 원칙을 모든 세부 규칙의 기준으로 사용한다.
+세부 규칙 간 해석 차이가 있을 때는 다음을 기준으로 판단한다.
 
-1. **현재 상태를 이해하기 전에 수정하지 않는다.**
-2. **코드보다 요구사항 충족과 검증 결과를 중요하게 본다.**
-3. **기존 구조가 정상적이면 최소 변경을 우선한다.**
-4. **위험한 변경에는 Human Approval을 둔다.**
-5. **실제 수행 결과와 추론을 구분한다.**
-6. **Repository와 문서를 통해 Context를 복구할 수 있어야 한다.**
-7. **중요한 결과는 재현 가능하고 추적 가능해야 한다.**
-8. **실패도 지식으로 기록하고 같은 실패를 반복하지 않도록 한다.**
-9. **운영 규칙 자체도 실제 경험을 바탕으로 지속적으로 개선한다.**
-10. **장기적으로 더 안정적이고 확장 가능한 개발 시스템을 만든다.**
-11. **자율 실행은 실행 가능성, 지침·기획과의 합치, 권한·위험 범위를 모두 충족할 때만 수행한다.**
-12. **기술적으로 구현 가능하더라도 개발지침·Project Plan·Requirement·Architecture Constraint와 충돌하면 임의 실행하거나 우회하지 않는다.**
-13. **AI가 자율적으로 완료할 수 없는 기술적 한계 또는 중요한 규정·기획 충돌은 숨기지 않고 근거와 영향과 함께 보고한다.**
-14. **Governance, Version, Branch, CI/CD 및 프로젝트 운영 구조의 개선 필요성을 AI가 선제적으로 점검하고 먼저 제안한다.**
-15. **현재 미해결 이슈는 Active Issue로 별도 관리하고, 해결 여부를 Development History 전체를 다시 읽어 판단하게 만들지 않는다.**
+1. 실제 Repository / CI / Deployment 상태와 확인된 Evidence를 우선하고, 추정은 사실로 기록하지 않는다.
+2. 현재 상태를 이해하고 관련 Requirement / Decision을 확인한 뒤 최소 범위로 변경한다.
+3. 완료 여부는 구현 사실이 아니라 요구사항 충족과 필요한 검증 결과로 판단한다.
+4. 자율 실행은 실행 가능성, 지침·기획과의 합치, 권한·위험 범위를 모두 충족할 때만 수행한다. 그 경계를 넘으면 우회하지 않고 근거와 영향을 보고한다.
+5. Task Status와 공식 Context / Checkpoint가 현재 작업 자격을 결정한다. 과거 이력이나 오래된 Next Action을 현재 지시로 승격하지 않는다.
+6. Governance는 실제 증거를 바탕으로 개선하며, 기존 규칙과 간단한 절차로 해결할 수 있다면 새 규칙·도구·상태 계층을 추가하지 않는다.

@@ -29,7 +29,7 @@ GPT 개발 프로젝트를 하나의 저장소에서 관리해 공통 Governance
 - GitHub Actions → 저장소 루트 `.github/workflows/`
 - Render Blueprint → 저장소 루트 `render.yaml`
 
-기존 프로젝트 저장소의 전체 Git history는 원본 저장소에 보존되어 있으며, 이 저장소에는 최신 상태를 스냅샷으로 가져왔습니다.
+프로젝트의 원본 Git history 전체는 monorepo로 이전되지 않았습니다. 원본 snapshot SHA는 가져온 코드의 출처를 식별하기 위한 기록이며, 원본 프로젝트 Repository는 검증 후 2026-09-18에 삭제되었습니다. 따라서 원본 Repository의 전체 history가 현재 접근 가능하다고 가정하지 않습니다.
 
 Janggi와 Time Dashboard의 원본 HEAD 트리와 중앙 monorepo subtree를 비교한 결과, 의도된 migration 변경 외의 project file 누락은 확인되지 않았습니다.
 
@@ -153,4 +153,4 @@ Pre-deletion verification passed after confirming:
 
 The former project repositories were then deleted. The canonical monorepo is now the sole development source.
 
-Known platform follow-ups remain explicit: live Render `healthCheckPath` is not yet configured even though the Blueprint declares `/api/health`, and CI success is not yet enforced as a precondition for Render auto-deploy.
+The observations in this closure record are historical as of 2026-09-18. Current platform issue status and revisit conditions are maintained only in `GOVERNANCE/docs/ACTIVE_ISSUES.md`; do not treat this migration record as a current task list.

@@ -1,3 +1,36 @@
+## 2026-10-21 — Governance 1.4.6 detailed consistency and simplicity review
+
+### Trigger
+
+After Janggi v1.0 completion, the user requested a broad Governance review with two hard preferences: keep documents simple and eliminate conflicting statements. A second pass looked beyond the recently corrected DEFERRED/Task-status issue.
+
+### Findings
+
+- `GOVERNANCE/templates/AGENT_START.md` and `AGENTS.md` still pointed to the retired `hjang12/ai-agent-cicd-system` repository.
+- ADR-0001 presented a separate Governance repository as the current topology; ADR-0002 and MIGRATION.md inconsistently described the old project repositories and Git histories as still available after cleanup.
+- Completed checkpoints retained a stale instruction to resume the Janggi calibration Task and a line saying PR #124 was open after merge. A prior trial checkpoint reported Governance 1.4.3 without identifying it as a historical version.
+- The main Governance repeated autonomy/stop criteria (§9 and §14), maintained parallel Context Recovery and start-prompt procedures (§25 and §30), and duplicated Evidence/Traceability material (§26).
+- §14's autonomous handling of normal changes and §17's broad restriction on Production deployment left the boundary for existing automatic deployments ambiguous.
+- Generic Current Status, Checkpoint, and History templates required fields that were often unused. Workspace and project Current Status files repeated Governance version numbers that had already drifted.
+
+### Decision and Proposed Changes
+
+- Keep §14 as the sole autonomy/approval policy; point other sections to it or to the existing canonical procedure.
+- Clarify that ordinary deployment through an existing configured pipeline may proceed after project-required checks, while gate bypass, direct risky Production changes, policy changes and destructive actions require approval. Record non-enforced CI-before-deploy gates as an issue, not as an assumed guarantee.
+- Fix template paths, update ADR/Migration statements to match the completed monorepo transition, and explicitly label old version/action snapshots as historical.
+- Reduce template fields to current-state essentials; distinguish ACTIVE Next Action from completed Task closure text.
+- Use `GOVERNANCE/VERSION` as the single version source on project status pages.
+- No new parser, validator, workflow, Registry, or state layer is introduced.
+
+### Verification
+
+- Base `main`: `c90492dab6d5cd62155692d7124ee8ea3c5375eb`; its Workspace validation passed in run 39562806715.
+- Proposed Governance version: 1.4.6. Per §15, the proposal remains outside `main` until the user approves it.
+- PR validation is pending at the time this entry is prepared.
+- Project-context documentation changes may trigger the existing Render auto-deploy path if merged; no production deployment is initiated from this review branch.
+
+---
+
 ## 2026-10-21 — Governance v1.4.5 detailed consistency review
 
 ### Trigger
