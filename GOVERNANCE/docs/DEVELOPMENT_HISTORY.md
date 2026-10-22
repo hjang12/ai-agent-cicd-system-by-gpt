@@ -1,3 +1,25 @@
+## 2026-10-22 — Janggi trainer UI visual refinement
+
+### Trigger
+- The user chose a more polished interface for the existing Janggi trainer as a concrete, user-visible task for validating the personal AI development pipeline.
+
+### Changes
+- PR #166 refreshed the browser UI CSS with a coherent deep-jade/dark-teal surface palette, warm board framing, distinct Cho/Han piece colors, and consistent setup options, selected states, HUD cards, buttons, result panels, and learning surfaces.
+- Added hover/active feedback and `prefers-reduced-motion` support.
+- Updated theme regression assertions and added a focused reduced-motion/style test.
+- Kept the DOM flow and application JavaScript unchanged. UX-001, UX-002, UX-003, UX-005 and AI-001 remain protected. No engine/search, AI calibration, public AI-level, Render configuration, or Governance version change was made.
+
+### Verification / Deployment
+- PR #166 merged as `2feb15a00abd88e9170c731c6d868201d97a7310`.
+- Workspace validation [39744140098](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39744140098), Janggi Python validation [39744139914](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39744139914), and Chromium browser acceptance [39744139918](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39744139918) all passed on the final PR head.
+- Render deployment `dep-dbcs5m3bc2fs738pojfg` reached `LIVE` for the merge commit.
+- Direct public HTTP response-code verification was not captured, so no HTTP 200 claim is made.
+
+### Result
+The post-v1.0 visual polish task is complete. v1.0 remains complete, Governance remains 1.4.7, and AI-strength calibration remains PAUSED.
+
+---
+
 ## 2026-10-22 — Workspace CI version-consistency guard
 
 ### Trigger
