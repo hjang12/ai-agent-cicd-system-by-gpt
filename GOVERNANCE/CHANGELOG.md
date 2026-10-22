@@ -29,7 +29,7 @@
 
 - 새 validator, parser, workflow, Registry 또는 상태 계층은 추가하지 않는다.
 - 기존 문서의 단일 원본을 명확히 하고, 역사적 사실은 날짜를 명시하며, 실행 가능한 Next Action은 ACTIVE Task에만 둔다.
-- Governance 버전 1.4.6은 사용자 승인 전까지 제안 브랜치에서만 유지한다.
+- Governance 1.4.6은 사용자가 2026-10-22 승인했고 PR #160으로 squash-merge되어 `main`의 활성 버전이 됨. Merge commit: `a65ef98be8d83b2992e40c226159c2ef683cbb8c`.
 
 ## [1.4.5] - 2026-10-21
 
