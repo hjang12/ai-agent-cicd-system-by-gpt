@@ -1,3 +1,25 @@
+## 2026-10-22 — ISSUE-001 resolved and Governance review closed
+
+### Outcome
+- PR #161, "Enforce CI-gated Render deploys and reconcile post-merge state", merged as `d74f114149bf5c016e509ab94e3d08b887d00adb`.
+- Actual Render service metadata for both production services reports `autoDeploy=yes`, `autoDeployTrigger=checksPass`.
+- All main-commit checks passed: Workspace `39705628721`, Time Dashboard `39705628681`, Janggi Python `39705628751`, Janggi browser acceptance `39705628731` (11/11 tests). The final blocking check completed at 01:27:11 UTC; both Render deployments started at 01:27:14 UTC and reached LIVE (Time Dashboard 01:27:56 UTC; Janggi 01:28:07 UTC). This directly verifies the configured deployment gate.
+- `ISSUE-001` was removed from the active issue index; resolved evidence is retained here and in `GOVERNANCE/docs/checkpoints/TASK-20261022-0001.md`. GitHub main branch protection remains a separate control and is not claimed to be enabled.
+
+### Why repeated reviews found new defects
+- Reviews had been conducted as staged/narrow inspections instead of one end-to-end closure pass.
+- Current state was duplicated across Task Registry, CURRENT_STATUS, Checkpoint, Changelog and entrypoint docs without a post-merge semantic consistency check.
+- Existing structural validation checked required files and Blueprint fields but did not inspect semantic consistency between mutable state descriptions.
+- A post-deploy smoke waiting for a new deployment would be incompatible with using that same workflow as a blocking pre-deploy CI check. Browser acceptance was therefore moved to PR/main-push local tests, while production live smoke is manual `workflow_dispatch`.
+
+### Closeout Decision
+- Corrected stale post-merge records, fixed the Time Dashboard entrypoint path, declared `checksPass` in the Blueprint, and strengthened the existing Workspace validator around gate/workflow configuration.
+- Added no new Governance parser, registry, state layer, or Governance version.
+- The review is closed against the documented file inventory and the exact verified main/deployment evidence. Reopen only on a new conflicting fact, failed check, Governance regression, or a recorded revisit condition; no repetitive broad review without new evidence.
+- Janggi v1.0 remains complete. No Janggi application source was changed in PR #161. Calibration Task `TASK-20260930-0002` remains PAUSED.
+
+---
+
 ## 2026-10-22 — Post-merge Governance audit, Render CI gate, and v1.0 smoke verification
 
 ### Trigger
