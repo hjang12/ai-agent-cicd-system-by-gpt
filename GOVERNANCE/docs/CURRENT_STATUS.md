@@ -57,7 +57,7 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 
 - `main` at audit start: `a65ef98be8d83b2992e40c226159c2ef683cbb8c`.
 - Main-push checks: Workspace validation [39701830359](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39701830359) PASS; Time Dashboard CI [39701830301](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39701830301) PASS; Janggi Python validation [39701830357](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39701830357) PASS.
-- Janggi live-browser smoke [39701830336](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39701830336) failed its undo/replay assertion on the live app. The retry is tracked in `TASK-20261022-0001`; do not describe the latest production smoke as clean until resolved.
+- Janggi live-browser smoke [39701830336](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39701830336) failed the undo/replay assertion on attempt 1, then passed all 11 browser tests on attempt 2 (`127.605s`, `OK`). The failure was not reproducible in the retry, so no application change is justified from this single result; recheck after the CI-gate PR merges.
 - Actual Render metadata still reports commit-triggered auto-deploy for both Janggi and Time Dashboard. `ISSUE-001` remains BLOCKED until the actual service setting is changed and enforcement is verified; `render.yaml` is declarative configuration, not evidence that an existing service has adopted it.
 
 ## Migration Status
