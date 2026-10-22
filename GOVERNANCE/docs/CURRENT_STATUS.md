@@ -24,6 +24,7 @@ These files have distinct responsibilities. Do not copy the same current status 
 
 ## Current Task State
 
+- Governance version synchronization CI pilot: `TASK-20261022-0002` — **ACTIVE**; checkpoint: `GOVERNANCE/docs/checkpoints/TASK-20261022-0002.md`.
 - Governance consistency/simplicity review: `TASK-20261021-0004` — **COMPLETED** through PR #160, merged as `a65ef98be8d83b2992e40c226159c2ef683cbb8c` on 2026-10-22.
 - Post-1.4.6 audit / `ISSUE-001` / Janggi release reconciliation: `TASK-20261022-0001` — **COMPLETED**; final evidence: `GOVERNANCE/docs/checkpoints/TASK-20261022-0001.md`.
 - Previous Governance review: `TASK-20261021-0003` — **COMPLETED** through PR #159.

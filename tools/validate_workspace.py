@@ -11,6 +11,8 @@ REQUIRED_PATHS = (
     Path("AGENT_START.md"),
     Path("AGENTS.md"),
     Path("GOVERNANCE/GOVERNANCE.md"),
+    Path("GOVERNANCE/VERSION"),
+    Path("GOVERNANCE/CHANGELOG.md"),
     Path("GOVERNANCE/docs/CURRENT_STATUS.md"),
     Path("GOVERNANCE/docs/DEVELOPMENT_TASKS.md"),
     Path("GOVERNANCE/docs/DEVELOPMENT_HISTORY.md"),
@@ -96,6 +98,71 @@ def validate_render_blueprint() -> list[str]:
     return errors
 
 
+def validate_governance_version_values(
+    version: str,
+    governance_text: str,
+    changelog_text: str,
+    current_status_text: str,
+) -> list[str]:
+    """Ensure current-facing Governance version references match the canonical version."""
+    errors = []
+    version = version.strip()
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        return [f"GOVERNANCE/VERSION must contain a semantic version (X.Y.Z), got: {version!r}"]
+
+    header_match = re.search(
+        r"^\*\*Governance Version:\s*(\d+\.\d+\.\d+)\*\*\s*$",
+        governance_text,
+        re.MULTILINE,
+    )
+    if not header_match:
+        errors.append("GOVERNANCE/GOVERNANCE.md is missing its Governance Version header")
+    elif header_match.group(1) != version:
+        errors.append(
+            f"GOVERNANCE/GOVERNANCE.md version {header_match.group(1)} "
+            f"does not match GOVERNANCE/VERSION {version}"
+        )
+
+    changelog_match = re.search(
+        r"^## \[(\d+\.\d+\.\d+)\] - \d{4}-\d{2}-\d{2}\s*$",
+        changelog_text,
+        re.MULTILINE,
+    )
+    if not changelog_match:
+        errors.append("GOVERNANCE/CHANGELOG.md is missing a dated release header")
+    elif changelog_match.group(1) != version:
+        errors.append(
+            f"GOVERNANCE/CHANGELOG.md latest version {changelog_match.group(1)} "
+            f"does not match GOVERNANCE/VERSION {version}"
+        )
+
+    status_match = re.search(
+        r"^- Governance (\d+\.\d+\.\d+) is active on `main`",
+        current_status_text,
+        re.MULTILINE,
+    )
+    if not status_match:
+        errors.append(
+            "GOVERNANCE/docs/CURRENT_STATUS.md must identify the active Governance version on main"
+        )
+    elif status_match.group(1) != version:
+        errors.append(
+            f"GOVERNANCE/docs/CURRENT_STATUS.md active version {status_match.group(1)} "
+            f"does not match GOVERNANCE/VERSION {version}"
+        )
+
+    return errors
+
+
+def validate_governance_version() -> list[str]:
+    return validate_governance_version_values(
+        read_text(ROOT / "GOVERNANCE/VERSION"),
+        read_text(ROOT / "GOVERNANCE/GOVERNANCE.md"),
+        read_text(ROOT / "GOVERNANCE/CHANGELOG.md"),
+        read_text(ROOT / "GOVERNANCE/docs/CURRENT_STATUS.md"),
+    )
+
+
 def validate_project_boundaries() -> list[str]:
     errors = []
     for project in (
@@ -132,6 +199,7 @@ def validate_ci_gate_workflows() -> list[str]:
 def main() -> int:
     errors = validate_paths()
     errors.extend(validate_render_blueprint())
+    errors.extend(validate_governance_version())
     errors.extend(validate_ci_gate_workflows())
     errors.extend(validate_project_boundaries())
 
