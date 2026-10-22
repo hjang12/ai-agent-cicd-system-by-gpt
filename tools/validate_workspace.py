@@ -25,6 +25,7 @@ REQUIRED_PATHS = (
     Path("projects/time-dashboard-by-gpt/timefolio_server.py"),
     Path(".github/workflows/janggi-validation.yml"),
     Path(".github/workflows/janggi-search-benchmark.yml"),
+    Path(".github/workflows/janggi-browser-acceptance.yml"),
     Path(".github/workflows/time-dashboard-ci.yml"),
     Path(".github/workflows/workspace-validation.yml"),
     Path("render.yaml"),
@@ -110,9 +111,28 @@ def validate_project_boundaries() -> list[str]:
     return errors
 
 
+def validate_ci_gate_workflows() -> list[str]:
+    errors = []
+    for relative in (
+        Path('.github/workflows/janggi-validation.yml'),
+        Path('.github/workflows/time-dashboard-ci.yml'),
+        Path('.github/workflows/janggi-browser-acceptance.yml'),
+    ):
+        workflow = read_text(ROOT / relative)
+        if workflow.count("      - 'render.yaml'") < 2:
+            errors.append(f"{relative} must run for both push and pull_request changes to render.yaml")
+
+    browser = read_text(ROOT / '.github/workflows/janggi-browser-acceptance.yml')
+    if "if: github.event_name == 'pull_request' || github.event_name == 'push'" not in browser:
+        errors.append('Janggi browser-acceptance must run local browser tests for pull_request and push events')
+    if "if: github.event_name == 'workflow_dispatch'" not in browser:
+        errors.append('Janggi live-browser-smoke must be workflow_dispatch-only to avoid a CI/deploy cycle')
+    return errors
+
 def main() -> int:
     errors = validate_paths()
     errors.extend(validate_render_blueprint())
+    errors.extend(validate_ci_gate_workflows())
     errors.extend(validate_project_boundaries())
 
     if errors:
