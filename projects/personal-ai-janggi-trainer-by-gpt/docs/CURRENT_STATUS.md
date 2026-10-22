@@ -73,6 +73,6 @@ Detailed design: `ARCHITECTURE.md`, `AI_MODEL_ARCHITECTURE.md`, `SEARCH.md`, `CO
 
 ## Current Work State
 
-- UI visual refinement: `TASK-20261022-0003` — ACTIVE; a post-v1.0 presentation improvement that preserves UX-001, UX-002, UX-003, UX-005 and all gameplay behavior.
-- AI-level calibration remains PAUSED; no new calibration seeds or public AI-level/search-budget changes are authorized by this task.
-- The v1.0 release remains complete. This follow-up is a separately scoped UI polish task, not a reopened release gate.
+- UI visual refinement: `TASK-20261022-0003` — COMPLETED through PR #166 (`2feb15a00abd88e9170c731c6d868201d97a7310`). Visual styling was refined; UX-001, UX-002, UX-003, UX-005 and AI-001 remain preserved. CI and browser acceptance passed, and Render deployment `dep-dbcs5m3bc2fs738pojfg` reached LIVE.
+- AI-level calibration remains PAUSED; no calibration seeds or public AI-level/search-budget changes were run.
+- The v1.0 release remains complete. This was a separate UI polish task, not a reopened release gate.
