@@ -20,7 +20,9 @@
 
 ---
 
-## 2026-10-22 — Post-merge Governance audit, Render CI gate, and v1.0 smoke verification
+## 2026-10-22 — Initial post-merge Governance audit, before Render gate activation
+
+> Historical snapshot: this section records findings and decisions before the user changed the actual Render Auto-Deploy settings and before PR #161 was merged. The final outcome is recorded in the preceding entry.
 
 ### Trigger
 
@@ -31,7 +33,7 @@ After the user approved and merged Governance 1.4.6 through PR #160, the request
 - The merge exposed stale current-facing statements: the Task Registry, Workspace CURRENT_STATUS, CHANGELOG decision note, and TASK-20261021-0004 Checkpoint still said PR #160 was open / awaiting approval. This contradicted `main` at `a65ef98be8d83b2992e40c226159c2ef683cbb8c` and canonical `GOVERNANCE/VERSION` `1.4.6`.
 - The same detailed pass found Time Dashboard's `AGENT_START.md` pointed to a nonexistent project-local `GOVERNANCE.md`, while its `AGENTS.md` duplicated the Governance filename. Both have been corrected to point to the canonical workspace Governance file.
 - A detailed review of Governance 1.4.6 confirmed its main consolidation direction is coherent: §14 is the authorization source; §25-A-7 is the single recovery procedure; §11 / §20 / §27 own evidence and traceability. The concrete defect was current-state synchronization after merge, not a reason to add another registry/parser/state layer.
-- Actual Render service metadata for `personal-ai-janggi-trainer-by-gpt` and `time-dashboard-by-gpt` still reported `autoDeploy=yes`, `autoDeployTrigger=commit`. The declared Blueprint previously did not request CI-gated deploys, so CI failure could not be treated as a production deployment blocker.
+- At this audit stage, actual Render service metadata for `personal-ai-janggi-trainer-by-gpt` and `time-dashboard-by-gpt` reported `autoDeploy=yes`, `autoDeployTrigger=commit`. The Blueprint had not yet been updated to request CI-gated deploys, so CI failure could not then be treated as a production deployment blocker.
 - Post-merge checks on `a65ef98...`: Workspace `39701830359`, Time Dashboard `39701830301`, and Janggi Python `39701830357` passed. Janggi live smoke run `39701830336` failed undo/replay on attempt 1 but passed all 11 tests on attempt 2 in 127.605 seconds. The first failure is preserved; its cause is unconfirmed and no speculative app change is warranted.
 
 ### Decisions / Work
@@ -39,13 +41,13 @@ After the user approved and merged Governance 1.4.6 through PR #160, the request
 - Registered `TASK-20261022-0001` for post-merge reconciliation, CI-gate implementation, and final production verification; closed the stale review Task and replaced its executable-looking Next Action with completion evidence.
 - Corrected Workspace CURRENT_STATUS, Registry, CHANGELOG decision text, and completed Checkpoint to reflect the actual merge and CI/deployment results.
 - Set both production services' declarative `autoDeployTrigger` to `checksPass` and extended the existing Workspace validator to require that policy in `render.yaml`.
-- Kept `ISSUE-001` BLOCKED because the connected Render integration has no service-setting mutation action and the current actual service settings remain `commit`; YAML is not proof that Render adopted the setting. Do not merge the gate PR until the services are actually configured to `After CI Checks Pass` in Render Dashboard.
+- At that time, kept `ISSUE-001` BLOCKED because the connected Render integration had no service-setting mutation action and actual service settings remained `commit`; YAML alone was not proof that Render had adopted the setting. The user subsequently changed both settings, and PR #161 was merged after CI verification.
 
-### Next verification boundary
+### Planned verification at that time
 
-- PR checks must pass on the new branch head.
-- Before merge, actual Render auto-deploy settings must be changed for both production services; after merge, re-read service metadata and verify both deployments and the Janggi live smoke.
-- Do not change public AI levels, search budgets, or the separate PAUSED AI calibration Task as part of v1.0 closure.
+- PR checks were required to pass on the final branch head.
+- Before merge, actual Render auto-deploy settings had to be changed for both production services; after merge, service metadata and deployments had to be rechecked.
+- Public AI levels, search budgets, and the separate PAUSED AI calibration Task remained out of scope.
 
 ---
 
