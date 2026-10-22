@@ -107,11 +107,11 @@ def validate_governance_version_values(
     """Ensure current-facing Governance version references match the canonical version."""
     errors = []
     version = version.strip()
-    if not re.fullmatch(r"\\d+\\.\\d+\\.\\d+", version):
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version):
         return [f"GOVERNANCE/VERSION must contain a semantic version (X.Y.Z), got: {version!r}"]
 
     header_match = re.search(
-        r"^\\*\\*Governance Version:\\s*(\\d+\\.\\d+\\.\\d+)\\*\\*\\s*$",
+        r"^\*\*Governance Version:\s*(\d+\.\d+\.\d+)\*\*\s*$",
         governance_text,
         re.MULTILINE,
     )
@@ -124,7 +124,7 @@ def validate_governance_version_values(
         )
 
     changelog_match = re.search(
-        r"^## \\[(\\d+\\.\\d+\\.\\d+)\\] - \\d{4}-\\d{2}-\\d{2}\\s*$",
+        r"^## \[(\d+\.\d+\.\d+)\] - \d{4}-\d{2}-\d{2}\s*$",
         changelog_text,
         re.MULTILINE,
     )
@@ -137,7 +137,7 @@ def validate_governance_version_values(
         )
 
     status_match = re.search(
-        r"^- Governance (\\d+\\.\\d+\\.\\d+) is active on `main`",
+        r"^- Governance (\d+\.\d+\.\d+) is active on `main`",
         current_status_text,
         re.MULTILINE,
     )
