@@ -34,6 +34,7 @@ REQUIRED_PATHS = (
 REQUIRED_RENDER_SERVICES = {
     "personal-ai-janggi-trainer-by-gpt": {
         "rootDir": "projects/personal-ai-janggi-trainer-by-gpt",
+        "autoDeployTrigger": "checksPass",
         "healthCheckPath": "/api/health",
         "buildCommand": "python -m compileall janggi tests",
         "startCommand": "python app.py",
@@ -41,6 +42,7 @@ REQUIRED_RENDER_SERVICES = {
     },
     "time-dashboard-by-gpt": {
         "rootDir": "projects/time-dashboard-by-gpt",
+        "autoDeployTrigger": "checksPass",
         "healthCheckPath": "/api/health",
         "buildCommand": "pip install -r requirements.txt",
         "startCommand": "python timefolio_server.py",
