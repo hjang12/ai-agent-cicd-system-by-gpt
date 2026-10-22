@@ -736,14 +736,23 @@ class TestGameFirstSetupFlowUiContract(unittest.TestCase):
         self.assertIn("event.target === setupScreen", html)
         self.assertIn("setupOptions.forEach(option => option.addEventListener('click'", html)
 
+    def test_browser_polished_visual_theme_respects_reduced_motion(self):
+        html = INDEX_HTML.read_text(encoding="utf-8")
+        self.assertIn("--bg:#0b1517", html)
+        self.assertIn("--surface:#132225", html)
+        self.assertIn("--gold:#d7bf82", html)
+        self.assertIn("--cho:#168565", html)
+        self.assertIn("--han:#dd515c", html)
+        self.assertIn("@media (prefers-reduced-motion:reduce)", html)
+
     def test_browser_refined_mobile_game_hud_contract(self):
         html = INDEX_HTML.read_text(encoding="utf-8")
         self.assertIn(".players{display:contents}", html)
         self.assertIn(".player-card.opponent{grid-column:1;grid-row:1}", html)
         self.assertIn(".board-wrap{grid-column:1;grid-row:2}", html)
         self.assertIn(".player-card.me{grid-column:1;grid-row:3}", html)
-        self.assertIn("--cho:#00a63c", html)
-        self.assertIn("--han:#e30613", html)
+        self.assertIn("--cho:#168565", html)
+        self.assertIn("--han:#dd515c", html)
         self.assertIn("overflow:hidden;background:radial-gradient", html)
         self.assertIn("font-size:clamp(16px,3.2vh,30px)", html)
         self.assertIn("AI 생각 중…", html)
