@@ -55,7 +55,7 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 
 ## Latest verification snapshot — 2026-10-22
 
-- Current `main`: `d74f114149bf5c016e509ab94e3d08b887d00adb` (PR #161, CI-gated Render deployments).
+- Gate-verification commit: `d74f114149bf5c016e509ab94e3d08b887d00adb` (PR #161, merged 2026-10-22).
 - Workspace validation [39705628721](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39705628721): PASS.
 - Time Dashboard CI [39705628681](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39705628681): PASS.
 - Janggi Python validation [39705628751](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39705628751): PASS.
