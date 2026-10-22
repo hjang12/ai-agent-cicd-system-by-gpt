@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.4.7] - 2026-10-22
+
+### Maintenance and Documentation
+
+- Remove the root `ACTIVE_ISSUES.md` pointer; `GOVERNANCE/docs/ACTIVE_ISSUES.md` remains the single canonical Workspace issue index.
+- Remove `GOVERNANCE/templates/CHANGE_RECORD.md` after checking that no repository references or instantiated records depend on it; retain `DEVELOPMENT_HISTORY.md` and task Checkpoints as the record formats.
+- Mark the obsolete 2026-09-18 deployment-policy statement in ADR-0002 as historical and link to the current status and verification history.
+- Add `MODELS.md` and `RATINGS.md` to Janggi project documentation navigation; the implementation modules and documentation remain preserved.
+
+### Review Trigger
+
+- The 2026-10-22 unused-file audit found an obsolete root issue-index pointer, an unreferenced Change Record template duplicating existing record structures, a historical ADR statement that read as current, and model documents lacking navigation links.
+
+### Decision
+
+- No new validator, registry, workflow, state layer, application feature, or deployment configuration was added.
+- The user approved Governance version 1.4.7 and PR #163 on 2026-10-22.
+
 ## [1.4.6] - 2026-10-21
 
 ### Corrected and Simplified
