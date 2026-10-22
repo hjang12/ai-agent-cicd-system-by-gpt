@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - 'projects/personal-ai-janggi-trainer-by-gpt/**'
+      - 'render.yaml'
       - '.github/workflows/janggi-browser-acceptance.yml'
   push:
     branches: [main]
     paths:
       - 'projects/personal-ai-janggi-trainer-by-gpt/**'
+      - 'render.yaml'
       - '.github/workflows/janggi-browser-acceptance.yml'
   workflow_dispatch:
 
@@ -17,7 +19,7 @@ permissions:
 
 jobs:
   browser-acceptance:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -37,7 +39,7 @@ jobs:
         run: python tools/browser_acceptance.py
 
   live-browser-smoke:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:

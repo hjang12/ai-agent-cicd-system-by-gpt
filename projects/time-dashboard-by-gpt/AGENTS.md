@@ -1,6 +1,6 @@
 # Agent instructions
 
-공통 Governance: `../../GOVERNANCE/GOVERNANCE.md`의 `GOVERNANCE.md`를 따른다.
+공통 Governance: `../../GOVERNANCE/GOVERNANCE.md`를 따른다.
 
 작업 시작 전에 `AGENT_START.md`와 `docs/CURRENT_STATUS.md`를 먼저 확인하고, 이어서 현재 Repository의 코드, 문서, CI 상태를 실제로 확인한다. 실제 상태가 채팅 내용과 다르면 Repository를 우선한다.
 

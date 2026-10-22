@@ -6,7 +6,7 @@
 - Default branch: `main`
 - Common Governance rule: `GOVERNANCE/GOVERNANCE.md`
 - Canonical Governance version file: `GOVERNANCE/VERSION`
-- Proposal under review: PR #160; its `1.4.6` version is not active on `main` until user approval and merge.
+- Governance 1.4.6 is active on `main`, adopted by PR #160 squash merge `a65ef98be8d83b2992e40c226159c2ef683cbb8c` on 2026-10-22.
 - `main` branch protection is not enabled. A strict CI-success-before-deploy gate is not enforced; authoritative status and blocker are in `GOVERNANCE/docs/ACTIVE_ISSUES.md` (`ISSUE-001`).
 
 ## Canonical Navigation
@@ -24,7 +24,8 @@ These files have distinct responsibilities. Do not copy the same current status 
 
 ## Current Task State
 
-- Governance consistency/simplicity review: `TASK-20261021-0004` — **ACTIVE** on `governance/review-simplicity-20261021`; PR #160 is open. Governance version 1.4.6 is a proposal and requires explicit user approval before merge.
+- Governance consistency/simplicity review: `TASK-20261021-0004` — **COMPLETED** through PR #160, merged as `a65ef98be8d83b2992e40c226159c2ef683cbb8c` on 2026-10-22.
+- Post-1.4.6 audit / `ISSUE-001` / Janggi live-smoke reconciliation: `TASK-20261022-0001` — **ACTIVE**; Checkpoint: `GOVERNANCE/docs/checkpoints/TASK-20261022-0001.md`.
 - Previous Governance review: `TASK-20261021-0003` — **COMPLETED** through PR #159.
 - Personal AI Janggi Trainer v1.0: `TASK-20261020-0001` — **COMPLETED**; final production browser smoke passed 11/11 tests. Project release evidence is in `projects/personal-ai-janggi-trainer-by-gpt/docs/V1_RELEASE_SCOPE.md` and its final Checkpoint.
 - Janggi AI-level calibration: `TASK-20260930-0002` — **PAUSED** post-v1.0 research. Do not run more seeds or change public AI-level/search-budget settings unless explicitly resumed.
@@ -51,6 +52,13 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 - Render service topology and desired configuration: root `render.yaml` and project status documents.
 - Commits touching project paths can trigger documentation-only Render deployments. Verify the current deployment directly after relevant merges; dated LIVE snapshots in history are not current-state evidence.
 - The configured Render auto-deploy path is not proof that deployment waits for CI success. Track the strict-gate limitation under `ISSUE-001`; do not claim enforced CI-before-deploy.
+
+## Latest verification snapshot — 2026-10-22
+
+- `main` at audit start: `a65ef98be8d83b2992e40c226159c2ef683cbb8c`.
+- Main-push checks: Workspace validation [39701830359](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39701830359) PASS; Time Dashboard CI [39701830301](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39701830301) PASS; Janggi Python validation [39701830357](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39701830357) PASS.
+- Janggi live-browser smoke [39701830336](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39701830336) failed the undo/replay assertion on attempt 1, then passed all 11 browser tests on attempt 2 (`127.605s`, `OK`). The failure was not reproducible in the retry, so no application change is justified from this single result; recheck after the CI-gate PR merges.
+- Actual Render metadata still reports commit-triggered auto-deploy for both Janggi and Time Dashboard. `ISSUE-001` remains BLOCKED until the actual service setting is changed and enforcement is verified; `render.yaml` is declarative configuration, not evidence that an existing service has adopted it.
 
 ## Migration Status
 

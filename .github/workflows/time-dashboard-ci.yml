@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - 'projects/time-dashboard-by-gpt/**'
+      - 'render.yaml'
       - '.github/workflows/time-dashboard-ci.yml'
   pull_request:
     paths:
       - 'projects/time-dashboard-by-gpt/**'
+      - 'render.yaml'
       - '.github/workflows/time-dashboard-ci.yml'
 
 permissions:

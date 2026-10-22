@@ -111,7 +111,7 @@ v1.0 is complete only when all applicable gates below pass.
 - Subsequent branch-head CI at `d8725225a4e34a0e222d93de1ca2e5e98dd149c3` passed Workspace validation run `39519490460`, Janggi Python validation run `39519490378`, and browser acceptance run `39519490467`. The browser job passed and `live-browser-smoke` was skipped by design on the pull-request event. This is candidate-local evidence, not production Render smoke; any later candidate commit must pass its own branch-head checks before merge.
 - These browser tests cover setup combinations, both player-side opening paths, human-move/AI-thinking sequence, analysis/review/training visibility, answer checking, per-level progress display, idempotent result recording, reload persistence, and malformed/unavailable browser storage. They are candidate-local CI evidence, not a production Render browser smoke.
 - This candidate-local evidence was superseded by the main-push production smoke results below; the final live suite verifies the wider gameplay/legal-move regression.
-- The PR-triggered workflow's live-browser-smoke job is skipped by design; it runs after a project-changing commit reaches main.
+- At the time of this 2026-10-21 candidate, the PR-triggered workflow skipped live-browser-smoke and configured it to run on a main push. Since the 2026-10-22 CI-gate redesign, main pushes run local Chromium acceptance as a pre-deploy check, while production live smoke is `workflow_dispatch`-only so it cannot create a circular wait with Render's CI-gated deploy.
 
 
 ### Production browser smoke — 2026-10-21
