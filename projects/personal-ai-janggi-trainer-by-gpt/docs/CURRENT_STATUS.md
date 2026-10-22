@@ -35,7 +35,8 @@ Detailed design: `ARCHITECTURE.md`, `AI_MODEL_ARCHITECTURE.md`, `SEARCH.md`, `CO
 
 - Application release commit: `1034665caedbe997d859053eebab40def78e7fe2`; deployment `dep-dbc2003ncjis73ejm660` reached `live`.
 - Final release evidence synchronization: `96001f6e533b05b48b15ae286ee43a01d9d9caca`.
-- Main-push live-browser smoke run [39533158968](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39533158968) passed readiness and all 11 Playwright/Chromium tests in 128.597 seconds.
+- At v1.0 release closure (2026-10-21), main-push live-browser smoke run [39533158968](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39533158968) passed readiness and all 11 Playwright/Chromium tests in 128.597 seconds.
+- Post-Governance-1.4.6 deployment smoke (2026-10-22), run [39701830336](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39701830336) initially failed the undo/replay assertion, then passed all 11 tests on retry attempt 2 in 127.605 seconds; the failure did not reproduce and no application-source change was made.
 - At release closure, Workspace validation run `39533158998` and Janggi Python validation run `39533159009` passed.
 - Subsequent changes to this file are documentation-only; verify the current CI and deployment directly when a new change is made.
 
@@ -44,6 +45,7 @@ Detailed design: `ARCHITECTURE.md`, `AI_MODEL_ARCHITECTURE.md`, `SEARCH.md`, `CO
 - Required project CI: `.github/workflows/janggi-validation.yml`; Python compile, browser JavaScript syntax, Requirement Contract validation and unit tests.
 - Search benchmark: `.github/workflows/janggi-search-benchmark.yml`; deterministic node/legal-move work, with historical results in `SEARCH_BENCHMARK_HISTORY.md`.
 - Workspace structural validation: `.github/workflows/workspace-validation.yml`.
+- Browser acceptance: `.github/workflows/janggi-browser-acceptance.yml`; PR and main-push events run local Chromium tests as a pre-deploy CI gate; `workflow_dispatch` runs the production live smoke after deployment, avoiding a circular wait with Render's CI-gated deployment.
 - Do not infer that CI blocks production deployment: root Render services currently use commit-triggered auto-deploy, and the Workspace's strict CI-success-before-deploy gate remains tracked separately as `ISSUE-001`.
 
 ## Render Deployment
