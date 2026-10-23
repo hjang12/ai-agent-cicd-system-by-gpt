@@ -15,6 +15,7 @@
 
   const W = 960, H = 560, PLAYER_Y = 424, MAX_SOLDIERS = 120;
   const testMode = new URLSearchParams(location.search).get("testMode") === "1";
+  const testBossCounterattack = testMode && new URLSearchParams(location.search).get("testBossCounterattack") === "1";
   const speed = testMode ? 520 : 136;
   const spawnInterval = testMode ? .96 : 2.05;
   const C = { lime:"#d6fa68", cyan:"#63e5e5", red:"#ff777f", purple:"#b4a1ff" };
@@ -72,7 +73,10 @@
   }
   function startRun() {
     mode="running"; soldiers=12; resolved=0; nextIndex=1;
-    events=[{...ROUND[0],id:0,y:84,engaged:false,resolved:false}];
+    events=testBossCounterattack
+      ? [{...ROUND[ROUND.length-1],id:ROUND.length-1,y:PLAYER_Y-124,engaged:true,resolved:false,maxHp:ROUND[ROUND.length-1].hp}]
+      : [{...ROUND[0],id:0,y:84,engaged:false,resolved:false}];
+    if(testBossCounterattack) nextIndex=ROUND.length;
     spawnClock=0; fireClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[];
     ui.start.hidden=true; ui.end.hidden=true;
     say("Run started. Pick the stronger gate."); syncHud();
@@ -258,6 +262,7 @@
   }
   function updateBoss(e,dt) {
     attackClock+=dt;
+    const pr=roadAt(PLAYER_Y),px=pr.left+pr.width*lane;
     e.hp-=soldiers*.35*dt;
     if(soldiers<24&&attackClock>.8){attackClock=0;soldiers=Math.max(0,soldiers-2);say("Commander counterattack  ·  2 units lost");burst(px,PLAYER_Y-10,C.red,6);if(soldiers<=0){finishRun("lost");return;}}
     if(e.hp<=0){resolved++;events=events.filter(item=>item!==e);finishRun("won");}

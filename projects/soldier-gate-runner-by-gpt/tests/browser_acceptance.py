@@ -101,6 +101,22 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             self.assertTrue(page.locator("#startButton").is_visible())
             page.close()
 
+    def test_low_squad_boss_counterattack_does_not_throw(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(
+            self.base_url + "?testMode=1&testBossCounterattack=1",
+            wait_until="networkidle",
+        )
+        page.get_by_role("button", name="START RUN").click()
+        page.wait_for_function(
+            "() => document.querySelector('#statusPill').textContent.trim() === 'DEFEAT'",
+            timeout=7000,
+        )
+        self.assertEqual([], errors, "Low-squad boss counterattack raised a browser error")
+        page.close()
+
     def test_squad_fires_visible_missiles_at_enemy_wave(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
