@@ -60,6 +60,13 @@ REQUIRED_RENDER_SERVICES = {
         "startCommand": "python timefolio_server.py",
         "buildFilterPath": "projects/time-dashboard-by-gpt/**",
     },
+    "soldier-gate-runner-by-gpt": {
+        "runtime": "static",
+        "autoDeployTrigger": "checksPass",
+        "buildCommand": 'echo "No build step required"',
+        "staticPublishPath": "projects/soldier-gate-runner-by-gpt",
+        "buildFilterPath": "projects/soldier-gate-runner-by-gpt/**",
+    },
 }
 
 

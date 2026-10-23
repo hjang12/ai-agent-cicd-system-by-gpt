@@ -32,6 +32,18 @@ services:
         - render.yaml
 
   - type: web
+    name: soldier-gate-runner-by-gpt
+    runtime: static
+    branch: main
+    autoDeployTrigger: checksPass
+    buildCommand: echo "No build step required"
+    staticPublishPath: projects/soldier-gate-runner-by-gpt
+    buildFilter:
+      paths:
+        - projects/soldier-gate-runner-by-gpt/**
+        - render.yaml
+
+  - type: web
     name: personal-ai-janggi-calibration-runner
     runtime: python
     plan: free
