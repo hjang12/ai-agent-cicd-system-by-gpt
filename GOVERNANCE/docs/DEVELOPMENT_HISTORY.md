@@ -1,3 +1,23 @@
+## 2026-10-23 — Gatefront deployed to Render
+
+### Deployment
+- Root `render.yaml` now declares `soldier-gate-runner-by-gpt` as a static site publishing `projects/soldier-gate-runner-by-gpt`, with `autoDeployTrigger: checksPass` and project-scoped build filters.
+- Render workspace: `My Workspace` (`tea-da7sjdgu01pc73bsno6g`).
+- Service: `srv-dbdf3jbrjlhs73d2lmgg`; public URL: https://soldier-gate-runner-by-gpt.onrender.com.
+- Deployment `dep-dbdf3jrrjlhs73d2lnb0` reached `LIVE` for commit `480cce919459709f9b4c1b69dcd95413f7083cb0`.
+
+### Verification evidence
+- Full-round Gatefront browser suite passed on PR #172 run [39905699244](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39905699244).
+- PR #173 checks passed: Workspace [39906299051](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299051), Time Dashboard [39906299110](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299110), Janggi Python [39906299187](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299187), Janggi browser [39906299053](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299053), and Gatefront browser [39906299340](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299340).
+- Render's deployment record is `LIVE`. Direct public HTTP fetch was unavailable from this execution environment, so browser-level post-deployment response remains unobserved.
+
+### Remaining configuration work
+- The service-creation tool only accepted auto-deploy `yes/no`, so the site was created with automatic deploys off to avoid bypassing CI while provisioning.
+- The canonical Blueprint declares `checksPass`; the actual service currently reports `off`. The user needs to set Auto-Deploy to **After CI Checks Pass** in the [service settings](https://dashboard.render.com/static/srv-dbdf3jbrjlhs73d2lmgg), after which the service setting can be re-queried and the checkpoint closed.
+- `TASK-20261023-0003` remains ACTIVE until the configuration and browser smoke checks are verified. The broader Governance task remains PAUSED.
+
+---
+
 ## 2026-10-23 — Start Gatefront one-round browser game
 
 ### Trigger
