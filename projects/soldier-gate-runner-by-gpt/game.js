@@ -39,7 +39,7 @@
   ];
 
   let mode="ready", soldiers=12, resolved=0, nextIndex=0, events=[];
-  let spawnClock=0, shotClock=0, attackClock=0, lane=.5, targetLane=.5, offset=0, lastFrame=0;
+  let spawnClock=0, fireClock=0, attackClock=0, lane=.5, targetLane=.5, offset=0, lastFrame=0;
   let message="Choose your route. The squad is waiting.", bullets=[], particles=[];
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const lerp=(a,b,t)=>a+(b-a)*t;
@@ -66,14 +66,14 @@
   }
   function resetState() {
     mode="ready"; soldiers=12; resolved=0; nextIndex=0; events=[];
-    spawnClock=0; shotClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[];
+    spawnClock=0; fireClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[];
     ui.start.hidden=false; ui.end.hidden=true;
     say("Choose your route. The squad is waiting."); syncHud();
   }
   function startRun() {
     mode="running"; soldiers=12; resolved=0; nextIndex=1;
     events=[{...ROUND[0],id:0,y:84,engaged:false,resolved:false}];
-    spawnClock=0; shotClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[];
+    spawnClock=0; fireClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[];
     ui.start.hidden=true; ui.end.hidden=true;
     say("Run started. Pick the stronger gate."); syncHud();
   }
@@ -252,23 +252,71 @@
       if(e.type==="enemy"&&e.y>=PLAYER_Y-18){resolveEnemy(e);events.splice(i,1);if(mode!=="running")return;continue;}
       if(e.type==="boss"&&e.y>=PLAYER_Y-124){e.engaged=true;e.y=PLAYER_Y-119;e.maxHp=e.hp;attackClock=0;say("Final commander engaged. Auto-fire on target.");}
     }
+    updatePlayerFire(dt);
     updateBullets(dt);
     if(mode==="running"&&nextIndex>=ROUND.length&&events.length===0)finishRun("won");
   }
   function updateBoss(e,dt) {
-    shotClock+=dt;attackClock+=dt;
-    const r=roadAt(e.y),bossX=r.left+r.width/2,pr=roadAt(PLAYER_Y),px=pr.left+pr.width*lane;
-    while(shotClock>=.15){shotClock-=.15;bullets.push({x:px+rand(-36,36),y:PLAYER_Y-rand(3,23),vx:(bossX-px)*.4+rand(-10,10),vy:-rand(250,360),life:.55});}
+    attackClock+=dt;
     e.hp-=soldiers*.35*dt;
     if(soldiers<24&&attackClock>.8){attackClock=0;soldiers=Math.max(0,soldiers-2);say("Commander counterattack  ·  2 units lost");burst(px,PLAYER_Y-10,C.red,6);if(soldiers<=0){finishRun("lost");return;}}
     if(e.hp<=0){resolved++;events=events.filter(item=>item!==e);finishRun("won");}
   }
+  function projectileTargetPoint(target) {
+    const road=roadAt(target.y);
+    if(target.type==="boss") return {x:road.left+road.width/2,y:target.y-27};
+    return {x:road.left+road.width*target.lane,y:target.y};
+  }
+  function fireVolley(target) {
+    const fromRoad=roadAt(PLAYER_Y),fromX=fromRoad.left+fromRoad.width*lane;
+    const aim=projectileTargetPoint(target);
+    [-15,0,15].forEach(spread=>{
+      const x=fromX+spread,y=PLAYER_Y-12,dx=aim.x-x,dy=aim.y-y,dist=Math.hypot(dx,dy)||1;
+      const velocity= testMode ? 980 : 760;
+      bullets.push({
+        x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,life:2.4,
+        targetId:target.id,targetX:aim.x,targetY:aim.y
+      });
+    });
+  }
+  function updatePlayerFire(dt) {
+    if(mode!=="running") return;
+    const target=events.find(e=>e.type==="boss"&&e.engaged)
+      || events.filter(e=>e.type==="enemy"&&e.y<PLAYER_Y+8).sort((a,b)=>b.y-a.y)[0];
+    if(!target){fireClock=0;return;}
+    fireClock+=dt;
+    const interval=testMode?.18:.3;
+    while(fireClock>=interval){fireClock-=interval;fireVolley(target);}
+  }
   function updateBullets(dt) {
-    for(let i=bullets.length-1;i>=0;i--){const b=bullets[i];b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;if(b.life<=0||b.y<0){bullets.splice(i,1);}}
+    const velocity=testMode?980:760;
+    for(let i=bullets.length-1;i>=0;i--){
+      const b=bullets[i],target=events.find(e=>e.id===b.targetId);
+      const aim=target?projectileTargetPoint(target):{x:b.targetX,y:b.targetY};
+      const dx=aim.x-b.x,dy=aim.y-b.y,dist=Math.hypot(dx,dy)||1;
+      if(dist<=Math.max(12,velocity*dt)){
+        burst(aim.x,aim.y,target&&target.type==="boss"?C.cyan:C.red,3);
+        bullets.splice(i,1);
+        continue;
+      }
+      if(target){b.vx=dx/dist*velocity;b.vy=dy/dist*velocity;b.targetX=aim.x;b.targetY=aim.y;}
+      b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
+      if(b.life<=0||b.y<0||b.x< -30||b.x>W+30){bullets.splice(i,1);}
+    }
   }
   function drawBullets() {
-    ctx.strokeStyle="rgba(214,250,104,.8)";ctx.lineWidth=2;ctx.shadowColor=C.lime;ctx.shadowBlur=9;
-    bullets.forEach(b=>{ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.x,b.y+12);ctx.stroke();});ctx.shadowBlur=0;
+    canvas.dataset.projectiles=String(bullets.length);
+    ctx.save();
+    bullets.forEach(b=>{
+      ctx.save();ctx.translate(b.x,b.y);ctx.rotate(Math.atan2(b.vy,b.vx));
+      ctx.strokeStyle="rgba(99,229,229,.8)";ctx.lineWidth=2.5;ctx.lineCap="round";
+      ctx.shadowColor=C.cyan;ctx.shadowBlur=8;
+      ctx.beginPath();ctx.moveTo(-15,0);ctx.lineTo(-3,0);ctx.stroke();ctx.shadowBlur=0;
+      ctx.fillStyle=C.lime;ctx.beginPath();ctx.moveTo(8,0);ctx.lineTo(-3,-3.5);ctx.lineTo(-1,0);ctx.lineTo(-3,3.5);ctx.closePath();ctx.fill();
+      ctx.fillStyle="#f2fff0";ctx.fillRect(-4,-1,7,2);
+      ctx.restore();
+    });
+    ctx.restore();
   }
   function drawParticles() {
     particles.forEach(p=>{ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();});ctx.globalAlpha=1;
