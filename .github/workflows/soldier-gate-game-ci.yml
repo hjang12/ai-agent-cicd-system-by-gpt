@@ -1,0 +1,42 @@
+name: Soldier gate-runner game CI
+
+on:
+  pull_request:
+    paths:
+      - 'projects/soldier-gate-runner-by-gpt/**'
+      - 'render.yaml'
+      - '.github/workflows/soldier-gate-game-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'projects/soldier-gate-runner-by-gpt/**'
+      - 'render.yaml'
+      - '.github/workflows/soldier-gate-game-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  browser-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: projects/soldier-gate-runner-by-gpt
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate game JavaScript syntax
+        run: node --check game.js
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install Chromium for browser acceptance
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright==1.64.0
+          python -m playwright install --with-deps chromium
+      - name: Run single-round browser acceptance
+        run: python tests/browser_acceptance.py

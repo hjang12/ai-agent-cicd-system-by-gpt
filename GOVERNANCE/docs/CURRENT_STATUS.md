@@ -24,7 +24,8 @@ These files have distinct responsibilities. Do not copy the same current status 
 
 ## Current Task State
 
-- Governance improvement after fresh-chat validation: `TASK-20261023-0002` — **ACTIVE**. The recovery test task `TASK-20261023-0001` is completed with no demonstrated need to change recovery rules; continue the broader Governance-improvement objective from the successor Checkpoint at `GOVERNANCE/docs/checkpoints/TASK-20261023-0002.md`.
+- Gatefront one-round browser game: `TASK-20261023-0003` — **ACTIVE**. Scope, acceptance criteria, and next action are in `projects/soldier-gate-runner-by-gpt/docs/checkpoints/TASK-20261023-0003.md`.
+- Broader Governance improvement: `TASK-20261023-0002` — **PAUSED** while the user prioritizes the game; its checkpoint records the resume condition.
 - Fresh-chat Context Recovery validation: `TASK-20261023-0001` — **COMPLETED** on 2026-10-23; all five acceptance criteria passed. Evidence: `GOVERNANCE/docs/checkpoints/TASK-20261023-0001.md`.
 - Janggi interface visual refinement: `TASK-20261022-0003` — **COMPLETED** through PR #166, merged as `2feb15a00abd88e9170c731c6d868201d97a7310`; final evidence: `projects/personal-ai-janggi-trainer-by-gpt/docs/checkpoints/TASK-20261022-0003.md`.
 - Governance version synchronization CI pilot: `TASK-20261022-0002` — **COMPLETED** through PR #164, merged as `fb1e0240ba4047a7097cbd0223d185eb315c1355`; closure evidence: `GOVERNANCE/docs/checkpoints/TASK-20261022-0002.md`.
@@ -38,6 +39,12 @@ These files have distinct responsibilities. Do not copy the same current status 
 The Task Registry Status is authoritative for whether a Next Action may run. Completed Task summaries and historical Checkpoint actions are not current instructions.
 
 ## Projects and Verification
+
+### Gatefront — one-round soldier gate-runner
+- Canonical path: `projects/soldier-gate-runner-by-gpt/`
+- Static browser game only; one round, original Canvas visuals, no external runtime dependencies or AI model.
+- CI: `.github/workflows/soldier-gate-game-ci.yml` (JavaScript syntax and Chromium browser acceptance).
+- Render service has not yet been provisioned; workspace selection and Blueprint reconciliation are required before publishing.
 
 ### Personal AI Janggi Trainer
 - Canonical path: `projects/personal-ai-janggi-trainer-by-gpt/`

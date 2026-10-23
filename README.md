@@ -8,6 +8,7 @@
 - `projects/` — 개별 프로젝트
   - `personal-ai-janggi-trainer-by-gpt/`
   - `time-dashboard-by-gpt/`
+  - `soldier-gate-runner-by-gpt/` — one-round static browser game
 - `.github/workflows/` — 프로젝트별 CI/benchmark
 - `render.yaml` — 모노레포 기준 Render 서비스 구성
 
