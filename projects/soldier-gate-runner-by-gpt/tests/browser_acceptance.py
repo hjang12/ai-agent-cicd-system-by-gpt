@@ -86,6 +86,58 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"), 390)
         page.close()
 
+    def test_full_round_can_defeat_final_commander(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+
+        canvas = page.locator("#gameCanvas")
+        bounds = canvas.bounding_box()
+        assert bounds is not None
+        drag_y = bounds["y"] + bounds["height"] * 0.78
+        left_x = bounds["x"] + bounds["width"] * 0.20
+        right_x = bounds["x"] + bounds["width"] * 0.82
+
+        # A deliberately winning route:
+        # +50%, ×2, +20%, ×2, +50%, ×2, +40%, ×2.
+        # Enemy waves then leave enough units to defeat the commander.
+        page.mouse.move(right_x, drag_y)
+        page.mouse.down()
+        next_gate_route = {
+            1: "left",   # gate 2: ×2
+            2: "left",   # gate 3: +20%
+            4: "right",  # gate 4: ×2
+            5: "right",  # gate 5: +50%
+            7: "left",   # gate 6: ×2
+            9: "right",  # gate 7: +40%
+            10: "left",  # gate 8: ×2
+        }
+        for completed_event in range(1, 12):
+            page.wait_for_function(
+                f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 12'",
+                timeout=6000,
+            )
+            direction = next_gate_route.get(completed_event)
+            if direction:
+                page.mouse.move(right_x if direction == "right" else left_x, drag_y, steps=2)
+
+        page.mouse.up()
+        page.wait_for_function(
+            "() => document.querySelector('#statusPill').textContent.trim() === 'VICTORY'",
+            timeout=8000,
+        )
+        self.assertTrue(page.locator("#endOverlay").is_visible())
+        self.assertEqual("OPERATION COMPLETE", page.locator("#endKicker").inner_text().strip())
+        self.assertEqual("12 / 12", page.locator("#progressCount").inner_text().strip())
+        self.assertGreater(int(page.locator("#endSoldierCount").inner_text().strip()), 0)
+        self.assertEqual([], errors, "Browser JavaScript errors were reported")
+        page.get_by_role("button", name="RUN IT AGAIN").click()
+        self.assertEqual("IN RUN", page.locator("#statusPill").inner_text().strip())
+        self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
+        page.close()
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
