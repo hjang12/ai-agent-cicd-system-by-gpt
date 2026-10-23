@@ -241,3 +241,166 @@ html, body {
   .reset-button { padding: 5px 6px; font-size: 8px; }
   #gameCanvas { width: min(100%, calc((100dvh - 100px) * 12 / 7)); }
 }
+
+
+/* Bright blue-and-red arcade presentation for the toy-soldier runner. */
+:root {
+  color-scheme: light;
+  --bg: #eaf4ff;
+  --panel: #ffffff;
+  --line: rgba(27, 83, 145, .18);
+  --muted: #6b8099;
+  --text: #17375d;
+  --lime: #ffd34d;
+  --cyan: #1986ee;
+  --red: #e83a48;
+  --purple: #399cf3;
+}
+html, body {
+  background: #eaf4ff;
+}
+body {
+  color: var(--text);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(94,184,255,.22), transparent 45%),
+    linear-gradient(180deg,#eaf6ff 0%,#f6fbff 60%,#e4f1ff 100%);
+}
+button:focus-visible { outline-color: #ffbe27; }
+.app-shell { color: var(--text); }
+.topbar {
+  background: linear-gradient(105deg,#1768c5 0%,#258de9 60%,#42adff 100%);
+  border: 1px solid rgba(10,72,142,.22);
+  border-bottom: 4px solid #0e58b0;
+  border-radius: 12px;
+  padding: 8px 14px;
+  box-shadow: 0 5px 0 rgba(16,82,153,.08);
+}
+.brand { color: #fff; }
+.brand-mark { border-color: rgba(255,224,92,.9); }
+.brand-mark i { background: #ffdf52; }
+.build-tag { color: rgba(255,255,255,.93); }
+.status-dot { background: #ffdf52; box-shadow: 0 0 0 3px rgba(255,223,82,.18); }
+.quiet-button {
+  color: #fff;
+  border-color: rgba(255,255,255,.52);
+  background: rgba(255,255,255,.13);
+  border-radius: 9px;
+  font-size: 10px;
+}
+.quiet-button:hover {
+  color: #fff;
+  border-color: #fff;
+  background: rgba(255,255,255,.24);
+}
+.game-column {
+  border: 2px solid #c8def5;
+  border-radius: 16px;
+  background: linear-gradient(180deg,#fff 0%,#f2f8ff 100%);
+  box-shadow: 0 10px 0 rgba(23,103,190,.07),0 20px 50px rgba(24,83,145,.13);
+}
+.hud { gap: 6px; }
+.hud-stat {
+  border-right-color: rgba(25,107,193,.17);
+  padding-left: 13px;
+  padding-right: 13px;
+}
+.hud-label { color: #68809a; }
+.hud-value { color: #193f6a; }
+.hud-value strong { color: #1475d8; }
+.hud-value small { color: #68809a; }
+.status-pill {
+  border: 1px solid #c7def7;
+  border-radius: 8px;
+  color: #1569c2;
+  background: #e8f3ff;
+  box-shadow: inset 0 -2px 0 rgba(20,95,179,.04);
+}
+.status-pill.status-live {
+  color: #135ea9;
+  border-color: #8cc7ff;
+  background: #dcedff;
+}
+.status-pill.status-win {
+  color: #16844a;
+  border-color: #a5e5c0;
+  background: #e2f9eb;
+}
+.status-pill.status-loss {
+  color: #b81f32;
+  border-color: #ffc0c5;
+  background: #fff0f1;
+}
+.game-frame {
+  border: 2px solid #2a82dc;
+  border-radius: 12px;
+  background: #8fd4ff;
+  box-shadow: inset 0 0 0 3px rgba(255,255,255,.45),0 4px 0 rgba(20,94,175,.13);
+}
+.game-overlay {
+  background: linear-gradient(180deg,rgba(34,119,203,.12),rgba(16,80,155,.3));
+  backdrop-filter: blur(2px);
+}
+.overlay-card {
+  border: 2px solid #c5def9;
+  border-bottom: 5px solid #a7c9ed;
+  border-radius: 18px;
+  background: linear-gradient(180deg,#fff 0%,#f2f8ff 100%);
+  box-shadow: 0 14px 0 rgba(9,74,145,.12),0 24px 55px rgba(23,79,137,.25);
+  color: #18385d;
+}
+.overlay-kicker {
+  color: #1975d1;
+  letter-spacing: .12em;
+}
+.signal-icon {
+  border-color: #f2b927;
+  background: #ffda50;
+  box-shadow: none;
+}
+.overlay-card h2 { color: #173c67; }
+.overlay-card h2 em { color: #1977d5; }
+.overlay-card p { color: #5d7590; }
+.primary-button {
+  border: 2px solid #0f5bb5;
+  border-bottom-width: 5px;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(180deg,#399ef5 0%,#1470d1 100%);
+  box-shadow: 0 3px 0 rgba(10,64,132,.12);
+}
+.primary-button:hover {
+  color: #fff;
+  background: linear-gradient(180deg,#57b0ff 0%,#1979dc 100%);
+  box-shadow: 0 4px 0 rgba(10,64,132,.13);
+}
+.primary-button:active { border-bottom-width: 2px; }
+.overlay-foot { color: #7087a0; }
+.end-card .result-stat {
+  border-color: rgba(36,104,174,.18);
+}
+.result-stat span { color: #67809a; }
+.result-stat strong { color: #176fcc; }
+.run-footer { color: #426281; }
+.run-message { color: #426281; }
+.message-pulse { background: #f7be35; box-shadow: 0 0 0 3px rgba(247,190,53,.2); }
+.reset-button {
+  color: #1b68b9;
+  border-color: #bfd7f2;
+  background: #fff;
+  border-radius: 8px;
+}
+.reset-button:hover {
+  color: #104e90;
+  border-color: #6cacec;
+  background: #edf7ff;
+}
+.progress-track { background: #d9e7f6; }
+.progress-fill {
+  background: linear-gradient(90deg,#2188ee,#ffd34d);
+  box-shadow: none;
+}
+@media (max-width:790px) {
+  .topbar { padding: 7px 10px; border-radius: 10px; }
+  .game-column { border-radius: 12px; }
+  .hud-stat { padding-left: 5px; padding-right: 5px; }
+}
