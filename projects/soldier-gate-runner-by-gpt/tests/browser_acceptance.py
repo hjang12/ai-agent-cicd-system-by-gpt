@@ -43,7 +43,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
 
         self.assertIn("Gatefront", page.title())
-        self.assertTrue(page.get_by_role("heading", name="ONE RUN. BUILD YOUR SQUAD.").is_visible())
+        self.assertFalse(page.locator(".intro").is_visible(), "Nonessential intro should not consume playfield space")
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
         self.assertEqual("0 / 12", page.locator("#progressCount").inner_text().strip())
         self.assertTrue(page.locator("#gameCanvas").is_visible())
@@ -76,14 +76,46 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual("0 / 12", page.locator("#progressCount").inner_text().strip())
         page.close()
 
-    def test_mobile_canvas_fits_viewport(self) -> None:
-        page = self.browser.new_page(viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
-        page.goto(self.base_url, wait_until="networkidle")
-        self.assertTrue(page.locator("#startButton").is_visible())
-        canvas = page.locator("#gameCanvas").bounding_box()
-        assert canvas is not None
-        self.assertLessEqual(canvas["width"], 390)
-        self.assertLessEqual(page.evaluate("document.documentElement.scrollWidth"), 390)
+    def test_page_uses_viewport_without_document_scroll(self) -> None:
+        for viewport, mobile in [
+            ({"width": 1280, "height": 900}, False),
+            ({"width": 390, "height": 844}, True),
+        ]:
+            page = self.browser.new_page(
+                viewport=viewport,
+                is_mobile=mobile,
+                has_touch=mobile,
+            )
+            page.goto(self.base_url, wait_until="networkidle")
+            dimensions = page.evaluate("""() => ({
+                scrollWidth: document.documentElement.scrollWidth,
+                clientWidth: document.documentElement.clientWidth,
+                scrollHeight: document.documentElement.scrollHeight,
+                clientHeight: document.documentElement.clientHeight
+            })""")
+            self.assertLessEqual(dimensions["scrollWidth"], dimensions["clientWidth"])
+            self.assertLessEqual(dimensions["scrollHeight"], dimensions["clientHeight"])
+            canvas = page.locator("#gameCanvas").bounding_box()
+            assert canvas is not None
+            self.assertGreaterEqual(canvas["width"], viewport["width"] * 0.88)
+            self.assertTrue(page.locator("#startButton").is_visible())
+            page.close()
+
+    def test_squad_fires_visible_missiles_at_enemy_wave(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        page.wait_for_function(
+            "() => document.querySelector('#enemyCount').textContent.trim() === '18 ENEMIES'",
+            timeout=7000,
+        )
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.projectiles || 0) > 0",
+            timeout=3000,
+        )
+        self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.close()
 
     def test_full_round_can_defeat_final_commander(self) -> None:
