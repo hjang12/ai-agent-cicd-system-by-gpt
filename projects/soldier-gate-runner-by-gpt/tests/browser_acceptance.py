@@ -117,6 +117,53 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Low-squad boss counterattack raised a browser error")
         page.close()
 
+    def test_arcade_ui_and_blue_red_soldier_palette_render(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+
+        theme = page.evaluate("""() => ({
+            colorScheme: getComputedStyle(document.documentElement).colorScheme,
+            topbarBackground: getComputedStyle(document.querySelector('.topbar')).backgroundImage,
+            primaryButtonColor: getComputedStyle(document.querySelector('.primary-button')).color
+        })""")
+        self.assertEqual("light", theme["colorScheme"])
+        self.assertIn("linear-gradient", theme["topbarBackground"])
+        self.assertIn("255, 255, 255", theme["primaryButtonColor"])
+
+        page.get_by_role("button", name="START RUN").click()
+        page.wait_for_function(
+            "() => document.querySelector('#enemyCount').textContent.trim() === '18 ENEMIES'",
+            timeout=7000,
+        )
+        page.wait_for_timeout(180)
+        pixels = page.evaluate("""() => {
+            const canvas = document.querySelector('#gameCanvas');
+            const {data, width, height} = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+            let blueSquad = 0;
+            let redEnemy = 0;
+            for (let y = 350; y < 505; y++) {
+                for (let x = 350; x < 610; x++) {
+                    const i = (y * width + x) * 4;
+                    const [r, g, b] = data.slice(i, i + 3);
+                    if (b > 105 && b > r * 1.35 && b > g * 1.05) blueSquad++;
+                }
+            }
+            for (let y = 100; y < 250; y++) {
+                for (let x = 350; x < 610; x++) {
+                    const i = (y * width + x) * 4;
+                    const [r, g, b] = data.slice(i, i + 3);
+                    if (r > 150 && r > g * 1.35 && r > b * 1.18) redEnemy++;
+                }
+            }
+            return {blueSquad, redEnemy};
+        }""")
+        self.assertGreater(pixels["blueSquad"], 250, "Blue squad uniform palette was not visible")
+        self.assertGreater(pixels["redEnemy"], 100, "Red enemy uniform palette was not visible")
+        self.assertEqual([], errors, "Browser JavaScript errors were reported")
+        page.close()
+
     def test_squad_fires_visible_missiles_at_enemy_wave(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
