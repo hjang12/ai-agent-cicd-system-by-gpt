@@ -1,3 +1,13 @@
+## 2026-10-23 — Gatefront viewport, missile firing, and boss-regression hardening
+
+### Changes and Evidence
+- PR #174 merged as `42c2c7a39c81ec74af94f4c29eeaefaf0ee95cc0`. It locks the document to the viewport, suppresses page-level scrolling, maximizes the playfield, hides nonessential intro/briefing/footer elements, and permits scrolling inside overlay content when needed.
+- The squad now fires visible homing missile volleys at enemy waves and the final commander, including trails and impact effects. No backend or runtime dependency was added.
+- PR #174 browser acceptance [39908455855](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455855) and Workspace validation [39908455850](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455850) passed.
+- Post-merge source review caught a low-squad boss-counterattack regression: a squad-position variable was still used by the counterattack effect after the firing logic was refactored. PR #175 restored the coordinate and added a deterministic browser regression test.
+- PR #175 merged as `016b2b921b2cb19c7f5e7744224ac4b199b895b5`; browser acceptance [39908722530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722530) and Workspace validation [39908722663](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722663) passed.
+- Render service `srv-dbdf3jbrjlhs73d2lmgg` reports `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and environment `evm-dakaq3142hec739tbag0`. Deployment `dep-dbdfg649v7es73dtj6pg` for the fix commit reached `LIVE`.
+- Public HTTP/browser smoke was not independently possible in this execution environment. The user-facing viewport/missile check remains open, and the user has indicated that overall gameplay needs further improvement. No extra stages, backend, or AI model were added.
 ## 2026-10-23 — Gatefront deployed to Render
 
 ### Deployment
