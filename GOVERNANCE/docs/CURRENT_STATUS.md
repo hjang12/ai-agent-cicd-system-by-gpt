@@ -43,11 +43,11 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 ### Gatefront — one-round soldier gate-runner
 - Canonical path: `projects/soldier-gate-runner-by-gpt/`
 - Public URL: https://soldier-gate-runner-by-gpt.onrender.com
-- Render service: `srv-dbdf3jbrjlhs73d2lmgg`; latest code deployment `dep-dbdfg649v7es73dtj6pg` reached `LIVE` on main commit `016b2b921b2cb19c7f5e7744224ac4b199b895b5`.
-- Live Render metadata reports `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and `environmentId=evm-dakaq3142hec739tbag0`, matching the existing project environment.
+- Latest visual-refresh commit: `3df9ac52a8e06932aa160d5c0e50dd58ac42a3a7`; Render deployment `dep-dbdh49s9v7es73dv83jg` reached `LIVE`.
+- Live Render metadata reports `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and environment `evm-dakaq3142hec739tbag0` (existing project environment).
 - PR #174 browser acceptance [39908455855](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455855) and Workspace validation [39908455850](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455850) passed. PR #175 regression acceptance [39908722530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722530) and Workspace validation [39908722663](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722663) passed.
-- The page no longer scrolls at document level, the playfield occupies the available viewport, and visible homing missiles target enemy waves and the commander. Low-squad boss counterattack is covered by a regression test.
-- Remaining: public HTTP/browser smoke could not be observed from this execution environment. User should confirm the live screen and missile visuals in a normal browser; gameplay feel remains under review.
+- PR #177 introduced original blue/red toy-soldier figures, light bridge/road colors, blue positive and red negative gates, and a bright blue-white-yellow interface. Browser acceptance [39920339465](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39920339465) passed all six tests; Workspace validation [39920339469](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39920339469) passed.
+- Current implementation has a viewport-locked layout, visible homing missiles, and the new character/UI style. Remaining: independent public HTTP/browser smoke was unavailable from this execution environment; user should verify the look in a normal browser and judge whether further refinement is needed.
 ### Personal AI Janggi Trainer
 - Canonical path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Required Python / contract validation: `.github/workflows/janggi-validation.yml`
@@ -68,10 +68,11 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 
 ## Latest verification snapshot — 2026-10-23
 
-- Gatefront PR #174 (`42c2c7a39c81ec74af94f4c29eeaefaf0ee95cc0`) and PR #175 (`016b2b921b2cb19c7f5e7744224ac4b199b895b5`) are merged; the latest game code deployment `dep-dbdfg649v7es73dtj6pg` was observed `LIVE`.
-- Gatefront Playwright acceptance passed viewport/no-scroll, missile emission, full-round victory/replay, reset, and low-squad boss regression checks. Runs: [39908455855](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455855), [39908722530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722530). Workspace validation also passed: [39908455850](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455850), [39908722663](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722663).
-- Render metadata was rechecked as `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and environment `evm-dakaq3142hec739tbag0`.
-- Public HTTP/browser smoke remains unverified from this execution environment; confirm the current live page in a normal browser.
+- Gatefront PRs #174–#177 are merged. The current visual-refresh commit `3df9ac52a8e06932aa160d5c0e50dd58ac42a3a7` deployed LIVE as `dep-dbdh49s9v7es73dv83jg`.
+- PR #174 browser acceptance [39908455855](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455855) / Workspace [39908455850](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455850) passed. PR #175 browser acceptance [39908722530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722530) / Workspace [39908722663](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722663) passed.
+- PR #177 visual refresh: browser acceptance [39920339465](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39920339465) passed six tests, including blue/red soldier palette rendering and arcade UI styles; Workspace validation [39920339469](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39920339469) passed.
+- Render metadata reports `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and environment `evm-dakaq3142hec739tbag0`.
+- Public HTTP/browser smoke remains unverified from this execution environment. User review of the actual look and gameplay feel remains open.
 
 ## Verification snapshot — 2026-10-22 (historical)
 
