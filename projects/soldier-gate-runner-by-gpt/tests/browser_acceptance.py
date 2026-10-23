@@ -31,7 +31,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         cls.browser.close()
-        cls.playwright_manager.stop()
+        cls.playwright.stop()
         cls.server.shutdown()
         cls.server.server_close()
         cls.server_thread.join(timeout=2)
