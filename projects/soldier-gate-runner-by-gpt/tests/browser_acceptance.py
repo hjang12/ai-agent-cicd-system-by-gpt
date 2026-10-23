@@ -43,7 +43,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
 
         self.assertIn("Gatefront", page.title())
-        self.assertTrue(page.get_by_role("heading", name="ONE RUN. BUILD YOUR SQUAD.").is_visible())
+        self.assertFalse(page.locator(".intro").is_visible(), "Nonessential intro should not consume playfield space")
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
         self.assertEqual("0 / 12", page.locator("#progressCount").inner_text().strip())
         self.assertTrue(page.locator("#gameCanvas").is_visible())
