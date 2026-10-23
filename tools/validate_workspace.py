@@ -23,6 +23,15 @@ REQUIRED_PATHS = (
     Path("projects/time-dashboard-by-gpt/AGENT_START.md"),
     Path("projects/time-dashboard-by-gpt/AGENTS.md"),
     Path("projects/time-dashboard-by-gpt/docs/CURRENT_STATUS.md"),
+    Path("projects/soldier-gate-runner-by-gpt/AGENT_START.md"),
+    Path("projects/soldier-gate-runner-by-gpt/AGENTS.md"),
+    Path("projects/soldier-gate-runner-by-gpt/docs/CURRENT_STATUS.md"),
+    Path("projects/soldier-gate-runner-by-gpt/docs/checkpoints/TASK-20261023-0003.md"),
+    Path("projects/soldier-gate-runner-by-gpt/index.html"),
+    Path("projects/soldier-gate-runner-by-gpt/styles.css"),
+    Path("projects/soldier-gate-runner-by-gpt/game.js"),
+    Path("projects/soldier-gate-runner-by-gpt/tests/browser_acceptance.py"),
+    Path(".github/workflows/soldier-gate-game-ci.yml"),
     Path("projects/personal-ai-janggi-trainer-by-gpt/app.py"),
     Path("projects/time-dashboard-by-gpt/timefolio_server.py"),
     Path(".github/workflows/janggi-validation.yml"),
@@ -168,6 +177,7 @@ def validate_project_boundaries() -> list[str]:
     for project in (
         "personal-ai-janggi-trainer-by-gpt",
         "time-dashboard-by-gpt",
+        "soldier-gate-runner-by-gpt",
     ):
         project_root = ROOT / "projects" / project
         if not project_root.is_dir():
@@ -184,6 +194,7 @@ def validate_ci_gate_workflows() -> list[str]:
         Path('.github/workflows/janggi-validation.yml'),
         Path('.github/workflows/time-dashboard-ci.yml'),
         Path('.github/workflows/janggi-browser-acceptance.yml'),
+        Path('.github/workflows/soldier-gate-game-ci.yml'),
     ):
         workflow = read_text(ROOT / relative)
         if workflow.count("      - 'render.yaml'") < 2:
