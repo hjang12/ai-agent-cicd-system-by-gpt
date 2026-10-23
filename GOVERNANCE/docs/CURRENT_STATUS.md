@@ -24,7 +24,8 @@ These files have distinct responsibilities. Do not copy the same current status 
 
 ## Current Task State
 
-- Governance improvement / fresh-chat Context Recovery validation: `TASK-20261023-0001` — **COMPLETED** on 2026-10-23. The minimal-prompt test recovered the active task, both purposes, and its executable Next Action; closure evidence and acceptance-criteria results are in `GOVERNANCE/docs/checkpoints/TASK-20261023-0001.md`.
+- Governance improvement after fresh-chat validation: `TASK-20261023-0002` — **ACTIVE**. The recovery test task `TASK-20261023-0001` is completed with no demonstrated need to change recovery rules; continue the broader Governance-improvement objective from the successor Checkpoint at `GOVERNANCE/docs/checkpoints/TASK-20261023-0002.md`.
+- Fresh-chat Context Recovery validation: `TASK-20261023-0001` — **COMPLETED** on 2026-10-23; all five acceptance criteria passed. Evidence: `GOVERNANCE/docs/checkpoints/TASK-20261023-0001.md`.
 - Janggi interface visual refinement: `TASK-20261022-0003` — **COMPLETED** through PR #166, merged as `2feb15a00abd88e9170c731c6d868201d97a7310`; final evidence: `projects/personal-ai-janggi-trainer-by-gpt/docs/checkpoints/TASK-20261022-0003.md`.
 - Governance version synchronization CI pilot: `TASK-20261022-0002` — **COMPLETED** through PR #164, merged as `fb1e0240ba4047a7097cbd0223d185eb315c1355`; closure evidence: `GOVERNANCE/docs/checkpoints/TASK-20261022-0002.md`.
 - Governance consistency/simplicity review: `TASK-20261021-0004` — **COMPLETED** through PR #160, merged as `a65ef98be8d83b2992e40c226159c2ef683cbb8c` on 2026-10-22.
