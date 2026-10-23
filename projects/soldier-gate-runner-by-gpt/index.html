@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#08111c">
+  <meta name="description" content="Gatefront — a one-run squad game. Build your squad, pick your gates, and break through enemy lines.">
+  <title>Gatefront — One Run. Build Your Squad.</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="game.js" defer></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Gatefront home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="brand-word">GATEFRONT</span>
+      </a>
+      <div class="topbar-right">
+        <span class="build-tag"><span class="status-dot"></span> ONE-RUN PROTOTYPE</span>
+        <button class="quiet-button" id="fullscreenButton" type="button" aria-label="Enter fullscreen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M4 16v4h4M20 16v4h-4"/></svg><span>FULLSCREEN</span>
+        </button>
+      </div>
+    </header>
+
+    <section class="intro">
+      <div>
+        <p class="eyebrow">FIELD OPERATION <span>01 / 01</span></p>
+        <h1>ONE RUN.<br><span>BUILD YOUR SQUAD.</span></h1>
+      </div>
+      <p class="intro-copy">Choose the better gate. Grow your force.<br class="desktop-break"> Break through the line and take down the commander.</p>
+    </section>
+
+    <section class="game-layout" aria-label="Gatefront game">
+      <div class="game-column">
+        <div class="hud">
+          <div class="hud-stat squad-stat">
+            <span class="hud-label">YOUR SQUAD</span>
+            <span class="hud-value"><strong id="soldierCount">12</strong><small>UNITS</small></span>
+          </div>
+          <div class="hud-stat">
+            <span class="hud-label">NEXT THREAT</span>
+            <span class="hud-value" id="enemyCount">GATES AHEAD</span>
+          </div>
+          <div class="hud-stat progress-stat">
+            <span class="hud-label">RUN PROGRESS</span>
+            <span class="hud-value" id="progressCount">0 / 12</span>
+          </div>
+          <span class="status-pill" id="statusPill">READY</span>
+        </div>
+
+        <div class="game-frame" id="gameFrame">
+          <canvas id="gameCanvas" width="960" height="560" aria-label="Game field. Drag left and right to steer through gates and fight approaching enemies." aria-describedby="controlHelp"></canvas>
+
+          <div class="game-overlay" id="startOverlay">
+            <div class="overlay-card">
+              <div class="overlay-kicker"><span class="signal-icon"></span> OPERATION GATEFRONT</div>
+              <h2>MAKE EVERY<br><em>GATE COUNT.</em></h2>
+              <p>Build your force before the final stand. Your squad fires automatically — your route is up to you.</p>
+              <button class="primary-button" id="startButton" type="button">START RUN
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+              </button>
+              <div class="overlay-foot"><span>12 STARTING UNITS</span><span>1 FINAL COMMANDER</span></div>
+            </div>
+          </div>
+
+          <div class="game-overlay" id="endOverlay" hidden>
+            <div class="overlay-card end-card">
+              <div class="overlay-kicker" id="endKicker">OPERATION COMPLETE</div>
+              <h2 id="endTitle">LINE<br><em>BROKEN.</em></h2>
+              <p id="endCopy">The commander has been defeated.</p>
+              <div class="result-stat"><span>UNITS REMAINING</span><strong id="endSoldierCount">0</strong></div>
+              <button class="primary-button" id="playAgainButton" type="button">RUN IT AGAIN
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.5 9A6.5 6.5 0 0 1 17 6l3 6M4 12l3 6a6.5 6.5 0 0 0 10.5-3"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="run-footer">
+          <div class="run-message"><span class="message-pulse"></span><span id="gameMessage" aria-live="polite">Choose your route. The squad is waiting.</span></div>
+          <button class="reset-button" id="resetButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.6 14a7 7 0 1 0 .2-5.2L4 10"/></svg>RESET RUN
+          </button>
+        </div>
+        <div class="progress-track" aria-label="Run progress"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+
+      <aside class="briefing-panel">
+        <div class="panel-head"><span class="eyebrow">MISSION BRIEF</span><span class="mission-code">GF-001</span></div>
+        <h2>KEEP MOVING.<br><span>KEEP GROWING.</span></h2>
+        <p class="briefing-copy">The path is the strategy. Build a bigger squad before each clash, then let your firepower do the work.</p>
+
+        <div class="gate-key">
+          <div class="key-row"><span class="gate-symbol plus">+</span><span><strong>REINFORCE</strong><small>Add units to your squad.</small></span></div>
+          <div class="key-row"><span class="gate-symbol multiply">×</span><span><strong>MULTIPLY</strong><small>Scale your current force.</small></span></div>
+          <div class="key-row"><span class="gate-symbol percent">%</span><span><strong>BOOST</strong><small>Grow by a percentage.</small></span></div>
+          <div class="key-row"><span class="gate-symbol danger">−</span><span><strong>AVOID LOSSES</strong><small>Not every gate is a good one.</small></span></div>
+        </div>
+
+        <div class="briefing-divider"></div>
+        <div class="objective-block">
+          <span class="objective-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 20 7v5c0 4.5-3 7.5-8 9-5-1.5-8-4.5-8-9V7l8-4Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg></span>
+          <div><strong>PRIMARY OBJECTIVE</strong><p>Clear the waves and defeat the final commander.</p></div>
+        </div>
+
+        <div class="control-card" id="controlHelp">
+          <span class="control-title">CONTROLS</span>
+          <div class="control-line"><span class="control-key">DRAG</span><span>Steer your squad left / right</span></div>
+          <div class="control-line"><span class="key-pair"><kbd>←</kbd><kbd>→</kbd></span><span>Or use your keyboard</span></div>
+          <p class="auto-fire-note"><span class="tiny-check">✓</span> Auto-fire is always on</p>
+        </div>
+      </aside>
+    </section>
+
+    <footer class="page-footer">
+      <span>GATEFRONT <span class="footer-divider">/</span> SINGLE-ROUND FIELD TEST</span>
+      <span>ORIGINAL WEB GAME <span class="footer-divider">·</span> NO ACCOUNT REQUIRED</span>
+    </footer>
+  </main>
+</body>
+</html>
