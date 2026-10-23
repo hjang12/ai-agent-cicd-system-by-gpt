@@ -43,10 +43,11 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 ### Gatefront — one-round soldier gate-runner
 - Canonical path: `projects/soldier-gate-runner-by-gpt/`
 - Public URL: https://soldier-gate-runner-by-gpt.onrender.com
-- Render service: `srv-dbdf3jbrjlhs73d2lmgg`; deployment `dep-dbdf3jrrjlhs73d2lnb0` reports `LIVE` on main commit `480cce919459709f9b4c1b69dcd95413f7083cb0`.
-- CI: `.github/workflows/soldier-gate-game-ci.yml`. PR #173 passed Workspace validation, Janggi Python and browser checks, Time Dashboard CI, and Gatefront browser acceptance.
-- Pending: Render service currently reports `autoDeployTrigger=off`, while `render.yaml` declares `checksPass`. The service-creation tool cannot edit this setting; align it in [Render service settings](https://dashboard.render.com/static/srv-dbdf3jbrjlhs73d2lmgg). Public HTTP response was not independently observable from this execution environment; Render's deploy record is `LIVE`.
-
+- Render service: `srv-dbdf3jbrjlhs73d2lmgg`; latest code deployment `dep-dbdfg649v7es73dtj6pg` reached `LIVE` on main commit `016b2b921b2cb19c7f5e7744224ac4b199b895b5`.
+- Live Render metadata reports `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and `environmentId=evm-dakaq3142hec739tbag0`, matching the existing project environment.
+- PR #174 browser acceptance [39908455855](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455855) and Workspace validation [39908455850](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455850) passed. PR #175 regression acceptance [39908722530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722530) and Workspace validation [39908722663](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722663) passed.
+- The page no longer scrolls at document level, the playfield occupies the available viewport, and visible homing missiles target enemy waves and the commander. Low-squad boss counterattack is covered by a regression test.
+- Remaining: public HTTP/browser smoke could not be observed from this execution environment. User should confirm the live screen and missile visuals in a normal browser; gameplay feel remains under review.
 ### Personal AI Janggi Trainer
 - Canonical path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Required Python / contract validation: `.github/workflows/janggi-validation.yml`
@@ -65,7 +66,14 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 - Commits touching project paths can trigger documentation-only Render deployments. Verify the current deployment directly after relevant merges; dated LIVE snapshots in history are not current-state evidence.
 - Both production Render services report `autoDeploy=yes`, `autoDeployTrigger=checksPass`. For main commit `d74f114149bf5c016e509ab94e3d08b887d00adb`, the final required CI check completed at 01:27:11 UTC and both Render deploys started at 01:27:14 UTC, then reached LIVE (Time Dashboard 01:27:56 UTC; Janggi 01:28:07 UTC). This directly verifies the configured CI-before-deploy gate.
 
-## Latest verification snapshot — 2026-10-22
+## Latest verification snapshot — 2026-10-23
+
+- Gatefront PR #174 (`42c2c7a39c81ec74af94f4c29eeaefaf0ee95cc0`) and PR #175 (`016b2b921b2cb19c7f5e7744224ac4b199b895b5`) are merged; the latest game code deployment `dep-dbdfg649v7es73dtj6pg` was observed `LIVE`.
+- Gatefront Playwright acceptance passed viewport/no-scroll, missile emission, full-round victory/replay, reset, and low-squad boss regression checks. Runs: [39908455855](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455855), [39908722530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722530). Workspace validation also passed: [39908455850](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455850), [39908722663](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722663).
+- Render metadata was rechecked as `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and environment `evm-dakaq3142hec739tbag0`.
+- Public HTTP/browser smoke remains unverified from this execution environment; confirm the current live page in a normal browser.
+
+## Verification snapshot — 2026-10-22 (historical)
 
 - Gate-verification commit: `d74f114149bf5c016e509ab94e3d08b887d00adb` (PR #161, merged 2026-10-22).
 - Workspace validation [39705628721](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39705628721): PASS.
