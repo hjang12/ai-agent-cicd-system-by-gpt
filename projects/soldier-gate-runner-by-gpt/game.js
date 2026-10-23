@@ -285,7 +285,7 @@
       || events.filter(e=>e.type==="enemy"&&e.y<PLAYER_Y+8).sort((a,b)=>b.y-a.y)[0];
     if(!target){fireClock=0;return;}
     fireClock+=dt;
-    const interval=testMode?.18:.3;
+    const interval=testMode ? 0.18 : 0.3;
     while(fireClock>=interval){fireClock-=interval;fireVolley(target);}
   }
   function updateBullets(dt) {
