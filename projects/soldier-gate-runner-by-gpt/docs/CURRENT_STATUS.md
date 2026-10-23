@@ -14,6 +14,9 @@ One complete, browser-playable round of an original 2D squad gate-runner: choose
 - Drag/touch and arrow/A/D steering.
 - Gates use additive, multiplicative, percentage, and negative effects.
 - Automated enemy encounters and final commander; reset and replay supported.
+- Viewport-locked play screen without document-level scrolling; internal overlays can scroll when their content requires it.
+- Game canvas is maximized within the available viewport while preserving its 12:7 aspect ratio.
+- Visible homing missile volleys target active enemy waves and the final commander, with trail and impact effects.
 - Mobile-responsive layout and fullscreen control.
 
 ## Verification
@@ -21,14 +24,15 @@ One complete, browser-playable round of an original 2D squad gate-runner: choose
 - PR #172 added deterministic full-round victory and replay coverage. Game browser acceptance run [39905699244](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39905699244) passed; Workspace validation run [39905699131](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39905699131) passed.
 - Render-configuration PR #173 passed Workspace validation [39906299051](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299051), Time Dashboard CI [39906299110](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299110), Janggi Python validation [39906299187](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299187), Janggi browser acceptance [39906299053](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299053), and Gatefront CI [39906299340](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299340).
 - Public URL: https://soldier-gate-runner-by-gpt.onrender.com
-- Render service: `srv-dbdf3jbrjlhs73d2lmgg`; deployment: `dep-dbdf3jrrjlhs73d2lnb0`; deployed commit: `480cce919459709f9b4c1b69dcd95413f7083cb0`; Render API reports status `LIVE`.
+- Render service: `srv-dbdf3jbrjlhs73d2lmgg`; latest code deployment: `dep-dbdfg649v7es73dtj6pg`; deployed commit: `016b2b921b2cb19c7f5e7744224ac4b199b895b5`; Render API reports `LIVE`.
+- PR #174 browser acceptance [39908455855](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455855) and Workspace validation [39908455850](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455850) passed. PR #175 regression acceptance [39908722530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722530) and Workspace validation [39908722663](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722663) passed.
+- Render metadata reports `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and environment `evm-dakaq3142hec739tbag0` (the existing project environment).
 - External HTTP fetch from this execution environment was unavailable, so live HTML/CSS/JS responses have not been independently observed. The deployed URL is ready for browser verification.
 
-## Deployment Configuration Follow-up
+## Deployment Configuration
 - Root `render.yaml` declares `autoDeployTrigger: checksPass`.
-- The direct-created Render service currently reports `autoDeployTrigger=off`. The available Render service-creation operation cannot update this setting after creation.
-- Before calling deployment configuration complete, use the service's [Render settings](https://dashboard.render.com/static/srv-dbdf3jbrjlhs73d2lmgg) to set Auto-Deploy to **After CI Checks Pass**, save, and re-query the actual service configuration.
-
+- Live Render metadata confirms `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and environment `evm-dakaq3142hec739tbag0`.
+- Public HTTP fetch was unavailable from this execution environment; a normal-browser smoke check is still needed.
 ## Explicitly Out of Scope
 - App Store / Play Store publication.
 - Multiple rounds, accounts, persistence, progression, ads, in-app purchases, multiplayer, leaderboards, AI-generated decisions, or model training.
