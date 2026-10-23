@@ -42,9 +42,10 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 
 ### Gatefront — one-round soldier gate-runner
 - Canonical path: `projects/soldier-gate-runner-by-gpt/`
-- Static browser game only; one round, original Canvas visuals, no external runtime dependencies or AI model.
-- CI: `.github/workflows/soldier-gate-game-ci.yml` (JavaScript syntax and Chromium browser acceptance).
-- Render service has not yet been provisioned; workspace selection and Blueprint reconciliation are required before publishing.
+- Public URL: https://soldier-gate-runner-by-gpt.onrender.com
+- Render service: `srv-dbdf3jbrjlhs73d2lmgg`; deployment `dep-dbdf3jrrjlhs73d2lnb0` reports `LIVE` on main commit `480cce919459709f9b4c1b69dcd95413f7083cb0`.
+- CI: `.github/workflows/soldier-gate-game-ci.yml`. PR #173 passed Workspace validation, Janggi Python and browser checks, Time Dashboard CI, and Gatefront browser acceptance.
+- Pending: Render service currently reports `autoDeployTrigger=off`, while `render.yaml` declares `checksPass`. The service-creation tool cannot edit this setting; align it in [Render service settings](https://dashboard.render.com/static/srv-dbdf3jbrjlhs73d2lmgg). Public HTTP response was not independently observable from this execution environment; Render's deploy record is `LIVE`.
 
 ### Personal AI Janggi Trainer
 - Canonical path: `projects/personal-ai-janggi-trainer-by-gpt/`
