@@ -13,7 +13,7 @@ Deliver one complete, browser-playable round of an original squad gate-runner in
 - Static HTML/CSS/JavaScript and original Canvas-drawn visuals. No copied Last War assets, external runtime libraries/CDNs, backend, accounts, persistence, or AI model.
 - Touch/drag and arrow/A/D steering; fullscreen control; viewport-locked game screen without document-level scrolling.
 - Arithmetic gates support additive, multiplicative, percentage, and negative effects.
-- Original blue allies and red enemies on a simplified road scene, with a bright blue/white/yellow arcade HUD.
+- Original blue allies and red enemies on a simplified road scene, with a bright blue/white/yellow arcade HUD. The outside field is now a clean blue gradient and the road is segmented gray with thin white edges and one center divider; backgrounds remain deliberately sparse.
 - Allies are now rear-facing silhouettes with oversized helmets, segmented back packs, visible legs/boots, and rifles pointed forward; enemies face the player.
 - Player formations render up to 72 representative ally models / 32 enemy models, with width/depth and formation shadow adapted to squad count; firing volleys grow with squad size up to a practical rendering bound. Logical squad count is no longer capped at the former 120 units: an internal safety bound of 1,000,000,000 is used to avoid numeric instability, not as a normal gameplay limit.
 - Continuous forward bullet fire runs with or without an engaged target. Actual projectile hits decrease the enemy wave's remaining unit count; enemy formation follows remaining count, hits trigger visual feedback, and engaged enemies retaliate.
@@ -22,29 +22,21 @@ Deliver one complete, browser-playable round of an original squad gate-runner in
 - One shootable arithmetic target is now implemented: the ordinary split gate at that slot is replaced with a single blue `+1` target. Each real projectile hit increments the shown value, and crossing applies the final displayed value to squad count. Other split gates remain ordinary route-choice gates.
 
 ## Latest Verified Change
-- PR #185 — [Fix road-bounded projectile trajectories and improve combat feedback](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/185), merged as `580209e1f993cd9547dbf064c33c017f07621cbd`. Free fire follows the perspective road, aimed shots originate at rendered soldier positions, muzzle/hit effects are clearer, and the player formation renders up to 72 models. Added two road-boundary browser tests for aimed and unguided fire at the left edge with an extremely large squad.
-- PR-head Game CI [40260135681](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260135681) passed all 9 browser tests; PR-head Workspace validation [40260135542](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260135542) passed.
-- Main-push Game CI [40260280641](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280641) and Workspace validation [40260280564](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280564) both passed.
-
-- PR #183 — [Add shootable arithmetic target that improves on hits](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/183), merged code commit `0dd6f3c3ef229c74610fe4f8e335a3323c033917`. The target aims at incoming fire when no enemy is engaged, predicts the panel position, updates its displayed value on each hit, and applies the final amount when crossed. Replay clones target data so upgraded values do not leak into later runs.
-- PR #183 browser acceptance [40257832733](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832733) passed all seven browser tests; PR Workspace validation [40257832652](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832652) passed.
-- Main-push Game CI [40257993028](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257993028) and Workspace validation [40257993141](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257993141) passed.
-- Render deployment `dep-dbfbfm3bc2fs7391e1dg` for code commit `0dd6f3c3ef229c74610fe4f8e335a3323c033917` reached `LIVE`.
-- PR #179 — [Connect Gatefront shooting to real enemy damage](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/179), merged code commit `6f20345c1c1a5cfafafa8f76d114df4451e992f8`.
-- PR #181 — [Make Gatefront soldier formations readable at gameplay scale](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/181), merged code commit `f76bea69103b68a13046547677bd648f75c638b9`.
-- PR #181 browser acceptance [40256960836](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960836) and Workspace validation [40256960953](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960953) passed.
-- Main-push Game CI [40257084984](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084984) and Workspace validation [40257084952](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084952) passed.
-- Render deployment `dep-dbfb9oh5efls73bqlok0` for code commit `f76bea69103b68a13046547677bd648f75c638b9` reached `LIVE`.
+- PR #188 — [Bring Gatefront soldiers and road visuals closer to the reference](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/188), merged as `331d450c9db4fb66f32b26cd245fac2b327ac68f`. Replaced green terrain with a simple blue field and segmented gray road; enlarged helmets, compacted blue gear to expose pale shirts, and improved contrast among helmets, trousers and red boot toes.
+- PR #188 browser acceptance [40261516532](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40261516532) passed all 9 tests, including visual pixel guards for rear-facing allies, pale shirts, team colors, and blue surroundings. PR Workspace validation [40261516564](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40261516564) passed.
+- Main-push Game CI [40261683034](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40261683034) and Workspace validation [40261682832](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40261682832) passed.
+- Render deployment `dep-dbfc4iajnfac73ek6r20` for code commit `331d450c9db4fb66f32b26cd245fac2b327ac68f` reached `LIVE` at 2026-10-26 03:01:08 UTC.
+- PR #185 — [Fix road-bounded projectile trajectories and improve combat feedback](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/185), merged as `580209e1f993cd9547dbf064c33c017f07621cbd`. Free fire follows the perspective road, aimed shots originate at rendered soldier positions, impact effects are clearer, and up to 72 representative allies are rendered. Browser tests cover aimed/unguided paths at an extreme squad size.
 
 ## Deployment
 - Public URL: https://soldier-gate-runner-by-gpt.onrender.com
 - Render service: `srv-dbdf3jbrjlhs73d2lmgg`, workspace: `tea-da7sjdgu01pc73bsno6g`
-- Live code commit: `580209e1f993cd9547dbf064c33c017f07621cbd`, deploy: `dep-dbfbu4rbc2fs7391qj90` (`LIVE`, completed 2026-10-26 02:46:53 UTC).
+- Live code commit: `331d450c9db4fb66f32b26cd245fac2b327ac68f`, deploy: `dep-dbfc4iajnfac73ek6r20` (`LIVE`, completed 2026-10-26 03:01:08 UTC).
 - Render API reports `LIVE`; service previously reported `autoDeploy=yes` and `autoDeployTrigger=checksPass`.
 - Direct public browser inspection from the execution environment is unavailable. User visual/gameplay review remains open; CI pixel assertions and game logic tests do not prove that art looks sufficiently similar.
 
 ## Not Yet Implemented / Open
-- Review the newly deployed build in a normal browser. Confirm that free and aimed projectiles remain inside the visible road boundaries, muzzle flashes and hit reactions are noticeable, rear-facing allies remain readable as the squad grows to a wider formation, enemy losses are visible, and the `+1 → +2 → +3` target still increments and applies correctly.
+- Review the current live build in a normal browser. Confirm that the blue surroundings and gray segmented road look closer to the reference, pale shirts/helmets/trousers/boots remain distinct at normal play scale, free and aimed projectiles stay inside the road, combat feedback is noticeable, enemy losses are visible, and the `+1 → +2 → +3` target still increments and applies correctly.
 - Tune soldier scale, large-squad visual density, shootable-target reward balance, enemy strength, and round length based on normal-browser feedback. Other shootable target types (negative, multiplier, percentage) are not yet implemented.
 - Tune squad growth, enemy strength, boss health, and round length after observing actual play.
 
