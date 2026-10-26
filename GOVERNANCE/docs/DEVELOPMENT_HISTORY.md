@@ -1,3 +1,26 @@
+## 2026-10-26 — Gatefront perspective road-bounded projectiles and combat feedback
+
+### Implementation
+- PR #185 merged to main as `580209e1f993cd9547dbf064c33c017f07621cbd`.
+- Unified soldier formation geometry so rendered ally positions and firing origins use the same coordinates; projectile origins now sit at the representative rifle/muzzle positions rather than an independent screen-wide spread.
+- Unguided forward shots follow a normalized lane through the perspective road as it narrows toward the horizon. Aimed shots are covered by a separate edge-of-road large-squad test. Runtime instrumentation counts sampled projectile positions and removes any projectile center that violates the road margin.
+- Added short muzzle flashes, brighter tracers, stronger hit bursts and a boss hit outline; added small uniform equipment details and improved formation spacing/shadow for large squads. Ally rendering now uses up to 72 representative models.
+- Moved newly spawned gates and the shootable target farther onto the visible road surface.
+- Added browser acceptance for both unguided and aimed projectiles with a very large squad at the left edge.
+
+### Verification
+- PR-head Game CI [40260135681](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260135681) passed all 9 browser acceptance tests.
+- PR-head Workspace validation [40260135542](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260135542) passed.
+- Main-push Workspace validation [40260280564](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280564) passed.
+- Main-push Game CI [40260280641](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280641) is still in progress at the time of this record; post-merge Render deployment is not yet confirmed.
+
+### Remaining
+- Confirm main-push Game CI and the Render deployment before treating the merged version as released.
+- User normal-browser review is still needed to judge visual similarity, road-edge behavior during play, and combat feel.
+- Task `TASK-20261023-0003` remains ACTIVE; no shared Governance rule or version changed.
+
+---
+
 ## 2026-10-26 — Gatefront shootable arithmetic target
 
 ### Implementation
