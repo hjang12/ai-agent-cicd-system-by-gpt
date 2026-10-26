@@ -4,39 +4,41 @@
 - Workspace: `hjang12/ai-agent-cicd-system-by-gpt`
 - Project path: `projects/soldier-gate-runner-by-gpt/`
 - Active task: `TASK-20261023-0003`
-- Shared Governance: `../../GOVERNANCE/GOVERNANCE.md`.
+- Shared Governance: `../../GOVERNANCE/GOVERNANCE.md`
 
 ## Goal
-One complete, browser-playable round of an original 2D squad gate-runner: choose arithmetic gates, build the squad, auto-fire through three enemy groups, defeat a final commander, then win/lose and replay.
+Deliver one complete, browser-playable round of an original squad gate-runner: choose arithmetic gates, build a squad, fight three enemy waves, defeat the final commander, then win/lose and replay. The user prioritizes a visual impression similar to Last War: Survival (without copying its assets), legible soldiers and tangible combat feedback; lower art fidelity is acceptable.
 
-## Implementation
-- Static HTML/CSS/JavaScript and original Canvas-drawn visuals. No external assets, runtime libraries, AI model, backend, accounts, or persistence.
-- Drag/touch and arrow/A/D steering.
-- Gates use additive, multiplicative, percentage, and negative effects.
-- Automated enemy encounters and final commander; reset and replay supported.
-- Viewport-locked play screen without document-level scrolling; internal overlays can scroll when their content requires it.
-- Game canvas is maximized within the available viewport while preserving its 12:7 aspect ratio.
-- Original toy-soldier figures use large blue helmets, skin-tone faces, cream uniforms, blue ally armor and red enemy armor, with boots and rifles.
-- Simplified sky/grass scenery, light concrete road, white lane marks and bridge rails keep the focus on the squad and gates.
-- Positive gates use bright blue and negative gates red; start/end popups, HUD, buttons and status indicators use a bright blue/white/yellow arcade interface.
-- Visible homing missile volleys target active enemy waves and the final commander, with trail and impact effects.
-- Mobile-responsive layout and fullscreen control.
+## Current Implementation
+- Static HTML/CSS/JavaScript and original Canvas-drawn visuals. No copied Last War assets, external runtime libraries/CDNs, backend, accounts, persistence, or AI model.
+- Touch/drag and arrow/A/D steering; fullscreen control; viewport-locked, no-document-scroll game screen.
+- Arithmetic gates for additive, multiplicative, percentage, and negative effects.
+- Blue allies and red enemies; original toy-soldier shapes, simplified road/background, brighter arcade HUD.
+- Continuous forward bullet fire, including when no target is in the engagement zone.
+- When a wave reaches the engagement line it remains there until projectiles reduce its live unit count to zero. Each hit reduces the count, triggers a small impact effect, and changes the visible formation. Surviving enemies retaliate and can reduce the player squad.
+- Boss HP is reduced by actual projectile hits, rather than passive time-based damage. The boss counterattacks and can defeat a low-count squad.
+- Shot count and spread expand as the player squad grows, while the visual implementation intentionally avoids drawing every unit at arbitrarily large internal counts.
 
-## Verification
-- PR #171 merged the game implementation after fixing a Playwright test teardown issue.
-- PR #172 added deterministic full-round victory and replay coverage. Game browser acceptance run [39905699244](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39905699244) passed; Workspace validation run [39905699131](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39905699131) passed.
-- Render-configuration PR #173 passed Workspace validation [39906299051](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299051), Time Dashboard CI [39906299110](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299110), Janggi Python validation [39906299187](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299187), Janggi browser acceptance [39906299053](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299053), and Gatefront CI [39906299340](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39906299340).
+## Latest Verified Change
+- PR #179: [Connect Gatefront shooting to real enemy damage](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/179), merged to main as `6f20345c1c1a5cfafafa8f76d114df4451e992f8`.
+- Pull-request Game CI [40256305530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305530) and Workspace validation [40256305528](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305528) passed.
+- Main-push Game CI [40256445171](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445171) and Workspace validation [40256445201](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445201) passed.
+- Render deployment `dep-dbfb62mq1p3s73f1vio0` for the merged code commit reached `LIVE`.
+- Browser acceptance now explicitly tests continuous firing and verifies that actual enemy count decreases after projectile hits. Existing viewport, gate choice/reset, boss-counterattack, full-round victory and replay tests also pass.
+
+## Deployment
 - Public URL: https://soldier-gate-runner-by-gpt.onrender.com
-- Render service: `srv-dbdf3jbrjlhs73d2lmgg`; latest visual-refresh deployment: `dep-dbdh49s9v7es73dv83jg`; deployed commit: `3df9ac52a8e06932aa160d5c0e50dd58ac42a3a7`; Render API reports `LIVE`.
-- PR #174 browser acceptance [39908455855](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455855) and Workspace validation [39908455850](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455850) passed. PR #175 regression acceptance [39908722530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722530) and Workspace validation [39908722663](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722663) passed.
-- Render metadata reports `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and environment `evm-dakaq3142hec739tbag0` (the existing project environment).
-- PR #177 added the new toy-soldier visual style and bright arcade UI. Browser acceptance [39920339465](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39920339465) passed all six tests; Workspace validation [39920339469](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39920339469) passed.
-- External HTTP fetch from this execution environment was unavailable, so live HTML/CSS/JS responses have not been independently observed. The deployed URL is ready for browser verification.
+- Render service: `srv-dbdf3jbrjlhs73d2lmgg`, workspace: `tea-da7sjdgu01pc73bsno6g`
+- Live code commit: `6f20345c1c1a5cfafafa8f76d114df4451e992f8`, deploy: `dep-dbfb62mq1p3s73f1vio0`
+- Render API reports `LIVE`; service previously reported `autoDeploy=yes` and `autoDeployTrigger=checksPass`.
+- Direct public-page/browser inspection from the execution environment is unavailable. User visual/gameplay review remains open.
 
-## Deployment Configuration
-- Root `render.yaml` declares `autoDeployTrigger: checksPass`.
-- Live Render metadata confirms `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and environment `evm-dakaq3142hec739tbag0`.
-- Public HTTP fetch was unavailable from this execution environment; a normal-browser smoke check is still needed. User review of the soldier silhouettes, team colors and arcade interface remains open.
+## Not Yet Implemented / Open
+- Replace or substantially redesign the current Canvas soldier rendering so soldiers read clearly at actual play scale and better match the requested toy-soldier visual language.
+- Shootable arithmetic targets whose value improves on each hit (e.g. `+1 → +2 → +3`); preserve ordinary left/right route-choice gates as a distinct mechanic.
+- Validate a large-squad presentation where squad totals can grow substantially without an obvious user-facing cap or degraded performance.
+- Check the deployed game in a normal browser with the user and adjust based on what is actually visible and playable.
+
 ## Explicitly Out of Scope
 - App Store / Play Store publication.
-- Multiple rounds, accounts, persistence, progression, ads, in-app purchases, multiplayer, leaderboards, AI-generated decisions, or model training.
+- Multiple rounds, accounts, persistent progression, monetization, multiplayer, leaderboards, AI-generated decisions, or model training.
