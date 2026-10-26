@@ -12,10 +12,11 @@
 - PR-head Game CI [40260135681](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260135681) passed all 9 browser acceptance tests.
 - PR-head Workspace validation [40260135542](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260135542) passed.
 - Main-push Workspace validation [40260280564](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280564) passed.
-- Main-push Game CI [40260280641](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280641) is still in progress at the time of this record; post-merge Render deployment is not yet confirmed.
+- Main-push Game CI [40260280641](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280641) passed; main-push Workspace validation [40260280564](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280564) passed.
+- Render deployment `dep-dbfbu4rbc2fs7391qj90` for code commit `580209e1f993cd9547dbf064c33c017f07621cbd` reached `LIVE` at 2026-10-26 02:46:53 UTC.
 
 ### Remaining
-- Confirm main-push Game CI and the Render deployment before treating the merged version as released.
+- User normal-browser review is still needed to judge visual similarity, road-edge behavior during play, and combat feel.
 - User normal-browser review is still needed to judge visual similarity, road-edge behavior during play, and combat feel.
 - Task `TASK-20261023-0003` remains ACTIVE; no shared Governance rule or version changed.
 
