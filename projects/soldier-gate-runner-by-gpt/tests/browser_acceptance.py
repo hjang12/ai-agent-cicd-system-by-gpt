@@ -40,10 +40,11 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
     def lane_screen_x(page, lane: float) -> float:
         bounds = page.locator("#gameCanvas").bounding_box()
         assert bounds is not None
-        road_width = 190 + 640 * ((424 - 66) / (560 - 66))
-        road_left = (960 - road_width) / 2
+        world_width = page.locator("#gameCanvas").evaluate("(canvas) => canvas.width")
+        road_width = world_width * (190 + 640 * ((424 - 66) / (560 - 66))) / 960
+        road_left = (world_width - road_width) / 2
         logical_x = road_left + road_width * lane
-        return bounds["x"] + bounds["width"] * logical_x / 960
+        return bounds["x"] + bounds["width"] * logical_x / world_width
 
     def steer_to_lane(self, page, lane: float, keep_dragging: bool = False) -> None:
         bounds = page.locator("#gameCanvas").bounding_box()
@@ -119,10 +120,75 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             self.assertLessEqual(dimensions["scrollWidth"], dimensions["clientWidth"])
             self.assertLessEqual(dimensions["scrollHeight"], dimensions["clientHeight"])
             canvas = page.locator("#gameCanvas").bounding_box()
-            assert canvas is not None
-            self.assertGreaterEqual(canvas["width"], viewport["width"] * 0.88)
+            frame = page.locator("#gameFrame").bounding_box()
+            assert canvas is not None and frame is not None
+            self.assertAlmostEqual(canvas["x"], 0, delta=1)
+            self.assertAlmostEqual(canvas["y"], 0, delta=1)
+            self.assertAlmostEqual(canvas["width"], viewport["width"], delta=1)
+            self.assertAlmostEqual(canvas["height"], viewport["height"], delta=1)
+            self.assertAlmostEqual(frame["x"], 0, delta=1)
+            self.assertAlmostEqual(frame["y"], 0, delta=1)
+            self.assertAlmostEqual(frame["width"], viewport["width"], delta=1)
+            self.assertAlmostEqual(frame["height"], viewport["height"], delta=1)
             self.assertTrue(page.locator("#startButton").is_visible())
             page.close()
+
+    def test_squad_stays_in_one_lane_and_grows_backward(self) -> None:
+        measurements = []
+        for size in ("small", "large"):
+            page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+            query = "?testMode=1" if size == "small" else "?testMode=1&testCombatScaling=enemy"
+            page.goto(self.base_url + query, wait_until="networkidle")
+            page.get_by_role("button", name="START RUN").click()
+            expected_soldiers = "12" if size == "small" else "1000"
+            self.assertEqual(expected_soldiers, page.locator("#soldierCount").inner_text().strip())
+            canvas = page.locator("#gameCanvas")
+            expected_visible = "12" if size == "small" else "72"
+            page.wait_for_function(
+                f"() => document.querySelector('#gameCanvas').dataset.squadVisibleCount === '{expected_visible}'",
+                timeout=2000,
+            )
+            metrics = canvas.evaluate("""canvas => {
+                const worldWidth = canvas.width;
+                const roadWidth = worldWidth * (190 + 640 * ((424 - 47 - 66) / (560 - 66))) / 960;
+                const roadLeft = (worldWidth - roadWidth) / 2;
+                return {
+                    lane: canvas.dataset.squadLane,
+                    columns: Number(canvas.dataset.squadColumns),
+                    rows: Number(canvas.dataset.squadRows),
+                    visibleCount: Number(canvas.dataset.squadVisibleCount),
+                    centerX: Number(canvas.dataset.squadCenterX),
+                    halfWidth: Number(canvas.dataset.squadHalfWidth),
+                    laneLeft: roadLeft,
+                    laneSplit: roadLeft + roadWidth / 2,
+                    laneRight: roadLeft + roadWidth
+                };
+            }""")
+            lane_left = metrics["laneLeft"] if metrics["lane"] == "left" else metrics["laneSplit"]
+            lane_right = metrics["laneSplit"] if metrics["lane"] == "left" else metrics["laneRight"]
+            self.assertGreaterEqual(
+                metrics["centerX"] - metrics["halfWidth"],
+                lane_left,
+                "Squad formation must remain inside its selected lane",
+            )
+            self.assertLessEqual(
+                metrics["centerX"] + metrics["halfWidth"],
+                lane_right,
+                "The complete squad formation must not straddle the road divider",
+            )
+            measurements.append(metrics)
+            page.close()
+
+        small, large = measurements
+        self.assertEqual(small["lane"], large["lane"], "Squad growth must not move the formation to another lane")
+        self.assertEqual(
+            small["columns"],
+            large["columns"],
+            "Adding soldiers must not widen or reshape the formation",
+        )
+        self.assertGreater(large["rows"], small["rows"], "Additional soldiers should form rows behind the front rank")
+        self.assertGreater(large["visibleCount"], small["visibleCount"])
+        self.assertLessEqual(large["rows"], 15, "The representative formation should stay inside the screen")
 
     def test_low_squad_boss_counterattack_does_not_throw(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
