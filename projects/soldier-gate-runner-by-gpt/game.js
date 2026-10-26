@@ -120,7 +120,7 @@
     mode="ready"; soldiers=12; resolved=0; nextIndex=0; events=[];
     spawnClock=0; fireClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
-    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
+    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
     ui.start.hidden=false; ui.end.hidden=true;
     say("Choose your route. The squad is waiting."); syncHud();
   }
@@ -157,7 +157,7 @@
     if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds){lane=.5;targetLane=.5;}
     bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
-    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
+    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
     ui.start.hidden=true; ui.end.hidden=true;
     say(testShootableTarget?"Target test: hit the blue +1 panel to increase its value.":"Run started. Pick the stronger gate."); syncHud();
   }
@@ -621,6 +621,7 @@
       if(e.type==="target"&&e.y>=PLAYER_Y-24){resolveShootTarget(e);events.splice(i,1);continue;}
       if(e.type==="enemy"&&e.y>=PLAYER_Y-180){
         e.count=Math.max(e.count,Math.min(MAX_ENEMY_WAVE_SIZE,Math.ceil(soldiers*ENEMY_WAVE_SQUAD_RATIO)));
+        canvas.dataset.enemyWaveInitialCount=String(e.count);
         e.engaged=true;e.y=PLAYER_Y-122;e.attackClock=0;e.hitFlash=0;
         say(e.label+" engaged. Squad firing.");
         continue;
