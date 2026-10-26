@@ -13,7 +13,7 @@
     endCopy: $("endCopy"), endCount: $("endSoldierCount")
   };
 
-  const W = 960, H = 560, PLAYER_Y = 424, MAX_SOLDIERS = 120;
+  const W = 960, H = 560, PLAYER_Y = 424, MAX_SOLDIERS = 1_000_000_000;
   const testMode = new URLSearchParams(location.search).get("testMode") === "1";
   const testBossCounterattack = testMode && new URLSearchParams(location.search).get("testBossCounterattack") === "1";
   const speed = testMode ? 520 : 136;
@@ -362,12 +362,14 @@
     ctx.strokeStyle="rgba(23,117,219,.2)";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,PLAYER_Y+17,91,28,0,0,Math.PI*2);ctx.stroke();
 
     // Rows are broad enough to read as a troop formation, not a tiny triangular icon.
-    const count=Math.min(soldiers,42),cols=6;
+    const count=Math.min(soldiers,48),cols=Math.min(12,Math.max(6,Math.ceil(Math.sqrt(Math.min(soldiers,48))*1.65)));
+    const spacing=18+Math.min(32,Math.log2(Math.max(1,soldiers/12))*4);
+    const rowSpacing=8.5+Math.min(4,Math.log2(Math.max(1,soldiers/12))*.35);
     for(let i=0;i<count;i++){
       const row=Math.floor(i/cols),col=i%cols;
       const inRow=Math.min(cols,count-row*cols),offset=(cols-inRow)/2;
-      const sx=x+(col+offset-(cols-1)/2)*18+(row%2?2.2:0);
-      const sy=PLAYER_Y-25+row*8.5;
+      const sx=x+(col+offset-(cols-1)/2)*spacing+(row%2?2.2:0);
+      const sy=PLAYER_Y-25+row*rowSpacing;
       drawTrooper(sx,sy,.98+row*.025,false);
     }
 
@@ -555,8 +557,8 @@
   function fireVolley(target) {
     const fromRoad=roadAt(PLAYER_Y),fromX=fromRoad.left+fromRoad.width*lane;
     const velocity=testMode?980:760;
-    const shotCount=Math.min(12,3+Math.floor(soldiers/18));
-    const formationWidth=Math.min(140,18+soldiers*.7);
+    const shotCount=Math.min(32,3+Math.floor(soldiers/18));
+    const formationWidth=Math.min(300,18+soldiers*.7);
     const aim=target?projectileTargetPoint(target):null;
     for(let i=0;i<shotCount;i++){
       const ratio=shotCount===1?0:i/(shotCount-1)-.5;
