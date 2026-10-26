@@ -143,8 +143,9 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             expected_soldiers = "12" if size == "small" else "1000"
             self.assertEqual(expected_soldiers, page.locator("#soldierCount").inner_text().strip())
             canvas = page.locator("#gameCanvas")
+            expected_visible = "12" if size == "small" else "72"
             page.wait_for_function(
-                "() => Boolean(document.querySelector('#gameCanvas').dataset.squadColumns)",
+                f"() => document.querySelector('#gameCanvas').dataset.squadVisibleCount === '{expected_visible}'",
                 timeout=2000,
             )
             metrics = canvas.evaluate("""canvas => {
