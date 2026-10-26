@@ -27,7 +27,6 @@
   const MAX_BOSS_HP = 600;
   const COMBAT_LANE_TOLERANCE = 0.14;
   const speed = testMode ? 520 : 136;
-  const spawnInterval = testMode ? .96 : 2.05;
   const C = { lime:"#ffd34d", cyan:"#1687f4", red:"#ed3947", purple:"#2d9cff" };
   const add = (n, label) => ({ kind:"add", amount:n, label });
   const pct = (n, label) => ({ kind:"pct", amount:n, label });
@@ -51,7 +50,7 @@
   ];
 
   let mode="ready", soldiers=12, resolved=0, nextIndex=0, events=[];
-  let spawnClock=0, fireClock=0, attackClock=0, lane=.5, targetLane=.5, offset=0, lastFrame=0;
+  let fireClock=0, attackClock=0, lane=.5, targetLane=.5, offset=0, lastFrame=0;
   let message="Choose your route. The squad is waiting.", bullets=[], particles=[], muzzleFlashes=[];
   let totalEnemyHits=0, totalBossHits=0, totalTargetHits=0, lastTargetValue=0;
   let roadChecks=0, roadViolations=0;
@@ -124,7 +123,7 @@
   }
   function resetState() {
     mode="ready"; soldiers=12; resolved=0; nextIndex=0; events=[];
-    spawnClock=0; fireClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[]; muzzleFlashes=[];
+    fireClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
     lastCombatTargetId=null; lastCombatAlignment=null;
     canvas.dataset.combatLaneAligned="none"; canvas.dataset.combatTargetLane="";
@@ -167,7 +166,7 @@
     }else{
       events=[{...ROUND[0],id:0,y:96,engaged:false,resolved:false}];
     }
-    spawnClock=0; fireClock=0; attackClock=0;
+    fireClock=0; attackClock=0;
     if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds&&!testLaneCombat){lane=.5;targetLane=.5;}
     bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
@@ -619,8 +618,10 @@
     for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.max(0,1-dt*1.6);p.vy*=Math.max(0,1-dt*1.6);p.life-=dt;if(p.life<=0)particles.splice(i,1);}
     for(let i=muzzleFlashes.length-1;i>=0;i--){muzzleFlashes[i].life-=dt;if(muzzleFlashes[i].life<=0)muzzleFlashes.splice(i,1);}
     if(mode!=="running")return;
-    spawnClock+=dt;
-    if(nextIndex<ROUND.length&&spawnClock>=spawnInterval){spawnClock-=spawnInterval;spawnNext();}
+    // Keep the run readable: do not overlap gates or spawn the next event while a fight is active.
+    // The next obstacle appears immediately after the current event has been resolved.
+    const combatInProgress=events.some(e=>(e.type==="enemy"||e.type==="boss")&&e.engaged);
+    if(!combatInProgress&&events.length===0&&nextIndex<ROUND.length)spawnNext();
     lane+=(targetLane-lane)*Math.min(1,dt*7.5);
     for(let i=events.length-1;i>=0;i--){
       const e=events[i];
