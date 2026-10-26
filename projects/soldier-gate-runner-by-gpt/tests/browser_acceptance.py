@@ -350,5 +350,42 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.close()
 
 
+    def test_enemy_wave_scales_with_large_squad(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(
+            self.base_url + "?testMode=1&testCombatScaling=enemy",
+            wait_until="networkidle",
+        )
+        page.get_by_role("button", name="START RUN").click()
+        page.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.enemyWaveInitialCount === '210'",
+            timeout=3000,
+        )
+        self.assertEqual("1000", page.locator("#soldierCount").inner_text().strip())
+        self.assertEqual("210", page.locator("#gameCanvas").get_attribute("data-enemy-wave-initial-count"))
+        self.assertEqual([], errors, "Enemy scaling raised a browser error")
+        page.close()
+
+    def test_commander_health_scales_with_large_squad(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(
+            self.base_url + "?testMode=1&testCombatScaling=boss",
+            wait_until="networkidle",
+        )
+        page.get_by_role("button", name="START RUN").click()
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.bossMaxHp || 0) === 440",
+            timeout=3000,
+        )
+        self.assertEqual("400", page.locator("#soldierCount").inner_text().strip())
+        self.assertEqual("440", page.locator("#gameCanvas").get_attribute("data-boss-max-hp"))
+        self.assertEqual([], errors, "Commander scaling raised a browser error")
+        page.close()
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

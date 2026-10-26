@@ -19,6 +19,11 @@
   const testShootableTarget = testMode && new URLSearchParams(location.search).get("testShootableTarget") === "1";
   const testProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testProjectileRoadBounds") === "1";
   const testAimedProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testAimedProjectileRoadBounds") === "1";
+  const testCombatScaling = testMode ? new URLSearchParams(location.search).get("testCombatScaling") : null;
+  const ENEMY_WAVE_SQUAD_RATIO = 0.35;
+  const MAX_ENEMY_WAVE_SIZE = 210;
+  const BOSS_HP_SQUAD_RATIO = 1.1;
+  const MAX_BOSS_HP = 600;
   const speed = testMode ? 520 : 136;
   const spawnInterval = testMode ? .96 : 2.05;
   const C = { lime:"#ffd34d", cyan:"#1687f4", red:"#ed3947", purple:"#2d9cff" };
@@ -115,7 +120,7 @@
     mode="ready"; soldiers=12; resolved=0; nextIndex=0; events=[];
     spawnClock=0; fireClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
-    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
+    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
     ui.start.hidden=false; ui.end.hidden=true;
     say("Choose your route. The squad is waiting."); syncHud();
   }
@@ -136,6 +141,15 @@
       const source=ROUND.find(e=>e.type==="target");
       events=source?[{...source,effect:{...source.effect},id:source.index,y:96,engaged:false,resolved:false}]:[];
       nextIndex=ROUND.length;
+    }else if(testCombatScaling==="enemy"){
+      soldiers=1000;
+      const source=ROUND.find(e=>e.type==="enemy");
+      events=source?[{...source,id:3,y:PLAYER_Y-181,engaged:false,resolved:false}]:[];
+      nextIndex=ROUND.length;
+    }else if(testCombatScaling==="boss"){
+      soldiers=400;
+      events=[{...ROUND[ROUND.length-1],hp:76,id:ROUND.length-1,y:PLAYER_Y-125,engaged:false,resolved:false}];
+      nextIndex=ROUND.length;
     }else{
       events=[{...ROUND[0],id:0,y:96,engaged:false,resolved:false}];
     }
@@ -143,7 +157,7 @@
     if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds){lane=.5;targetLane=.5;}
     bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
-    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
+    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
     ui.start.hidden=true; ui.end.hidden=true;
     say(testShootableTarget?"Target test: hit the blue +1 panel to increase its value.":"Run started. Pick the stronger gate."); syncHud();
   }
@@ -606,11 +620,13 @@
       if(e.type==="gate"&&e.y>=PLAYER_Y-24){resolveGate(e);events.splice(i,1);continue;}
       if(e.type==="target"&&e.y>=PLAYER_Y-24){resolveShootTarget(e);events.splice(i,1);continue;}
       if(e.type==="enemy"&&e.y>=PLAYER_Y-180){
+        e.count=Math.max(e.count,Math.min(MAX_ENEMY_WAVE_SIZE,Math.ceil(soldiers*ENEMY_WAVE_SQUAD_RATIO)));
+        canvas.dataset.enemyWaveInitialCount=String(e.count);
         e.engaged=true;e.y=PLAYER_Y-122;e.attackClock=0;e.hitFlash=0;
         say(e.label+" engaged. Squad firing.");
         continue;
       }
-      if(e.type==="boss"&&e.y>=PLAYER_Y-124){e.engaged=true;e.y=PLAYER_Y-119;e.maxHp=e.hp;attackClock=0;say("Final commander engaged. Auto-fire on target.");}
+      if(e.type==="boss"&&e.y>=PLAYER_Y-124){e.hp=Math.max(e.hp,Math.min(MAX_BOSS_HP,Math.round(soldiers*BOSS_HP_SQUAD_RATIO)));e.engaged=true;e.y=PLAYER_Y-119;e.maxHp=e.hp;canvas.dataset.bossMaxHp=String(e.maxHp);attackClock=0;say("Final commander engaged. Auto-fire on target.");}
     }
     updatePlayerFire(dt);
     updateBullets(dt);
@@ -627,7 +643,7 @@
     const interval=testMode?0.42:1.05;
     if(e.attackClock<interval)return;
     e.attackClock-=interval;
-    const losses=Math.min(soldiers,e.count>=28?2:1);
+    const losses=Math.min(soldiers,Math.max(1,Math.ceil(Math.min(soldiers,e.count)*0.03)));
     soldiers=Math.max(0,soldiers-losses);
     const road=roadAt(PLAYER_Y),px=road.left+road.width*lane;
     burst(px,PLAYER_Y-9,C.red,6);
