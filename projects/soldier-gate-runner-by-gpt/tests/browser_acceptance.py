@@ -137,8 +137,11 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         measurements = []
         for size in ("small", "large"):
             page = self.browser.new_page(viewport={"width": 1280, "height": 900})
-            page.goto(self.base_url + f"?testMode=1&testFormation={size}", wait_until="networkidle")
+            query = "?testMode=1" if size == "small" else "?testMode=1&testCombatScaling=enemy"
+            page.goto(self.base_url + query, wait_until="networkidle")
             page.get_by_role("button", name="START RUN").click()
+            expected_soldiers = "12" if size == "small" else "1000"
+            self.assertEqual(expected_soldiers, page.locator("#soldierCount").inner_text().strip())
             canvas = page.locator("#gameCanvas")
             page.wait_for_function(
                 "() => Boolean(document.querySelector('#gameCanvas').dataset.squadColumns)",
