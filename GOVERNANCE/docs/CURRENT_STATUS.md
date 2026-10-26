@@ -43,12 +43,13 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 ### Gatefront — one-round soldier gate-runner
 - Canonical path: `projects/soldier-gate-runner-by-gpt/`; public URL: https://soldier-gate-runner-by-gpt.onrender.com.
 - Active task: `TASK-20261023-0003`; its project Checkpoint is authoritative for the next action.
-- PR #179 merged combat behavior: continuous forward fire, hit-driven enemy casualties, enemy retaliation, and hit-driven boss health.
-- PR #181 merged as `f76bea69103b68a13046547677bd648f75c638b9`: rear-facing blue allies, front-facing red enemies, wider squad formations, shot/bullet scale responding to squad count, and logical unit safety bound lifted beyond the former 120 cap.
-- PR #181 Game CI [40256960836](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960836) and Workspace validation [40256960953](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960953) passed. Main-push Game CI [40257084984](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084984) and Workspace validation [40257084952](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084952) passed.
-- Render deployment `dep-dbfb9oh5efls73bqlok0` for the merged code commit reached `LIVE`.
-- Next code feature: shootable arithmetic targets whose value improves with hits, kept distinct from route-choice gates.
-- Still open: public-browser smoke and user assessment of character readability/visual similarity and gameplay feel; passing palette/shape pixel tests do not prove artistic quality.
+- PR #179 connected continuous forward fire to hit-driven enemy casualties, counterattacks, and boss damage.
+- PR #181 merged as `f76bea69103b68a13046547677bd648f75c638b9`: rear-facing blue allies, front-facing red enemies, expanded formations and firing with squad size, and logical squad growth beyond the former 120-unit cap.
+- PR #183 merged as `0dd6f3c3ef229c74610fe4f8e335a3323c033917`: one ordinary split-choice gate became a shootable blue `+1` target; each projectile hit raises its displayed value and the squad receives the final displayed value on crossing.
+- PR #183 browser acceptance [40257832733](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832733) and Workspace validation [40257832652](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832652) passed. Main-push Game CI [40257993028](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257993028) and Workspace validation [40257993141](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257993141) passed.
+- Render deployment `dep-dbfbfm3bc2fs7391e1dg` for code commit `0dd6f3c3ef229c74610fe4f8e335a3323c033917` reached `LIVE`.
+- Next: user normal-browser visual/gameplay review, then tune soldier readability, target rewards, squad scaling, and round balance based on the observed result.
+- User review remains open; browser pixel assertions and passing gameplay tests do not certify that art looks sufficiently similar.
 ### Personal AI Janggi Trainer
 - Canonical path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Required Python / contract validation: `.github/workflows/janggi-validation.yml`
@@ -69,10 +70,12 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 
 ## Latest verification snapshot — 2026-10-26
 
-- PR #179 merged code commit `6f20345c1c1a5cfafafa8f76d114df4451e992f8`; its main-push Game CI [40256445171](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445171) and Workspace validation [40256445201](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445201) passed. Render deploy `dep-dbfb62mq1p3s73f1vio0` reached `LIVE`.
-- PR #181 merged code commit `f76bea69103b68a13046547677bd648f75c638b9`; PR Game CI [40256960836](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960836), PR Workspace validation [40256960953](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960953), main-push Game CI [40257084984](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084984), and main-push Workspace validation [40257084952](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084952) passed. Render deploy `dep-dbfb9oh5efls73bqlok0` reached `LIVE`.
-- Main implementation now has continuous forward fire, real enemy-count reduction, counterattacks, front/rear soldier silhouettes, expanded formations, and squad growth beyond the former 120-unit ceiling.
-- Shootable arithmetic targets, normal-browser smoke, and user visual/gameplay review remain open. Task `TASK-20261023-0003` stays ACTIVE; Governance 1.4.7 remains unchanged and `TASK-20261023-0002` remains PAUSED.
+- PR #179 main-push Game CI [40256445171](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445171) and Workspace validation [40256445201](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445201) passed; Render deploy `dep-dbfb62mq1p3s73f1vio0` reached LIVE.
+- PR #181 PR-head Game CI [40256960836](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960836), Workspace validation [40256960953](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960953), main-push Game CI [40257084984](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084984), and Workspace validation [40257084952](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084952) passed; Render deploy `dep-dbfb9oh5efls73bqlok0` reached LIVE.
+- PR #183 shootable-target Game CI [40257832733](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832733) passed all 7 browser tests; PR Workspace validation [40257832652](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832652) passed. Main-push Game CI [40257993028](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257993028) and Workspace validation [40257993141](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257993141) passed.
+- Render deploy `dep-dbfbfm3bc2fs7391e1dg` for code commit `0dd6f3c3ef229c74610fe4f8e335a3323c033917` reached LIVE.
+- Current implementation includes continuous forward fire, actual enemy-count reduction, retaliation, back/front-facing soldier silhouettes, squad growth beyond the former 120-unit limit, and a shootable `+1` target that grows per impact.
+- User visual/gameplay review, further visual similarity improvements, and balance tuning remain open. Task `TASK-20261023-0003` stays ACTIVE; Governance 1.4.7 remains unchanged and `TASK-20261023-0002` remains PAUSED.
  
 ## Verification snapshot — 2026-10-22 (historical)
 
