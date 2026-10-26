@@ -41,14 +41,14 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 ## Projects and Verification
 
 ### Gatefront — one-round soldier gate-runner
-- Canonical path: `projects/soldier-gate-runner-by-gpt/`
-- Public URL: https://soldier-gate-runner-by-gpt.onrender.com
-- Active task: `TASK-20261023-0003`; checkpoint is authoritative for the next action.
-- PR #179 merged as `6f20345c1c1a5cfafafa8f76d114df4451e992f8`. It adds continuous forward fire, projectile-driven reductions in actual enemy counts, enemy waves that remain engaged until defeated and retaliate, and boss damage driven by hits.
-- Pull-request Game CI [40256305530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305530) and Workspace validation [40256305528](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305528) passed. Main-push Game CI [40256445171](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445171) and Workspace validation [40256445201](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445201) passed.
-- Render deployment `dep-dbfb62mq1p3s73f1vio0` for the main code commit reached `LIVE`; service config previously reported `autoDeploy=yes`, `autoDeployTrigger=checksPass`.
-- Earlier PR #177 visual changes remain original Canvas art, not imported Last War assets. They do not yet meet the user's target for a clearly readable, similar-looking character rendering.
-- Open: replace/refine character presentation, add shootable arithmetic targets, tune large-squad visibility, then get direct user browser/gameplay review. The remote public-browser smoke is not verified from this execution environment.
+- Canonical path: `projects/soldier-gate-runner-by-gpt/`; public URL: https://soldier-gate-runner-by-gpt.onrender.com.
+- Active task: `TASK-20261023-0003`; its project Checkpoint is authoritative for the next action.
+- PR #179 merged combat behavior: continuous forward fire, hit-driven enemy casualties, enemy retaliation, and hit-driven boss health.
+- PR #181 merged as `f76bea69103b68a13046547677bd648f75c638b9`: rear-facing blue allies, front-facing red enemies, wider squad formations, shot/bullet scale responding to squad count, and logical unit safety bound lifted beyond the former 120 cap.
+- PR #181 Game CI [40256960836](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960836) and Workspace validation [40256960953](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960953) passed. Main-push Game CI [40257084984](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084984) and Workspace validation [40257084952](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084952) passed.
+- Render deployment `dep-dbfb9oh5efls73bqlok0` for the merged code commit reached `LIVE`.
+- Next code feature: shootable arithmetic targets whose value improves with hits, kept distinct from route-choice gates.
+- Still open: public-browser smoke and user assessment of character readability/visual similarity and gameplay feel; passing palette/shape pixel tests do not prove artistic quality.
 ### Personal AI Janggi Trainer
 - Canonical path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Required Python / contract validation: `.github/workflows/janggi-validation.yml`
@@ -69,11 +69,10 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 
 ## Latest verification snapshot — 2026-10-26
 
-- PR #179 merged to main as `6f20345c1c1a5cfafafa8f76d114df4451e992f8`.
-- PR Game CI [40256305530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305530), PR Workspace validation [40256305528](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305528), main-push Game CI [40256445171](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445171), and main-push Workspace validation [40256445201](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445201) passed.
-- Render deployment `dep-dbfb62mq1p3s73f1vio0` for that code commit reached `LIVE`.
-- The latest code change connects continuous projectile fire to real enemy/boss damage and enemy casualties. User-facing visual/gameplay review and public-browser smoke remain open; the next action is character/rendering readability, then shootable arithmetic gates.
-- Governance version remains 1.4.7; the unrelated Governance improvement task remains PAUSED.
+- PR #179 merged code commit `6f20345c1c1a5cfafafa8f76d114df4451e992f8`; its main-push Game CI [40256445171](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445171) and Workspace validation [40256445201](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445201) passed. Render deploy `dep-dbfb62mq1p3s73f1vio0` reached `LIVE`.
+- PR #181 merged code commit `f76bea69103b68a13046547677bd648f75c638b9`; PR Game CI [40256960836](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960836), PR Workspace validation [40256960953](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960953), main-push Game CI [40257084984](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084984), and main-push Workspace validation [40257084952](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084952) passed. Render deploy `dep-dbfb9oh5efls73bqlok0` reached `LIVE`.
+- Main implementation now has continuous forward fire, real enemy-count reduction, counterattacks, front/rear soldier silhouettes, expanded formations, and squad growth beyond the former 120-unit ceiling.
+- Shootable arithmetic targets, normal-browser smoke, and user visual/gameplay review remain open. Task `TASK-20261023-0003` stays ACTIVE; Governance 1.4.7 remains unchanged and `TASK-20261023-0002` remains PAUSED.
  
 ## Verification snapshot — 2026-10-22 (historical)
 
