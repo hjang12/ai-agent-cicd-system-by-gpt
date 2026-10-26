@@ -201,6 +201,59 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.close()
 
+    def test_unguided_projectiles_stay_inside_perspective_road_with_large_squad(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(
+            self.base_url + "?testMode=1&testProjectileRoadBounds=1",
+            wait_until="networkidle",
+        )
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.roadChecks || 0) > 150",
+            timeout=5000,
+        )
+        self.assertEqual("1000000000", page.locator("#soldierCount").inner_text().strip())
+        self.assertGreater(
+            int(canvas.get_attribute("data-road-checks") or "0"),
+            150,
+            "The test should inspect many projectile positions over the narrowing road",
+        )
+        self.assertEqual(
+            "0",
+            canvas.get_attribute("data-road-violations"),
+            "Unguided projectiles must stay inside the road as its perspective width narrows",
+        )
+        self.assertGreater(int(canvas.get_attribute("data-projectiles") or "0"), 0)
+        self.assertEqual([], errors, "Browser JavaScript errors were reported")
+        page.close()
+
+    def test_aimed_projectiles_stay_inside_road_with_large_squad_at_edge(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(
+            self.base_url + "?testMode=1&testAimedProjectileRoadBounds=1",
+            wait_until="networkidle",
+        )
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.bossHits || 0) > 0"
+            " && Number(document.querySelector('#gameCanvas').dataset.roadChecks || 0) > 150",
+            timeout=5000,
+        )
+        self.assertEqual(
+            "0",
+            canvas.get_attribute("data-road-violations"),
+            "Aimed projectile trajectories from a wide squad must remain inside the road",
+        )
+        self.assertGreater(int(canvas.get_attribute("data-boss-hits") or "0"), 0)
+        self.assertEqual([], errors, "Browser JavaScript errors were reported")
+        page.close()
+
     def test_shootable_target_value_increases_per_hit_and_applies_when_crossed(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
