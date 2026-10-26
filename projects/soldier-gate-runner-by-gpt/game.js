@@ -134,10 +134,10 @@
       nextIndex=ROUND.length;
     }else if(testShootableTarget){
       const source=ROUND.find(e=>e.type==="target");
-      events=source?[{...source,effect:{...source.effect},id:source.index,y:74,engaged:false,resolved:false}]:[];
+      events=source?[{...source,effect:{...source.effect},id:source.index,y:96,engaged:false,resolved:false}]:[];
       nextIndex=ROUND.length;
     }else{
-      events=[{...ROUND[0],id:0,y:84,engaged:false,resolved:false}];
+      events=[{...ROUND[0],id:0,y:96,engaged:false,resolved:false}];
     }
     spawnClock=0; fireClock=0; attackClock=0;
     if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds){lane=.5;targetLane=.5;}
@@ -168,7 +168,7 @@
   function spawnNext() {
     if(nextIndex>=ROUND.length||mode!=="running") return;
     const source=ROUND[nextIndex];
-    events.push({...source,...(source.effect?{effect:{...source.effect}}:{}),id:nextIndex,y:74,engaged:false,resolved:false});
+    events.push({...source,...(source.effect?{effect:{...source.effect}}:{}),id:nextIndex,y:96,engaged:false,resolved:false});
     nextIndex++;
   }
   function applyEffect(effect) {
