@@ -61,7 +61,7 @@
     return road.left+road.width*clamp(lanePosition,.06,.94);
   }
   function squadFormation() {
-    const count=Math.min(soldiers,48);
+    const count=Math.min(soldiers,72);
     const cols=Math.min(12,Math.max(1,Math.ceil(Math.sqrt(count)*1.65)));
     const desiredSpacing=18+Math.min(32,Math.log2(Math.max(1,soldiers/12))*4);
     const muzzleRoad=roadAt(PLAYER_Y-47);
@@ -441,8 +441,10 @@
   function drawSquad() {
     const formation=squadFormation(),road=roadAt(PLAYER_Y),x=formation.centerX;
     const shadowWidth=Math.min(road.width*.46,formation.halfWidth+24);
-    ctx.fillStyle="rgba(28,130,237,.15)";ctx.beginPath();ctx.ellipse(x,PLAYER_Y+20,shadowWidth,29,0,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle="rgba(23,117,219,.24)";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,PLAYER_Y+20,shadowWidth,29,0,0,Math.PI*2);ctx.stroke();
+    const formationRows=Math.ceil(formation.count/formation.cols);
+    const shadowHeight=Math.min(55,28+formation.rowSpacing*Math.max(0,formationRows-1)*.35);
+    ctx.fillStyle="rgba(28,130,237,.15)";ctx.beginPath();ctx.ellipse(x,PLAYER_Y+20,shadowWidth,shadowHeight,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="rgba(23,117,219,.24)";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,PLAYER_Y+20,shadowWidth,shadowHeight,0,0,Math.PI*2);ctx.stroke();
 
     // Use the same formation geometry for rendered soldiers and their muzzle positions.
     for(let i=0;i<formation.count;i++){
