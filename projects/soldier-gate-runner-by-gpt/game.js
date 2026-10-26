@@ -30,7 +30,6 @@
   const testAimedProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testAimedProjectileRoadBounds") === "1";
   const testCombatScaling = testMode ? new URLSearchParams(location.search).get("testCombatScaling") : null;
   const testLaneCombat = testMode ? new URLSearchParams(location.search).get("testLaneCombat") : null;
-  const testFormation = testMode ? new URLSearchParams(location.search).get("testFormation") : null;
   const ENEMY_WAVE_SQUAD_RATIO = 0.35;
   const MAX_ENEMY_WAVE_SIZE = 210;
   const BOSS_HP_SQUAD_RATIO = 1.1;
@@ -168,11 +167,6 @@
       soldiers=400;
       events=[{...ROUND[ROUND.length-1],hp:76,id:ROUND.length-1,y:PLAYER_Y-125,engaged:false,resolved:false}];
       nextIndex=ROUND.length;
-    }else if(testFormation==="small"||testFormation==="large"){
-      soldiers=testFormation==="large"?1000:12;
-      lane=targetLane=.25;
-      events=[{type:"fixture",count:0,id:-2,y:220,engaged:false,resolved:false}];
-      nextIndex=ROUND.length;
     }else if(testLaneCombat==="matched"||testLaneCombat==="mismatched"){
       soldiers=60;
       const enemyLane=.76;
@@ -183,7 +177,7 @@
       events=[{...ROUND[0],id:0,y:96,engaged:false,resolved:false}];
     }
     fireClock=0; attackClock=0;
-    if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds&&!testLaneCombat&&!testFormation){lane=.5;targetLane=.5;}
+    if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds&&!testLaneCombat){lane=.5;targetLane=.5;}
     bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
     lastCombatTargetId=null; lastCombatAlignment=null;
