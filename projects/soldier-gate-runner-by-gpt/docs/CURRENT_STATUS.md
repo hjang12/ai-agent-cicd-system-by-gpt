@@ -24,7 +24,7 @@ Deliver one complete, browser-playable round of an original squad gate-runner in
 ## Latest Verified Change
 - PR #185 — [Fix road-bounded projectile trajectories and improve combat feedback](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/185), merged as `580209e1f993cd9547dbf064c33c017f07621cbd`. Free fire follows the perspective road, aimed shots originate at rendered soldier positions, muzzle/hit effects are clearer, and the player formation renders up to 72 models. Added two road-boundary browser tests for aimed and unguided fire at the left edge with an extremely large squad.
 - PR-head Game CI [40260135681](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260135681) passed all 9 browser tests; PR-head Workspace validation [40260135542](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260135542) passed.
-- Main-push Workspace validation [40260280564](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280564) passed. Main-push Game CI [40260280641](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280641) and post-merge Render deployment are awaiting confirmation.
+- Main-push Game CI [40260280641](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280641) and Workspace validation [40260280564](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40260280564) both passed.
 
 - PR #183 — [Add shootable arithmetic target that improves on hits](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/183), merged code commit `0dd6f3c3ef229c74610fe4f8e335a3323c033917`. The target aims at incoming fire when no enemy is engaged, predicts the panel position, updates its displayed value on each hit, and applies the final amount when crossed. Replay clones target data so upgraded values do not leak into later runs.
 - PR #183 browser acceptance [40257832733](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832733) passed all seven browser tests; PR Workspace validation [40257832652](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832652) passed.
@@ -39,7 +39,7 @@ Deliver one complete, browser-playable round of an original squad gate-runner in
 ## Deployment
 - Public URL: https://soldier-gate-runner-by-gpt.onrender.com
 - Render service: `srv-dbdf3jbrjlhs73d2lmgg`, workspace: `tea-da7sjdgu01pc73bsno6g`
-- Prior confirmed live code commit: `007677ce40d0d016f12fe075c6937ca7359e736c`, deploy: `dep-dbfbjuo473hc739t9lqg`. PR #185 code commit `580209e1f993cd9547dbf064c33c017f07621cbd` has merged; its post-merge Render deployment is not yet confirmed.
+- Live code commit: `580209e1f993cd9547dbf064c33c017f07621cbd`, deploy: `dep-dbfbu4rbc2fs7391qj90` (`LIVE`, completed 2026-10-26 02:46:53 UTC).
 - Render API reports `LIVE`; service previously reported `autoDeploy=yes` and `autoDeployTrigger=checksPass`.
 - Direct public browser inspection from the execution environment is unavailable. User visual/gameplay review remains open; CI pixel assertions and game logic tests do not prove that art looks sufficiently similar.
 
