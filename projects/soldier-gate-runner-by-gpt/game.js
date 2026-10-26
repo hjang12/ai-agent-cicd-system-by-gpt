@@ -13,7 +13,16 @@
     endCopy: $("endCopy"), endCount: $("endSoldierCount")
   };
 
-  const W = 960, H = 560, PLAYER_Y = 424, MAX_SOLDIERS = 1_000_000_000;
+  const H = 560, PLAYER_Y = 424, MAX_SOLDIERS = 1_000_000_000;
+  let W = Math.max(220, Math.round(H * window.innerWidth / Math.max(1, window.innerHeight)));
+  canvas.width = W;
+  canvas.height = H;
+  const MAX_REPRESENTATIVE_SOLDIERS = 72;
+  const MAX_FORMATION_COLUMNS = 5;
+  const FORMATION_SPACING = 18;
+  const FORMATION_ROW_SPACING = 10.2;
+  const FORMATION_MARGIN = 5;
+  const MAX_FORMATION_ROWS = Math.floor((H - (PLAYER_Y - 25) - 14) / FORMATION_ROW_SPACING) + 1;
   const testMode = new URLSearchParams(location.search).get("testMode") === "1";
   const testBossCounterattack = testMode && new URLSearchParams(location.search).get("testBossCounterattack") === "1";
   const testShootableTarget = testMode && new URLSearchParams(location.search).get("testShootableTarget") === "1";
@@ -21,6 +30,7 @@
   const testAimedProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testAimedProjectileRoadBounds") === "1";
   const testCombatScaling = testMode ? new URLSearchParams(location.search).get("testCombatScaling") : null;
   const testLaneCombat = testMode ? new URLSearchParams(location.search).get("testLaneCombat") : null;
+  const testFormation = testMode ? new URLSearchParams(location.search).get("testFormation") : null;
   const ENEMY_WAVE_SQUAD_RATIO = 0.35;
   const MAX_ENEMY_WAVE_SIZE = 210;
   const BOSS_HP_SQUAD_RATIO = 1.1;
@@ -60,7 +70,7 @@
   const rand=(a,b)=>a+Math.random()*(b-a);
 
   function roadAt(y) {
-    const t=clamp((y-66)/(H-66),0,1), width=lerp(190,830,t);
+    const t=clamp((y-66)/(H-66),0,1), width=lerp(W*190/960,W*830/960,t);
     return {left:(W-width)/2,right:(W+width)/2,width,t};
   }
   function roadXAtLane(y,lanePosition) {
@@ -68,23 +78,24 @@
     return road.left+road.width*clamp(lanePosition,.06,.94);
   }
   function squadFormation() {
-    const count=Math.min(soldiers,72);
-    const cols=Math.min(12,Math.max(1,Math.ceil(Math.sqrt(count)*1.65)));
-    const desiredSpacing=18+Math.min(32,Math.log2(Math.max(1,soldiers/12))*4);
     const muzzleRoad=roadAt(PLAYER_Y-47);
-    // Preserve lateral control by compressing the representative formation near a road edge.
-    // A fixed-width formation gets clamped to the centre as the squad grows, making lane input cosmetic.
+    // The two-way road has two fixed player lanes. Choose a fixed column count from lane width,
+    // never from squad size; additional troops add rows behind the front rank instead of widening it.
+    const maxHalfWidth=Math.max(24,muzzleRoad.width/4-FORMATION_MARGIN-1);
+    const cols=clamp(Math.floor((2*(maxHalfWidth-24))/FORMATION_SPACING)+1,1,MAX_FORMATION_COLUMNS);
+    const spacing=cols>1?Math.min(FORMATION_SPACING,(2*(maxHalfWidth-24))/(cols-1)):0;
+    const halfWidth=((cols-1)/2)*spacing+24;
+    const count=Math.min(soldiers,MAX_REPRESENTATIVE_SOLDIERS,cols*MAX_FORMATION_ROWS);
+    const rowSpacing=FORMATION_ROW_SPACING;
+    const split=muzzleRoad.left+muzzleRoad.width/2;
+    const isLeftLane=lane<.5;
+    const laneLeft=isLeftLane?muzzleRoad.left:split;
+    const laneRight=isLeftLane?split:muzzleRoad.right;
     const desiredCenter=muzzleRoad.left+muzzleRoad.width*clamp(lane,.06,.94);
-    const edgeClearance=Math.min(desiredCenter-muzzleRoad.left,muzzleRoad.right-desiredCenter)-5;
-    const maxHalfWidth=Math.max(54,Math.min(muzzleRoad.width*.38,edgeClearance));
-    const maxSpacing=cols>1?Math.max(6,(maxHalfWidth-24)*2/(cols-1)):desiredSpacing;
-    const spacing=Math.min(desiredSpacing,maxSpacing);
-    const rowSpacing=12.5+Math.min(3,Math.log2(Math.max(1,soldiers/12))*.3);
-    const halfWidth=((Math.min(cols,count)-1)/2)*spacing+24;
-    const minCenter=muzzleRoad.left+halfWidth+5;
-    const maxCenter=muzzleRoad.right-halfWidth-5;
-    const centerX=minCenter<=maxCenter?clamp(desiredCenter,minCenter,maxCenter):W/2;
-    return {count,cols,spacing,rowSpacing,centerX,halfWidth};
+    const minCenter=laneLeft+halfWidth+FORMATION_MARGIN;
+    const maxCenter=laneRight-halfWidth-FORMATION_MARGIN;
+    const centerX=clamp(desiredCenter,minCenter,maxCenter);
+    return {count,cols,spacing,rowSpacing,centerX,halfWidth,laneName:isLeftLane?"left":"right"};
   }
   function squadSoldierPosition(formation,index) {
     const row=Math.floor(index/formation.cols),col=index%formation.cols;
@@ -157,6 +168,11 @@
       soldiers=400;
       events=[{...ROUND[ROUND.length-1],hp:76,id:ROUND.length-1,y:PLAYER_Y-125,engaged:false,resolved:false}];
       nextIndex=ROUND.length;
+    }else if(testFormation==="small"||testFormation==="large"){
+      soldiers=testFormation==="large"?1000:12;
+      lane=targetLane=.25;
+      events=[{type:"fixture",count:0,id:-2,y:220,engaged:false,resolved:false}];
+      nextIndex=ROUND.length;
     }else if(testLaneCombat==="matched"||testLaneCombat==="mismatched"){
       soldiers=60;
       const enemyLane=.76;
@@ -167,7 +183,7 @@
       events=[{...ROUND[0],id:0,y:96,engaged:false,resolved:false}];
     }
     fireClock=0; attackClock=0;
-    if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds&&!testLaneCombat){lane=.5;targetLane=.5;}
+    if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds&&!testLaneCombat&&!testFormation){lane=.5;targetLane=.5;}
     bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
     lastCombatTargetId=null; lastCombatAlignment=null;
@@ -241,7 +257,8 @@
   function pointerToLane(e) {
     if(mode!=="running") return;
     const rect=canvas.getBoundingClientRect(), x=(e.clientX-rect.left)/rect.width*W, road=roadAt(PLAYER_Y);
-    targetLane=clamp((x-road.left)/road.width,.06,.94);
+    // Steering selects one of the road's two lanes; the squad never straddles the divider.
+    targetLane=x<W/2?.25:.75;
   }
   function roundRect(x,y,w,h,r,fill,stroke) {
     r=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+r,y);
@@ -471,11 +488,18 @@
 
   function drawSquad() {
     const formation=squadFormation(),road=roadAt(PLAYER_Y),x=formation.centerX;
-    const shadowWidth=Math.min(road.width*.46,formation.halfWidth+24);
     const formationRows=Math.ceil(formation.count/formation.cols);
-    const shadowHeight=Math.min(55,28+formation.rowSpacing*Math.max(0,formationRows-1)*.35);
-    ctx.fillStyle="rgba(28,130,237,.15)";ctx.beginPath();ctx.ellipse(x,PLAYER_Y+20,shadowWidth,shadowHeight,0,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle="rgba(23,117,219,.24)";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,PLAYER_Y+20,shadowWidth,shadowHeight,0,0,Math.PI*2);ctx.stroke();
+    canvas.dataset.squadColumns=String(formation.cols);
+    canvas.dataset.squadRows=String(formationRows);
+    canvas.dataset.squadVisibleCount=String(formation.count);
+    canvas.dataset.squadLane=formation.laneName;
+    canvas.dataset.squadCenterX=String(formation.centerX);
+    canvas.dataset.squadHalfWidth=String(formation.halfWidth);
+    const shadowWidth=Math.min(road.width*.22,formation.halfWidth+10);
+    const shadowCenterY=PLAYER_Y+18+Math.min(45,(formationRows-1)*formation.rowSpacing*.35);
+    const shadowHeight=Math.min(70,24+formation.rowSpacing*Math.max(0,formationRows-1)*.5);
+    ctx.fillStyle="rgba(28,130,237,.15)";ctx.beginPath();ctx.ellipse(x,shadowCenterY,shadowWidth,shadowHeight,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="rgba(23,117,219,.24)";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,shadowCenterY,shadowWidth,shadowHeight,0,0,Math.PI*2);ctx.stroke();
 
     // Use the same formation geometry for rendered soldiers and their muzzle positions.
     for(let i=0;i<formation.count;i++){
@@ -485,7 +509,7 @@
     }
 
     // Keep the marker below the formation so larger squads do not cover it.
-    const labelY=PLAYER_Y+72;
+    const labelY=PLAYER_Y-74;
     roundRect(x-48,labelY,96,17,7,"rgba(255,255,255,.96)","#1f7fe1");
     ctx.fillStyle="#1267bd";ctx.font="900 9px ui-sans-serif,system-ui";ctx.textAlign="center";ctx.textBaseline="middle";
     ctx.fillText("YOUR SQUAD",x,labelY+8.4);
@@ -856,11 +880,21 @@
   canvas.addEventListener("pointercancel",()=>{pointerDown=false;});
   window.addEventListener("keydown",e=>{
     if(mode!=="running")return;
-    if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a"){e.preventDefault();targetLane=clamp(targetLane-.16,.06,.94);}
-    else if(e.key==="ArrowRight"||e.key.toLowerCase()==="d"){e.preventDefault();targetLane=clamp(targetLane+.16,.06,.94);}
+    if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a"){e.preventDefault();targetLane=.25;}
+    else if(e.key==="ArrowRight"||e.key.toLowerCase()==="d"){e.preventDefault();targetLane=.75;}
   });
   ui.startButton.addEventListener("click",startRun);ui.replay.addEventListener("click",startRun);ui.reset.addEventListener("click",resetState);
   ui.fullscreen.addEventListener("click",async()=>{try{if(!document.fullscreenElement)await ui.frame.requestFullscreen();else await document.exitFullscreen();}catch(_e){say("Fullscreen is not available in this browser.");}});
   document.addEventListener("fullscreenchange",()=>{ui.fullscreen.setAttribute("aria-label",document.fullscreenElement?"Exit fullscreen":"Enter fullscreen");ui.fullscreen.querySelector("span").textContent=document.fullscreenElement?"EXIT FULLSCREEN":"FULLSCREEN";});
+  function resizeCanvasToViewport() {
+    const nextWidth=Math.max(220,Math.round(H*window.innerWidth/Math.max(1,window.innerHeight)));
+    if(nextWidth===W&&canvas.height===H)return;
+    const scale=nextWidth/W;
+    W=nextWidth;canvas.width=W;canvas.height=H;
+    bullets.forEach(b=>{b.x*=scale;if(Number.isFinite(b.vx))b.vx*=scale;if(Number.isFinite(b.targetX))b.targetX*=scale;});
+    particles.forEach(p=>{p.x*=scale;if(Number.isFinite(p.vx))p.vx*=scale;});
+    muzzleFlashes.forEach(f=>{f.x*=scale;});
+  }
+  window.addEventListener("resize",resizeCanvasToViewport,{passive:true});
   resetState();requestAnimationFrame(frame);
 })();
