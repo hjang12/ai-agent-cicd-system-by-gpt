@@ -604,7 +604,9 @@
       if(aim){
         let shotAim=aim;
         if(target.type==="target"){
-          const flightTime=Math.hypot(aim.x-x,aim.y-y)/velocity;
+          const rx=aim.x-x,ry=aim.y-y;
+          const a=speed*speed-velocity*velocity,b=2*ry*speed,c=rx*rx+ry*ry;
+          const flightTime=(-b-Math.sqrt(Math.max(0,b*b-4*a*c)))/(2*a);
           shotAim={x:aim.x,y:Math.min(PLAYER_Y-28,aim.y+speed*flightTime)};
         }
         const dx=shotAim.x-x,dy=shotAim.y-y,dist=Math.hypot(dx,dy)||1;
