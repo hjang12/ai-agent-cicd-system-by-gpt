@@ -164,19 +164,30 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.close()
 
-    def test_squad_fires_visible_missiles_at_enemy_wave(self) -> None:
+    def test_squad_fires_continuously_and_hits_reduce_enemy_count(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
         page.get_by_role("button", name="START RUN").click()
+
+        # Fire must continue even before a target enters the combat line.
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.projectiles || 0) > 0",
+            timeout=3000,
+        )
         page.wait_for_function(
             "() => document.querySelector('#enemyCount').textContent.trim() === '18 ENEMIES'",
             timeout=7000,
         )
+        # Impacts must change the real enemy count, not just play an effect.
         page.wait_for_function(
-            "() => Number(document.querySelector('#gameCanvas').dataset.projectiles || 0) > 0",
-            timeout=3000,
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
+            timeout=5000,
+        )
+        page.wait_for_function(
+            "() => { const n = Number(document.querySelector('#gameCanvas').dataset.enemyCount || 0); return n > 0 && n < 18; }",
+            timeout=5000,
         )
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.close()
