@@ -331,8 +331,8 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         right_x = self.lane_screen_x(page, 0.76)
 
         # A deliberately winning route; the sixth arithmetic slot is now a shot-upgraded +1 target.
-        # Enemy waves then leave enough units to defeat the commander.
-        page.mouse.move(right_x, drag_y)
+        # Start on the left +8 gate, then use the stronger multipliers and align for each enemy wave.
+        page.mouse.move(left_x, drag_y)
         page.mouse.down()
         next_gate_route = {
             1: "left",   # gate 2: ×2
