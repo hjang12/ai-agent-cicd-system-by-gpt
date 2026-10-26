@@ -157,10 +157,19 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                     if (r > 150 && r > g * 1.35 && r > b * 1.18) redEnemy++;
                 }
             }
-            return {blueSquad, redEnemy};
+            let allySkin = 0;
+            for (let y = 370; y < 470; y++) {
+                for (let x = 425; x < 535; x++) {
+                    const i = (y * width + x) * 4;
+                    const [r, g, b] = data.slice(i, i + 3);
+                    if (r > 165 && r - g > 18 && g > b * 1.18 && g < 195 && b > 65) allySkin++;
+                }
+            }
+            return {blueSquad, redEnemy, allySkin};
         }""")
         self.assertGreater(pixels["blueSquad"], 250, "Blue squad uniform palette was not visible")
         self.assertGreater(pixels["redEnemy"], 100, "Red enemy uniform palette was not visible")
+        self.assertLess(pixels["allySkin"], 35, "Allied formation should show the rear-facing soldier silhouette, not frontal faces")
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.close()
 
@@ -225,6 +234,12 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                 f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 12'",
                 timeout=6000,
             )
+            if completed_event == 6:
+                self.assertGreater(
+                    int(page.locator("#soldierCount").inner_text().strip()),
+                    120,
+                    "Squad growth should not hit the previous low 120-unit ceiling",
+                )
             direction = next_gate_route.get(completed_event)
             if direction:
                 page.mouse.move(right_x if direction == "right" else left_x, drag_y, steps=2)
