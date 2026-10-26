@@ -359,9 +359,9 @@
     const armor=ctx.createLinearGradient(-3.5,-7,3.5,4);
     armor.addColorStop(0,p.vestHi);armor.addColorStop(.48,p.vest);armor.addColorStop(1,p.helmetDark);
     // Keep the vest compact so the light shirt remains a clear part of the soldier silhouette.
-    roundRect(-3.6,-6.7,7.2,9.5,2.2,armor,p.outline);
-    roundRect(-3.95,-7.3,.8,8.4,.45,p.helmetDark,p.outline);
-    roundRect(3.15,-7.3,.8,8.4,.45,p.helmetDark,p.outline);
+    roundRect(-2.8,-6.7,5.6,9.5,2.0,armor,p.outline);
+    roundRect(-3.25,-7.3,.4,8.4,.25,p.helmetDark,p.outline);
+    roundRect(2.85,-7.3,.4,8.4,.25,p.helmetDark,p.outline);
     if(enemy){
       // A compact chest plate, shoulder guards and pouches preserve the cream shirt silhouette.
       roundRect(-2.5,-5.5,5,3.2,1.1,p.helmetDark,"rgba(255,255,255,.3)");
@@ -371,16 +371,16 @@
       ctx.beginPath();ctx.moveTo(-2.4,-4.5);ctx.lineTo(2.4,-4.5);ctx.stroke();
     }else{
       // A compact field pack and side pouches retain the reference's pale shirt / blue gear contrast.
-      roundRect(-2,-7.1,4,8,1.5,p.pack,p.outline);
-      roundRect(-1.55,-6.2,3.1,1.7,.6,p.vestHi,"rgba(255,255,255,.35)");
-      roundRect(-1.45,-3.5,2.9,2.5,.8,p.helmetDark,"rgba(255,255,255,.16)");
+      roundRect(-1.8,-7.1,3.6,8,1.4,p.pack,p.outline);
+      roundRect(-1.4,-6.2,2.8,1.7,.6,p.vestHi,"rgba(255,255,255,.35)");
+      roundRect(-1.3,-3.5,2.6,2.5,.8,p.helmetDark,"rgba(255,255,255,.16)");
       ctx.strokeStyle="rgba(207,233,255,.72)";ctx.lineWidth=.9;
-      roundRect(-5.9,-4.5,1.8,4.6,.9,p.helmetDark,p.outline);
-      roundRect(4.1,-4.5,1.8,4.6,.9,p.helmetDark,p.outline);
-      roundRect(-5.55,-3.5,.9,1.9,.4,p.vestHi,"rgba(255,255,255,.22)");
-      roundRect(4.55,-3.5,.9,1.9,.4,p.vestHi,"rgba(255,255,255,.22)");
-      ctx.beginPath();ctx.moveTo(-4.5,-7);ctx.lineTo(-4.5,3);ctx.moveTo(4.5,-7);ctx.lineTo(4.5,3);
-      ctx.moveTo(-1.8,-5.5);ctx.lineTo(1.8,-5.5);ctx.stroke();
+      roundRect(-5.9,-4.5,1.4,4.4,.8,p.helmetDark,p.outline);
+      roundRect(4.5,-4.5,1.4,4.4,.8,p.helmetDark,p.outline);
+      roundRect(-5.6,-3.5,.7,1.8,.35,p.vestHi,"rgba(255,255,255,.22)");
+      roundRect(4.85,-3.5,.7,1.8,.35,p.vestHi,"rgba(255,255,255,.22)");
+      ctx.beginPath();ctx.moveTo(-3.05,-7);ctx.lineTo(-3.05,2);ctx.moveTo(3.05,-7);ctx.lineTo(3.05,2);
+      ctx.moveTo(-1.6,-5.5);ctx.lineTo(1.6,-5.5);ctx.stroke();
     }
     roundRect(-4.5,4,9,1.6,.6,"#dce5ef","rgba(30,64,104,.4)");
     roundRect(-1.1,4.2,2.2,1.2,.4,enemy?"#ffd0d0":"#ffdc56");
