@@ -18,9 +18,13 @@ Deliver one complete, browser-playable round of an original squad gate-runner in
 - Player and enemy formations use up to 48 rendered player models / 32 enemy models, with width/depth adapted to squad count; firing volleys grow with squad size up to a practical rendering bound. Logical squad count is no longer capped at the former 120 units: an internal safety bound of 1,000,000,000 is used to avoid numeric instability, not as a normal gameplay limit.
 - Continuous forward bullet fire runs with or without an engaged target. Actual projectile hits decrease the enemy wave's remaining unit count; enemy formation follows remaining count, hits trigger visual feedback, and engaged enemies retaliate.
 - Boss health decreases from actual projectile hits, not passive elapsed time. Boss counterattack can reduce the player's squad.
-- Shootable arithmetic targets whose values improve per hit are not yet implemented; the current gates remain ordinary route-choice gates.
+- One shootable arithmetic target is now implemented: the ordinary split gate at that slot is replaced with a single blue `+1` target. Each real projectile hit increments the shown value, and crossing applies the final displayed value to squad count. Other split gates remain ordinary route-choice gates.
 
 ## Latest Verified Change
+- PR #183 — [Add shootable arithmetic target that improves on hits](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/183), merged code commit `0dd6f3c3ef229c74610fe4f8e335a3323c033917`. The target aims at incoming fire when no enemy is engaged, predicts the panel position, updates its displayed value on each hit, and applies the final amount when crossed. Replay clones target data so upgraded values do not leak into later runs.
+- PR #183 browser acceptance [40257832733](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832733) passed all seven browser tests; PR Workspace validation [40257832652](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832652) passed.
+- Main-push Game CI [40257993028](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257993028) and Workspace validation [40257993141](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257993141) passed.
+- Render deployment `dep-dbfbfm3bc2fs7391e1dg` for code commit `0dd6f3c3ef229c74610fe4f8e335a3323c033917` reached `LIVE`.
 - PR #179 — [Connect Gatefront shooting to real enemy damage](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/179), merged code commit `6f20345c1c1a5cfafafa8f76d114df4451e992f8`.
 - PR #181 — [Make Gatefront soldier formations readable at gameplay scale](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/181), merged code commit `f76bea69103b68a13046547677bd648f75c638b9`.
 - PR #181 browser acceptance [40256960836](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960836) and Workspace validation [40256960953](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960953) passed.
@@ -32,11 +36,11 @@ Deliver one complete, browser-playable round of an original squad gate-runner in
 - Render service: `srv-dbdf3jbrjlhs73d2lmgg`, workspace: `tea-da7sjdgu01pc73bsno6g`
 - Live code commit: `f76bea69103b68a13046547677bd648f75c638b9`, deploy: `dep-dbfb9oh5efls73bqlok0`
 - Render API reports `LIVE`; service previously reported `autoDeploy=yes` and `autoDeployTrigger=checksPass`.
-- Direct public browser inspection from the execution environment is unavailable. User visual/gameplay review remains open; CI pixel assertions are not evidence that the art looks sufficiently similar.
+- Direct public browser inspection from the execution environment is unavailable. User visual/gameplay review remains open; CI pixel assertions and game logic tests do not prove that art looks sufficiently similar.
 
 ## Not Yet Implemented / Open
-- Implement selected shootable arithmetic targets whose displayed value improves per real hit (e.g. `+1 → +2 → +3`); keep these distinct from normal route-choice gates.
-- Verify the uncapped-feeling squad presentation and combat visually in a normal browser. Further character scale/formation refinements may be needed after user review.
+- Review the live build in a normal browser. Confirm that the player sees readable rear-facing allies, continuous forward tracers, actual enemy losses, and a visibly improving `+1 → +2 → +3` target.
+- Tune soldier scale, large-squad visual density, shootable-target reward balance, enemy strength, and round length based on normal-browser feedback. Other shootable target types (negative, multiplier, percentage) are not yet implemented.
 - Tune squad growth, enemy strength, boss health, and round length after observing actual play.
 
 ## Explicitly Out of Scope
