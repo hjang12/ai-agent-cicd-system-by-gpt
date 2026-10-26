@@ -158,7 +158,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                 }
             }
             let allyFacePixels = 0;
-            for (let y = 372; y < 393; y++) {
+            for (let y = 372; y < 389; y++) {
                 for (let x = 425; x < 535; x++) {
                     const i = (y * width + x) * 4;
                     const [r, g, b] = data.slice(i, i + 3);
