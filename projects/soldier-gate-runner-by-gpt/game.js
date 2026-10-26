@@ -16,6 +16,7 @@
   const W = 960, H = 560, PLAYER_Y = 424, MAX_SOLDIERS = 1_000_000_000;
   const testMode = new URLSearchParams(location.search).get("testMode") === "1";
   const testBossCounterattack = testMode && new URLSearchParams(location.search).get("testBossCounterattack") === "1";
+  const testShootableTarget = testMode && new URLSearchParams(location.search).get("testShootableTarget") === "1";
   const speed = testMode ? 520 : 136;
   const spawnInterval = testMode ? .96 : 2.05;
   const C = { lime:"#ffd34d", cyan:"#1687f4", red:"#ed3947", purple:"#2d9cff" };
@@ -23,6 +24,7 @@
   const pct = (n, label) => ({ kind:"pct", amount:n, label });
   const mult = (n, label) => ({ kind:"mult", amount:n, label });
   const gate = (left, right, index) => ({ type:"gate", left, right, index });
+  const shootTarget = (effect, index) => ({ type:"target", effect, index, label:"SHOOT TO BOOST" });
 
   const ROUND = [
     gate(add(8,"+8"), pct(.5,"+50%"), 1),
@@ -32,7 +34,7 @@
     gate(add(10,"+10"), mult(2,"×2"), 4),
     gate(add(15,"+15"), pct(.5,"+50%"), 5),
     { type:"enemy", count:26, lane:.55, label:"ENEMY UNIT" },
-    gate(mult(2,"×2"), pct(-.25,"−25%"), 6),
+    shootTarget(add(1,"+1"), 6),
     { type:"enemy", count:32, lane:.46, label:"HEAVY UNIT" },
     gate(add(12,"+12"), pct(.4,"+40%"), 7),
     gate(mult(2,"×2"), add(18,"+18"), 8),
@@ -42,7 +44,7 @@
   let mode="ready", soldiers=12, resolved=0, nextIndex=0, events=[];
   let spawnClock=0, fireClock=0, attackClock=0, lane=.5, targetLane=.5, offset=0, lastFrame=0;
   let message="Choose your route. The squad is waiting.", bullets=[], particles=[];
-  let totalEnemyHits=0, totalBossHits=0;
+  let totalEnemyHits=0, totalBossHits=0, totalTargetHits=0, lastTargetValue=0;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const lerp=(a,b,t)=>a+(b-a)*t;
   const rand=(a,b)=>a+Math.random()*(b-a);
@@ -60,33 +62,45 @@
     ui.status.classList.toggle("status-live",mode==="running");
     ui.status.classList.toggle("status-win",mode==="won");
     ui.status.classList.toggle("status-loss",mode==="lost");
+    const activeEnemy=events.filter(e=>e.type==="enemy"&&e.count>0).sort((a,b)=>b.y-a.y)[0];
+    const activeTarget=events.filter(e=>e.type==="target").sort((a,b)=>b.y-a.y)[0];
     if(mode==="ready") ui.enemy.textContent="GATES AHEAD";
     else if(mode==="won") ui.enemy.textContent="CLEARED";
     else if(mode==="lost") ui.enemy.textContent="SQUAD LOST";
     else if(events.some(e=>e.type==="boss"&&e.engaged)) ui.enemy.textContent="COMMANDER";
-    else { const e=events.find(e=>e.type==="enemy"&&e.count>0); ui.enemy.textContent=e?e.count+" ENEMIES":"GATES AHEAD"; }
-    const activeEnemy=events.filter(e=>e.type==="enemy"&&e.count>0).sort((a,b)=>b.y-a.y)[0];
+    else if(activeEnemy) ui.enemy.textContent=activeEnemy.count+" ENEMIES";
+    else if(activeTarget) ui.enemy.textContent="SHOOT "+activeTarget.effect.label;
+    else ui.enemy.textContent="GATES AHEAD";
     canvas.dataset.enemyCount=String(activeEnemy?activeEnemy.count:0);
     canvas.dataset.enemyHits=String(totalEnemyHits);
     canvas.dataset.bossHits=String(totalBossHits);
+    canvas.dataset.shootTargetHits=String(totalTargetHits);
+    canvas.dataset.shootTargetValue=String(activeTarget?activeTarget.effect.amount:lastTargetValue);
   }
   function resetState() {
     mode="ready"; soldiers=12; resolved=0; nextIndex=0; events=[];
     spawnClock=0; fireClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[];
-    totalEnemyHits=0; totalBossHits=0; canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0";
+    totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0";
     ui.start.hidden=false; ui.end.hidden=true;
     say("Choose your route. The squad is waiting."); syncHud();
   }
   function startRun() {
     mode="running"; soldiers=12; resolved=0; nextIndex=1;
-    events=testBossCounterattack
-      ? [{...ROUND[ROUND.length-1],hp:1000,maxHp:1000,id:ROUND.length-1,y:PLAYER_Y-124,engaged:true,resolved:false}]
-      : [{...ROUND[0],id:0,y:84,engaged:false,resolved:false}];
-    if(testBossCounterattack) nextIndex=ROUND.length;
+    if(testBossCounterattack){
+      events=[{...ROUND[ROUND.length-1],hp:1000,maxHp:1000,id:ROUND.length-1,y:PLAYER_Y-124,engaged:true,resolved:false}];
+      nextIndex=ROUND.length;
+    }else if(testShootableTarget){
+      const source=ROUND.find(e=>e.type==="target");
+      events=source?[{...source,effect:{...source.effect},id:source.index,y:74,engaged:false,resolved:false}]:[];
+      nextIndex=ROUND.length;
+    }else{
+      events=[{...ROUND[0],id:0,y:84,engaged:false,resolved:false}];
+    }
     spawnClock=0; fireClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[];
-    totalEnemyHits=0; totalBossHits=0; canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0";
+    totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0;
+    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0";
     ui.start.hidden=true; ui.end.hidden=true;
-    say("Run started. Pick the stronger gate."); syncHud();
+    say(testShootableTarget?"Target test: hit the blue +1 panel to increase its value.":"Run started. Pick the stronger gate."); syncHud();
   }
   function finishRun(result) {
     if(mode!=="running") return;
@@ -108,7 +122,8 @@
   }
   function spawnNext() {
     if(nextIndex>=ROUND.length||mode!=="running") return;
-    events.push({...ROUND[nextIndex],id:nextIndex,y:74,engaged:false,resolved:false});
+    const source=ROUND[nextIndex];
+    events.push({...source,...(source.effect?{effect:{...source.effect}}:{}),id:nextIndex,y:74,engaged:false,resolved:false});
     nextIndex++;
   }
   function applyEffect(effect) {
@@ -123,6 +138,16 @@
     const delta=soldiers-before;
     say("Gate "+e.index+": "+effect.label+"  ·  "+(delta>=0?"+":"")+delta+" units");
     const road=roadAt(PLAYER_Y); burst(road.left+road.width*lane,PLAYER_Y-14,delta>=0?C.lime:C.red,13);
+  }
+  function resolveShootTarget(e) {
+    const before=soldiers;
+    const appliedLabel=e.effect.label;
+    applyEffect(e.effect);
+    resolved++;
+    lastTargetValue=e.effect.amount;
+    e.resolved=true;
+    say("Target "+e.index+": "+appliedLabel+" applied after "+(e.hits||0)+" hits.");
+    const road=roadAt(PLAYER_Y);burst(road.left+road.width*.5,PLAYER_Y-14,soldiers>=before?C.lime:C.red,18);
   }
   function resolveEnemy(e) {
     if(soldiers<Math.ceil(e.count*.6)) {
@@ -386,7 +411,7 @@
     return {c:"#1478e4",bg:"rgba(27,126,231,.94)",edge:"#0b4f9f"};
   }
 
-  function drawGatePanel(x,y,w,h,effect,s) {
+  function drawGatePanel(x,y,w,h,effect,s,caption="SQUAD") {
     const t=tint(effect);ctx.save();
     const side=Math.max(2,4*s);
     const grad=ctx.createLinearGradient(x,y,x+w,y+h);
@@ -408,7 +433,7 @@
     ctx.font="900 "+Math.round(25*s)+"px ui-sans-serif,system-ui";
     ctx.strokeText(effect.label,x+w/2,y+h*.52);ctx.fillText(effect.label,x+w/2,y+h*.52);
     ctx.font="900 "+Math.max(6,Math.round(8*s))+"px ui-sans-serif,system-ui";
-    ctx.fillStyle="rgba(255,255,255,.91)";ctx.fillText("SQUAD",x+w/2,y-8*s);
+    ctx.fillStyle="rgba(255,255,255,.91)";ctx.fillText(caption,x+w/2,y-8*s);
     ctx.restore();
   }
 
@@ -416,6 +441,15 @@
     const r=roadAt(e.y),s=.42+r.t*.72,h=21+r.t*37,y=e.y-h,gap=5*s,half=r.width/2;
     drawGatePanel(r.left+4,y,half-7,h,e.left,s);drawGatePanel(r.left+half+gap,y,half-7,h,e.right,s);
     ctx.fillStyle="rgba(4,12,20,.7)";ctx.fillRect(r.left+half-2,y-2,4,h+5);
+  }
+  function shootTargetGeometry(e) {
+    const road=roadAt(e.y),s=.42+road.t*.72,h=21+road.t*37,w=road.width*.72;
+    return {road,s,h,w,x:road.left+(road.width-w)/2,y:e.y-h};
+  }
+  function drawShootTarget(e) {
+    const g=shootTargetGeometry(e);
+    drawGatePanel(g.x,g.y,g.w,g.h,e.effect,g.s,"SHOOT TO BOOST");
+    if((e.hitFlash||0)>0){ctx.save();ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=2+g.s;ctx.strokeRect(g.x-3,g.y-3,g.w+6,g.h+6);ctx.restore();}
   }
   function drawEnemy(e) {
     const r=roadAt(e.y),x=r.left+r.width*e.lane,s=.58+r.t*.92;
@@ -484,6 +518,7 @@
   function drawEvents() {
     events.forEach(e=>{
       if(e.type==="gate"&&e.y>62&&e.y<H+60)drawGate(e);
+      else if(e.type==="target"&&e.y>62&&e.y<H+60)drawShootTarget(e);
       else if(e.type==="enemy"&&e.y>66&&e.y<PLAYER_Y+80)drawEnemy(e);
       else if(e.type==="boss")drawBoss(e);
     });
@@ -506,6 +541,7 @@
       }
       e.y+=speed*dt;
       if(e.type==="gate"&&e.y>=PLAYER_Y-24){resolveGate(e);events.splice(i,1);continue;}
+      if(e.type==="target"&&e.y>=PLAYER_Y-24){resolveShootTarget(e);events.splice(i,1);continue;}
       if(e.type==="enemy"&&e.y>=PLAYER_Y-180){
         e.engaged=true;e.y=PLAYER_Y-122;e.attackClock=0;e.hitFlash=0;
         say(e.label+" engaged. Squad firing.");
@@ -552,6 +588,7 @@
   function projectileTargetPoint(target) {
     const road=roadAt(target.y);
     if(target.type==="boss") return {x:road.left+road.width/2,y:target.y-27};
+    if(target.type==="target") { const g=shootTargetGeometry(target); return {x:g.x+g.w/2,y:g.y+g.h/2}; }
     return {x:road.left+road.width*target.lane,y:target.y};
   }
   function fireVolley(target) {
@@ -565,8 +602,15 @@
       const spread=ratio*formationWidth;
       const x=clamp(fromX+spread,fromRoad.left+6,fromRoad.right-6),y=PLAYER_Y-42;
       if(aim){
-        const dx=aim.x-x,dy=aim.y-y,dist=Math.hypot(dx,dy)||1;
-        bullets.push({x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,life:2.4,targetId:target.id,targetX:aim.x,targetY:aim.y});
+        let shotAim=aim;
+        if(target.type==="target"){
+          const rx=aim.x-x,ry=aim.y-y;
+          const a=speed*speed-velocity*velocity,b=2*ry*speed,c=rx*rx+ry*ry;
+          const flightTime=(-b-Math.sqrt(Math.max(0,b*b-4*a*c)))/(2*a);
+          shotAim={x:aim.x,y:Math.min(PLAYER_Y-28,aim.y+speed*flightTime)};
+        }
+        const dx=shotAim.x-x,dy=shotAim.y-y,dist=Math.hypot(dx,dy)||1;
+        bullets.push({x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,life:2.4,targetId:target.id,targetX:shotAim.x,targetY:shotAim.y});
       }else{
         bullets.push({x,y,vx:0,vy:-velocity,life:1.5,targetId:null,targetX:x,targetY:-20});
       }
@@ -574,7 +618,9 @@
   }
   function updatePlayerFire(dt) {
     if(mode!=="running")return;
-    const target=events.filter(e=>(e.type==="boss"&&e.engaged)||(e.type==="enemy"&&e.engaged&&e.count>0)).sort((a,b)=>b.y-a.y)[0]||null;
+    const target=events.filter(e=>(e.type==="boss"&&e.engaged)||(e.type==="enemy"&&e.engaged&&e.count>0)).sort((a,b)=>b.y-a.y)[0]
+      ||events.filter(e=>e.type==="target"&&e.y>66&&e.y<PLAYER_Y-24).sort((a,b)=>b.y-a.y)[0]
+      ||null;
     fireClock+=dt;
     const interval=testMode?0.18:0.3;
     while(fireClock>=interval){fireClock-=interval;fireVolley(target);}
@@ -591,6 +637,17 @@
       target.hp=Math.max(0,target.hp-1);
       totalBossHits++;
       canvas.dataset.bossHits=String(totalBossHits);
+    }else if(target.type==="target"){
+      if(!events.includes(target)||target.resolved)return;
+      if(target.effect.kind==="add")target.effect.amount+=1;
+      else if(target.effect.kind==="mult")target.effect.amount+=1;
+      else if(target.effect.kind==="pct")target.effect.amount=Math.round((target.effect.amount+.05)*100)/100;
+      if(target.effect.kind==="add")target.effect.label=target.effect.amount>0?"+"+target.effect.amount:target.effect.amount<0?"−"+Math.abs(target.effect.amount):"0";
+      else if(target.effect.kind==="mult")target.effect.label="×"+target.effect.amount;
+      else if(target.effect.kind==="pct")target.effect.label=target.effect.amount>0?"+"+Math.round(target.effect.amount*100)+"%":target.effect.amount<0?"−"+Math.round(Math.abs(target.effect.amount)*100)+"%":"0%";
+      target.hits=(target.hits||0)+1;target.hitFlash=.11;totalTargetHits++;
+      canvas.dataset.shootTargetHits=String(totalTargetHits);
+      canvas.dataset.shootTargetValue=String(target.effect.amount);
     }
   }
   function updateBullets(dt) {
