@@ -20,8 +20,8 @@
   const testProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testProjectileRoadBounds") === "1";
   const testAimedProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testAimedProjectileRoadBounds") === "1";
   const testCombatScaling = testMode ? new URLSearchParams(location.search).get("testCombatScaling") : null;
-  const ENEMY_WAVE_SQUAD_RATIO = 0.6;
-  const MAX_ENEMY_WAVE_SIZE = 240;
+  const ENEMY_WAVE_SQUAD_RATIO = 0.35;
+  const MAX_ENEMY_WAVE_SIZE = 210;
   const BOSS_HP_SQUAD_RATIO = 1.1;
   const MAX_BOSS_HP = 600;
   const speed = testMode ? 520 : 136;
@@ -642,7 +642,7 @@
     const interval=testMode?0.42:1.05;
     if(e.attackClock<interval)return;
     e.attackClock-=interval;
-    const losses=Math.min(soldiers,Math.max(1,Math.ceil(Math.min(soldiers,e.count)*0.025)));
+    const losses=Math.min(soldiers,Math.max(1,Math.ceil(Math.min(soldiers,e.count)*0.03)));
     soldiers=Math.max(0,soldiers-losses);
     const road=roadAt(PLAYER_Y),px=road.left+road.width*lane;
     burst(px,PLAYER_Y-9,C.red,6);
