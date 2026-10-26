@@ -43,11 +43,12 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 ### Gatefront — one-round soldier gate-runner
 - Canonical path: `projects/soldier-gate-runner-by-gpt/`
 - Public URL: https://soldier-gate-runner-by-gpt.onrender.com
-- Latest visual-refresh commit: `3df9ac52a8e06932aa160d5c0e50dd58ac42a3a7`; Render deployment `dep-dbdh49s9v7es73dv83jg` reached `LIVE`.
-- Live Render metadata reports `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and environment `evm-dakaq3142hec739tbag0` (existing project environment).
-- PR #174 browser acceptance [39908455855](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455855) and Workspace validation [39908455850](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455850) passed. PR #175 regression acceptance [39908722530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722530) and Workspace validation [39908722663](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722663) passed.
-- PR #177 introduced original blue/red toy-soldier figures, light bridge/road colors, blue positive and red negative gates, and a bright blue-white-yellow interface. Browser acceptance [39920339465](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39920339465) passed all six tests; Workspace validation [39920339469](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39920339469) passed.
-- Current implementation has a viewport-locked layout, visible homing missiles, and the new character/UI style. Remaining: independent public HTTP/browser smoke was unavailable from this execution environment; user should verify the look in a normal browser and judge whether further refinement is needed.
+- Active task: `TASK-20261023-0003`; checkpoint is authoritative for the next action.
+- PR #179 merged as `6f20345c1c1a5cfafafa8f76d114df4451e992f8`. It adds continuous forward fire, projectile-driven reductions in actual enemy counts, enemy waves that remain engaged until defeated and retaliate, and boss damage driven by hits.
+- Pull-request Game CI [40256305530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305530) and Workspace validation [40256305528](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305528) passed. Main-push Game CI [40256445171](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445171) and Workspace validation [40256445201](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445201) passed.
+- Render deployment `dep-dbfb62mq1p3s73f1vio0` for the main code commit reached `LIVE`; service config previously reported `autoDeploy=yes`, `autoDeployTrigger=checksPass`.
+- Earlier PR #177 visual changes remain original Canvas art, not imported Last War assets. They do not yet meet the user's target for a clearly readable, similar-looking character rendering.
+- Open: replace/refine character presentation, add shootable arithmetic targets, tune large-squad visibility, then get direct user browser/gameplay review. The remote public-browser smoke is not verified from this execution environment.
 ### Personal AI Janggi Trainer
 - Canonical path: `projects/personal-ai-janggi-trainer-by-gpt/`
 - Required Python / contract validation: `.github/workflows/janggi-validation.yml`
@@ -66,14 +67,14 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 - Commits touching project paths can trigger documentation-only Render deployments. Verify the current deployment directly after relevant merges; dated LIVE snapshots in history are not current-state evidence.
 - Both production Render services report `autoDeploy=yes`, `autoDeployTrigger=checksPass`. For main commit `d74f114149bf5c016e509ab94e3d08b887d00adb`, the final required CI check completed at 01:27:11 UTC and both Render deploys started at 01:27:14 UTC, then reached LIVE (Time Dashboard 01:27:56 UTC; Janggi 01:28:07 UTC). This directly verifies the configured CI-before-deploy gate.
 
-## Latest verification snapshot — 2026-10-23
+## Latest verification snapshot — 2026-10-26
 
-- Gatefront PRs #174–#177 are merged. The current visual-refresh commit `3df9ac52a8e06932aa160d5c0e50dd58ac42a3a7` deployed LIVE as `dep-dbdh49s9v7es73dv83jg`.
-- PR #174 browser acceptance [39908455855](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455855) / Workspace [39908455850](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908455850) passed. PR #175 browser acceptance [39908722530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722530) / Workspace [39908722663](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39908722663) passed.
-- PR #177 visual refresh: browser acceptance [39920339465](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39920339465) passed six tests, including blue/red soldier palette rendering and arcade UI styles; Workspace validation [39920339469](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/39920339469) passed.
-- Render metadata reports `autoDeploy=yes`, `autoDeployTrigger=checksPass`, and environment `evm-dakaq3142hec739tbag0`.
-- Public HTTP/browser smoke remains unverified from this execution environment. User review of the actual look and gameplay feel remains open.
-
+- PR #179 merged to main as `6f20345c1c1a5cfafafa8f76d114df4451e992f8`.
+- PR Game CI [40256305530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305530), PR Workspace validation [40256305528](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305528), main-push Game CI [40256445171](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445171), and main-push Workspace validation [40256445201](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445201) passed.
+- Render deployment `dep-dbfb62mq1p3s73f1vio0` for that code commit reached `LIVE`.
+- The latest code change connects continuous projectile fire to real enemy/boss damage and enemy casualties. User-facing visual/gameplay review and public-browser smoke remain open; the next action is character/rendering readability, then shootable arithmetic gates.
+- Governance version remains 1.4.7; the unrelated Governance improvement task remains PAUSED.
+ 
 ## Verification snapshot — 2026-10-22 (historical)
 
 - Gate-verification commit: `d74f114149bf5c016e509ab94e3d08b887d00adb` (PR #161, merged 2026-10-22).
