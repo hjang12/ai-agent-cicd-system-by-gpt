@@ -36,6 +36,29 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         cls.server.server_close()
         cls.server_thread.join(timeout=2)
 
+    @staticmethod
+    def lane_screen_x(page, lane: float) -> float:
+        bounds = page.locator("#gameCanvas").bounding_box()
+        assert bounds is not None
+        road_width = 190 + 640 * ((424 - 66) / (560 - 66))
+        road_left = (960 - road_width) / 2
+        logical_x = road_left + road_width * lane
+        return bounds["x"] + bounds["width"] * logical_x / 960
+
+    def steer_to_lane(self, page, lane: float, keep_dragging: bool = False) -> None:
+        bounds = page.locator("#gameCanvas").bounding_box()
+        assert bounds is not None
+        x = self.lane_screen_x(page, lane)
+        y = bounds["y"] + bounds["height"] * 0.78
+        if keep_dragging:
+            # The caller already holds the pointer down so continuous steering stays active.
+            page.mouse.move(x, y, steps=3)
+        else:
+            page.mouse.move(x, y)
+            page.mouse.down()
+            page.mouse.move(x, y, steps=3)
+            page.mouse.up()
+
     def test_one_round_starts_gate_applies_and_reset_works(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
@@ -191,6 +214,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
         page.get_by_role("button", name="START RUN").click()
+        self.steer_to_lane(page, 0.76)
 
         # Fire must continue even before a target enters the combat line.
         page.wait_for_function(
