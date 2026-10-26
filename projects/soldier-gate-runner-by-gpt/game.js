@@ -742,7 +742,8 @@
     }
   }
   function combatTargetLane(target) {
-    return target.type==="boss" ? .5 : clamp(Number.isFinite(target.lane)?target.lane:.5,.06,.94);
+    // The commander spans the road center, so a squad may attack it from either fixed lane.
+    return target.type==="boss" ? (lane<.5?.25:.75) : clamp(Number.isFinite(target.lane)?target.lane:.5,.06,.94);
   }
   function updatePlayerFire(dt) {
     if(mode!=="running")return;
