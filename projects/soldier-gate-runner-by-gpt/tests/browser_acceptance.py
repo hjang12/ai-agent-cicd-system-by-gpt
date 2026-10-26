@@ -156,24 +156,27 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                     centerX: Number(canvas.dataset.squadCenterX),
                     halfWidth: Number(canvas.dataset.squadHalfWidth),
                     laneLeft: roadLeft,
-                    laneSplit: roadLeft + roadWidth / 2
+                    laneSplit: roadLeft + roadWidth / 2,
+                    laneRight: roadLeft + roadWidth
                 };
             }""")
-            self.assertEqual("left", metrics["lane"])
+            lane_left = metrics["laneLeft"] if metrics["lane"] == "left" else metrics["laneSplit"]
+            lane_right = metrics["laneSplit"] if metrics["lane"] == "left" else metrics["laneRight"]
             self.assertGreaterEqual(
                 metrics["centerX"] - metrics["halfWidth"],
-                metrics["laneLeft"],
-                "Squad formation must not extend beyond the road's left edge",
+                lane_left,
+                "Squad formation must remain inside its selected lane",
             )
             self.assertLessEqual(
                 metrics["centerX"] + metrics["halfWidth"],
-                metrics["laneSplit"],
-                "The complete squad formation must remain within one road lane",
+                lane_right,
+                "The complete squad formation must not straddle the road divider",
             )
             measurements.append(metrics)
             page.close()
 
         small, large = measurements
+        self.assertEqual(small["lane"], large["lane"], "Squad growth must not move the formation to another lane")
         self.assertEqual(
             small["columns"],
             large["columns"],
