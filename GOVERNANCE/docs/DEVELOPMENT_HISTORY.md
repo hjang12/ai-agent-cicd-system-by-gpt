@@ -1,3 +1,24 @@
+## 2026-10-26 — Gatefront shootable arithmetic target
+
+### Implementation
+- PR #183, “Add shootable arithmetic target that improves on hits,” merged to main as `0dd6f3c3ef229c74610fe4f8e335a3323c033917`.
+- Replaced one left/right choice gate with a centered blue `+1` target labelled “SHOOT TO BOOST”.
+- The squad auto-aims at the target when no enemy wave or boss is engaged. The intercept calculation accounts for both projectile speed and target movement.
+- Each actual projectile impact increments the target value and updates the label; at the crossing point, the game applies exactly the amount currently displayed to the squad. Target data is cloned on spawn so upgraded values do not leak into replay.
+- Added a deterministic browser acceptance test proving multiple hits increase `+1` and that the final displayed value equals the applied squad increase.
+
+### Verification
+- PR Game CI [40257832733](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832733) passed all 7 browser tests.
+- PR Workspace validation [40257832652](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257832652) passed.
+- Main-push Game CI [40257993028](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257993028) passed.
+- Main-push Workspace validation [40257993141](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257993141) passed.
+- Render deployment `dep-dbfbfm3bc2fs7391e1dg` for commit `0dd6f3c3ef229c74610fe4f8e335a3323c033917` reached `LIVE`.
+
+### Remaining
+- Public-browser smoke and user review are still required to judge visual similarity and gameplay feel.
+- The first positive add target is implemented; shootable negative, multiplicative, and percentage target types are future work.
+- Task `TASK-20261023-0003` stays ACTIVE; shared Governance rules and version 1.4.7 remain unchanged.
+
 ## 2026-10-26 — Gatefront readable soldiers and large-squad presentation
 
 ### Implementation
