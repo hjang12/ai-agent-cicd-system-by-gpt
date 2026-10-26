@@ -234,6 +234,12 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                 f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 12'",
                 timeout=6000,
             )
+            if completed_event == 6:
+                self.assertGreater(
+                    int(page.locator("#soldierCount").inner_text().strip()),
+                    120,
+                    "Squad growth should not hit the previous low 120-unit ceiling",
+                )
             direction = next_gate_route.get(completed_event)
             if direction:
                 page.mouse.move(right_x if direction == "right" else left_x, drag_y, steps=2)
