@@ -234,83 +234,125 @@
   }
 
   function drawTrooper(x,y,s,enemy) {
-    // Original stylized toy-soldier character: oversized helmet, clear team color,
-    // light uniform, visible boots, and a compact forward-facing rifle.
+    // Original toy-soldier silhouettes with a readable direction:
+    // blue allies are shown from behind; red enemies face the player.
     const p=enemy?{
-      helmet:"#e8323d",helmetHi:"#ff858b",helmetDark:"#a91f2b",
+      helmet:"#e8323d",helmetHi:"#ff9298",helmetDark:"#a91f2b",
       vest:"#e8414b",vestHi:"#ff7278",pants:"#863743",boots:"#532631",
-      shirt:"#f4d8c5",skin:"#f2c5a6",gun:"#3e4c5c",gunHi:"#c7d0d8",outline:"#a42632"
+      shirt:"#f4d8c5",skin:"#f2c5a6",gun:"#3e4c5c",gunHi:"#c7d0d8",
+      pack:"#b62836",outline:"#a42632"
     }:{
-      helmet:"#1687f5",helmetHi:"#83d0ff",helmetDark:"#0753a5",
+      helmet:"#1687f5",helmetHi:"#a1ddff",helmetDark:"#0753a5",
       vest:"#1775db",vestHi:"#59b1ff",pants:"#315d9c",boots:"#173e73",
-      shirt:"#fff0d7",skin:"#e9b990",gun:"#33475d",gunHi:"#d6e1ea",outline:"#1557a5"
+      shirt:"#fff0d7",skin:"#e9b990",gun:"#33475d",gunHi:"#d6e1ea",
+      pack:"#0c5caf",outline:"#1557a5"
     };
+    const step=Math.sin(lastFrame*.012+x*.19+y*.09);
 
     ctx.save();ctx.translate(x,y);ctx.scale(s,s);
 
-    // Soft ground shadow and legs/boots.
-    ctx.fillStyle="rgba(35,54,73,.2)";
-    ctx.beginPath();ctx.ellipse(0,8.2,8.5,3.2,0,0,Math.PI*2);ctx.fill();
+    // Ground shadow, separated legs, and chunky boots give the figure a clear silhouette.
+    ctx.fillStyle="rgba(30,54,78,.24)";
+    ctx.beginPath();ctx.ellipse(0,14,10.5,3.4,0,0,Math.PI*2);ctx.fill();
     ctx.lineCap="round";ctx.lineJoin="round";
-    ctx.strokeStyle=p.pants;ctx.lineWidth=3.4;
-    ctx.beginPath();ctx.moveTo(-2.1,-2);ctx.lineTo(-3.1,3.8);ctx.moveTo(2.1,-2);ctx.lineTo(3.2,3.8);ctx.stroke();
-    roundRect(-5.4,2.7,4.6,4.2,1.35,p.boots,"rgba(0,0,0,.12)");
-    roundRect(.8,2.7,4.6,4.2,1.35,p.boots,"rgba(0,0,0,.12)");
-    ctx.strokeStyle="rgba(255,255,255,.24)";ctx.lineWidth=.8;
-    ctx.beginPath();ctx.moveTo(-4.7,3.4);ctx.lineTo(-1.7,3.4);ctx.moveTo(1.5,3.4);ctx.lineTo(4.3,3.4);ctx.stroke();
+    ctx.strokeStyle=p.pants;ctx.lineWidth=4.6;
+    ctx.beginPath();
+    ctx.moveTo(-2.8,1);ctx.lineTo(-3.5+step*1.2,8.5);
+    ctx.moveTo(2.8,1);ctx.lineTo(3.5-step*1.2,8.5);
+    ctx.stroke();
+    roundRect(-7+step*.7,7.2,5.8,6.1,1.8,p.boots,"rgba(14,35,64,.55)");
+    roundRect(1.2-step*.7,7.2,5.8,6.1,1.8,p.boots,"rgba(14,35,64,.55)");
+    ctx.strokeStyle="rgba(255,255,255,.32)";ctx.lineWidth=.9;
+    ctx.beginPath();ctx.moveTo(-5.9+step*.7,8.4);ctx.lineTo(-2.4+step*.7,8.4);ctx.moveTo(2.2-step*.7,8.4);ctx.lineTo(5.5-step*.7,8.4);ctx.stroke();
 
-    // Arms behind the torso.
-    ctx.strokeStyle=p.shirt;ctx.lineWidth=4.1;
-    ctx.beginPath();ctx.moveTo(-3.1,-5.5);ctx.lineTo(-6.1,-2.2);ctx.moveTo(3.1,-5.5);ctx.lineTo(6.1,-3);ctx.stroke();
-    ctx.fillStyle=p.skin;
-    ctx.beginPath();ctx.arc(-6.1,-1.8,1.7,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(6.1,-2.7,1.7,0,Math.PI*2);ctx.fill();
-
-    // Cream uniform and glossy team-colored vest.
-    const shirtGrad=ctx.createLinearGradient(-5,-8,5,4);
-    shirtGrad.addColorStop(0,"#fff9eb");shirtGrad.addColorStop(1,p.shirt);
-    roundRect(-4.8,-8.1,9.6,11.1,2.6,shirtGrad,p.outline);
-    const vestGrad=ctx.createLinearGradient(-3.8,-7,3.8,2);
-    vestGrad.addColorStop(0,p.vestHi);vestGrad.addColorStop(.42,p.vest);vestGrad.addColorStop(1,p.helmetDark);
-    roundRect(-3.7,-7.1,7.4,8.5,1.8,vestGrad,p.outline);
-    roundRect(-2.9,-5.7,2.1,2.4,0.55,p.vestHi,"rgba(255,255,255,.42)");
-    roundRect(.8,-5.7,2.1,2.4,0.55,p.vestHi,"rgba(255,255,255,.42)");
-    ctx.fillStyle=enemy?"#ffd0d0":"#ffdc56";
-    roundRect(-.8,-6.3,1.6,1.35,.5,ctx.fillStyle);
-    ctx.fillStyle="#e4eaf1";roundRect(-3.2,1,6.4,1.5,.5,"#dbe5ef","rgba(20,50,83,.15)");
-
-    // Face and ears.
-    ctx.fillStyle=p.skin;
-    ctx.beginPath();ctx.arc(-3.2,-10.1,1.35,0,Math.PI*2);ctx.arc(3.2,-10.1,1.35,0,Math.PI*2);ctx.fill();
-    const face=ctx.createRadialGradient(-1,-12,0,-.2,-10,5);
-    face.addColorStop(0,"#ffe0bd");face.addColorStop(1,p.skin);
-    ctx.fillStyle=face;ctx.beginPath();ctx.ellipse(0,-10.1,3.35,3.85,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle="#344150";
-    ctx.beginPath();ctx.arc(-1.15,-10.1,.42,0,Math.PI*2);ctx.arc(1.15,-10.1,.42,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle="rgba(108,57,47,.62)";ctx.lineWidth=.55;
-    ctx.beginPath();ctx.moveTo(-.9,-8.5);ctx.quadraticCurveTo(0,-8,0.9,-8.5);ctx.stroke();
-
-    // Rounded helmet dome with rim and a bright reflected edge.
-    ctx.fillStyle=p.helmet;
-    ctx.beginPath();ctx.ellipse(0,-12.4,4.65,3.25,0,Math.PI,Math.PI*2);ctx.fill();
-    roundRect(-4.9,-13.3,9.8,1.8,.65,p.helmetDark,p.outline);
-    ctx.strokeStyle=p.helmetHi;ctx.lineWidth=1.05;
-    ctx.beginPath();ctx.ellipse(-.05,-12.85,3.25,1.75,-.05,Math.PI*1.06,Math.PI*1.79);ctx.stroke();
-    roundRect(-.75,-15.25,1.5,1.1,.35,p.helmetHi,"rgba(255,255,255,.7)");
-
-    // A small rifle points forward and slightly to the right.
-    ctx.save();ctx.translate(2.6,-4.4);ctx.rotate(-.82);
-    roundRect(-.8,-1.15,2.7,2.5,.6,p.gun,"#253446");
-    roundRect(1.3,-.8,7.4,1.5,.35,p.gunHi,"#34465a");
-    roundRect(7.9,-.6,2.3,1.05,.25,"#263548","#152538");
-    roundRect(.4,.1,2,2.2,.35,p.gun,"#253446");
-    ctx.strokeStyle="rgba(255,255,255,.56)";ctx.lineWidth=.5;
-    ctx.beginPath();ctx.moveTo(2,-.35);ctx.lineTo(7.6,-.35);ctx.stroke();
-    if(!enemy&&mode==="running"&&Math.sin(lastFrame*.055+x*2.3+y)>0.58){
-      ctx.fillStyle="rgba(255,211,77,.42)";ctx.beginPath();ctx.arc(11,-.05,3.5,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle="#fff7a7";ctx.beginPath();ctx.moveTo(9,-.05);ctx.lineTo(14,-2.2);ctx.lineTo(13,0);ctx.lineTo(14,2);ctx.closePath();ctx.fill();
+    // Arms sit outside the torso so the body does not collapse into a single dot.
+    ctx.strokeStyle=p.outline;ctx.lineWidth=7;ctx.beginPath();
+    if(enemy){
+      ctx.moveTo(-4.6,-5.4);ctx.lineTo(-7.5,-1.8);ctx.lineTo(-5.8,1.8);
+      ctx.moveTo(4.6,-5.4);ctx.lineTo(7.2,-2.2);ctx.lineTo(6.1,1.5);
+    }else{
+      ctx.moveTo(-4.7,-5.5);ctx.lineTo(-7.2,-1.6);ctx.lineTo(-5.8,1.2);
+      ctx.moveTo(4.5,-5.4);ctx.lineTo(6.7,-7.6);ctx.lineTo(6.2,-10.2);
     }
-    ctx.restore();
+    ctx.stroke();
+    ctx.strokeStyle=p.shirt;ctx.lineWidth=4.7;ctx.beginPath();
+    if(enemy){
+      ctx.moveTo(-4.6,-5.4);ctx.lineTo(-7.5,-1.8);ctx.lineTo(-5.8,1.8);
+      ctx.moveTo(4.6,-5.4);ctx.lineTo(7.2,-2.2);ctx.lineTo(6.1,1.5);
+    }else{
+      ctx.moveTo(-4.7,-5.5);ctx.lineTo(-7.2,-1.6);ctx.lineTo(-5.8,1.2);
+      ctx.moveTo(4.5,-5.4);ctx.lineTo(6.7,-7.6);ctx.lineTo(6.2,-10.2);
+    }
+    ctx.stroke();
+    roundRect(-7.1,-1,3.2,3.8,1.1,p.boots,p.outline);
+    roundRect(4.7,enemy?-1.1:-11.5,3.2,3.8,1.1,p.boots,p.outline);
+
+    // Uniform torso and bold team-colored vest.
+    const shirt=ctx.createLinearGradient(-6,-9,6,6);
+    shirt.addColorStop(0,"#fff9eb");shirt.addColorStop(1,p.shirt);
+    roundRect(-6.3,-9.1,12.6,15.2,3.4,shirt,p.outline);
+    const armor=ctx.createLinearGradient(-5.3,-8,5.3,5);
+    armor.addColorStop(0,p.vestHi);armor.addColorStop(.48,p.vest);armor.addColorStop(1,p.helmetDark);
+    roundRect(-5.4,-8.4,10.8,12.8,2.8,armor,p.outline);
+    if(enemy){
+      // Chest plate, belt and pouches remain distinct on the opposing front-facing unit.
+      roundRect(-3.9,-6.2,7.8,4.2,1.5,"#b82a37","rgba(255,255,255,.24)");
+      roundRect(-4.3,1,3,3.1,.8,"#9f2531",p.outline);
+      roundRect(1.3,1,3,3.1,.8,"#9f2531",p.outline);
+    }else{
+      // A broad back plate and segmented pack make the forward-facing direction unambiguous.
+      roundRect(-4.1,-7.2,8.2,8.8,2.1,p.pack,p.outline);
+      roundRect(-3,-6.2,6,2.1,.7,p.vestHi,"rgba(255,255,255,.3)");
+      roundRect(-3.1,-2.8,6.2,3.3,1,p.helmetDark,"rgba(255,255,255,.14)");
+      ctx.strokeStyle="rgba(207,233,255,.62)";ctx.lineWidth=.85;
+      ctx.beginPath();ctx.moveTo(-4.5,-7);ctx.lineTo(-4.5,3);ctx.moveTo(4.5,-7);ctx.lineTo(4.5,3);ctx.stroke();
+    }
+    roundRect(-4.5,4,9,1.6,.6,"#dce5ef","rgba(30,64,104,.4)");
+    roundRect(-1.1,4.2,2.2,1.2,.4,enemy?"#ffd0d0":"#ffdc56");
+
+    if(enemy){
+      // Enemy face and visor are visible because this unit faces the incoming squad.
+      ctx.fillStyle=p.skin;ctx.beginPath();
+      ctx.arc(-4.1,-12.1,1.5,0,Math.PI*2);ctx.arc(4.1,-12.1,1.5,0,Math.PI*2);ctx.fill();
+      const face=ctx.createRadialGradient(-1,-14,0,0,-11.7,5.8);
+      face.addColorStop(0,"#ffe0bd");face.addColorStop(1,p.skin);
+      ctx.fillStyle=face;ctx.beginPath();ctx.ellipse(0,-11.9,4.5,5.1,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#263849";ctx.beginPath();
+      ctx.arc(-1.55,-12.1,.55,0,Math.PI*2);ctx.arc(1.55,-12.1,.55,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle="rgba(108,57,47,.72)";ctx.lineWidth=.7;
+      ctx.beginPath();ctx.moveTo(-1.1,-9.8);ctx.quadraticCurveTo(0,-9.1,1.1,-9.8);ctx.stroke();
+      ctx.fillStyle=p.helmet;ctx.beginPath();ctx.ellipse(0,-15.3,6.1,4.6,0,Math.PI,Math.PI*2);ctx.fill();
+      roundRect(-6,-15.6,12,2.1,.8,p.helmetDark,p.outline);
+      ctx.strokeStyle=p.helmetHi;ctx.lineWidth=1.1;
+      ctx.beginPath();ctx.ellipse(-.2,-15.7,4.2,2.4,-.04,Math.PI*1.04,Math.PI*1.82);ctx.stroke();
+      // The barrel points down-screen toward the player.
+      ctx.save();ctx.translate(5.5,-2);ctx.rotate(.12);
+      roundRect(-1.8,-2,3.7,7,1,p.gun,p.outline);
+      roundRect(-1.05,3.5,2.1,9,0.7,p.gunHi,p.gun);
+      roundRect(-1.5,11.5,3,2.2,.5,p.gun,p.outline);
+      ctx.restore();
+    }else{
+      // Oversized helmet is seen from behind; no face or eyes are drawn.
+      ctx.fillStyle=p.helmet;ctx.beginPath();ctx.ellipse(0,-14.8,6.5,6.5,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=p.outline;ctx.lineWidth=1.1;ctx.beginPath();ctx.ellipse(0,-14.8,6.5,6.5,0,0,Math.PI*2);ctx.stroke();
+      roundRect(-6.3,-13,12.6,2.2,.8,p.helmetDark,p.outline);
+      ctx.strokeStyle=p.helmetHi;ctx.lineWidth=1.3;
+      ctx.beginPath();ctx.ellipse(-.6,-16.2,4.6,3.6,-.1,Math.PI*1.1,Math.PI*1.85);ctx.stroke();
+      roundRect(-1,-20.3,2,1.4,.5,p.helmetHi,"rgba(255,255,255,.7)");
+      // Rear-facing rifle points forward/up beyond the helmet.
+      ctx.save();ctx.translate(6,-7.5);ctx.rotate(.04);
+      roundRect(-2.3,-2.2,4.4,7,1,p.gun,p.outline);
+      roundRect(-1.3,-12,2.5,11,0.7,p.gunHi,p.gun);
+      roundRect(-1.5,-14.5,3,3.1,.8,p.gun,p.outline);
+      ctx.strokeStyle="rgba(255,255,255,.5)";ctx.lineWidth=.65;
+      ctx.beginPath();ctx.moveTo(-.6,-10);ctx.lineTo(-.6,-4);ctx.stroke();
+      if(mode==="running"&&Math.sin(lastFrame*.085+x*1.7+y)>0.6){
+        ctx.fillStyle="rgba(255,211,77,.35)";ctx.beginPath();ctx.arc(0,-15.3,4,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle="#fff4a5";ctx.beginPath();
+        ctx.moveTo(0,-13.2);ctx.lineTo(-2.6,-16.2);ctx.lineTo(0,-20);ctx.lineTo(2.6,-16.2);ctx.closePath();ctx.fill();
+      }
+      ctx.restore();
+    }
     ctx.restore();
   }
 
@@ -320,13 +362,13 @@
     ctx.strokeStyle="rgba(23,117,219,.2)";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,PLAYER_Y+17,91,28,0,0,Math.PI*2);ctx.stroke();
 
     // Rows are broad enough to read as a troop formation, not a tiny triangular icon.
-    const count=Math.min(soldiers,35),cols=5;
+    const count=Math.min(soldiers,42),cols=6;
     for(let i=0;i<count;i++){
       const row=Math.floor(i/cols),col=i%cols;
       const inRow=Math.min(cols,count-row*cols),offset=(cols-inRow)/2;
-      const sx=x+(col+offset-(cols-1)/2)*13.5+(row%2?2:0);
-      const sy=PLAYER_Y-24+row*7.4;
-      drawTrooper(sx,sy,.91+row*.035,false);
+      const sx=x+(col+offset-(cols-1)/2)*18+(row%2?2.2:0);
+      const sy=PLAYER_Y-25+row*8.5;
+      drawTrooper(sx,sy,.98+row*.025,false);
     }
 
     // A small clean team marker in place of the previous neon-green caption.
@@ -374,14 +416,14 @@
     ctx.fillStyle="rgba(4,12,20,.7)";ctx.fillRect(r.left+half-2,y-2,4,h+5);
   }
   function drawEnemy(e) {
-    const r=roadAt(e.y),x=r.left+r.width*e.lane,s=.48+r.t*.66;
+    const r=roadAt(e.y),x=r.left+r.width*e.lane,s=.58+r.t*.92;
     ctx.fillStyle="rgba(222,48,59,.14)";ctx.beginPath();ctx.ellipse(x,e.y+13,69*s,20*s,0,0,Math.PI*2);ctx.fill();
     const n=Math.min(32,Math.max(1,Math.round(e.count)));
     for(let i=0;i<n;i++){
-      const row=Math.floor(i/5),col=i%5;
-      const inRow=Math.min(5,n-row*5),rowOffset=(5-inRow)/2;
-      const sx=x+(col+rowOffset-2)*15*s+(row%2?2:0);
-      const sy=e.y+row*8.3*s;
+      const cols=6,row=Math.floor(i/cols),col=i%cols;
+      const inRow=Math.min(cols,n-row*cols),rowOffset=(cols-inRow)/2;
+      const sx=x+(col+rowOffset-(cols-1)/2)*18*s+(row%2?2.2*s:0);
+      const sy=e.y+row*10*s;
       drawTrooper(sx,sy,s*.9,true);
     }
     const label="ENEMY "+e.count;
@@ -519,7 +561,7 @@
     for(let i=0;i<shotCount;i++){
       const ratio=shotCount===1?0:i/(shotCount-1)-.5;
       const spread=ratio*formationWidth;
-      const x=clamp(fromX+spread,fromRoad.left+6,fromRoad.right-6),y=PLAYER_Y-23;
+      const x=clamp(fromX+spread,fromRoad.left+6,fromRoad.right-6),y=PLAYER_Y-42;
       if(aim){
         const dx=aim.x-x,dy=aim.y-y,dist=Math.hypot(dx,dy)||1;
         bullets.push({x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,life:2.4,targetId:target.id,targetX:aim.x,targetY:aim.y});
