@@ -142,7 +142,7 @@
       events=source?[{...source,effect:{...source.effect},id:source.index,y:96,engaged:false,resolved:false}]:[];
       nextIndex=ROUND.length;
     }else if(testCombatScaling==="enemy"){
-      soldiers=400;
+      soldiers=1000;
       const source=ROUND.find(e=>e.type==="enemy");
       events=source?[{...source,id:3,y:PLAYER_Y-181,engaged:false,resolved:false}]:[];
       nextIndex=ROUND.length;
