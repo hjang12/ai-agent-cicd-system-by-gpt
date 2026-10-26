@@ -31,10 +31,11 @@ Deliver one complete, browser-playable round of an original squad gate-runner in
 ## Deployment
 - Public URL: https://soldier-gate-runner-by-gpt.onrender.com
 - Render service: `srv-dbdf3jbrjlhs73d2lmgg`, workspace: `tea-da7sjdgu01pc73bsno6g`
-- Live code commit: `331d450c9db4fb66f32b26cd245fac2b327ac68f`, deploy: `dep-dbfc4iajnfac73ek6r20` (`LIVE`, completed 2026-10-26 03:01:08 UTC).
-- Render API reports `LIVE`; service previously reported `autoDeploy=yes` and `autoDeployTrigger=checksPass`.
-- Direct public browser inspection from the execution environment is unavailable. User visual/gameplay review remains open; CI pixel assertions and game logic tests do not prove that art looks sufficiently similar.
-
+- Latest game-code-bearing commit verified in this audit: PR #188 merge `331d450c9db4fb66f32b26cd245fac2b327ac68f`. Later main commits include documentation-only updates; do not treat this code revision as the source SHA of the latest Render deployment.
+- This static site auto-deploys from `main` with `autoDeploy=yes` and `autoDeployTrigger=checksPass`. Documentation-only commits can trigger a new deployment even when the runnable game files (`index.html`, `styles.css`, and `game.js`) are unchanged. Therefore deployment IDs and current `LIVE` status are point-in-time operational facts, not durable facts to copy forward from this file.
+- Direct recovery-audit observation at 2026-10-26 04:37:37 UTC (13:37:37 KST): Render API reported deployment `dep-dbfdi30473hc739utapg` for monorepo commit `a1bd16c6bf3db7e798ae55ddb0119d06d85020f6` as `live`; Render build and deploy events both reported success. Treat this as a dated observation, not a guarantee of the active deployment after subsequent commits.
+- On a future recovery, query Render service/deploy state directly. Do not infer current deployment status from a stored deployment ID.
+- Direct public-browser inspection is not available from the execution environment. User visual/gameplay review remains open; CI pixel assertions and game logic tests do not prove that art looks sufficiently similar.
 ## Not Yet Implemented / Open
 - Review the current live build in a normal browser. Confirm that the blue surroundings and gray segmented road look closer to the reference, pale shirts/helmets/trousers/boots remain distinct at normal play scale, free and aimed projectiles stay inside the road, combat feedback is noticeable, enemy losses are visible, and the `+1 → +2 → +3` target still increments and applies correctly.
 - Tune soldier scale, large-squad visual density, shootable-target reward balance, enemy strength, and round length based on normal-browser feedback. Other shootable target types (negative, multiplier, percentage) are not yet implemented.
