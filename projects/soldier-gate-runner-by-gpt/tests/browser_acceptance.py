@@ -327,8 +327,8 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         bounds = canvas.bounding_box()
         assert bounds is not None
         drag_y = bounds["y"] + bounds["height"] * 0.78
-        left_x = bounds["x"] + bounds["width"] * 0.20
-        right_x = bounds["x"] + bounds["width"] * 0.82
+        left_x = self.lane_screen_x(page, 0.26)
+        right_x = self.lane_screen_x(page, 0.76)
 
         # A deliberately winning route; the sixth arithmetic slot is now a shot-upgraded +1 target.
         # Enemy waves then leave enough units to defeat the commander.
@@ -343,7 +343,10 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             9: "right",  # gate 7: +40%
             10: "left",  # gate 8: ×2
         }
+        enemy_lanes = {4: 0.76, 7: 0.26, 9: 0.68}
         for completed_event in range(1, 12):
+            if completed_event in enemy_lanes:
+                self.steer_to_lane(page, enemy_lanes[completed_event], keep_dragging=True)
             page.wait_for_function(
                 f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 12'",
                 timeout=6000,
@@ -358,6 +361,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             if direction:
                 page.mouse.move(right_x if direction == "right" else left_x, drag_y, steps=2)
 
+        self.steer_to_lane(page, 0.5, keep_dragging=True)
         page.mouse.up()
         page.wait_for_function(
             "() => document.querySelector('#statusPill').textContent.trim() === 'VICTORY'",
@@ -409,6 +413,47 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual("440", page.locator("#gameCanvas").get_attribute("data-boss-max-hp"))
         self.assertEqual([], errors, "Commander scaling raised a browser error")
         page.close()
+
+
+    def test_combat_requires_matching_lane_and_recovers_after_steering(self) -> None:
+        matched = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        matched_errors: list[str] = []
+        matched.on("pageerror", lambda error: matched_errors.append(str(error)))
+        matched.goto(
+            self.base_url + "?testMode=1&testLaneCombat=matched",
+            wait_until="networkidle",
+        )
+        matched.get_by_role("button", name="START RUN").click()
+        matched.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
+            timeout=3000,
+        )
+        self.assertEqual("true", matched.locator("#gameCanvas").get_attribute("data-combat-lane-aligned"))
+        self.assertEqual([], matched_errors, "Matched-lane combat raised a browser error")
+        matched.close()
+
+        mismatched = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        mismatched_errors: list[str] = []
+        mismatched.on("pageerror", lambda error: mismatched_errors.append(str(error)))
+        mismatched.goto(
+            self.base_url + "?testMode=1&testLaneCombat=mismatched",
+            wait_until="networkidle",
+        )
+        mismatched.get_by_role("button", name="START RUN").click()
+        mismatched.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'false'",
+            timeout=2000,
+        )
+        mismatched.wait_for_timeout(650)
+        self.assertEqual("0", mismatched.locator("#gameCanvas").get_attribute("data-enemy-hits"))
+        self.steer_to_lane(mismatched, 0.76)
+        mismatched.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'true'"
+            " && Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
+            timeout=3000,
+        )
+        self.assertEqual([], mismatched_errors, "Steering into the enemy lane raised a browser error")
+        mismatched.close()
 
 
 if __name__ == "__main__":
