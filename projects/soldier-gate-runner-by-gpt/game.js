@@ -504,7 +504,7 @@
       }
       e.y+=speed*dt;
       if(e.type==="gate"&&e.y>=PLAYER_Y-24){resolveGate(e);events.splice(i,1);continue;}
-      if(e.type==="enemy"&&e.y>=PLAYER_Y-122){
+      if(e.type==="enemy"&&e.y>=PLAYER_Y-180){
         e.engaged=true;e.y=PLAYER_Y-122;e.attackClock=0;e.hitFlash=0;
         say(e.label+" engaged. Squad firing.");
         continue;
