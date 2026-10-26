@@ -201,6 +201,32 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.close()
 
+    def test_shootable_target_value_increases_per_hit_and_applies_when_crossed(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testShootableTarget=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.shootTargetHits || 0) >= 2",
+            timeout=5000,
+        )
+        page.wait_for_function(
+            "() => document.querySelector('#progressCount').textContent.trim() === '1 / 12'",
+            timeout=5000,
+        )
+        hits = int(canvas.get_attribute("data-shoot-target-hits") or "0")
+        final_value = int(canvas.get_attribute("data-shoot-target-value") or "0")
+        final_squad = int(page.locator("#soldierCount").inner_text().strip())
+
+        self.assertGreaterEqual(hits, 2, "The target should register repeated projectile impacts")
+        self.assertEqual(1 + hits, final_value, "Every hit should raise +1 by one")
+        self.assertEqual(12 + final_value, final_squad, "Crossing must apply the final displayed target value")
+        self.assertEqual([], errors, "Browser JavaScript errors were reported")
+        page.close()
+
     def test_full_round_can_defeat_final_commander(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
@@ -215,8 +241,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         left_x = bounds["x"] + bounds["width"] * 0.20
         right_x = bounds["x"] + bounds["width"] * 0.82
 
-        # A deliberately winning route:
-        # +50%, ×2, +20%, ×2, +50%, ×2, +40%, ×2.
+        # A deliberately winning route; the sixth arithmetic slot is now a shot-upgraded +1 target.
         # Enemy waves then leave enough units to defeat the commander.
         page.mouse.move(right_x, drag_y)
         page.mouse.down()
