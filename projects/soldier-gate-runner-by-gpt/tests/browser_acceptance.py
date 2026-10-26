@@ -157,19 +157,31 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                     if (r > 150 && r > g * 1.35 && r > b * 1.18) redEnemy++;
                 }
             }
-            let allySkin = 0;
-            for (let y = 370; y < 470; y++) {
+            let allyFacePixels = 0;
+            for (let y = 372; y < 389; y++) {
                 for (let x = 425; x < 535; x++) {
                     const i = (y * width + x) * 4;
                     const [r, g, b] = data.slice(i, i + 3);
-                    if (r > 165 && r - g > 18 && g > b * 1.18 && g < 195 && b > 65) allySkin++;
+                    if (r > 165 && r - g > 18 && g > b * 1.18 && g < 195 && b > 65) allyFacePixels++;
                 }
             }
-            return {blueSquad, redEnemy, allySkin};
+            let paleUniformPixels = 0;
+            for (let y = 392; y < 445; y++) {
+                for (let x = 425; x < 535; x++) {
+                    const i = (y * width + x) * 4;
+                    const [r, g, b] = data.slice(i, i + 3);
+                    if (r > 220 && g > 200 && b > 165 && r >= g && g >= b) paleUniformPixels++;
+                }
+            }
+            const sideIndex = (300 * width + 30) * 4;
+            const sideBackground = Array.from(data.slice(sideIndex, sideIndex + 3));
+            return {blueSquad, redEnemy, allyFacePixels, paleUniformPixels, sideBackground};
         }""")
-        self.assertGreater(pixels["blueSquad"], 250, "Blue squad uniform palette was not visible")
-        self.assertGreater(pixels["redEnemy"], 100, "Red enemy uniform palette was not visible")
-        self.assertLess(pixels["allySkin"], 35, "Allied formation should show the rear-facing soldier silhouette, not frontal faces")
+        self.assertGreater(pixels["blueSquad"], 250, "Blue squad helmet/gear palette was not visible")
+        self.assertGreater(pixels["redEnemy"], 100, "Red enemy helmet/gear palette was not visible")
+        self.assertLess(pixels["allyFacePixels"], 35, "Allied formation should show rear-facing helmets, not frontal faces")
+        self.assertGreater(pixels["paleUniformPixels"], 50, "The allied pale shirt should remain visible beside compact blue gear")
+        self.assertGreater(pixels["sideBackground"][2], pixels["sideBackground"][1] * 1.15, "The outside field should be blue, not green terrain")
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.close()
 

@@ -221,85 +221,78 @@
     if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.stroke();}
   }
   function drawBackground(dt) {
-    // Bright, simple arcade environment: clear sky, distant green terrain, and a light road.
+    // Reference-inspired clean blue surroundings keep the squad and road as the focal point.
     const sky=ctx.createLinearGradient(0,0,0,H);
-    sky.addColorStop(0,"#35a9f8");
-    sky.addColorStop(.34,"#8bd6ff");
-    sky.addColorStop(.62,"#d9f3ff");
-    sky.addColorStop(1,"#93d85c");
+    sky.addColorStop(0,"#079ef1");
+    sky.addColorStop(.48,"#20b9fa");
+    sky.addColorStop(1,"#0789de");
     ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
 
-    const sun=ctx.createRadialGradient(760,82,5,760,82,170);
-    sun.addColorStop(0,"rgba(255,255,255,.7)");
-    sun.addColorStop(1,"rgba(255,255,255,0)");
-    ctx.fillStyle=sun;ctx.fillRect(570,0,390,250);
+    // A soft, restrained horizon glow adds depth without introducing detailed scenery.
+    const haze=ctx.createLinearGradient(0,0,0,250);
+    haze.addColorStop(0,"rgba(202,245,255,0)");
+    haze.addColorStop(.72,"rgba(202,245,255,.14)");
+    haze.addColorStop(1,"rgba(202,245,255,0)");
+    ctx.fillStyle=haze;ctx.fillRect(0,0,W,250);
 
-    // Soft, low-detail clouds keep the figures and gates as the focal point.
-    ctx.fillStyle="rgba(255,255,255,.68)";
-    [[115,75,34],[145,69,27],[171,79,37],[685,120,25],[709,111,31],[737,122,27]].forEach(([x,y,r])=>{
-      ctx.beginPath();ctx.ellipse(x,y,r,r*.38,0,0,Math.PI*2);ctx.fill();
-    });
-
-    ctx.fillStyle="#b8e58b";ctx.beginPath();ctx.moveTo(0,188);
-    [[85,161],[170,190],[260,151],[350,187],[447,160],[541,194],[638,154],[730,182],[820,157],[W,177]].forEach(p=>ctx.lineTo(p[0],p[1]));
-    ctx.lineTo(W,320);ctx.lineTo(0,320);ctx.closePath();ctx.fill();
-    ctx.fillStyle="#81ce5a";ctx.beginPath();ctx.moveTo(0,235);
-    [[95,215],[190,243],[298,208],[410,240],[520,214],[625,247],[742,211],[855,238],[W,222]].forEach(p=>ctx.lineTo(p[0],p[1]));
-    ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
-
-    // A few simple shrubs beside the road, scaled down near the horizon.
-    for(let i=0;i<22;i++){
-      const x=(i*97+23)%W,y=229+(i*31)%182,r=5+(i*7)%10;
-      ctx.fillStyle=i%2?"rgba(46,151,62,.42)":"rgba(228,255,175,.48)";
-      ctx.beginPath();ctx.ellipse(x,y,r*1.5,r*.62,0,0,Math.PI*2);ctx.fill();
-    }
     offset=(offset+dt*(mode==="running"?speed*.65:22))%70;
-    ctx.strokeStyle="rgba(255,255,255,.25)";ctx.lineWidth=1;
-    for(let y=250;y<H;y+=70){ctx.beginPath();ctx.moveTo(0,y+offset);ctx.lineTo(W,y+offset);ctx.stroke();}
   }
 
   function drawRoad() {
     const top=roadAt(66),bottom=roadAt(H);
     const grad=ctx.createLinearGradient(0,66,0,H);
-    grad.addColorStop(0,"#f4f6f8");grad.addColorStop(.52,"#dce2e8");grad.addColorStop(1,"#c6cfd9");
+    grad.addColorStop(0,"#dce0e3");
+    grad.addColorStop(.48,"#d1d6da");
+    grad.addColorStop(1,"#c4cbd0");
 
-    // Bridge shadow then concrete road surface.
-    ctx.beginPath();ctx.moveTo(top.left-5,66);ctx.lineTo(top.right+5,66);ctx.lineTo(bottom.right+7,H);ctx.lineTo(bottom.left-7,H);ctx.closePath();
-    ctx.fillStyle="rgba(43,75,101,.2)";ctx.fill();
+    // A restrained drop shadow separates the gray road from the blue surroundings.
+    ctx.beginPath();ctx.moveTo(top.left-4,66);ctx.lineTo(top.right+4,66);ctx.lineTo(bottom.right+5,H);ctx.lineTo(bottom.left-5,H);ctx.closePath();
+    ctx.fillStyle="rgba(28,59,82,.2)";ctx.fill();
     ctx.beginPath();ctx.moveTo(top.left,66);ctx.lineTo(top.right,66);ctx.lineTo(bottom.right,H);ctx.lineTo(bottom.left,H);ctx.closePath();
     ctx.fillStyle=grad;ctx.fill();
 
-    // Raised pale curbs and blue-grey guard rails, deliberately simple and readable.
+    // Broad, subtle transverse sections echo the simple segmented road in the reference.
+    ctx.save();
+    ctx.beginPath();ctx.moveTo(top.left,66);ctx.lineTo(top.right,66);ctx.lineTo(bottom.right,H);ctx.lineTo(bottom.left,H);ctx.closePath();
+    ctx.clip();
+    let y=66-(offset%42),band=0;
+    while(y<H){
+      const t=clamp((y-66)/(H-66),0,1);
+      const h=15+t*30;
+      const next=Math.min(H,y+h);
+      if(band%2===0){
+        const r1=roadAt(Math.max(66,y)),r2=roadAt(next);
+        ctx.beginPath();ctx.moveTo(r1.left,y);ctx.lineTo(r1.right,y);ctx.lineTo(r2.right,next);ctx.lineTo(r2.left,next);ctx.closePath();
+        ctx.fillStyle="rgba(255,255,255,.075)";ctx.fill();
+      }else{
+        const r1=roadAt(Math.max(66,y)),r2=roadAt(next);
+        ctx.beginPath();ctx.moveTo(r1.left,y);ctx.lineTo(r1.right,y);ctx.lineTo(r2.right,next);ctx.lineTo(r2.left,next);ctx.closePath();
+        ctx.fillStyle="rgba(63,78,90,.025)";ctx.fill();
+      }
+      y=next;band++;
+    }
+    ctx.restore();
+
+    // Thin white road edges replace the bulky guard rails; the blue outside remains visible.
     ctx.lineCap="round";
-    ctx.strokeStyle="rgba(74,91,109,.55)";ctx.lineWidth=13;
-    ctx.beginPath();ctx.moveTo(top.left-1,67);ctx.lineTo(bottom.left-1,H);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(top.right+1,67);ctx.lineTo(bottom.right+1,H);ctx.stroke();
-    ctx.strokeStyle="#f8fbff";ctx.lineWidth=7;
+    ctx.strokeStyle="rgba(57,71,83,.65)";ctx.lineWidth=7;
     ctx.beginPath();ctx.moveTo(top.left,67);ctx.lineTo(bottom.left,H);ctx.stroke();
     ctx.beginPath();ctx.moveTo(top.right,67);ctx.lineTo(bottom.right,H);ctx.stroke();
-    ctx.strokeStyle="#388be0";ctx.lineWidth=2.5;
+    ctx.strokeStyle="#f8fbff";ctx.lineWidth=3.5;
     ctx.beginPath();ctx.moveTo(top.left,67);ctx.lineTo(bottom.left,H);ctx.stroke();
     ctx.beginPath();ctx.moveTo(top.right,67);ctx.lineTo(bottom.right,H);ctx.stroke();
     ctx.lineCap="butt";
 
-    // White perspective lane markings and small moving road dashes.
-    for(const f of [.333,.666]) {
-      ctx.strokeStyle="rgba(255,255,255,.76)";ctx.lineWidth=2.3;ctx.setLineDash([13,18]);ctx.lineDashOffset=-offset*1.8;
-      ctx.beginPath();ctx.moveTo(lerp(top.left,top.right,f),66);ctx.lineTo(lerp(bottom.left,bottom.right,f),H);ctx.stroke();ctx.setLineDash([]);
-    }
-    ctx.strokeStyle="rgba(255,255,255,.58)";ctx.lineWidth=1.5;
-    for(let y=118;y<H;y+=62){
-      const r=roadAt(y+offset),w=lerp(3,15,r.t);
-      ctx.beginPath();ctx.moveTo(r.left+12,y+offset);ctx.lineTo(r.left+12+w,y+offset);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(r.right-12-w,y+offset);ctx.lineTo(r.right-12,y+offset);ctx.stroke();
-    }
+    // One center divider matches the two-way arithmetic-gate layout.
+    ctx.strokeStyle="rgba(255,255,255,.82)";ctx.lineWidth=2.5;ctx.setLineDash([16,17]);ctx.lineDashOffset=-offset*1.8;
+    ctx.beginPath();ctx.moveTo(W/2,66);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
 
-    // Guard-rail posts create just enough depth without making the background busy.
-    for(let y=90;y<H;y+=Math.max(18,20+y*.035)){
-      const r=roadAt(y),h=5+r.t*10;
-      ctx.fillStyle="#236eb7";
-      roundRect(r.left-5-r.t*2,y-h,3+r.t*3,h,1.5,"#236eb7");
-      roundRect(r.right+2,y-h,3+r.t*3,h,1.5,"#236eb7");
+    // Small broken edge marks make the road perspective legible without adding rail hardware.
+    ctx.strokeStyle="rgba(255,255,255,.48)";ctx.lineWidth=1.3;
+    for(let y=113;y<H;y+=68){
+      const r=roadAt(y+offset*.55),w=3+r.t*6;
+      ctx.beginPath();ctx.moveTo(r.left+10,y+offset*.55);ctx.lineTo(r.left+10+w,y+offset*.55);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(r.right-10-w,y+offset*.55);ctx.lineTo(r.right-10,y+offset*.55);ctx.stroke();
     }
   }
 
@@ -308,12 +301,12 @@
     // blue allies are shown from behind; red enemies face the player.
     const p=enemy?{
       helmet:"#e8323d",helmetHi:"#ff9298",helmetDark:"#a91f2b",
-      vest:"#e8414b",vestHi:"#ff7278",pants:"#863743",boots:"#532631",
+      vest:"#d94a51",vestHi:"#ff858a",pants:"#8d3643",boots:"#d52e43",bootOutline:"#8f1f30",glove:"#6d2632",
       shirt:"#f4d8c5",skin:"#f2c5a6",gun:"#3e4c5c",gunHi:"#c7d0d8",
       pack:"#b62836",outline:"#a42632"
     }:{
-      helmet:"#1687f5",helmetHi:"#a1ddff",helmetDark:"#0753a5",
-      vest:"#1775db",vestHi:"#59b1ff",pants:"#315d9c",boots:"#173e73",
+      helmet:"#1687f5",helmetHi:"#b2e5ff",helmetDark:"#0753a5",
+      vest:"#327fb5",vestHi:"#80c6ee",pants:"#315d9c",boots:"#d83b4d",bootOutline:"#8c2635",glove:"#164d85",
       shirt:"#fff0d7",skin:"#e9b990",gun:"#33475d",gunHi:"#d6e1ea",
       pack:"#0c5caf",outline:"#1557a5"
     };
@@ -325,13 +318,15 @@
     ctx.fillStyle="rgba(30,54,78,.24)";
     ctx.beginPath();ctx.ellipse(0,14,10.5,3.4,0,0,Math.PI*2);ctx.fill();
     ctx.lineCap="round";ctx.lineJoin="round";
-    ctx.strokeStyle=p.pants;ctx.lineWidth=4.6;
-    ctx.beginPath();
-    ctx.moveTo(-2.8,1);ctx.lineTo(-3.5+step*1.2,8.5);
-    ctx.moveTo(2.8,1);ctx.lineTo(3.5-step*1.2,8.5);
-    ctx.stroke();
-    roundRect(-7+step*.7,7.2,5.8,6.1,1.8,p.boots,"rgba(14,35,64,.55)");
-    roundRect(1.2-step*.7,7.2,5.8,6.1,1.8,p.boots,"rgba(14,35,64,.55)");
+    // Block-shaped trousers and bright boot toes make the lower body readable at small sizes.
+    roundRect(-4.5+step*.45,1.3,3.7,8.6,1.15,p.pants,p.outline);
+    roundRect(.8-step*.45,1.3,3.7,8.6,1.15,p.pants,p.outline);
+    ctx.strokeStyle="rgba(255,255,255,.19)";ctx.lineWidth=.75;
+    ctx.beginPath();ctx.moveTo(-2.6+step*.45,2.1);ctx.lineTo(-2.6+step*.45,7.6);ctx.moveTo(2.5-step*.45,2.1);ctx.lineTo(2.5-step*.45,7.6);ctx.stroke();
+    roundRect(-7+step*.7,7.3,5.9,5.9,1.8,p.boots,p.bootOutline);
+    roundRect(1.2-step*.7,7.3,5.9,5.9,1.8,p.boots,p.bootOutline);
+    roundRect(-6.3+step*.7,8,4.2,1.7,.7,"rgba(255,255,255,.3)");
+    roundRect(1.9-step*.7,8,4.2,1.7,.7,"rgba(255,255,255,.3)");
     ctx.strokeStyle="rgba(255,255,255,.32)";ctx.lineWidth=.9;
     ctx.beginPath();ctx.moveTo(-5.9+step*.7,8.4);ctx.lineTo(-2.4+step*.7,8.4);ctx.moveTo(2.2-step*.7,8.4);ctx.lineTo(5.5-step*.7,8.4);ctx.stroke();
 
@@ -354,33 +349,40 @@
       ctx.moveTo(4.5,-5.4);ctx.lineTo(6.7,-7.6);ctx.lineTo(6.2,-10.2);
     }
     ctx.stroke();
-    roundRect(-7.1,-1,3.2,3.8,1.1,p.boots,p.outline);
-    roundRect(4.7,enemy?-1.1:-11.5,3.2,3.8,1.1,p.boots,p.outline);
+    // Reset the arm stroke width before small equipment and torso outlines are drawn.
+    ctx.lineWidth=1.15;
+    roundRect(-7.1,-1,3.2,3.8,1.1,p.glove,p.outline);
+    roundRect(4.7,enemy?-1.1:-11.5,3.2,3.8,1.1,p.glove,p.outline);
 
     // Uniform torso and bold team-colored vest.
     const shirt=ctx.createLinearGradient(-6,-9,6,6);
     shirt.addColorStop(0,"#fff9eb");shirt.addColorStop(1,p.shirt);
     roundRect(-6.3,-9.1,12.6,15.2,3.4,shirt,p.outline);
-    const armor=ctx.createLinearGradient(-5.3,-8,5.3,5);
+    const armor=ctx.createLinearGradient(-3.5,-7,3.5,4);
     armor.addColorStop(0,p.vestHi);armor.addColorStop(.48,p.vest);armor.addColorStop(1,p.helmetDark);
-    roundRect(-5.4,-8.4,10.8,12.8,2.8,armor,p.outline);
+    // Keep the vest compact so the light shirt remains a clear part of the soldier silhouette.
+    roundRect(-2.8,-6.7,5.6,9.5,2.0,armor,p.outline);
+    roundRect(-3.25,-7.3,.4,8.4,.25,p.helmetDark,p.outline);
+    roundRect(2.85,-7.3,.4,8.4,.25,p.helmetDark,p.outline);
     if(enemy){
-      // Chest plate, belt and pouches remain distinct on the opposing front-facing unit.
-      roundRect(-3.9,-6.2,7.8,4.2,1.5,"#b82a37","rgba(255,255,255,.24)");
-      roundRect(-4.3,1,3,3.1,.8,"#9f2531",p.outline);
-      roundRect(1.3,1,3,3.1,.8,"#9f2531",p.outline);
+      // A compact chest plate, shoulder guards and pouches preserve the cream shirt silhouette.
+      roundRect(-2.5,-5.5,5,3.2,1.1,p.helmetDark,"rgba(255,255,255,.3)");
+      roundRect(-3.1,-1,2.1,3.1,.7,"#a92532",p.outline);
+      roundRect(1,-1,2.1,3.1,.7,"#a92532",p.outline);
+      ctx.strokeStyle="rgba(255,242,221,.58)";ctx.lineWidth=.8;
+      ctx.beginPath();ctx.moveTo(-2.4,-4.5);ctx.lineTo(2.4,-4.5);ctx.stroke();
     }else{
-      // A broad back plate and segmented pack make the forward-facing direction unambiguous.
-      roundRect(-4.1,-7.2,8.2,8.8,2.1,p.pack,p.outline);
-      roundRect(-3,-6.2,6,2.1,.7,p.vestHi,"rgba(255,255,255,.3)");
-      roundRect(-3.1,-2.8,6.2,3.3,1,p.helmetDark,"rgba(255,255,255,.14)");
-      ctx.strokeStyle="rgba(207,233,255,.62)";ctx.lineWidth=.85;
-      roundRect(-5.8,-4.5,2.7,5.2,1,p.helmetDark,p.outline);
-      roundRect(3.1,-4.5,2.7,5.2,1,p.helmetDark,p.outline);
-      roundRect(-5.15,-3.5,1.4,2.2,.45,p.vestHi,"rgba(255,255,255,.22)");
-      roundRect(3.75,-3.5,1.4,2.2,.45,p.vestHi,"rgba(255,255,255,.22)");
-      ctx.beginPath();ctx.moveTo(-4.5,-7);ctx.lineTo(-4.5,3);ctx.moveTo(4.5,-7);ctx.lineTo(4.5,3);
-      ctx.moveTo(-2.8,-5.5);ctx.lineTo(2.8,-5.5);ctx.stroke();
+      // A compact field pack and side pouches retain the reference's pale shirt / blue gear contrast.
+      roundRect(-1.8,-7.1,3.6,8,1.4,p.pack,p.outline);
+      roundRect(-1.4,-6.2,2.8,1.7,.6,p.vestHi,"rgba(255,255,255,.35)");
+      roundRect(-1.3,-3.5,2.6,2.5,.8,p.helmetDark,"rgba(255,255,255,.16)");
+      ctx.strokeStyle="rgba(207,233,255,.72)";ctx.lineWidth=.9;
+      roundRect(-5.9,-4.5,1.4,4.4,.8,p.helmetDark,p.outline);
+      roundRect(4.5,-4.5,1.4,4.4,.8,p.helmetDark,p.outline);
+      roundRect(-5.6,-3.5,.7,1.8,.35,p.vestHi,"rgba(255,255,255,.22)");
+      roundRect(4.85,-3.5,.7,1.8,.35,p.vestHi,"rgba(255,255,255,.22)");
+      ctx.beginPath();ctx.moveTo(-3.05,-7);ctx.lineTo(-3.05,2);ctx.moveTo(3.05,-7);ctx.lineTo(3.05,2);
+      ctx.moveTo(-1.6,-5.5);ctx.lineTo(1.6,-5.5);ctx.stroke();
     }
     roundRect(-4.5,4,9,1.6,.6,"#dce5ef","rgba(30,64,104,.4)");
     roundRect(-1.1,4.2,2.2,1.2,.4,enemy?"#ffd0d0":"#ffdc56");
@@ -403,8 +405,8 @@
       ctx.arc(-1.55,-12.1,.55,0,Math.PI*2);ctx.arc(1.55,-12.1,.55,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle="rgba(108,57,47,.72)";ctx.lineWidth=.7;
       ctx.beginPath();ctx.moveTo(-1.1,-9.8);ctx.quadraticCurveTo(0,-9.1,1.1,-9.8);ctx.stroke();
-      ctx.fillStyle=p.helmet;ctx.beginPath();ctx.ellipse(0,-15.3,6.1,4.6,0,Math.PI,Math.PI*2);ctx.fill();
-      roundRect(-6,-15.6,12,2.1,.8,p.helmetDark,p.outline);
+      ctx.fillStyle=p.helmet;ctx.beginPath();ctx.ellipse(0,-15.3,6.8,5.1,0,Math.PI,Math.PI*2);ctx.fill();
+      roundRect(-6.7,-15.7,13.4,2.2,.8,p.helmetDark,p.outline);
       ctx.strokeStyle=p.helmetHi;ctx.lineWidth=1.1;
       ctx.beginPath();ctx.ellipse(-.2,-15.7,4.2,2.4,-.04,Math.PI*1.04,Math.PI*1.82);ctx.stroke();
       // The barrel points down-screen toward the player.
@@ -415,9 +417,9 @@
       ctx.restore();
     }else{
       // Oversized helmet is seen from behind; no face or eyes are drawn.
-      ctx.fillStyle=p.helmet;ctx.beginPath();ctx.ellipse(0,-14.8,6.5,6.5,0,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle=p.outline;ctx.lineWidth=1.1;ctx.beginPath();ctx.ellipse(0,-14.8,6.5,6.5,0,0,Math.PI*2);ctx.stroke();
-      roundRect(-6.3,-13,12.6,2.2,.8,p.helmetDark,p.outline);
+      ctx.fillStyle=p.helmet;ctx.beginPath();ctx.ellipse(0,-14.8,7.1,6.8,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=p.outline;ctx.lineWidth=1.1;ctx.beginPath();ctx.ellipse(0,-14.8,7.1,6.8,0,0,Math.PI*2);ctx.stroke();
+      roundRect(-6.9,-13,13.8,2.5,.8,p.helmetDark,p.outline);
       ctx.strokeStyle=p.helmetHi;ctx.lineWidth=1.3;
       ctx.beginPath();ctx.ellipse(-.6,-16.2,4.6,3.6,-.1,Math.PI*1.1,Math.PI*1.85);ctx.stroke();
       roundRect(-1,-20.3,2,1.4,.5,p.helmetHi,"rgba(255,255,255,.7)");
