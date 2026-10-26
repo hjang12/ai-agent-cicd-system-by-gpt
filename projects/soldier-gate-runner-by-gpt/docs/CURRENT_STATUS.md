@@ -21,6 +21,13 @@ Deliver one complete, browser-playable round of an original squad gate-runner in
 - Boss health decreases from actual projectile hits, not passive elapsed time. Boss counterattack can reduce the player's squad.
 - One shootable arithmetic target is now implemented: the ordinary split gate at that slot is replaced with a single blue `+1` target. Each real projectile hit increments the shown value, and crossing applies the final displayed value to squad count. Other split gates remain ordinary route-choice gates.
 
+## Gameplay Review and Balance Update
+- User's normal-browser review on 2026-10-26 found the overall gameplay very poor. The game should no longer prioritize another visual-only pass; the core loop needs meaningful choices and combat pressure.
+- PR #191 — [Rebalance combat for squad growth](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/191), merged as `f719cabe99f3f4adc4dd9061a3a756ed483cc77f`. Enemy waves now scale to `min(210, ceil(squad × 0.35))` (never shrinking the original wave count); final commander HP scales to `min(600, round(squad × 1.1))`; enemy attack losses scale with the lesser of remaining squad and enemy counts, at 3% per counterattack with a minimum loss of one.
+- PR-head browser acceptance [40274629227](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40274629227) passed all 11 tests; PR Workspace validation [40274629229](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40274629229) passed. Main-push Game CI [40274773578](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40274773578) and Workspace validation [40274773661](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40274773661) also passed.
+- Render deployment `dep-dbfech6k1f9s7386jhrg` for merge commit `f719cabe99f3f4adc4dd9061a3a756ed483cc77f` reached `LIVE` at 2026-10-26 05:34:08 UTC (14:34:08 KST). This confirms deployment, not gameplay quality.
+- Source review still finds a core interaction gap: combat automatically targets engaged enemies regardless of the player's lane, and the shootable `+1` target is auto-aimed. The next gameplay change should make steering/lane position materially affect combat and choices before adding more target types.
+
 ## Latest Verified Change
 - PR #188 — [Bring Gatefront soldiers and road visuals closer to the reference](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/pull/188), merged as `331d450c9db4fb66f32b26cd245fac2b327ac68f`. Replaced green terrain with a simple blue field and segmented gray road; enlarged helmets, compacted blue gear to expose pale shirts, and improved contrast among helmets, trousers and red boot toes.
 - PR #188 browser acceptance [40261516532](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40261516532) passed all 9 tests, including visual pixel guards for rear-facing allies, pale shirts, team colors, and blue surroundings. PR Workspace validation [40261516564](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40261516564) passed.
@@ -31,15 +38,16 @@ Deliver one complete, browser-playable round of an original squad gate-runner in
 ## Deployment
 - Public URL: https://soldier-gate-runner-by-gpt.onrender.com
 - Render service: `srv-dbdf3jbrjlhs73d2lmgg`, workspace: `tea-da7sjdgu01pc73bsno6g`
-- Latest game-code-bearing commit verified in this audit: PR #188 merge `331d450c9db4fb66f32b26cd245fac2b327ac68f`. Later main commits include documentation-only updates; do not treat this code revision as the source SHA of the latest Render deployment.
+- Latest game-code-bearing commit verified in this audit: PR #191 merge `f719cabe99f3f4adc4dd9061a3a756ed483cc77f`. Later main commits may contain documentation-only updates that trigger new deployments; query Render directly instead of assuming the latest deployment source SHA.
 - This static site auto-deploys from `main` with `autoDeploy=yes` and `autoDeployTrigger=checksPass`. Documentation-only commits can trigger a new deployment even when the runnable game files (`index.html`, `styles.css`, and `game.js`) are unchanged. Therefore deployment IDs and current `LIVE` status are point-in-time operational facts, not durable facts to copy forward from this file.
 - Direct recovery-audit observation at 2026-10-26 04:37:37 UTC (13:37:37 KST): Render API reported deployment `dep-dbfdi30473hc739utapg` for monorepo commit `a1bd16c6bf3db7e798ae55ddb0119d06d85020f6` as `live`; Render build and deploy events both reported success. Treat this as a dated observation, not a guarantee of the active deployment after subsequent commits.
+- Direct Render observation at 2026-10-26 05:34:08 UTC (14:34:08 KST): deployment `dep-dbfech6k1f9s7386jhrg` for game-code merge commit `f719cabe99f3f4adc4dd9061a3a756ed483cc77f` reached `LIVE`; build and deploy events succeeded. This is timestamped evidence; query current Render status on each recovery.
 - On a future recovery, query Render service/deploy state directly. Do not infer current deployment status from a stored deployment ID.
-- Direct public-browser inspection is not available from the execution environment. User visual/gameplay review remains open; CI pixel assertions and game logic tests do not prove that art looks sufficiently similar.
+- Direct interactive public-browser inspection remains unavailable from this execution environment. The user has reviewed the live game and reports the gameplay is very poor; review of the updated PR #191 release is still open. CI and deterministic browser tests do not establish that the game is fun.
 ## Not Yet Implemented / Open
-- Review the current live build in a normal browser. Confirm that the blue surroundings and gray segmented road look closer to the reference, pale shirts/helmets/trousers/boots remain distinct at normal play scale, free and aimed projectiles stay inside the road, combat feedback is noticeable, enemy losses are visible, and the `+1 → +2 → +3` target still increments and applies correctly.
-- Tune soldier scale, large-squad visual density, shootable-target reward balance, enemy strength, and round length based on normal-browser feedback. Other shootable target types (negative, multiplier, percentage) are not yet implemented.
-- Tune squad growth, enemy strength, boss health, and round length after observing actual play.
+- Recheck the updated LIVE build in a normal browser, focusing on whether scaled enemy waves and the final commander create enough combat pressure without making the single round drag. Keep gameplay review open until this is observed.
+- Next core gameplay issue from source review: enemy engagement is automatically targeted regardless of player lane, and the `+1` target is auto-aimed. Make movement/lane position and combat decisions materially affect outcomes before implementing negative, multiplier, or percentage targets.
+- Rebalance squad growth, enemy strength, commander health, counterattack losses, and event spacing using normal-browser observations. The PR #191 ratios are an initial balance pass, not calibrated final values.
 
 ## Explicitly Out of Scope
 - App Store / Play Store publication.
