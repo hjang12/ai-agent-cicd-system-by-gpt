@@ -360,11 +360,11 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         )
         page.get_by_role("button", name="START RUN").click()
         page.wait_for_function(
-            "() => document.querySelector('#enemyCount').textContent.trim() === '210 ENEMIES'",
+            "() => document.querySelector('#gameCanvas').dataset.enemyWaveInitialCount === '210'",
             timeout=3000,
         )
         self.assertEqual("1000", page.locator("#soldierCount").inner_text().strip())
-        self.assertEqual("210", page.locator("#gameCanvas").get_attribute("data-enemy-count"))
+        self.assertEqual("210", page.locator("#gameCanvas").get_attribute("data-enemy-wave-initial-count"))
         self.assertEqual([], errors, "Enemy scaling raised a browser error")
         page.close()
 
