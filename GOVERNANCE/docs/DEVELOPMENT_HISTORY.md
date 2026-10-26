@@ -1,3 +1,22 @@
+## 2026-10-26 — Gatefront readable soldiers and large-squad presentation
+
+### Implementation
+- PR #181, “Make Gatefront soldier formations readable at gameplay scale,” merged to main as `f76bea69103b68a13046547677bd648f75c638b9`.
+- Replaced the prior face-forward rendering for both teams with a clearer directional distinction: blue allies are rear-facing with a helmet/back pack/limbs/boots and a forward-pointing rifle; red enemies face the player and aim toward the squad.
+- Expanded both formations to six through twelve columns with wider spacing, increased enemy scale, subtle leg movement, and projectile origins nearer the leading row's muzzle.
+- Raised the logical squad safety bound from 120 to 1,000,000,000; representative rendered formation width/depth and shot count now grow with squad size, with practical renderer limits.
+- Added browser assertions for the allied rear-facing silhouette and for a full round growing beyond the previous 120-unit ceiling.
+
+### Verification
+- PR Game CI [40256960836](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960836) and PR Workspace validation [40256960953](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256960953) passed.
+- Main-push Game CI [40257084984](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084984) and main-push Workspace validation [40257084952](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40257084952) passed.
+- Render deployment `dep-dbfb9oh5efls73bqlok0` for the code commit reached `LIVE`.
+
+### Remaining
+- Public browser and user review are still required to judge whether the visuals are close enough to the target.
+- Shootable arithmetic targets that improve their displayed value per hit remain the next feature.
+- `TASK-20261023-0003` stays ACTIVE; no Governance rule changed.
+
 ## 2026-10-26 — Gatefront combat loop: continuous fire and real enemy casualties
 
 ### Implementation
