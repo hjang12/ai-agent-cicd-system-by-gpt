@@ -68,7 +68,7 @@
     const maxSpacing=cols>1?Math.max(12,(muzzleRoad.width*.76-28)/(cols-1)):desiredSpacing;
     const spacing=Math.min(desiredSpacing,maxSpacing);
     const rowSpacing=12.5+Math.min(3,Math.log2(Math.max(1,soldiers/12))*.3);
-    const halfWidth=((Math.min(cols,count)-1)/2)*spacing+14;
+    const halfWidth=((Math.min(cols,count)-1)/2)*spacing+24;
     const minCenter=muzzleRoad.left+halfWidth+5;
     const maxCenter=muzzleRoad.right-halfWidth-5;
     const playerRoad=roadAt(PLAYER_Y);
@@ -720,9 +720,11 @@
     for(let i=bullets.length-1;i>=0;i--){
       const b=bullets[i];
       if(b.roadLane!==undefined){
+        const previousX=b.x;
         b.y+=b.vy*dt;
         if(b.y<=66){bullets.splice(i,1);continue;}
         b.x=roadXAtLane(b.y,b.roadLane);
+        b.vx=dt>0?(b.x-previousX)/dt:0;
       }else{
         b.x+=b.vx*dt;b.y+=b.vy*dt;
       }
