@@ -349,6 +349,8 @@
       ctx.moveTo(4.5,-5.4);ctx.lineTo(6.7,-7.6);ctx.lineTo(6.2,-10.2);
     }
     ctx.stroke();
+    // Reset the arm stroke width before small equipment and torso outlines are drawn.
+    ctx.lineWidth=1.15;
     roundRect(-7.1,-1,3.2,3.8,1.1,p.glove,p.outline);
     roundRect(4.7,enemy?-1.1:-11.5,3.2,3.8,1.1,p.glove,p.outline);
 
