@@ -18,6 +18,7 @@
   const testBossCounterattack = testMode && new URLSearchParams(location.search).get("testBossCounterattack") === "1";
   const testShootableTarget = testMode && new URLSearchParams(location.search).get("testShootableTarget") === "1";
   const testProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testProjectileRoadBounds") === "1";
+  const testAimedProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testAimedProjectileRoadBounds") === "1";
   const speed = testMode ? 520 : 136;
   const spawnInterval = testMode ? .96 : 2.05;
   const C = { lime:"#ffd34d", cyan:"#1687f4", red:"#ed3947", purple:"#2d9cff" };
@@ -120,9 +121,13 @@
   }
   function startRun() {
     mode="running"; soldiers=12; resolved=0; nextIndex=1;
-    if(testProjectileRoadBounds){
+    if(testProjectileRoadBounds||testAimedProjectileRoadBounds){
       soldiers=MAX_SOLDIERS; lane=.06; targetLane=.06;
-      events=[{type:"fixture",id:-1,y:200,engaged:false,resolved:false}];
+      if(testAimedProjectileRoadBounds){
+        events=[{...ROUND[ROUND.length-1],hp:1000,maxHp:1000,id:ROUND.length-1,y:PLAYER_Y-124,engaged:true,resolved:false}];
+      }else{
+        events=[{type:"fixture",id:-1,y:200,engaged:false,resolved:false}];
+      }
       nextIndex=ROUND.length;
     }else if(testBossCounterattack){
       events=[{...ROUND[ROUND.length-1],hp:1000,maxHp:1000,id:ROUND.length-1,y:PLAYER_Y-124,engaged:true,resolved:false}];
@@ -135,7 +140,7 @@
       events=[{...ROUND[0],id:0,y:84,engaged:false,resolved:false}];
     }
     spawnClock=0; fireClock=0; attackClock=0;
-    if(!testProjectileRoadBounds){lane=.5;targetLane=.5;}
+    if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds){lane=.5;targetLane=.5;}
     bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
     canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
