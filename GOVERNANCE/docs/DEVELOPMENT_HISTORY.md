@@ -1,3 +1,25 @@
+## 2026-10-26 — Gatefront combat loop: continuous fire and real enemy casualties
+
+### Implementation
+- PR #179, “Connect Gatefront shooting to real enemy damage,” merged to main as `6f20345c1c1a5cfafafa8f76d114df4451e992f8`.
+- The squad fires forward continuously even without a target. Projectiles reduce the live enemy-unit count on impact; the formation count follows the remaining units and gets a short hit-flash response.
+- Enemy waves stop at an engagement line and remain until eliminated; surviving enemies counterattack and can reduce the player's squad.
+- Boss health is now reduced by projectile hits rather than passive time-based damage. Squad fire count/spread grows with the squad, with a practical renderer-side limit on simultaneous tracers.
+- Browser acceptance explicitly verifies continuous fire and actual enemy-count reduction, not just the existence of projectiles.
+
+### Verification
+- PR Game CI [40256305530](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305530) passed.
+- PR Workspace validation [40256305528](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256305528) passed.
+- Main-push Game CI [40256445171](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445171) passed.
+- Main-push Workspace validation [40256445201](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40256445201) passed.
+- Render deployment `dep-dbfb62mq1p3s73f1vio0` for the code commit reached `LIVE`.
+
+### Remaining
+- User has not yet validated the deployed combat visually in a normal browser.
+- Character readability/visual similarity still needs substantive work; palette-only test coverage is insufficient.
+- Shootable arithmetic targets and large-squad presentation remain planned work.
+- `TASK-20261023-0003` remains ACTIVE. Governance version remains 1.4.7; no shared Governance rule changed.
+
 ## 2026-10-23 — Gatefront visual refresh: toy soldiers, team colors, and arcade HUD
 
 ### Implementation
