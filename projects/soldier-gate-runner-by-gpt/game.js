@@ -14,6 +14,8 @@
   };
 
   const H = 560, PLAYER_Y = 424, MAX_SOLDIERS = 1_000_000_000;
+  const LANE_CENTERS = [1/6, 1/2, 5/6];
+  const LANE_COUNT = LANE_CENTERS.length;
   let W = Math.max(220, Math.round(H * window.innerWidth / Math.max(1, window.innerHeight)));
   canvas.width = W;
   canvas.height = H;
@@ -30,12 +32,14 @@
   const testAimedProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testAimedProjectileRoadBounds") === "1";
   const testCombatScaling = testMode ? new URLSearchParams(location.search).get("testCombatScaling") : null;
   const testLaneCombat = testMode ? new URLSearchParams(location.search).get("testLaneCombat") : null;
+  const testEarlyEnemy = testMode && new URLSearchParams(location.search).get("testEarlyEnemy") === "1";
+  const testLaneTransition = testMode && new URLSearchParams(location.search).get("testLaneTransition") === "1";
   const ENEMY_WAVE_SQUAD_RATIO = 0.35;
   const MAX_ENEMY_WAVE_SIZE = 210;
   const BOSS_HP_SQUAD_RATIO = 1.1;
   const MAX_BOSS_HP = 600;
   const COMBAT_LANE_TOLERANCE = 0.14;
-  const speed = testMode ? 520 : 136;
+  const speed = testMode && !testEarlyEnemy && !testLaneTransition ? 520 : 110;
   const C = { lime:"#ffd34d", cyan:"#1687f4", red:"#ed3947", purple:"#2d9cff" };
   const add = (n, label) => ({ kind:"add", amount:n, label });
   const pct = (n, label) => ({ kind:"pct", amount:n, label });
@@ -47,12 +51,12 @@
     gate(add(8,"+8"), pct(.5,"+50%"), 1),
     gate(mult(2,"×2"), add(12,"+12"), 2),
     gate(pct(.2,"+20%"), add(-4,"−4"), 3),
-    { type:"enemy", count:18, lane:.76, label:"SCOUT SQUAD" },
+    { type:"enemy", count:18, lane:5/6, label:"SCOUT SQUAD" },
     gate(add(10,"+10"), mult(2,"×2"), 4),
     gate(add(15,"+15"), pct(.5,"+50%"), 5),
-    { type:"enemy", count:26, lane:.26, label:"ENEMY UNIT" },
+    { type:"enemy", count:26, lane:1/6, label:"ENEMY UNIT" },
     shootTarget(add(1,"+1"), 6),
-    { type:"enemy", count:32, lane:.68, label:"HEAVY UNIT" },
+    { type:"enemy", count:32, lane:1/2, label:"HEAVY UNIT" },
     gate(add(12,"+12"), pct(.4,"+40%"), 7),
     gate(mult(2,"×2"), add(18,"+18"), 8),
     { type:"boss", hp:76, label:"FINAL COMMANDER" }
@@ -61,12 +65,51 @@
   let mode="ready", soldiers=12, resolved=0, nextIndex=0, events=[];
   let fireClock=0, attackClock=0, lane=.5, targetLane=.5, offset=0, lastFrame=0;
   let message="Choose your route. The squad is waiting.", bullets=[], particles=[], muzzleFlashes=[];
-  let totalEnemyHits=0, totalBossHits=0, totalTargetHits=0, lastTargetValue=0;
-  let roadChecks=0, roadViolations=0;
+  let totalEnemyHits=0, totalEnemyHitsBeforeEngagement=0, totalBossHits=0, totalTargetHits=0, lastTargetValue=0;
+  let roadChecks=0, roadViolations=0, volleySequence=0, firedShotsByLane=[0,0,0];
   let lastCombatTargetId=null, lastCombatAlignment=null;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const lerp=(a,b,t)=>a+(b-a)*t;
   const rand=(a,b)=>a+Math.random()*(b-a);
+  function nearestLaneIndex(position) {
+    let best=0, distance=Infinity;
+    for(let i=0;i<LANE_CENTERS.length;i++){
+      const next=Math.abs(position-LANE_CENTERS[i]);
+      if(next<distance){best=i;distance=next;}
+    }
+    return best;
+  }
+  function laneFireWeights(position) {
+    const p=clamp(position,LANE_CENTERS[0],LANE_CENTERS[LANE_COUNT-1]);
+    if(p<=LANE_CENTERS[1]){
+      const t=clamp((p-LANE_CENTERS[0])/(LANE_CENTERS[1]-LANE_CENTERS[0]),0,1);
+      return [1-t,t,0];
+    }
+    const t=clamp((p-LANE_CENTERS[1])/(LANE_CENTERS[2]-LANE_CENTERS[1]),0,1);
+    return [0,1-t,t];
+  }
+  function sampleLaneIndex(weights,shotIndex,shotCount,sequence) {
+    // Rotating, evenly spaced samples keep each volley close to the requested ratios.
+    const phase=(sequence*0.38196601125)%1;
+    const sample=((shotIndex+0.5)/shotCount+phase)%1;
+    if(sample<weights[0])return 0;
+    if(sample<weights[0]+weights[1])return 1;
+    return 2;
+  }
+  function syncFireMetrics() {
+    const weights=laneFireWeights(lane);
+    canvas.dataset.laneCount=String(LANE_COUNT);
+    canvas.dataset.playerLanePosition=lane.toFixed(4);
+    canvas.dataset.fireLaneWeights=weights.map(value=>value.toFixed(3)).join(",");
+    canvas.dataset.firedShotsLane1=String(firedShotsByLane[0]);
+    canvas.dataset.firedShotsLane2=String(firedShotsByLane[1]);
+    canvas.dataset.firedShotsLane3=String(firedShotsByLane[2]);
+  }
+  function resetFireMetrics() {
+    volleySequence=0;
+    firedShotsByLane=[0,0,0];
+    syncFireMetrics();
+  }
 
   function roadAt(y) {
     const t=clamp((y-66)/(H-66),0,1), width=lerp(W*190/960,W*830/960,t);
@@ -78,23 +121,19 @@
   }
   function squadFormation() {
     const muzzleRoad=roadAt(PLAYER_Y-47);
-    // The two-way road has two fixed player lanes. Choose a fixed column count from lane width,
-    // never from squad size; additional troops add rows behind the front rank instead of widening it.
-    const maxHalfWidth=Math.max(24,muzzleRoad.width/4-FORMATION_MARGIN-1);
+    // Size the formation to one of three lanes. The squad center moves continuously while steering.
+    const maxHalfWidth=Math.max(24,muzzleRoad.width/(LANE_COUNT*2)-FORMATION_MARGIN-1);
     const cols=clamp(Math.floor((2*(maxHalfWidth-24))/FORMATION_SPACING)+1,1,MAX_FORMATION_COLUMNS);
     const spacing=cols>1?Math.min(FORMATION_SPACING,(2*(maxHalfWidth-24))/(cols-1)):0;
     const halfWidth=((cols-1)/2)*spacing+24;
     const count=Math.min(soldiers,MAX_REPRESENTATIVE_SOLDIERS,cols*MAX_FORMATION_ROWS);
     const rowSpacing=FORMATION_ROW_SPACING;
-    const split=muzzleRoad.left+muzzleRoad.width/2;
-    const isLeftLane=lane<.5;
-    const laneLeft=isLeftLane?muzzleRoad.left:split;
-    const laneRight=isLeftLane?split:muzzleRoad.right;
     const desiredCenter=muzzleRoad.left+muzzleRoad.width*clamp(lane,.06,.94);
-    const minCenter=laneLeft+halfWidth+FORMATION_MARGIN;
-    const maxCenter=laneRight-halfWidth-FORMATION_MARGIN;
+    const minCenter=muzzleRoad.left+halfWidth+FORMATION_MARGIN;
+    const maxCenter=muzzleRoad.right-halfWidth-FORMATION_MARGIN;
     const centerX=clamp(desiredCenter,minCenter,maxCenter);
-    return {count,cols,spacing,rowSpacing,centerX,halfWidth,laneName:isLeftLane?"left":"right"};
+    const laneIndex=nearestLaneIndex(lane);
+    return {count,cols,spacing,rowSpacing,centerX,halfWidth,laneIndex,laneName:String(laneIndex+1)};
   }
   function squadSoldierPosition(formation,index) {
     const row=Math.floor(index/formation.cols),col=index%formation.cols;
@@ -134,10 +173,10 @@
   function resetState() {
     mode="ready"; soldiers=12; resolved=0; nextIndex=0; events=[];
     fireClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[]; muzzleFlashes=[];
-    totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
-    lastCombatTargetId=null; lastCombatAlignment=null;
+    totalEnemyHits=0; totalEnemyHitsBeforeEngagement=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
+    lastCombatTargetId=null; lastCombatAlignment=null; resetFireMetrics();
     canvas.dataset.combatLaneAligned="none"; canvas.dataset.combatTargetLane="";
-    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
+    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.enemyHitsBeforeEngagement="0"; canvas.dataset.earlyEnemyHitY=""; canvas.dataset.enemyEngagedId=""; canvas.dataset.enemyEngagedCount=""; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
     ui.start.hidden=false; ui.end.hidden=true;
     say("Choose your route. The squad is waiting."); syncHud();
   }
@@ -161,7 +200,8 @@
     }else if(testCombatScaling==="enemy"){
       soldiers=1000;
       const source=ROUND.find(e=>e.type==="enemy");
-      events=source?[{...source,id:3,y:PLAYER_Y-181,engaged:false,resolved:false}]:[];
+      const waveCount=source?Math.max(source.count,Math.min(MAX_ENEMY_WAVE_SIZE,Math.ceil(soldiers*ENEMY_WAVE_SQUAD_RATIO))):0;
+      events=source?[{...source,count:waveCount,initialCount:waveCount,id:3,y:PLAYER_Y-181,engaged:false,resolved:false}]:[];
       nextIndex=ROUND.length;
     }else if(testCombatScaling==="boss"){
       soldiers=400;
@@ -169,20 +209,34 @@
       nextIndex=ROUND.length;
     }else if(testLaneCombat==="matched"||testLaneCombat==="mismatched"){
       soldiers=60;
-      const enemyLane=.76;
+      const enemyLane=5/6;
       lane=targetLane=testLaneCombat==="matched"?enemyLane:.5;
       events=[{type:"enemy",count:24,lane:enemyLane,label:"LANE TEST",id:3,y:PLAYER_Y-181,engaged:false,resolved:false}];
+      nextIndex=ROUND.length;
+    }else if(testEarlyEnemy){
+      soldiers=60;
+      lane=targetLane=LANE_CENTERS[2];
+      const source=ROUND.find(e=>e.type==="enemy");
+      events=source?[{...source,lane:LANE_CENTERS[2],count:100,initialCount:100,id:3,y:96,engaged:false,resolved:false}]:[];
+      nextIndex=ROUND.length;
+    }else if(testLaneTransition){
+      soldiers=60;
+      lane=targetLane=LANE_CENTERS[0];
+      events=[
+        {type:"enemy",count:100,lane:LANE_CENTERS[0],label:"LANE ONE TEST",id:21,y:120,engaged:false,resolved:false},
+        {type:"enemy",count:100,lane:LANE_CENTERS[1],label:"LANE TWO TEST",id:22,y:120,engaged:false,resolved:false}
+      ];
       nextIndex=ROUND.length;
     }else{
       events=[{...ROUND[0],id:0,y:96,engaged:false,resolved:false}];
     }
     fireClock=0; attackClock=0;
-    if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds&&!testLaneCombat){lane=.5;targetLane=.5;}
+    if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds&&!testLaneCombat&&!testEarlyEnemy&&!testLaneTransition){lane=.5;targetLane=.5;}
     bullets=[]; particles=[]; muzzleFlashes=[];
-    totalEnemyHits=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
+    totalEnemyHits=0; totalEnemyHitsBeforeEngagement=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0; resetFireMetrics();
     lastCombatTargetId=null; lastCombatAlignment=null;
     canvas.dataset.combatLaneAligned="none"; canvas.dataset.combatTargetLane="";
-    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
+    canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.enemyHitsBeforeEngagement="0"; canvas.dataset.earlyEnemyHitY=""; canvas.dataset.enemyEngagedId=""; canvas.dataset.enemyEngagedCount=""; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
     ui.start.hidden=true; ui.end.hidden=true;
     say(testShootableTarget?"Target test: hit the blue +1 panel to increase its value.":"Run started. Pick the stronger gate."); syncHud();
   }
@@ -207,7 +261,14 @@
   function spawnNext() {
     if(nextIndex>=ROUND.length||mode!=="running") return;
     const source=ROUND[nextIndex];
-    events.push({...source,...(source.effect?{effect:{...source.effect}}:{}),id:nextIndex,y:96,engaged:false,resolved:false});
+    const event={...source,...(source.effect?{effect:{...source.effect}}:{}),id:nextIndex,y:96,engaged:false,resolved:false};
+    if(event.type==="enemy"){
+      // Set the wave's starting size once at appearance; long-range hits must never be healed back at engagement.
+      event.count=Math.max(event.count,Math.min(MAX_ENEMY_WAVE_SIZE,Math.ceil(soldiers*ENEMY_WAVE_SQUAD_RATIO)));
+      event.initialCount=event.count;
+      canvas.dataset.enemyWaveInitialCount=String(event.initialCount);
+    }
+    events.push(event);
     nextIndex++;
   }
   function applyEffect(effect) {
@@ -251,8 +312,8 @@
   function pointerToLane(e) {
     if(mode!=="running") return;
     const rect=canvas.getBoundingClientRect(), x=(e.clientX-rect.left)/rect.width*W, road=roadAt(PLAYER_Y);
-    // Steering selects one of the road's two lanes; the squad never straddles the divider.
-    targetLane=x<W/2?.25:.75;
+    // Pointer position maps continuously to the road; firing weights blend between adjacent lanes.
+    targetLane=clamp((x-road.left)/road.width,LANE_CENTERS[0],LANE_CENTERS[LANE_COUNT-1]);
   }
   function roundRect(x,y,w,h,r,fill,stroke) {
     r=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+r,y);
@@ -323,9 +384,16 @@
     ctx.beginPath();ctx.moveTo(top.right,67);ctx.lineTo(bottom.right,H);ctx.stroke();
     ctx.lineCap="butt";
 
-    // One center divider matches the two-way arithmetic-gate layout.
+    // Two perspective dividers make three continuous lanes readable at every screen size.
+    const laneTop=roadAt(66),laneBottom=roadAt(H);
     ctx.strokeStyle="rgba(255,255,255,.82)";ctx.lineWidth=2.5;ctx.setLineDash([16,17]);ctx.lineDashOffset=-offset*1.8;
-    ctx.beginPath();ctx.moveTo(W/2,66);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
+    for(const boundary of [1/3,2/3]){
+      ctx.beginPath();
+      ctx.moveTo(laneTop.left+laneTop.width*boundary,66);
+      ctx.lineTo(laneBottom.left+laneBottom.width*boundary,H);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
 
     // Small broken edge marks make the road perspective legible without adding rail hardware.
     ctx.strokeStyle="rgba(255,255,255,.48)";ctx.lineWidth=1.3;
@@ -640,9 +708,11 @@
     // The next obstacle appears immediately after the current event has been resolved.
     const combatInProgress=events.some(e=>(e.type==="enemy"||e.type==="boss")&&e.engaged);
     if(!combatInProgress&&events.length===0&&nextIndex<ROUND.length)spawnNext();
-    lane+=(targetLane-lane)*Math.min(1,dt*7.5);
+    lane+=(targetLane-lane)*Math.min(1,dt*4.8);
+    syncFireMetrics();
     for(let i=events.length-1;i>=0;i--){
       const e=events[i];
+      if(e.type==="enemy"&&e.count<=0){resolveEnemy(e);events.splice(i,1);continue;}
       if(e.type==="boss"&&e.engaged){updateBoss(e,dt);if(mode!=="running")return;continue;}
       if(e.type==="enemy"&&e.engaged){
         if(e.count<=0){resolveEnemy(e);events.splice(i,1);continue;}
@@ -655,10 +725,13 @@
       if(e.type==="gate"&&e.y>=PLAYER_Y-24){resolveGate(e);events.splice(i,1);continue;}
       if(e.type==="target"&&e.y>=PLAYER_Y-24){resolveShootTarget(e);events.splice(i,1);continue;}
       if(e.type==="enemy"&&e.y>=PLAYER_Y-180){
-        e.count=Math.max(e.count,Math.min(MAX_ENEMY_WAVE_SIZE,Math.ceil(soldiers*ENEMY_WAVE_SQUAD_RATIO)));
-        canvas.dataset.enemyWaveInitialCount=String(e.count);
-        e.engaged=true;e.y=PLAYER_Y-122;e.attackClock=0;e.hitFlash=0;
-        say(e.label+" engaged. Move into its lane to focus fire.");
+        if(!Number.isFinite(e.initialCount))e.initialCount=e.count;
+        canvas.dataset.enemyWaveInitialCount=String(e.initialCount);
+        canvas.dataset.enemyEngagedId=String(e.id);
+        canvas.dataset.enemyEngagedCount=String(e.count);
+        // Stop where the enemy reaches the combat line; do not teleport it into bullets already in flight.
+        e.engaged=true;e.attackClock=0;e.hitFlash=0;
+        say(e.label+" engaged. Keep steering to adjust the firing spread.");
         continue;
       }
       if(e.type==="boss"&&e.y>=PLAYER_Y-124){e.hp=Math.max(e.hp,Math.min(MAX_BOSS_HP,Math.round(soldiers*BOSS_HP_SQUAD_RATIO)));e.engaged=true;e.y=PLAYER_Y-119;e.maxHp=e.hp;canvas.dataset.bossMaxHp=String(e.maxHp);attackClock=0;say("Final commander engaged. Auto-fire on target.");}
@@ -700,75 +773,106 @@
     }
     if(e.hp<=0){resolved++;events=events.filter(item=>item!==e);finishRun("won");}
   }
-  function projectileTargetPoint(target) {
-    const road=roadAt(target.y);
-    if(target.type==="boss") return {x:road.left+road.width/2,y:target.y-27};
-    if(target.type==="target") { const g=shootTargetGeometry(target); return {x:g.x+g.w/2,y:g.y+g.h/2}; }
-    return {x:road.left+road.width*target.lane,y:target.y};
+  function projectileTargetPoint(target,sourceX=0,sourceY=PLAYER_Y-40,projectileVelocity=testMode?980:760) {
+    if(target.type==="boss"){
+      const road=roadAt(target.y);
+      return {x:road.left+road.width/2,y:target.y-27};
+    }
+    if(target.type==="target"){
+      const initial=shootTargetGeometry(target);
+      const distance=Math.max(0,sourceY-(initial.y+initial.h/2));
+      const travelTime=distance/(projectileVelocity+speed);
+      const predictedEventY=Math.min(target.y+speed*travelTime,PLAYER_Y-24);
+      const future=shootTargetGeometry({...target,y:predictedEventY});
+      return {x:future.x+future.w/2,y:future.y+future.h/2};
+    }
+    const targetY=target.engaged
+      ?target.y
+      :Math.min(target.y+speed*Math.max(0,sourceY-target.y)/(projectileVelocity+speed),PLAYER_Y-180);
+    const road=roadAt(targetY);
+    return {x:road.left+road.width*target.lane,y:targetY};
   }
-  function fireVolley(target) {
+  function fireVolley(fixedTarget,laneTargets,weights) {
     const formation=squadFormation();
     const velocity=testMode?980:760;
     const shotCount=Math.min(32,3+Math.floor(soldiers/18),formation.count);
-    const aim=target?projectileTargetPoint(target):null;
+    const sequence=volleySequence++;
     for(let i=0;i<shotCount;i++){
+      const laneIndex=sampleLaneIndex(weights,i,shotCount,sequence);
+      firedShotsByLane[laneIndex]++;
       const index=shotCount===1?Math.floor((formation.count-1)/2):Math.round(i*(formation.count-1)/(shotCount-1));
       const soldier=squadSoldierPosition(formation,index);
       const y=soldier.y-22;
       const sourceRoad=roadAt(y);
       const x=clamp(soldier.x+6,sourceRoad.left+10,sourceRoad.right-10);
       muzzleFlashes.push({x:x+1,y:y-1,life:.075,max:.075});
-      if(aim){
-        let shotAim=aim;
-        if(target.type==="target"){
-          const rx=aim.x-x,ry=aim.y-y;
-          const a=speed*speed-velocity*velocity,b=2*ry*speed,c=rx*rx+ry*ry;
-          const flightTime=(-b-Math.sqrt(Math.max(0,b*b-4*a*c)))/(2*a);
-          shotAim={x:aim.x,y:Math.min(PLAYER_Y-28,aim.y+speed*flightTime)};
-        }
-        const dx=shotAim.x-x,dy=shotAim.y-y,dist=Math.hypot(dx,dy)||1;
-        bullets.push({x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,life:2.4,targetId:target.id,targetX:shotAim.x,targetY:shotAim.y});
-      }else{
-        // Keep unguided forward fire inside the perspective road corridor as the road narrows.
-        const roadLane=clamp((x-sourceRoad.left)/sourceRoad.width,.06,.94);
-        bullets.push({x,y,vx:0,vy:-velocity,life:1.5,targetId:null,targetX:x,targetY:66,roadLane});
-      }
+      const target=fixedTarget||laneTargets[laneIndex]||null;
+      const aim=target
+        ?projectileTargetPoint(target,x,y,velocity)
+        :{x:roadXAtLane(66,LANE_CENTERS[laneIndex]),y:66};
+      const dx=aim.x-x,dy=aim.y-y,dist=Math.hypot(dx,dy)||1;
+      bullets.push({
+        x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,life:2.4,
+        targetId:target?target.id:null,targetX:aim.x,targetY:aim.y
+      });
     }
-  }
-  function combatTargetLane(target) {
-    // The commander spans the road center, so a squad may attack it from either fixed lane.
-    return target.type==="boss" ? (lane<.5?.25:.75) : clamp(Number.isFinite(target.lane)?target.lane:.5,.06,.94);
+    syncFireMetrics();
   }
   function updatePlayerFire(dt) {
     if(mode!=="running")return;
-    const engagedTarget=events.filter(e=>(e.type==="boss"&&e.engaged)||(e.type==="enemy"&&e.engaged&&e.count>0)).sort((a,b)=>b.y-a.y)[0]||null;
-    let target=null;
-    if(engagedTarget){
-      const targetLane=combatTargetLane(engagedTarget);
-      const aligned=testAimedProjectileRoadBounds||Math.abs(lane-targetLane)<=COMBAT_LANE_TOLERANCE;
+    const engagedBoss=events.filter(e=>e.type==="boss"&&e.engaged).sort((a,b)=>b.y-a.y)[0]||null;
+    const visibleEnemies=events
+      .filter(e=>e.type==="enemy"&&e.count>0&&e.y>66&&e.y<PLAYER_Y+80)
+      .sort((a,b)=>b.y-a.y);
+    const laneTargets=Array(LANE_COUNT).fill(null);
+    for(const enemy of visibleEnemies){
+      const laneIndex=nearestLaneIndex(enemy.lane);
+      if(!laneTargets[laneIndex])laneTargets[laneIndex]=enemy;
+    }
+    const weights=laneFireWeights(lane);
+    let fixedTarget=engagedBoss;
+    if(!fixedTarget&&visibleEnemies.length===0){
+      fixedTarget=events.filter(e=>e.type==="target"&&e.y>66&&e.y<PLAYER_Y-24)
+        .sort((a,b)=>b.y-a.y)[0]||null;
+    }
+    if(engagedBoss){
+      canvas.dataset.combatLaneAligned="true";
+      canvas.dataset.combatTargetLane=String(lane);
+      lastCombatTargetId=engagedBoss.id;
+      lastCombatAlignment=true;
+    }else if(visibleEnemies.length){
+      const targetEnemy=visibleEnemies[0];
+      const targetIndex=nearestLaneIndex(targetEnemy.lane);
+      const targetShare=weights[targetIndex];
+      const aligned=targetShare>0.001;
       canvas.dataset.combatLaneAligned=String(aligned);
-      canvas.dataset.combatTargetLane=String(targetLane);
-      if(engagedTarget.id!==lastCombatTargetId||aligned!==lastCombatAlignment){
-        if(aligned) say("Firing lane aligned. Concentrated fire on "+engagedTarget.label+".");
-        else say("Enemy lane "+(targetLane<.5?"left":"right")+" — steer into that lane to hit it.");
+      canvas.dataset.combatTargetLane=String(targetEnemy.lane);
+      canvas.dataset.combatTargetLaneShare=targetShare.toFixed(3);
+      if(targetEnemy.id!==lastCombatTargetId||aligned!==lastCombatAlignment){
+        if(aligned) say("Sweeping fire into lane "+(targetIndex+1)+" ("+Math.round(targetShare*100)+"% of the volley).");
+        else say("Enemy ahead in lane "+(targetIndex+1)+" — steer toward it to shift the firing spread.");
       }
-      lastCombatTargetId=engagedTarget.id;
+      lastCombatTargetId=targetEnemy.id;
       lastCombatAlignment=aligned;
-      if(aligned)target=engagedTarget;
     }else{
       canvas.dataset.combatLaneAligned="none";
       canvas.dataset.combatTargetLane="";
+      canvas.dataset.combatTargetLaneShare="0";
       lastCombatTargetId=null;
       lastCombatAlignment=null;
-      target=events.filter(e=>e.type==="target"&&e.y>66&&e.y<PLAYER_Y-24).sort((a,b)=>b.y-a.y)[0]||null;
     }
     fireClock+=dt;
     const interval=testMode?0.18:0.3;
-    while(fireClock>=interval){fireClock-=interval;fireVolley(target);}
+    while(fireClock>=interval){fireClock-=interval;fireVolley(fixedTarget,laneTargets,weights);}
   }
   function applyProjectileHit(target) {
     if(target.type==="enemy"){
-      if(!target.engaged||target.count<=0)return;
+      if(!events.includes(target)||target.count<=0)return;
+      if(!target.engaged){
+        totalEnemyHitsBeforeEngagement++;
+        canvas.dataset.enemyHitsBeforeEngagement=String(totalEnemyHitsBeforeEngagement);
+        if(!canvas.dataset.earlyEnemyHitY)canvas.dataset.earlyEnemyHitY=String(target.y);
+      }
       target.count=Math.max(0,target.count-1);
       target.hitFlash=.14;
       totalEnemyHits++;
@@ -875,8 +979,15 @@
   canvas.addEventListener("pointercancel",()=>{pointerDown=false;});
   window.addEventListener("keydown",e=>{
     if(mode!=="running")return;
-    if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a"){e.preventDefault();targetLane=.25;}
-    else if(e.key==="ArrowRight"||e.key.toLowerCase()==="d"){e.preventDefault();targetLane=.75;}
+    if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a"){
+      e.preventDefault();
+      const current=nearestLaneIndex(targetLane);
+      targetLane=LANE_CENTERS[Math.max(0,current-1)];
+    }else if(e.key==="ArrowRight"||e.key.toLowerCase()==="d"){
+      e.preventDefault();
+      const current=nearestLaneIndex(targetLane);
+      targetLane=LANE_CENTERS[Math.min(LANE_COUNT-1,current+1)];
+    }
   });
   ui.startButton.addEventListener("click",startRun);ui.replay.addEventListener("click",startRun);ui.reset.addEventListener("click",resetState);
   ui.fullscreen.addEventListener("click",async()=>{try{if(!document.fullscreenElement)await ui.frame.requestFullscreen();else await document.exitFullscreen();}catch(_e){say("Fullscreen is not available in this browser.");}});
