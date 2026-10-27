@@ -762,6 +762,10 @@
       const sy=e.y+row*12*s;
       drawTrooper(sx,sy,s*.9,true);
     }
+    if(selectedTargetId===e.id){
+      ctx.save();ctx.strokeStyle="#ffe66d";ctx.lineWidth=3;ctx.setLineDash([6,4]);
+      ctx.beginPath();ctx.ellipse(x,e.y+12,76*s,37*s,0,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+    }
     const label="ENEMY "+e.count;
     ctx.font="900 "+Math.max(8,Math.round(10*s))+"px ui-sans-serif,system-ui";ctx.textAlign="center";
     const labelY=e.y-25*s,w=ctx.measureText(label).width+16,h=Math.max(14,14*s);
