@@ -41,7 +41,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         bounds = page.locator("#gameCanvas").bounding_box()
         assert bounds is not None
         world_width = page.locator("#gameCanvas").evaluate("(canvas) => canvas.width")
-        road_width = world_width * (190 + 640 * ((424 - 66) / (560 - 66))) / 960
+        road_width = world_width * (205 + 665 * ((424 - 66) / (560 - 66))) / 960
         road_left = (world_width - road_width) / 2
         logical_x = road_left + road_width * lane
         return bounds["x"] + bounds["width"] * logical_x / world_width
@@ -69,12 +69,12 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertIn("Gatefront", page.title())
         self.assertFalse(page.locator(".intro").is_visible(), "Nonessential intro should not consume playfield space")
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
-        self.assertEqual("0 / 12", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("0 / 13", page.locator("#progressCount").inner_text().strip())
         self.assertTrue(page.locator("#gameCanvas").is_visible())
         self.assertTrue(page.locator("#resetButton").is_visible())
         self.assertEqual(1, page.locator("#resetButton").evaluate("(button) => button.closest('.topbar') !== null"))
         self.assertFalse(page.locator(".run-footer").count(), "The bottom overlay footer should not cover the road")
-        self.assertEqual(3, page.locator(".speed-button").count())
+        self.assertEqual(4, page.locator(".speed-button").count())
 
         page.get_by_role("button", name="START RUN").click()
         self.assertEqual("IN RUN", page.locator("#statusPill").inner_text().strip())
@@ -101,7 +101,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertTrue(page.locator("#startOverlay").is_visible())
         self.assertEqual("READY", page.locator("#statusPill").inner_text().strip())
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
-        self.assertEqual("0 / 12", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("0 / 13", page.locator("#progressCount").inner_text().strip())
         self.assertEqual("1", page.locator("#gameCanvas").get_attribute("data-game-speed"))
         page.close()
 
@@ -126,16 +126,22 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
 
         page.get_by_role("button", name="Set game speed to ×3").click()
         self.assertEqual("3", canvas.get_attribute("data-game-speed"))
-        self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×3").get_attribute("aria-pressed"))
         before_x3 = float(canvas.get_attribute("data-simulation-seconds") or "0")
         page.wait_for_timeout(350)
         delta_x3 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x3
+        page.get_by_role("button", name="Set game speed to ×4").click()
+        self.assertEqual("4", canvas.get_attribute("data-game-speed"))
+        self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×4").get_attribute("aria-pressed"))
+        before_x4 = float(canvas.get_attribute("data-simulation-seconds") or "0")
+        page.wait_for_timeout(350)
+        delta_x4 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x4
         self.assertGreater(delta_x1, 0.1, "The world clock should advance at ×1")
         self.assertGreater(delta_x2, delta_x1 * 1.5, "The world clock should advance faster at ×2")
         self.assertGreater(delta_x3, delta_x2 * 1.25, "The world clock should advance faster again at ×3")
+        self.assertGreater(delta_x4, delta_x3 * 1.15, "The world clock should advance faster again at ×4")
         page.get_by_role("button", name="RESET RUN").click()
         self.assertTrue(page.locator("#startOverlay").is_visible())
-        self.assertEqual("3", canvas.get_attribute("data-game-speed"), "Speed selection should persist across reset")
+        self.assertEqual("4", canvas.get_attribute("data-game-speed"), "Speed selection should persist across reset")
         self.assertEqual([], errors, "Speed controls raised a browser error")
         page.close()
 
@@ -189,7 +195,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             )
             metrics = canvas.evaluate("""canvas => {
                 const worldWidth = canvas.width;
-                const roadWidth = worldWidth * (190 + 640 * ((424 - 47 - 66) / (560 - 66))) / 960;
+                const roadWidth = worldWidth * (205 + 665 * ((424 - 47 - 66) / (560 - 66))) / 960;
                 const roadLeft = (worldWidth - roadWidth) / 2;
                 const laneIndex = Number(canvas.dataset.squadLane) - 1;
                 const laneWidth = roadWidth / 3;
@@ -252,7 +258,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         )
         metrics = canvas.evaluate("""canvas => {
             const worldWidth = canvas.width;
-            const roadWidth = worldWidth * (190 + 640 * ((424 - 47 - 66) / (560 - 66))) / 960;
+            const roadWidth = worldWidth * (205 + 665 * ((424 - 47 - 66) / (560 - 66))) / 960;
             const roadLeft = (worldWidth - roadWidth) / 2;
             const laneIndex = Number(canvas.dataset.squadLane) - 1;
             const laneWidth = roadWidth / 3;
@@ -590,11 +596,11 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             10: "left",  # gate 8: ×2
         }
         enemy_lanes = {4: 5 / 6, 7: 1 / 6, 9: 1 / 2}
-        for completed_event in range(1, 12):
+        for completed_event in range(1, 13):
             if completed_event in enemy_lanes:
                 self.steer_to_lane(page, enemy_lanes[completed_event], keep_dragging=True)
             page.wait_for_function(
-                f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 12'",
+                f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 13'",
                 timeout=6000,
             )
             if completed_event == 6:
@@ -615,7 +621,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         )
         self.assertTrue(page.locator("#endOverlay").is_visible())
         self.assertEqual("OPERATION COMPLETE", page.locator("#endKicker").inner_text().strip())
-        self.assertEqual("12 / 12", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("13 / 13", page.locator("#progressCount").inner_text().strip())
         self.assertGreater(int(page.locator("#endSoldierCount").inner_text().strip()), 0)
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.get_by_role("button", name="RUN IT AGAIN").click()
