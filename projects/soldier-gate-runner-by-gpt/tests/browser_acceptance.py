@@ -214,6 +214,21 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             424 - 180,
             "At least one real projectile should hit the enemy before it reaches the close-range combat line",
         )
+        page.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.enemyEngagedId === '3'",
+            timeout=6000,
+        )
+        self.assertEqual("100", canvas.get_attribute("data-enemy-wave-initial-count"))
+        self.assertGreater(
+            int(canvas.get_attribute("data-enemy-engaged-count") or "0"),
+            0,
+            "The enemy wave should still be present at engagement for this fixture",
+        )
+        self.assertLess(
+            int(canvas.get_attribute("data-enemy-engaged-count") or "100"),
+            100,
+            "Long-range hits must persist; engagement must not restore the enemy's initial count",
+        )
         self.assertEqual([], errors, "Long-range combat raised a browser error")
         page.close()
 
