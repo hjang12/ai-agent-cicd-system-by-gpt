@@ -69,7 +69,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertIn("Gatefront", page.title())
         self.assertFalse(page.locator(".intro").is_visible(), "Nonessential intro should not consume playfield space")
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
-        self.assertEqual("0 / 12", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("0 / 13", page.locator("#progressCount").inner_text().strip())
         self.assertTrue(page.locator("#gameCanvas").is_visible())
         self.assertTrue(page.locator("#resetButton").is_visible())
         self.assertEqual(1, page.locator("#resetButton").evaluate("(button) => button.closest('.topbar') !== null"))
@@ -89,7 +89,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.mouse.move(right_x - 6, drag_y, steps=3)
 
         page.wait_for_function(
-            """() => document.querySelector('#progressCount').textContent.trim() === '1 / 12'
+            """() => document.querySelector('#progressCount').textContent.trim() === '1 / 13'
                 && document.querySelector('#soldierCount').textContent.trim() === '18'""",
             timeout=7000,
         )
@@ -101,7 +101,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertTrue(page.locator("#startOverlay").is_visible())
         self.assertEqual("READY", page.locator("#statusPill").inner_text().strip())
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
-        self.assertEqual("0 / 12", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("0 / 13", page.locator("#progressCount").inner_text().strip())
         self.assertEqual("1", page.locator("#gameCanvas").get_attribute("data-game-speed"))
         page.close()
 
@@ -623,7 +623,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             timeout=5000,
         )
         page.wait_for_function(
-            "() => document.querySelector('#progressCount').textContent.trim() === '1 / 12'",
+            "() => document.querySelector('#progressCount').textContent.trim() === '1 / 13'",
             timeout=5000,
         )
         hits = int(canvas.get_attribute("data-shoot-target-hits") or "0")
