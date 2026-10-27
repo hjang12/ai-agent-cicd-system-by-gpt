@@ -186,6 +186,7 @@
     else if(events.some(e=>e.type==="boss"&&e.engaged)) ui.enemy.textContent="COMMANDER";
     else if(activeEnemy) ui.enemy.textContent=activeEnemy.count+" ENEMIES";
     else if(activeTarget) ui.enemy.textContent="SHOOT "+activeTarget.effect.label;
+    else if(events.some(e=>e.type==="barrel")) ui.enemy.textContent="TANK BARREL";
     else ui.enemy.textContent="GATES AHEAD";
     canvas.dataset.enemyCount=String(activeEnemy?activeEnemy.count:0);
     canvas.dataset.enemyHits=String(totalEnemyHits);
@@ -944,7 +945,7 @@
     const road=roadAt(targetY);
     return {x:road.left+road.width*target.lane,y:targetY};
   }
-  function fireVolley(fixedTarget,laneTargets,weights) {
+  function fireVolley(fixedTarget,laneTargets,weights,fallbackTarget) {
     const formation=squadFormation();
     const velocity=980;
     const shotCount=Math.min(32,3+Math.floor(soldiers/18),formation.count);
