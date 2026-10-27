@@ -661,9 +661,75 @@
     return {road,s,h,w,x:road.left+(road.width-w)/2,y:e.y-h};
   }
   function drawShootTarget(e) {
-    const g=shootTargetGeometry(e);
-    drawGatePanel(g.x,g.y,g.w,g.h,e.effect,g.s,"SHOOT TO BOOST");
-    if((e.hitFlash||0)>0){ctx.save();ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=2+g.s;ctx.strokeRect(g.x-3,g.y-3,g.w+6,g.h+6);ctx.restore();}
+    const g=shootTargetGeometry(e),selected=selectedTargetId===e.id;
+    drawGatePanel(g.x,g.y,g.w,g.h,e.effect,g.s,selected?"FOCUS FIRE":"CLICK TO FOCUS");
+    if(selected||(e.hitFlash||0)>0){
+      ctx.save();ctx.strokeStyle=selected?"#ffe66d":"rgba(255,255,255,.9)";ctx.lineWidth=(selected?3:2)+g.s;
+      ctx.strokeRect(g.x-4,g.y-4,g.w+8,g.h+8);ctx.restore();
+    }
+  }
+  function barrelGeometry(e) {
+    const road=roadAt(e.y),scale=.55+road.t*.58,w=58*scale,h=40*scale;
+    const x=road.left+road.width*e.lane;
+    return {road,scale,w,h,x:x-w/2,y:e.y-h/2,cx:x,cy:e.y};
+  }
+  function drawBarrel(e) {
+    const g=barrelGeometry(e),selected=selectedTargetId===e.id;
+    const p=clamp((e.hits||0)/Math.max(1,e.hitsRequired||500),0,1);
+    ctx.fillStyle="rgba(26,46,64,.22)";ctx.beginPath();ctx.ellipse(g.cx,e.y+g.h*.52,g.w*.68,5*g.scale,0,0,Math.PI*2);ctx.fill();
+    const grad=ctx.createLinearGradient(g.x,e.y,g.x+g.w,e.y);
+    grad.addColorStop(0,"#8a3a13");grad.addColorStop(.2,"#ff9f32");grad.addColorStop(.52,"#ffd26b");grad.addColorStop(.8,"#d86b18");grad.addColorStop(1,"#8a3a13");
+    roundRect(g.x,e.y-g.h*.42,g.w,g.h*.84,5*g.scale,grad,"#6a361d");
+    ctx.fillStyle="#d94f24";ctx.beginPath();ctx.ellipse(g.cx,e.y-g.h*.42,g.w/2,g.h*.18,0,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#6b3e24";ctx.lineWidth=2*g.scale;
+    for(const k of [-.22,.22]){ctx.beginPath();ctx.moveTo(g.cx+g.w*k,e.y-g.h*.34);ctx.lineTo(g.cx+g.w*k,e.y+g.h*.34);ctx.stroke();}
+    ctx.fillStyle="#293b4b";ctx.fillRect(g.x+g.w*.16,e.y-g.h*.1,g.w*.68,g.h*.2);
+    ctx.fillStyle="#ffdf78";ctx.font="900 "+Math.max(7,Math.round(9*g.scale))+"px ui-sans-serif,system-ui";ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText("TANK",g.cx,e.y);
+    const label="TANK AMMO  "+(e.hits||0)+"/"+(e.hitsRequired||500);
+    ctx.font="900 "+Math.max(8,Math.round(10*g.scale))+"px ui-sans-serif,system-ui";
+    const labelY=e.y-g.h*.82,labelW=Math.max(98,ctx.measureText(label).width+16);
+    roundRect(g.cx-labelW/2,labelY-9,labelW,18,6,selected?"#fff3b1":"rgba(255,255,255,.96)",selected?"#e18a16":"#b95720");
+    ctx.fillStyle="#713411";ctx.fillText(label,g.cx,labelY);
+    const bw=Math.max(56,g.w*1.4),by=e.y+g.h*.7;
+    roundRect(g.cx-bw/2,by,bw,5,2,"rgba(255,255,255,.9)","#85451f");
+    roundRect(g.cx-bw/2+1,by+1,(bw-2)*p,3,1,"#ff9b29");
+    if(selected){ctx.strokeStyle="#fff18a";ctx.lineWidth=3;ctx.strokeRect(g.x-5,e.y-g.h*.48,g.w+10,g.h*.96);}
+    canvas.dataset.barrelHits=String(e.hits||0);
+    canvas.dataset.barrelRequiredHits=String(e.hitsRequired||500);
+    canvas.dataset.barrelVisible=String(e.id);
+  }
+  function getSelectableEventAt(x,y) {
+    for(let i=events.length-1;i>=0;i--){
+      const e=events[i];
+      if(e.type==="target"){
+        const g=shootTargetGeometry(e);
+        if(x>=g.x-8&&x<=g.x+g.w+8&&y>=g.y-8&&y<=g.y+g.h+8)return e;
+      }else if(e.type==="barrel"){
+        const g=barrelGeometry(e);
+        if(x>=g.x-10&&x<=g.x+g.w+10&&y>=e.y-g.h*.65&&y<=e.y+g.h*.65)return e;
+      }else if(e.type==="enemy"){
+        const road=roadAt(e.y),cx=road.left+road.width*e.lane,scale=.58+road.t*.92;
+        if(x>=cx-72*scale&&x<=cx+72*scale&&y>=e.y-35*scale&&y<=e.y+Math.max(20,Math.min(6,Math.ceil(e.count/6))*12*scale))return e;
+      }else if(e.type==="boss"){
+        const road=roadAt(e.y),cx=road.left+road.width/2;
+        if(x>=cx-64&&x<=cx+64&&y>=e.y-70&&y<=e.y+45)return e;
+      }
+    }
+    return null;
+  }
+  function selectTargetAt(clientX,clientY) {
+    const rect=canvas.getBoundingClientRect();
+    const x=(clientX-rect.left)/rect.width*W,y=(clientY-rect.top)/rect.height*H;
+    const target=getSelectableEventAt(x,y);
+    events.forEach(e=>{e.selected=!!target&&e.id===target.id;});
+    selectedTargetId=target?target.id:null;
+    if(target){
+      if(target.type==="barrel")target.y=Math.max(target.y,150);
+      const label=target.type==="barrel"?"tank barrel":target.type==="target"?"arithmetic target":target.type==="enemy"?"enemy squad":"commander";
+      say("Focus fire selected: "+label+".");
+    }else say("Focus fire cleared. Drag to steer and distribute shots between lanes.");
+    syncCombatMetrics();
   }
   function drawEnemy(e) {
     const r=roadAt(e.y),x=r.left+r.width*e.lane,s=.58+r.t*.92;
@@ -737,6 +803,7 @@
     events.forEach(e=>{
       if(e.type==="gate"&&e.y>62&&e.y<H+60)drawGate(e);
       else if(e.type==="target"&&e.y>62&&e.y<H+60)drawShootTarget(e);
+      else if(e.type==="barrel"&&e.y>62&&e.y<H+60)drawBarrel(e);
       else if(e.type==="enemy"&&e.y>66&&e.y<PLAYER_Y+80)drawEnemy(e);
       else if(e.type==="boss")drawBoss(e);
     });
