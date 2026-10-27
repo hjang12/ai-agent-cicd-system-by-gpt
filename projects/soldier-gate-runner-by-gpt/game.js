@@ -1170,7 +1170,7 @@
     if(!pointerDown)return;
     if(!pointerMoved){
       const target=targetAtPoint(e);
-      if(target)selectTarget(target);else selectTarget(null);
+      if(target)selectTarget(target);
     }
     pointerDown=false;pointerMoved=false;
   });
