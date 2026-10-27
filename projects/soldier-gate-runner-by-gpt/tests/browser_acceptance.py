@@ -321,6 +321,9 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         pixels = page.evaluate("""() => {
             const canvas = document.querySelector('#gameCanvas');
             const {data, width, height} = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+            const squadCenter = Number(canvas.dataset.squadCenterX || canvas.width / 2);
+            const squadLeft = Math.max(0, Math.floor(squadCenter - 70));
+            const squadRight = Math.min(width, Math.ceil(squadCenter + 70));
             let blueSquad = 0;
             let redEnemy = 0;
             for (let y = 350; y < 505; y++) {
@@ -339,7 +342,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             }
             let allyFacePixels = 0;
             for (let y = 372; y < 389; y++) {
-                for (let x = 425; x < 535; x++) {
+                for (let x = squadLeft; x < squadRight; x++) {
                     const i = (y * width + x) * 4;
                     const [r, g, b] = data.slice(i, i + 3);
                     if (r > 165 && r - g > 18 && g > b * 1.18 && g < 195 && b > 65) allyFacePixels++;
@@ -347,7 +350,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             }
             let paleUniformPixels = 0;
             for (let y = 392; y < 445; y++) {
-                for (let x = 425; x < 535; x++) {
+                for (let x = squadLeft; x < squadRight; x++) {
                     const i = (y * width + x) * 4;
                     const [r, g, b] = data.slice(i, i + 3);
                     if (r > 220 && g > 200 && b > 165 && r >= g && g >= b) paleUniformPixels++;
