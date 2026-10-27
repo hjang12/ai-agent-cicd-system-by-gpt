@@ -71,6 +71,10 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
         self.assertEqual("0 / 12", page.locator("#progressCount").inner_text().strip())
         self.assertTrue(page.locator("#gameCanvas").is_visible())
+        self.assertTrue(page.locator("#resetButton").is_visible())
+        self.assertEqual(1, page.locator("#resetButton").evaluate("(button) => button.closest('.topbar') !== null"))
+        self.assertFalse(page.locator(".run-footer").count(), "The bottom overlay footer should not cover the road")
+        self.assertEqual(3, page.locator(".speed-button").count())
 
         page.get_by_role("button", name="START RUN").click()
         self.assertEqual("IN RUN", page.locator("#statusPill").inner_text().strip())
@@ -98,6 +102,33 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual("READY", page.locator("#statusPill").inner_text().strip())
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
         self.assertEqual("0 / 12", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("1", page.locator("#gameCanvas").get_attribute("data-game-speed"))
+        page.close()
+
+    def test_speed_multiplier_controls_world_time_and_persist_through_reset(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        canvas = page.locator("#gameCanvas")
+        page.get_by_role("button", name="START RUN").click()
+        self.assertEqual("1", canvas.get_attribute("data-game-speed"))
+        page.wait_for_timeout(350)
+        before_x1 = float(canvas.get_attribute("data-simulation-seconds") or "0")
+        page.wait_for_timeout(350)
+        delta_x1 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x1
+        page.get_by_role("button", name="Set game speed to ×3").click()
+        self.assertEqual("3", canvas.get_attribute("data-game-speed"))
+        self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×3").get_attribute("aria-pressed"))
+        before_x3 = float(canvas.get_attribute("data-simulation-seconds") or "0")
+        page.wait_for_timeout(350)
+        delta_x3 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x3
+        self.assertGreater(delta_x1, 0.1, "The world clock should advance at ×1")
+        self.assertGreater(delta_x3, delta_x1 * 2, "The world clock should advance substantially faster at ×3")
+        page.get_by_role("button", name="RESET RUN").click()
+        self.assertTrue(page.locator("#startOverlay").is_visible())
+        self.assertEqual("3", canvas.get_attribute("data-game-speed"), "Speed selection should persist across reset")
+        self.assertEqual([], errors, "Speed controls raised a browser error")
         page.close()
 
     def test_page_uses_viewport_without_document_scroll(self) -> None:
@@ -143,7 +174,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             expected_soldiers = "12" if size == "small" else "1000"
             self.assertEqual(expected_soldiers, page.locator("#soldierCount").inner_text().strip())
             canvas = page.locator("#gameCanvas")
-            expected_visible = "12" if size == "small" else "72"
+            expected_visible = "12" if size == "small" else "60"
             page.wait_for_function(
                 f"() => document.querySelector('#gameCanvas').dataset.squadVisibleCount === '{expected_visible}'",
                 timeout=2000,
@@ -183,6 +214,9 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
 
         small, large = measurements
         self.assertEqual(3, small["laneCount"], "The road should expose three lanes")
+        self.assertGreaterEqual(small["columns"], 3, "Squad should be visibly arranged in at least three columns")
+        self.assertLessEqual(small["columns"], 4, "Desktop formation should use no more than four columns")
+        self.assertEqual(4, small["columns"], "Desktop formation should use four separated columns")
         self.assertEqual(small["lane"], large["lane"], "Squad growth must not move the formation to another lane")
         self.assertEqual(
             small["columns"],

@@ -9,6 +9,7 @@
     fill: $("progressFill"), status: $("statusPill"), message: $("gameMessage"),
     start: $("startOverlay"), end: $("endOverlay"), startButton: $("startButton"),
     replay: $("playAgainButton"), reset: $("resetButton"), fullscreen: $("fullscreenButton"),
+    speedButtons: Array.from(document.querySelectorAll(".speed-button")),
     frame: $("gameFrame"), endKicker: $("endKicker"), endTitle: $("endTitle"),
     endCopy: $("endCopy"), endCount: $("endSoldierCount")
   };
@@ -20,8 +21,8 @@
   canvas.width = W;
   canvas.height = H;
   const MAX_REPRESENTATIVE_SOLDIERS = 72;
-  const MAX_FORMATION_COLUMNS = 5;
-  const FORMATION_SPACING = 18;
+  const MAX_FORMATION_COLUMNS = 4;
+  const FORMATION_SPACING = 25;
   const FORMATION_ROW_SPACING = 10.2;
   const FORMATION_MARGIN = 5;
   const MAX_FORMATION_ROWS = Math.floor((H - (PLAYER_Y - 25) - 14) / FORMATION_ROW_SPACING) + 1;
@@ -64,6 +65,7 @@
 
   let mode="ready", soldiers=12, resolved=0, nextIndex=0, events=[];
   let fireClock=0, attackClock=0, lane=.5, targetLane=.5, offset=0, lastFrame=0;
+  let speedMultiplier=1, simulationSeconds=0;
   let message="Choose your route. The squad is waiting.", bullets=[], particles=[], muzzleFlashes=[];
   let totalEnemyHits=0, totalEnemyHitsBeforeEngagement=0, totalBossHits=0, totalTargetHits=0, lastTargetValue=0;
   let roadChecks=0, roadViolations=0, volleySequence=0, firedShotsByLane=[0,0,0];
@@ -110,6 +112,20 @@
     firedShotsByLane=[0,0,0];
     syncFireMetrics();
   }
+  function syncSpeedControls() {
+    canvas.dataset.gameSpeed=String(speedMultiplier);
+    ui.speedButtons.forEach(button=>{
+      const active=Number(button.dataset.speed)===speedMultiplier;
+      button.setAttribute("aria-pressed",String(active));
+      button.classList.toggle("is-active",active);
+    });
+  }
+  function setGameSpeed(value) {
+    const next=Number(value);
+    if(![1,2,3].includes(next))return;
+    speedMultiplier=next;
+    syncSpeedControls();
+  }
 
   function roadAt(y) {
     const t=clamp((y-66)/(H-66),0,1), width=lerp(W*190/960,W*830/960,t);
@@ -121,11 +137,16 @@
   }
   function squadFormation() {
     const muzzleRoad=roadAt(PLAYER_Y-47);
-    // Size the formation to one of three lanes. The squad center moves continuously while steering.
-    const maxHalfWidth=Math.max(24,muzzleRoad.width/(LANE_COUNT*2)-FORMATION_MARGIN-1);
-    const cols=clamp(Math.floor((2*(maxHalfWidth-24))/FORMATION_SPACING)+1,1,MAX_FORMATION_COLUMNS);
-    const spacing=cols>1?Math.min(FORMATION_SPACING,(2*(maxHalfWidth-24))/(cols-1)):0;
-    const halfWidth=((cols-1)/2)*spacing+24;
+    // Four well-separated columns on desktop; troop scale and spacing shrink on narrow screens.
+    const laneWidth=muzzleRoad.width/LANE_COUNT;
+    const soldierScale=clamp(laneWidth/150,.36,1);
+    const soldierHalfWidth=24*soldierScale;
+    const centerSpread=Math.max(0,laneWidth/2-FORMATION_MARGIN-soldierHalfWidth);
+    const preferredSpacing=FORMATION_SPACING*soldierScale;
+    const possibleCols=Math.floor((2*centerSpread)/Math.max(1,preferredSpacing))+1;
+    const cols=clamp(possibleCols,2,MAX_FORMATION_COLUMNS);
+    const spacing=cols>1?Math.min(preferredSpacing,(2*centerSpread)/(cols-1)):0;
+    const halfWidth=((cols-1)/2)*spacing+soldierHalfWidth;
     const count=Math.min(soldiers,MAX_REPRESENTATIVE_SOLDIERS,cols*MAX_FORMATION_ROWS);
     const rowSpacing=FORMATION_ROW_SPACING;
     const desiredCenter=muzzleRoad.left+muzzleRoad.width*clamp(lane,.06,.94);
@@ -133,7 +154,7 @@
     const maxCenter=muzzleRoad.right-halfWidth-FORMATION_MARGIN;
     const centerX=clamp(desiredCenter,minCenter,maxCenter);
     const laneIndex=nearestLaneIndex(lane);
-    return {count,cols,spacing,rowSpacing,centerX,halfWidth,laneIndex,laneName:String(laneIndex+1)};
+    return {count,cols,spacing,rowSpacing,centerX,halfWidth,laneIndex,laneName:String(laneIndex+1),soldierScale};
   }
   function squadSoldierPosition(formation,index) {
     const row=Math.floor(index/formation.cols),col=index%formation.cols;
@@ -175,8 +196,10 @@
     fireClock=0; attackClock=0; lane=.5; targetLane=.5; bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalEnemyHitsBeforeEngagement=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
     lastCombatTargetId=null; lastCombatAlignment=null; resetFireMetrics();
+    simulationSeconds=0; canvas.dataset.simulationSeconds="0";
     canvas.dataset.combatLaneAligned="none"; canvas.dataset.combatTargetLane="";
     canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.enemyHitsBeforeEngagement="0"; canvas.dataset.earlyEnemyHitY=""; canvas.dataset.enemyEngagedId=""; canvas.dataset.enemyEngagedCount=""; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
+    syncSpeedControls();
     ui.start.hidden=false; ui.end.hidden=true;
     say("Choose your route. The squad is waiting."); syncHud();
   }
@@ -235,8 +258,10 @@
     bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalEnemyHitsBeforeEngagement=0; totalBossHits=0; totalTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0; resetFireMetrics();
     lastCombatTargetId=null; lastCombatAlignment=null;
+    simulationSeconds=0; canvas.dataset.simulationSeconds="0";
     canvas.dataset.combatLaneAligned="none"; canvas.dataset.combatTargetLane="";
     canvas.dataset.projectiles="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.enemyHitsBeforeEngagement="0"; canvas.dataset.earlyEnemyHitY=""; canvas.dataset.enemyEngagedId=""; canvas.dataset.enemyEngagedCount=""; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
+    syncSpeedControls();
     ui.start.hidden=true; ui.end.hidden=true;
     say(testShootableTarget?"Target test: hit the blue +1 panel to increase its value.":"Run started. Pick the stronger gate."); syncHud();
   }
@@ -567,15 +592,10 @@
     for(let i=0;i<formation.count;i++){
       const p=squadSoldierPosition(formation,i);
       const row=Math.floor(i/formation.cols);
-      drawTrooper(p.x,p.y,.98+row*.025,false);
+      drawTrooper(p.x,p.y,formation.soldierScale,false);
     }
 
-    // Keep the marker below the formation so larger squads do not cover it.
-    const labelY=PLAYER_Y-74;
-    roundRect(x-48,labelY,96,17,7,"rgba(255,255,255,.96)","#1f7fe1");
-    ctx.fillStyle="#1267bd";ctx.font="900 9px ui-sans-serif,system-ui";ctx.textAlign="center";ctx.textBaseline="middle";
-    ctx.fillText("YOUR SQUAD",x,labelY+8.4);
-    ctx.textBaseline="alphabetic";
+    // Keep the road unobstructed; squad size is already visible in the HUD.
   }
 
   function tint(effect) {
@@ -704,6 +724,8 @@
     for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.max(0,1-dt*1.6);p.vy*=Math.max(0,1-dt*1.6);p.life-=dt;if(p.life<=0)particles.splice(i,1);}
     for(let i=muzzleFlashes.length-1;i>=0;i--){muzzleFlashes[i].life-=dt;if(muzzleFlashes[i].life<=0)muzzleFlashes.splice(i,1);}
     if(mode!=="running")return;
+    simulationSeconds+=dt;
+    canvas.dataset.simulationSeconds=simulationSeconds.toFixed(3);
     // Keep the run readable: do not overlap gates or spawn the next event while a fight is active.
     // The next obstacle appears immediately after the current event has been resolved.
     const combatInProgress=events.some(e=>(e.type==="enemy"||e.type==="boss")&&e.engaged);
@@ -967,7 +989,8 @@
     particles.forEach(p=>{ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();});ctx.globalAlpha=1;
   }
   function frame(now) {
-    const dt=lastFrame?Math.min((now-lastFrame)/1000,.05):0;lastFrame=now;
+    const frameDt=lastFrame?Math.min((now-lastFrame)/1000,.05):0;lastFrame=now;
+    const dt=frameDt*speedMultiplier;
     update(dt);drawBackground(dt);drawRoad();drawEvents();drawSquad();drawBullets();drawMuzzleFlashes();drawParticles();syncHud();
     requestAnimationFrame(frame);
   }
@@ -990,6 +1013,7 @@
     }
   });
   ui.startButton.addEventListener("click",startRun);ui.replay.addEventListener("click",startRun);ui.reset.addEventListener("click",resetState);
+  ui.speedButtons.forEach(button=>button.addEventListener("click",()=>setGameSpeed(button.dataset.speed)));
   ui.fullscreen.addEventListener("click",async()=>{try{if(!document.fullscreenElement)await ui.frame.requestFullscreen();else await document.exitFullscreen();}catch(_e){say("Fullscreen is not available in this browser.");}});
   document.addEventListener("fullscreenchange",()=>{ui.fullscreen.setAttribute("aria-label",document.fullscreenElement?"Exit fullscreen":"Enter fullscreen");ui.fullscreen.querySelector("span").textContent=document.fullscreenElement?"EXIT FULLSCREEN":"FULLSCREEN";});
   function resizeCanvasToViewport() {
