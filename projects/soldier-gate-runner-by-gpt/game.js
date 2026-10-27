@@ -1145,14 +1145,27 @@
   function frame(now) {
     const frameDt=lastFrame?Math.min((now-lastFrame)/1000,.05):0;lastFrame=now;
     const dt=frameDt*speedMultiplier;
-    update(dt);drawBackground(dt);drawRoad();drawEvents();drawSquad();drawBullets();drawMuzzleFlashes();drawParticles();syncHud();
+    const holdRoadForBarrel=events.some(e=>e.type==="barrel"&&e.id===selectedTargetId);
+    update(dt);drawBackground(holdRoadForBarrel?0:dt);drawRoad();drawEvents();drawSquad();drawBullets();drawMuzzleFlashes();drawParticles();syncHud();
     requestAnimationFrame(frame);
   }
 
-  let pointerDown=false;
-  canvas.addEventListener("pointerdown",e=>{if(mode!=="running")return;pointerDown=true;pointerToLane(e);if(canvas.setPointerCapture)canvas.setPointerCapture(e.pointerId);});
-  canvas.addEventListener("pointermove",e=>{if(pointerDown)pointerToLane(e);});
-  canvas.addEventListener("pointerup",()=>{pointerDown=false;});
+  let pointerDown=false,pointerMoved=false,pointerStartX=0,pointerStartY=0;
+  canvas.addEventListener("pointerdown",e=>{
+    if(mode!=="running")return;
+    pointerDown=true;pointerMoved=false;pointerStartX=e.clientX;pointerStartY=e.clientY;
+    pointerToLane(e);
+    if(canvas.setPointerCapture)canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener("pointermove",e=>{
+    if(!pointerDown)return;
+    if(Math.hypot(e.clientX-pointerStartX,e.clientY-pointerStartY)>9)pointerMoved=true;
+    pointerToLane(e);
+  });
+  canvas.addEventListener("pointerup",e=>{
+    if(pointerDown&&!pointerMoved)selectTargetAt(e.clientX,e.clientY);
+    pointerDown=false;
+  });
   canvas.addEventListener("pointercancel",()=>{pointerDown=false;});
   window.addEventListener("keydown",e=>{
     if(mode!=="running")return;
