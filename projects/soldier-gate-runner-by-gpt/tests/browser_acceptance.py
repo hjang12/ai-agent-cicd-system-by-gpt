@@ -303,9 +303,12 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertGreater(int(canvas.get_attribute("data-enemy-hits") or "0"), 0)
         self.assertLess(
             hit_y,
-            424 - 180,
-            "At least one real projectile should hit the enemy before it reaches the close-range combat line",
+            130,
+            "The first contact shot should hit just after the enemy appears, not near the combat line",
         )
+        first_hit_delay = float(canvas.get_attribute("data-enemy-first-hit-delay") or "99")
+        self.assertLess(first_hit_delay, 0.35, "The first hit should land within 0.35 simulated seconds after the enemy appears")
+        self.assertEqual("3", canvas.get_attribute("data-enemy-first-contact-shot-id"), "An immediate spotter shot should fire for the appearing enemy")
         page.wait_for_function(
             "() => document.querySelector('#gameCanvas').dataset.enemyEngagedId === '3'",
             timeout=6000,
