@@ -41,7 +41,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         bounds = page.locator("#gameCanvas").bounding_box()
         assert bounds is not None
         world_width = page.locator("#gameCanvas").evaluate("(canvas) => canvas.width")
-        road_width = world_width * (190 + 640 * ((424 - 66) / (560 - 66))) / 960
+        road_width = world_width * (220 + 660 * ((424 - 66) / (560 - 66))) / 960
         road_left = (world_width - road_width) / 2
         logical_x = road_left + road_width * lane
         return bounds["x"] + bounds["width"] * logical_x / world_width
@@ -69,12 +69,12 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertIn("Gatefront", page.title())
         self.assertFalse(page.locator(".intro").is_visible(), "Nonessential intro should not consume playfield space")
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
-        self.assertEqual("0 / 12", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("0 / 13", page.locator("#progressCount").inner_text().strip())
         self.assertTrue(page.locator("#gameCanvas").is_visible())
         self.assertTrue(page.locator("#resetButton").is_visible())
         self.assertEqual(1, page.locator("#resetButton").evaluate("(button) => button.closest('.topbar') !== null"))
         self.assertFalse(page.locator(".run-footer").count(), "The bottom overlay footer should not cover the road")
-        self.assertEqual(3, page.locator(".speed-button").count())
+        self.assertEqual(4, page.locator(".speed-button").count())
 
         page.get_by_role("button", name="START RUN").click()
         self.assertEqual("IN RUN", page.locator("#statusPill").inner_text().strip())
@@ -89,7 +89,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.mouse.move(right_x - 6, drag_y, steps=3)
 
         page.wait_for_function(
-            """() => document.querySelector('#progressCount').textContent.trim() === '1 / 12'
+            """() => document.querySelector('#progressCount').textContent.trim() === '1 / 13'
                 && document.querySelector('#soldierCount').textContent.trim() === '18'""",
             timeout=7000,
         )
@@ -101,7 +101,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertTrue(page.locator("#startOverlay").is_visible())
         self.assertEqual("READY", page.locator("#statusPill").inner_text().strip())
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
-        self.assertEqual("0 / 12", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("0 / 13", page.locator("#progressCount").inner_text().strip())
         self.assertEqual("1", page.locator("#gameCanvas").get_attribute("data-game-speed"))
         page.close()
 
@@ -130,12 +130,19 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         before_x3 = float(canvas.get_attribute("data-simulation-seconds") or "0")
         page.wait_for_timeout(350)
         delta_x3 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x3
+        page.get_by_role("button", name="Set game speed to ×4").click()
+        self.assertEqual("4", canvas.get_attribute("data-game-speed"))
+        self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×4").get_attribute("aria-pressed"))
+        before_x4 = float(canvas.get_attribute("data-simulation-seconds") or "0")
+        page.wait_for_timeout(350)
+        delta_x4 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x4
         self.assertGreater(delta_x1, 0.1, "The world clock should advance at ×1")
         self.assertGreater(delta_x2, delta_x1 * 1.5, "The world clock should advance faster at ×2")
         self.assertGreater(delta_x3, delta_x2 * 1.25, "The world clock should advance faster again at ×3")
+        self.assertGreater(delta_x4, delta_x3 * 1.2, "The world clock should advance faster again at ×4")
         page.get_by_role("button", name="RESET RUN").click()
         self.assertTrue(page.locator("#startOverlay").is_visible())
-        self.assertEqual("3", canvas.get_attribute("data-game-speed"), "Speed selection should persist across reset")
+        self.assertEqual("4", canvas.get_attribute("data-game-speed"), "Speed selection should persist across reset")
         self.assertEqual([], errors, "Speed controls raised a browser error")
         page.close()
 
@@ -189,7 +196,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             )
             metrics = canvas.evaluate("""canvas => {
                 const worldWidth = canvas.width;
-                const roadWidth = worldWidth * (190 + 640 * ((424 - 47 - 66) / (560 - 66))) / 960;
+                const roadWidth = worldWidth * (220 + 660 * ((424 - 47 - 66) / (560 - 66))) / 960;
                 const roadLeft = (worldWidth - roadWidth) / 2;
                 const laneIndex = Number(canvas.dataset.squadLane) - 1;
                 const laneWidth = roadWidth / 3;
@@ -252,7 +259,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         )
         metrics = canvas.evaluate("""canvas => {
             const worldWidth = canvas.width;
-            const roadWidth = worldWidth * (190 + 640 * ((424 - 47 - 66) / (560 - 66))) / 960;
+            const roadWidth = worldWidth * (220 + 660 * ((424 - 47 - 66) / (560 - 66))) / 960;
             const roadLeft = (worldWidth - roadWidth) / 2;
             const laneIndex = Number(canvas.dataset.squadLane) - 1;
             const laneWidth = roadWidth / 3;
@@ -318,6 +325,28 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Long-range combat raised a browser error")
         page.close()
 
+    def test_first_enemy_is_hit_soon_after_appearing(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => document.querySelector('#enemyCount').textContent.trim() === '18 ENEMIES'",
+            timeout=7000,
+        )
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
+            timeout=2500,
+        )
+        spawn_time = float(canvas.get_attribute("data-enemy-spawn-seconds") or "0")
+        first_hit_time = float(canvas.get_attribute("data-first-enemy-hit-seconds") or "99")
+        self.assertGreater(first_hit_time, 0)
+        self.assertLess(first_hit_time - spawn_time, 0.8, "The opening contact shot should reach the enemy within 0.8 simulation seconds")
+        self.assertEqual([], errors, "First-contact firing raised a browser error")
+        page.close()
+
     def test_lane_transition_blends_fire_between_adjacent_lanes(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
@@ -365,6 +394,51 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertGreater(int(canvas.get_attribute("data-fired-shots-lane2") or "0"), 0)
         page.mouse.up()
         self.assertEqual([], errors, "Continuous lane steering raised a browser error")
+        page.close()
+
+    def test_clicking_enemy_locks_all_fire_on_that_specific_target(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testDirectTarget=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        bounds = canvas.bounding_box()
+        assert bounds is not None
+        world_width = canvas.evaluate("(node) => node.width")
+        road_width = world_width * (220 + 660 * ((160 - 66) / (560 - 66))) / 960
+        road_left = (world_width - road_width) / 2
+        target_world_x = road_left + road_width / 6
+        screen_x = bounds["x"] + bounds["width"] * target_world_x / world_width
+        screen_y = bounds["y"] + bounds["height"] * 160 / 560
+        page.mouse.click(screen_x, screen_y)
+        self.assertEqual("31", canvas.get_attribute("data-selected-target-id"))
+        self.assertEqual("enemy", canvas.get_attribute("data-selected-target-type"))
+        self.assertEqual("locked", canvas.get_attribute("data-combat-lane-aligned"))
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.selectedTargetHits || 0) >= 3",
+            timeout=4000,
+        )
+        self.assertGreater(int(canvas.get_attribute("data-selected-target-hits") or "0"), 0)
+        self.assertEqual([], errors, "Direct target selection raised a browser error")
+        page.close()
+
+    def test_500_barrel_hits_unlock_temporary_tank_firepower(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testTankBarrel=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        self.assertEqual("500", canvas.get_attribute("data-tank-barrel-hits-required"))
+        page.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.tankMode === 'true'",
+            timeout=8000,
+        )
+        self.assertEqual("500", canvas.get_attribute("data-tank-barrel-hits"))
+        self.assertGreater(float(canvas.get_attribute("data-tank-time-remaining") or "0"), 8)
+        self.assertEqual("4", canvas.get_attribute("data-tank-damage"))
+        self.assertEqual([], errors, "Tank unlock raised a browser error")
         page.close()
 
     def test_low_squad_boss_counterattack_does_not_throw(self) -> None:
@@ -549,7 +623,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             timeout=5000,
         )
         page.wait_for_function(
-            "() => document.querySelector('#progressCount').textContent.trim() === '1 / 12'",
+            "() => document.querySelector('#progressCount').textContent.trim() === '1 / 13'",
             timeout=5000,
         )
         hits = int(canvas.get_attribute("data-shoot-target-hits") or "0")
@@ -590,11 +664,11 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             10: "left",  # gate 8: ×2
         }
         enemy_lanes = {4: 5 / 6, 7: 1 / 6, 9: 1 / 2}
-        for completed_event in range(1, 12):
+        for completed_event in range(1, 14):
             if completed_event in enemy_lanes:
                 self.steer_to_lane(page, enemy_lanes[completed_event], keep_dragging=True)
             page.wait_for_function(
-                f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 12'",
+                f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 13'",
                 timeout=6000,
             )
             if completed_event == 6:
@@ -615,7 +689,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         )
         self.assertTrue(page.locator("#endOverlay").is_visible())
         self.assertEqual("OPERATION COMPLETE", page.locator("#endKicker").inner_text().strip())
-        self.assertEqual("12 / 12", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("13 / 13", page.locator("#progressCount").inner_text().strip())
         self.assertGreater(int(page.locator("#endSoldierCount").inner_text().strip()), 0)
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.get_by_role("button", name="RUN IT AGAIN").click()
@@ -690,12 +764,15 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'false'",
             timeout=2000,
         )
-        mismatched.wait_for_timeout(650)
-        self.assertEqual("0", mismatched.locator("#gameCanvas").get_attribute("data-enemy-hits"))
+        mismatched.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
+            timeout=3000,
+        )
+        opening_hits = int(mismatched.locator("#gameCanvas").get_attribute("data-enemy-hits") or "0")
+        self.assertGreater(opening_hits, 0, "The newly visible enemy should receive the first-contact volley before steering")
         self.steer_to_lane(mismatched, 0.76)
         mismatched.wait_for_function(
-            "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'true'"
-            " && Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
+            "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'true'",
             timeout=3000,
         )
         self.assertEqual([], mismatched_errors, "Steering into the enemy lane raised a browser error")
