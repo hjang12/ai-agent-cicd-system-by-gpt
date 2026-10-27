@@ -331,6 +331,7 @@
     const road=roadAt(PLAYER_Y); burst(road.left+road.width*lane,PLAYER_Y-14,delta>=0?C.lime:C.red,13);
   }
   function resolveShootTarget(e) {
+    if(selectedTargetId===e.id)selectedTargetId=null;
     const before=soldiers;
     const appliedLabel=e.effect.label;
     applyEffect(e.effect);
@@ -609,14 +610,33 @@
     ctx.fillStyle="rgba(28,130,237,.15)";ctx.beginPath();ctx.ellipse(x,shadowCenterY,shadowWidth,shadowHeight,0,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle="rgba(23,117,219,.24)";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,shadowCenterY,shadowWidth,shadowHeight,0,0,Math.PI*2);ctx.stroke();
 
-    // Use the same formation geometry for rendered soldiers and their muzzle positions.
-    for(let i=0;i<formation.count;i++){
-      const p=squadSoldierPosition(formation,i);
-      const row=Math.floor(i/formation.cols);
-      drawTrooper(p.x,p.y,formation.soldierScale,false);
+    syncCombatMetrics();
+    if(tankActive()){
+      drawTank(x,PLAYER_Y-14);
+    }else{
+      // Use the same formation geometry for rendered soldiers and their muzzle positions.
+      for(let i=0;i<formation.count;i++){
+        const p=squadSoldierPosition(formation,i);
+        drawTrooper(p.x,p.y,formation.soldierScale,false);
+      }
     }
 
     // Keep the road unobstructed; squad size is already visible in the HUD.
+  }
+
+  function drawTank(x,y) {
+    ctx.save();ctx.translate(x,y);
+    ctx.fillStyle="rgba(16,48,83,.28)";ctx.beginPath();ctx.ellipse(0,25,43,11,0,0,Math.PI*2);ctx.fill();
+    const tread="#263c53",hull=ctx.createLinearGradient(-32,-15,32,20);
+    hull.addColorStop(0,"#83d2ff");hull.addColorStop(.45,"#268ad4");hull.addColorStop(1,"#0755a2");
+    roundRect(-35,-12,70,32,8,tread,"#193d64");roundRect(-27,-15,54,30,7,hull,"#0b4f91");
+    roundRect(-25,-9,50,5,2,"rgba(255,255,255,.32)");roundRect(-19,-22,38,22,6,"#1471bb","#094a86");
+    roundRect(-5,-33,10,25,3,"#263c53","#18324c");roundRect(-3,-39,6,10,2,"#ffd66b","#8a6b25");
+    for(const side of [-1,1]){
+      ctx.fillStyle="#102a43";ctx.beginPath();ctx.ellipse(side*32,4,5,12,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="#61d7ff";ctx.beginPath();ctx.arc(side*21,9,2.5,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
   }
 
   function tint(effect) {
@@ -823,6 +843,7 @@
     for(let i=events.length-1;i>=0;i--){
       const e=events[i];
       if(e.type==="enemy"&&e.count<=0){resolveEnemy(e);events.splice(i,1);continue;}
+      if(e.type==="barrel"&&e.hits>=e.hitsRequired){activateTankFromBarrel(e);events.splice(i,1);continue;}
       if(e.type==="boss"&&e.engaged){updateBoss(e,dt);if(mode!=="running")return;continue;}
       if(e.type==="enemy"&&e.engaged){
         if(e.count<=0){resolveEnemy(e);events.splice(i,1);continue;}
@@ -831,9 +852,11 @@
         if(e.count<=0){resolveEnemy(e);events.splice(i,1);}
         continue;
       }
-      e.y+=speed*dt;
+      const heldBarrel=e.type==="barrel"&&selectedTargetId===e.id;
+      if(!heldBarrel)e.y+=speed*dt;
       if(e.type==="gate"&&e.y>=PLAYER_Y-24){resolveGate(e);events.splice(i,1);continue;}
       if(e.type==="target"&&e.y>=PLAYER_Y-24){resolveShootTarget(e);events.splice(i,1);continue;}
+      if(e.type==="barrel"&&e.y>=PLAYER_Y-24&&!heldBarrel){resolved++;selectedTargetId=null;say("Tank barrel passed. Select it sooner next run for the armored boost.");events.splice(i,1);continue;}
       if(e.type==="enemy"&&e.y>=PLAYER_Y-180){
         if(!Number.isFinite(e.initialCount))e.initialCount=e.count;
         canvas.dataset.enemyWaveInitialCount=String(e.initialCount);
@@ -848,7 +871,14 @@
     }
     updatePlayerFire(dt);
     updateBullets(dt);
+    syncCombatMetrics();
     if(mode==="running"&&nextIndex>=ROUND.length&&events.length===0)finishRun("won");
+  }
+  function activateTankFromBarrel(e) {
+    resolved++;selectedTargetId=null;tankUntil=simulationSeconds+TANK_DURATION_SECONDS;
+    canvas.dataset.tankActive="true";canvas.dataset.tankSecondsRemaining=String(TANK_DURATION_SECONDS);
+    burst(barrelGeometry(e).cx,e.y,"#ffb334",30);
+    say("TANK DEPLOYED · heavy shells for "+TANK_DURATION_SECONDS+" seconds!");
   }
   function resolveEnemy(e) {
     resolved++;
