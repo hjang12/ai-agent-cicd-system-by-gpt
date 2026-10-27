@@ -200,7 +200,8 @@
     }else if(testCombatScaling==="enemy"){
       soldiers=1000;
       const source=ROUND.find(e=>e.type==="enemy");
-      events=source?[{...source,id:3,y:PLAYER_Y-181,engaged:false,resolved:false}]:[];
+      const waveCount=source?Math.max(source.count,Math.min(MAX_ENEMY_WAVE_SIZE,Math.ceil(soldiers*ENEMY_WAVE_SQUAD_RATIO))):0;
+      events=source?[{...source,count:waveCount,initialCount:waveCount,id:3,y:PLAYER_Y-181,engaged:false,resolved:false}]:[];
       nextIndex=ROUND.length;
     }else if(testCombatScaling==="boss"){
       soldiers=400;
@@ -260,7 +261,14 @@
   function spawnNext() {
     if(nextIndex>=ROUND.length||mode!=="running") return;
     const source=ROUND[nextIndex];
-    events.push({...source,...(source.effect?{effect:{...source.effect}}:{}),id:nextIndex,y:96,engaged:false,resolved:false});
+    const event={...source,...(source.effect?{effect:{...source.effect}}:{}),id:nextIndex,y:96,engaged:false,resolved:false};
+    if(event.type==="enemy"){
+      // Set the wave's starting size once at appearance; long-range hits must never be healed back at engagement.
+      event.count=Math.max(event.count,Math.min(MAX_ENEMY_WAVE_SIZE,Math.ceil(soldiers*ENEMY_WAVE_SQUAD_RATIO)));
+      event.initialCount=event.count;
+      canvas.dataset.enemyWaveInitialCount=String(event.initialCount);
+    }
+    events.push(event);
     nextIndex++;
   }
   function applyEffect(effect) {
@@ -717,8 +725,8 @@
       if(e.type==="gate"&&e.y>=PLAYER_Y-24){resolveGate(e);events.splice(i,1);continue;}
       if(e.type==="target"&&e.y>=PLAYER_Y-24){resolveShootTarget(e);events.splice(i,1);continue;}
       if(e.type==="enemy"&&e.y>=PLAYER_Y-180){
-        e.count=Math.max(e.count,Math.min(MAX_ENEMY_WAVE_SIZE,Math.ceil(soldiers*ENEMY_WAVE_SQUAD_RATIO)));
-        canvas.dataset.enemyWaveInitialCount=String(e.count);
+        if(!Number.isFinite(e.initialCount))e.initialCount=e.count;
+        canvas.dataset.enemyWaveInitialCount=String(e.initialCount);
         // Stop where the enemy reaches the combat line; do not teleport it into bullets already in flight.
         e.engaged=true;e.attackClock=0;e.hitFlash=0;
         say(e.label+" engaged. Keep steering to adjust the firing spread.");
