@@ -117,6 +117,13 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         before_x1 = float(canvas.get_attribute("data-simulation-seconds") or "0")
         page.wait_for_timeout(350)
         delta_x1 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x1
+        page.get_by_role("button", name="Set game speed to ×2").click()
+        self.assertEqual("2", canvas.get_attribute("data-game-speed"))
+        self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×2").get_attribute("aria-pressed"))
+        before_x2 = float(canvas.get_attribute("data-simulation-seconds") or "0")
+        page.wait_for_timeout(350)
+        delta_x2 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x2
+
         page.get_by_role("button", name="Set game speed to ×3").click()
         self.assertEqual("3", canvas.get_attribute("data-game-speed"))
         self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×3").get_attribute("aria-pressed"))
@@ -124,7 +131,8 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.wait_for_timeout(350)
         delta_x3 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x3
         self.assertGreater(delta_x1, 0.1, "The world clock should advance at ×1")
-        self.assertGreater(delta_x3, delta_x1 * 2, "The world clock should advance substantially faster at ×3")
+        self.assertGreater(delta_x2, delta_x1 * 1.5, "The world clock should advance faster at ×2")
+        self.assertGreater(delta_x3, delta_x2 * 1.25, "The world clock should advance faster again at ×3")
         page.get_by_role("button", name="RESET RUN").click()
         self.assertTrue(page.locator("#startOverlay").is_visible())
         self.assertEqual("3", canvas.get_attribute("data-game-speed"), "Speed selection should persist across reset")
@@ -226,6 +234,50 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertGreater(large["rows"], small["rows"], "Additional soldiers should form rows behind the front rank")
         self.assertGreater(large["visibleCount"], small["visibleCount"])
         self.assertLessEqual(large["rows"], 15, "The representative formation should stay inside the screen")
+
+    def test_mobile_formation_stays_inside_selected_lane(self) -> None:
+        page = self.browser.new_page(
+            viewport={"width": 390, "height": 844},
+            is_mobile=True,
+            has_touch=True,
+        )
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.squadColumns || 0) >= 2",
+            timeout=2000,
+        )
+        metrics = canvas.evaluate("""canvas => {
+            const worldWidth = canvas.width;
+            const roadWidth = worldWidth * (190 + 640 * ((424 - 47 - 66) / (560 - 66))) / 960;
+            const roadLeft = (worldWidth - roadWidth) / 2;
+            const laneIndex = Number(canvas.dataset.squadLane) - 1;
+            const laneWidth = roadWidth / 3;
+            return {
+                columns: Number(canvas.dataset.squadColumns),
+                centerX: Number(canvas.dataset.squadCenterX),
+                halfWidth: Number(canvas.dataset.squadHalfWidth),
+                laneLeft: roadLeft + laneWidth * laneIndex,
+                laneRight: roadLeft + laneWidth * (laneIndex + 1)
+            };
+        }""")
+        self.assertGreaterEqual(metrics["columns"], 2)
+        self.assertLessEqual(metrics["columns"], 4)
+        self.assertGreaterEqual(
+            metrics["centerX"] - metrics["halfWidth"],
+            metrics["laneLeft"],
+            "Mobile squad left edge must stay inside the selected lane",
+        )
+        self.assertLessEqual(
+            metrics["centerX"] + metrics["halfWidth"],
+            metrics["laneRight"],
+            "Mobile squad right edge must stay inside the selected lane",
+        )
+        self.assertEqual([], errors, "Mobile formation raised a browser error")
+        page.close()
 
     def test_enemies_are_hit_while_still_far_away(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
