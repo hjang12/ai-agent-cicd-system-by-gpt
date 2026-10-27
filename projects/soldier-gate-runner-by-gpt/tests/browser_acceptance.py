@@ -89,7 +89,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.mouse.move(right_x - 6, drag_y, steps=3)
 
         page.wait_for_function(
-            """() => document.querySelector('#progressCount').textContent.trim() === '1 / 12'
+            """() => document.querySelector('#progressCount').textContent.trim() === '1 / 13'
                 && document.querySelector('#soldierCount').textContent.trim() === '18'""",
             timeout=7000,
         )
