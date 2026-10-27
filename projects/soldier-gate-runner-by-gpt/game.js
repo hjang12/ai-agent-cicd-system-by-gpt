@@ -918,6 +918,10 @@
       const road=roadAt(target.y);
       return {x:road.left+road.width/2,y:target.y-27};
     }
+    if(target.type==="barrel"){
+      const g=barrelGeometry(target);
+      return {x:g.cx,y:g.cy};
+    }
     if(target.type==="target"){
       const initial=shootTargetGeometry(target);
       const distance=Math.max(0,sourceY-(initial.y+initial.h/2));
@@ -932,29 +936,39 @@
     const road=roadAt(targetY);
     return {x:road.left+road.width*target.lane,y:targetY};
   }
-  function fireVolley(fixedTarget,laneTargets,weights) {
+  function fireVolley(fixedTarget,laneTargets,weights,options={}) {
     const formation=squadFormation();
-    const velocity=testMode?980:760;
-    const shotCount=Math.min(32,3+Math.floor(soldiers/18),formation.count);
+    const inTank=tankActive()&&!options.spotter;
+    const velocity=options.velocity||(testMode?980:760);
+    const shotCount=options.shotCount??(inTank?Math.min(36,Math.max(8,6+Math.floor(soldiers/10))):Math.min(32,3+Math.floor(soldiers/18),formation.count));
+    const damage=inTank?TANK_PROJECTILE_DAMAGE:1;
     const sequence=volleySequence++;
     for(let i=0;i<shotCount;i++){
       const laneIndex=sampleLaneIndex(weights,i,shotCount,sequence);
       firedShotsByLane[laneIndex]++;
-      const index=shotCount===1?Math.floor((formation.count-1)/2):Math.round(i*(formation.count-1)/(shotCount-1));
-      const soldier=squadSoldierPosition(formation,index);
-      const y=soldier.y-22;
+      let soldier;
+      if(inTank){
+        soldier={x:formation.centerX-2+(i%3)*2,y:PLAYER_Y-43};
+      }else{
+        let index=shotCount===1?Math.floor((formation.count-1)/2):Math.round(i*(formation.count-1)/(shotCount-1));
+        if(options.spotter&&fixedTarget){
+          const aimX=projectileTargetPoint(fixedTarget,formation.centerX,PLAYER_Y-45,velocity).x;
+          let nearest=Infinity;
+          for(let n=0;n<formation.count;n++){
+            const candidate=squadSoldierPosition(formation,n),d=Math.abs(candidate.x-aimX);
+            if(d<nearest){nearest=d;index=n;}
+          }
+        }
+        soldier=squadSoldierPosition(formation,index);
+      }
+      const y=inTank?soldier.y:soldier.y-22;
       const sourceRoad=roadAt(y);
-      const x=clamp(soldier.x+6,sourceRoad.left+10,sourceRoad.right-10);
-      muzzleFlashes.push({x:x+1,y:y-1,life:.075,max:.075});
-      const target=fixedTarget||laneTargets[laneIndex]||null;
-      const aim=target
-        ?projectileTargetPoint(target,x,y,velocity)
-        :{x:roadXAtLane(66,LANE_CENTERS[laneIndex]),y:66};
+      const x=clamp(soldier.x+(inTank?0:6),sourceRoad.left+10,sourceRoad.right-10);
+      muzzleFlashes.push({x:x+1,y:y-1,life:.09,max:.09});
+      const target=options.target||fixedTarget||laneTargets[laneIndex]||null;
+      const aim=target?projectileTargetPoint(target,x,y,velocity):{x:roadXAtLane(66,LANE_CENTERS[laneIndex]),y:66};
       const dx=aim.x-x,dy=aim.y-y,dist=Math.hypot(dx,dy)||1;
-      bullets.push({
-        x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,life:2.4,
-        targetId:target?target.id:null,targetX:aim.x,targetY:aim.y
-      });
+      bullets.push({x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,velocity,damage,life:2.4,targetId:target?target.id:null,targetX:aim.x,targetY:aim.y});
     }
     syncFireMetrics();
   }
@@ -970,10 +984,17 @@
       if(!laneTargets[laneIndex])laneTargets[laneIndex]=enemy;
     }
     const weights=laneFireWeights(lane);
-    let fixedTarget=engagedBoss;
-    if(!fixedTarget&&visibleEnemies.length===0){
-      fixedTarget=events.filter(e=>e.type==="target"&&e.y>66&&e.y<PLAYER_Y-24)
-        .sort((a,b)=>b.y-a.y)[0]||null;
+    let selectedTarget=events.find(e=>e.id===selectedTargetId&&["enemy","boss","target","barrel"].includes(e.type))||null;
+    if(!selectedTarget&&selectedTargetId!==null)selectedTargetId=null;
+    const fixedTarget=selectedTarget||engagedBoss;
+    // The first visible frame sends a fast spotter round regardless of current lane.
+    // Sustained volleys remain lane-weighted so movement still determines most shots.
+    for(const enemy of visibleEnemies){
+      if(!enemy.firstContactShotFired){
+        enemy.firstContactShotFired=true;
+        canvas.dataset.enemyFirstContactShotId=String(enemy.id);
+        fireVolley(enemy,laneTargets,weights,{shotCount:1,velocity:ENEMY_SPOTTER_VELOCITY,spotter:true});
+      }
     }
     if(engagedBoss){
       canvas.dataset.combatLaneAligned="true";
@@ -1002,24 +1023,25 @@
       lastCombatAlignment=null;
     }
     fireClock+=dt;
-    const interval=testMode?0.18:0.3;
+    const interval=tankActive()?(testMode?0.1:0.16):(testMode?0.18:0.3);
     while(fireClock>=interval){fireClock-=interval;fireVolley(fixedTarget,laneTargets,weights);}
   }
-  function applyProjectileHit(target) {
+  function applyProjectileHit(target,damage=1) {
     if(target.type==="enemy"){
       if(!events.includes(target)||target.count<=0)return;
       if(!target.engaged){
         totalEnemyHitsBeforeEngagement++;
         canvas.dataset.enemyHitsBeforeEngagement=String(totalEnemyHitsBeforeEngagement);
         if(!canvas.dataset.earlyEnemyHitY)canvas.dataset.earlyEnemyHitY=String(target.y);
+        if(!canvas.dataset.enemyFirstHitDelay)canvas.dataset.enemyFirstHitDelay=Math.max(0,simulationSeconds-(target.spawnedAt??simulationSeconds)).toFixed(3);
       }
-      target.count=Math.max(0,target.count-1);
+      target.count=Math.max(0,target.count-damage);
       target.hitFlash=.14;
       totalEnemyHits++;
       canvas.dataset.enemyHits=String(totalEnemyHits);
     }else if(target.type==="boss"){
       if(!target.engaged||target.hp<=0)return;
-      target.hp=Math.max(0,target.hp-1);
+      target.hp=Math.max(0,target.hp-damage);
       target.hitFlash=.14;
       totalBossHits++;
       canvas.dataset.bossHits=String(totalBossHits);
@@ -1034,12 +1056,25 @@
       target.hits=(target.hits||0)+1;target.hitFlash=.11;totalTargetHits++;
       canvas.dataset.shootTargetHits=String(totalTargetHits);
       canvas.dataset.shootTargetValue=String(target.effect.amount);
+    }else if(target.type==="barrel"){
+      if(!events.includes(target)||target.id!==selectedTargetId)return;
+      target.hits=(target.hits||0)+1;target.hitFlash=.12;
+      canvas.dataset.barrelHits=String(target.hits);
+      canvas.dataset.barrelRequiredHits=String(target.hitsRequired||500);
+      if(target.hits>=target.hitsRequired)canvas.dataset.barrelReady="true";
     }
   }
   function updateBullets(dt) {
-    const velocity=testMode?980:760;
+    const defaultVelocity=testMode?980:760;
     for(let i=bullets.length-1;i>=0;i--){
-      const b=bullets[i];
+      const b=bullets[i],velocity=b.velocity||defaultVelocity;
+      const movingTarget=b.targetId!==null&&b.targetId!==undefined?events.find(e=>e.id===b.targetId):null;
+      if(movingTarget&&["enemy","barrel","target","boss"].includes(movingTarget.type)){
+        const aim=projectileTargetPoint(movingTarget,b.x,b.y,velocity);
+        b.targetX=aim.x;b.targetY=aim.y;
+        const dx=aim.x-b.x,dy=aim.y-b.y,d=Math.hypot(dx,dy)||1;
+        b.vx=dx/d*velocity;b.vy=dy/d*velocity;
+      }
       if(b.roadLane!==undefined){
         const previousX=b.x;
         b.y+=b.vy*dt;
@@ -1067,8 +1102,8 @@
         if(remaining<=velocity*dt+6){
           const target=events.find(e=>e.id===b.targetId);
           if(target){
-            applyProjectileHit(target);
-            burst(b.targetX,b.targetY,C.lime,target.type==="target"?7:9);
+            applyProjectileHit(target,b.damage||1);
+            burst(b.targetX,b.targetY,target.type==="barrel"?"#ff9a2b":C.lime,target.type==="target"?7:target.type==="barrel"?12:9);
           }
           bullets.splice(i,1);
           continue;
@@ -1084,8 +1119,9 @@
     ctx.save();
     bullets.forEach(b=>{
       ctx.save();ctx.translate(b.x,b.y);ctx.rotate(Math.atan2(b.vy,b.vx));
-      ctx.strokeStyle="rgba(255,218,94,.98)";ctx.lineWidth=2.3;ctx.lineCap="round";
-      ctx.shadowColor="#ffc83d";ctx.shadowBlur=6;
+      const shell=(b.damage||1)>1;
+      ctx.strokeStyle=shell?"rgba(255,155,43,.99)":"rgba(255,218,94,.98)";ctx.lineWidth=shell?4:2.3;ctx.lineCap="round";
+      ctx.shadowColor=shell?"#ff8e27":"#ffc83d";ctx.shadowBlur=shell?10:6;
       ctx.beginPath();ctx.moveTo(-11,0);ctx.lineTo(-2,0);ctx.stroke();ctx.shadowBlur=0;
       ctx.fillStyle="#fff8ce";ctx.beginPath();ctx.ellipse(1,0,2.8,1.45,0,0,Math.PI*2);ctx.fill();
       ctx.restore();
