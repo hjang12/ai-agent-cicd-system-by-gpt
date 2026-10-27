@@ -152,20 +152,22 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                 const worldWidth = canvas.width;
                 const roadWidth = worldWidth * (190 + 640 * ((424 - 47 - 66) / (560 - 66))) / 960;
                 const roadLeft = (worldWidth - roadWidth) / 2;
+                const laneIndex = Number(canvas.dataset.squadLane) - 1;
+                const laneWidth = roadWidth / 3;
                 return {
-                    lane: canvas.dataset.squadLane,
+                    lane: Number(canvas.dataset.squadLane),
+                    laneCount: Number(canvas.dataset.laneCount),
                     columns: Number(canvas.dataset.squadColumns),
                     rows: Number(canvas.dataset.squadRows),
                     visibleCount: Number(canvas.dataset.squadVisibleCount),
                     centerX: Number(canvas.dataset.squadCenterX),
                     halfWidth: Number(canvas.dataset.squadHalfWidth),
-                    laneLeft: roadLeft,
-                    laneSplit: roadLeft + roadWidth / 2,
-                    laneRight: roadLeft + roadWidth
+                    laneLeft: roadLeft + laneWidth * laneIndex,
+                    laneRight: roadLeft + laneWidth * (laneIndex + 1)
                 };
             }""")
-            lane_left = metrics["laneLeft"] if metrics["lane"] == "left" else metrics["laneSplit"]
-            lane_right = metrics["laneSplit"] if metrics["lane"] == "left" else metrics["laneRight"]
+            lane_left = metrics["laneLeft"]
+            lane_right = metrics["laneRight"]
             self.assertGreaterEqual(
                 metrics["centerX"] - metrics["halfWidth"],
                 lane_left,
@@ -180,6 +182,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             page.close()
 
         small, large = measurements
+        self.assertEqual(3, small["laneCount"], "The road should expose three lanes")
         self.assertEqual(small["lane"], large["lane"], "Squad growth must not move the formation to another lane")
         self.assertEqual(
             small["columns"],
@@ -189,6 +192,79 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertGreater(large["rows"], small["rows"], "Additional soldiers should form rows behind the front rank")
         self.assertGreater(large["visibleCount"], small["visibleCount"])
         self.assertLessEqual(large["rows"], 15, "The representative formation should stay inside the screen")
+
+    def test_enemies_are_hit_while_still_far_away(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(
+            self.base_url + "?testMode=1&testEarlyEnemy=1",
+            wait_until="networkidle",
+        )
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyHitsBeforeEngagement || 0) > 0",
+            timeout=5000,
+        )
+        hit_y = float(canvas.get_attribute("data-early-enemy-hit-y") or "9999")
+        self.assertGreater(int(canvas.get_attribute("data-enemy-hits") or "0"), 0)
+        self.assertLess(
+            hit_y,
+            424 - 180,
+            "At least one real projectile should hit the enemy before it reaches the close-range combat line",
+        )
+        self.assertEqual([], errors, "Long-range combat raised a browser error")
+        page.close()
+
+    def test_lane_transition_blends_fire_between_adjacent_lanes(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(
+            self.base_url + "?testMode=1&testLaneTransition=1",
+            wait_until="networkidle",
+        )
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.fireLaneWeights === '1.000,0.000,0.000'",
+            timeout=2000,
+        )
+        bounds = canvas.bounding_box()
+        assert bounds is not None
+        drag_y = bounds["y"] + bounds["height"] * 0.78
+        lane_one_x = self.lane_screen_x(page, 1 / 6)
+        midpoint_x = self.lane_screen_x(page, 1 / 3)
+        lane_two_x = self.lane_screen_x(page, 1 / 2)
+        page.mouse.move(lane_one_x, drag_y)
+        page.mouse.down()
+        page.mouse.move(midpoint_x, drag_y, steps=10)
+        page.wait_for_function(
+            """() => {
+                const w = document.querySelector('#gameCanvas').dataset.fireLaneWeights.split(',').map(Number);
+                return w[0] > 0.2 && w[0] < 0.8 && w[1] > 0.2 && w[1] < 0.8 && w[2] < 0.01;
+            }""",
+            timeout=3000,
+        )
+        weights = [float(value) for value in (canvas.get_attribute("data-fire-lane-weights") or "").split(",")]
+        self.assertAlmostEqual(1.0, sum(weights), delta=0.01)
+        self.assertGreater(weights[0], 0.2, "Fire should still be directed into lane 1 during the transition")
+        self.assertGreater(weights[1], 0.2, "Fire should already be shifting into lane 2 during the transition")
+        self.assertLess(weights[2], 0.01, "A lane 1-to-2 transition should not jump to lane 3")
+        page.mouse.move(lane_two_x, drag_y, steps=10)
+        page.wait_for_function(
+            """() => {
+                const w = document.querySelector('#gameCanvas').dataset.fireLaneWeights.split(',').map(Number);
+                return w[0] < 0.01 && w[1] > 0.98 && w[2] < 0.01;
+            }""",
+            timeout=3000,
+        )
+        self.assertGreater(int(canvas.get_attribute("data-fired-shots-lane1") or "0"), 0)
+        self.assertGreater(int(canvas.get_attribute("data-fired-shots-lane2") or "0"), 0)
+        page.mouse.up()
+        self.assertEqual([], errors, "Continuous lane steering raised a browser error")
+        page.close()
 
     def test_low_squad_boss_counterattack_does_not_throw(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
@@ -409,7 +485,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             9: "right",  # gate 7: +40%
             10: "left",  # gate 8: ×2
         }
-        enemy_lanes = {4: 0.76, 7: 0.26, 9: 0.68}
+        enemy_lanes = {4: 5 / 6, 7: 1 / 6, 9: 1 / 2}
         for completed_event in range(1, 12):
             if completed_event in enemy_lanes:
                 self.steer_to_lane(page, enemy_lanes[completed_event], keep_dragging=True)
