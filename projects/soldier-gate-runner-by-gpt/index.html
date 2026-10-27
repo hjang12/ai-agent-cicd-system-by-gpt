@@ -18,8 +18,16 @@
       </a>
       <div class="topbar-right">
         <span class="build-tag"><span class="status-dot"></span> SQUAD RUNNER</span>
+        <div class="speed-controls" role="group" aria-label="Game speed">
+          <button class="speed-button" type="button" data-speed="1" aria-label="Set game speed to ×1" aria-pressed="true">×1</button>
+          <button class="speed-button" type="button" data-speed="2" aria-label="Set game speed to ×2" aria-pressed="false">×2</button>
+          <button class="speed-button" type="button" data-speed="3" aria-label="Set game speed to ×3" aria-pressed="false">×3</button>
+        </div>
         <button class="quiet-button" id="fullscreenButton" type="button" aria-label="Enter fullscreen">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M4 16v4h4M20 16v4h-4"/></svg><span>FULLSCREEN</span>
+        </button>
+        <button class="reset-button top-reset-button" id="resetButton" type="button" aria-label="RESET RUN" title="Reset run">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.6 14a7 7 0 1 0 .2-5.2L4 10"/></svg><span>RESET RUN</span>
         </button>
       </div>
     </header>
@@ -78,12 +86,7 @@
           </div>
         </div>
 
-        <div class="run-footer">
-          <div class="run-message"><span class="message-pulse"></span><span id="gameMessage" aria-live="polite">Choose your route. The squad is waiting.</span></div>
-          <button class="reset-button" id="resetButton" type="button">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.6 14a7 7 0 1 0 .2-5.2L4 10"/></svg>RESET RUN
-          </button>
-        </div>
+        <p class="visually-hidden run-message" id="gameMessage" aria-live="polite">Choose your route. The squad is waiting.</p>
         <div class="progress-track" aria-label="Run progress"><div class="progress-fill" id="progressFill"></div></div>
       </div>
 
