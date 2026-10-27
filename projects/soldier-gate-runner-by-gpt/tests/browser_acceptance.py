@@ -553,12 +553,18 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.get_by_role("button", name="START RUN").click()
         canvas = page.locator("#gameCanvas")
 
+        page.wait_for_timeout(250)
+        self.assertEqual("0", canvas.get_attribute("data-shoot-target-hits"), "Arithmetic targets must wait for the player's target selection")
+        bounds = canvas.bounding_box()
+        assert bounds is not None
+        page.mouse.click(bounds["x"] + bounds["width"] / 2, bounds["y"] + bounds["height"] * 0.20)
+        self.assertEqual("6", canvas.get_attribute("data-selected-target-id"), "Clicking the target should focus fire on it")
         page.wait_for_function(
             "() => Number(document.querySelector('#gameCanvas').dataset.shootTargetHits || 0) >= 2",
             timeout=5000,
         )
         page.wait_for_function(
-            "() => document.querySelector('#progressCount').textContent.trim() === '1 / 12'",
+            "() => document.querySelector('#progressCount').textContent.trim() === '1 / 13'",
             timeout=5000,
         )
         hits = int(canvas.get_attribute("data-shoot-target-hits") or "0")
@@ -569,6 +575,26 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual(1 + hits, final_value, "Every hit should raise +1 by one")
         self.assertEqual(12 + final_value, final_squad, "Crossing must apply the final displayed target value")
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
+        page.close()
+
+    def test_clicking_tank_barrel_unlocks_temporary_tank(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testTankBarrel=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        bounds = canvas.bounding_box()
+        assert bounds is not None
+        page.mouse.click(bounds["x"] + bounds["width"] / 2, bounds["y"] + bounds["height"] * (155 / 560))
+        self.assertEqual("11", canvas.get_attribute("data-selected-target-id"))
+        page.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.tankActive === 'true'",
+            timeout=6000,
+        )
+        self.assertGreaterEqual(int(canvas.get_attribute("data-barrel-hits") or "0"), 12)
+        self.assertGreater(float(canvas.get_attribute("data-tank-seconds-remaining") or "0"), 0)
+        self.assertEqual([], errors, "Tank barrel selection or activation raised a browser error")
         page.close()
 
     def test_full_round_can_defeat_final_commander(self) -> None:
