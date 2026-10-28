@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from validate_workspace import validate_governance_version_values
+from validate_workspace import GAME_CI_DOC_EXCLUSIONS, validate_game_ci_doc_exclusions, validate_governance_version_values
 
 
 class GovernanceVersionValidationTests(unittest.TestCase):
@@ -58,6 +58,29 @@ class GovernanceVersionValidationTests(unittest.TestCase):
             self.current_status,
         )
         self.assertTrue(any("semantic version" in error for error in errors))
+
+
+class GameCiPathFilterValidationTests(unittest.TestCase):
+    def test_required_document_exclusions_pass(self) -> None:
+        workflow = "\\n".join(
+            f"      - '!{path}'"
+            for _event in ("pull_request", "push")
+            for path in GAME_CI_DOC_EXCLUSIONS
+        )
+        self.assertEqual([], validate_game_ci_doc_exclusions(workflow))
+
+    def test_missing_document_exclusion_fails(self) -> None:
+        workflow = "\\n".join(
+            f"      - '!{path}'"
+            for path in (
+                "projects/soldier-gate-runner-by-gpt/AGENT_START.md",
+                "projects/soldier-gate-runner-by-gpt/AGENTS.md",
+                "projects/soldier-gate-runner-by-gpt/README.md",
+            )
+        )
+        errors = validate_game_ci_doc_exclusions(workflow)
+        self.assertTrue(any("docs/**" in error for error in errors))
+        self.assertEqual(4, len(errors))
 
 
 if __name__ == "__main__":

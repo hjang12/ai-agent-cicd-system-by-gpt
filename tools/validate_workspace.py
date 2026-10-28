@@ -70,6 +70,26 @@ REQUIRED_RENDER_SERVICES = {
 }
 
 
+GAME_CI_DOC_EXCLUSIONS = (
+    "projects/soldier-gate-runner-by-gpt/AGENT_START.md",
+    "projects/soldier-gate-runner-by-gpt/AGENTS.md",
+    "projects/soldier-gate-runner-by-gpt/README.md",
+    "projects/soldier-gate-runner-by-gpt/docs/**",
+)
+
+
+def validate_game_ci_doc_exclusions(workflow_text: str) -> list[str]:
+    """Prevent documentation-only Gatefront changes from running the full browser suite."""
+    errors = []
+    for path in GAME_CI_DOC_EXCLUSIONS:
+        marker = f"      - '!{path}'"
+        if workflow_text.count(marker) < 2:
+            errors.append(
+                f"Gatefront Game CI must exclude {path} from both pull_request and push path filters"
+            )
+    return errors
+
+
 def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
@@ -219,6 +239,7 @@ def main() -> int:
     errors.extend(validate_render_blueprint())
     errors.extend(validate_governance_version())
     errors.extend(validate_ci_gate_workflows())
+    errors.extend(validate_game_ci_doc_exclusions(read_text(ROOT / '.github/workflows/soldier-gate-game-ci.yml')))
     errors.extend(validate_project_boundaries())
 
     if errors:
