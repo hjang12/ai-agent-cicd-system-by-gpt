@@ -109,7 +109,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        page.goto(self.base_url + "?testMode=1&testSpeedControls=1", wait_until="networkidle")
         canvas = page.locator("#gameCanvas")
         page.get_by_role("button", name="START RUN").click()
         self.assertEqual("1", canvas.get_attribute("data-game-speed"))
@@ -658,7 +658,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        page.goto(self.base_url + "?testMode=1&testSquadFire=1", wait_until="networkidle")
         page.get_by_role("button", name="START RUN").click()
         self.steer_to_lane(page, 0.76)
 
@@ -766,7 +766,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        page.goto(self.base_url + "?testMode=1&testFullRound=1", wait_until="networkidle")
         page.get_by_role("button", name="START RUN").click()
 
         canvas = page.locator("#gameCanvas")
