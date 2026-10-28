@@ -1043,6 +1043,7 @@
   }
   function updateEnemyWave(e,dt) {
     e.hitFlash=Math.max(0,(e.hitFlash||0)-dt);
+    if(e.breachApplied)return;
     e.attackClock=(e.attackClock||0)+dt;
     const interval=1.05;
     if(e.attackClock<interval)return;
