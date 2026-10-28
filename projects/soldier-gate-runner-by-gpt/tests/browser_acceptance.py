@@ -329,11 +329,11 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        page.goto(self.base_url + "?testMode=1&testFirstContactEnemy=1", wait_until="networkidle")
         page.get_by_role("button", name="START RUN").click()
         canvas = page.locator("#gameCanvas")
         page.wait_for_function(
-            "() => document.querySelector('#enemyCount').textContent.trim() === '18 ENEMIES'",
+            "() => document.querySelector('#gameCanvas').dataset.enemyWaveInitialCount === '18'",
             timeout=7000,
         )
         page.wait_for_function(
@@ -345,6 +345,63 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertGreater(first_hit_time, 0)
         self.assertLess(first_hit_time - spawn_time, 0.8, "The opening contact shot should reach the enemy within 0.8 simulation seconds")
         self.assertEqual([], errors, "First-contact firing raised a browser error")
+        self.assertEqual("true", canvas.get_attribute("data-player-bullets-straight"))
+        page.close()
+
+    def test_player_bullets_travel_straight_without_target_tracking(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testEarlyEnemy=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.straightProjectiles || 0) > 0",
+            timeout=2000,
+        )
+        self.assertEqual("true", canvas.get_attribute("data-player-bullets-straight"))
+        page.wait_for_timeout(350)
+        self.assertEqual("true", canvas.get_attribute("data-player-bullets-straight"))
+        self.assertGreater(int(canvas.get_attribute("data-straight-projectiles") or "0"), 0)
+        self.assertEqual([], errors, "Straight-forward fire raised a browser error")
+        page.close()
+
+    def test_enemy_formation_shrinks_visibly_as_its_count_falls(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testEarlyEnemy=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyVisibleCount || 0) === 32",
+            timeout=2000,
+        )
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyVisibleCount || 32) < 32",
+            timeout=4000,
+        )
+        self.assertLess(int(canvas.get_attribute("data-enemy-count") or "100"), 100)
+        self.assertEqual([], errors, "Enemy visual casualty tracking raised a browser error")
+        page.close()
+
+    def test_enemy_squad_fires_visible_projectiles_that_can_hit_the_player(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testEnemyFire=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyProjectiles || 0) > 0",
+            timeout=2500,
+        )
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyProjectileHits || 0) > 0",
+            timeout=3500,
+        )
+        self.assertLess(int(page.locator("#soldierCount").inner_text().strip()), 60)
+        self.assertEqual([], errors, "Enemy projectile combat raised a browser error")
         page.close()
 
     def test_lane_transition_blends_fire_between_adjacent_lanes(self) -> None:
@@ -412,6 +469,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         screen_x = bounds["x"] + bounds["width"] * target_world_x / world_width
         screen_y = bounds["y"] + bounds["height"] * 160 / 560
         page.mouse.click(screen_x, screen_y)
+        self.assertEqual("31", canvas.get_attribute("data-last-target-click"), "The click must resolve to the left enemy's hitbox")
         self.assertEqual("31", canvas.get_attribute("data-selected-target-id"))
         self.assertEqual("enemy", canvas.get_attribute("data-selected-target-type"))
         self.assertEqual("locked", canvas.get_attribute("data-combat-lane-aligned"))
@@ -542,10 +600,10 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             timeout=3000,
         )
         page.wait_for_function(
-            "() => document.querySelector('#enemyCount').textContent.trim() === '18 ENEMIES'",
+            "() => document.querySelector('#gameCanvas').dataset.enemyWaveInitialCount === '18'",
             timeout=7000,
         )
-        # Impacts must change the real enemy count, not just play an effect.
+        # An immediate contact hit may reduce the HUD count before it ever displays 18.
         page.wait_for_function(
             "() => Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
             timeout=5000,
@@ -769,7 +827,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             timeout=3000,
         )
         opening_hits = int(mismatched.locator("#gameCanvas").get_attribute("data-enemy-hits") or "0")
-        self.assertGreater(opening_hits, 0, "The newly visible enemy should receive the first-contact volley before steering")
+        self.assertGreater(opening_hits, 0, "The first contact volley should be a fixed straight shot even before steering")
         self.steer_to_lane(mismatched, 0.76)
         mismatched.wait_for_function(
             "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'true'",
