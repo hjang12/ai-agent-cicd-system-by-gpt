@@ -8,7 +8,7 @@
     soldiers: $("soldierCount"), enemy: $("enemyCount"), progress: $("progressCount"),
     fill: $("progressFill"), status: $("statusPill"), message: $("gameMessage"),
     start: $("startOverlay"), end: $("endOverlay"), startButton: $("startButton"),
-    replay: $("playAgainButton"), reset: $("resetButton"), fullscreen: $("fullscreenButton"),
+    replay: $("playAgainButton"), reset: $("resetButton"), fullscreen: $("fullscreenButton"), orientation: $("orientationButton"),
     speedButtons: Array.from(document.querySelectorAll(".speed-button")),
     frame: $("gameFrame"), endKicker: $("endKicker"), endTitle: $("endTitle"),
     endCopy: $("endCopy"), endCount: $("endSoldierCount")
@@ -28,9 +28,11 @@
   const MAX_FORMATION_ROWS = Math.floor((H - (PLAYER_Y - 25) - 14) / FORMATION_ROW_SPACING) + 1;
   const testMode = new URLSearchParams(location.search).get("testMode") === "1";
   const testBossCounterattack = testMode && new URLSearchParams(location.search).get("testBossCounterattack") === "1";
+  const testBossEarlyHits = testMode && new URLSearchParams(location.search).get("testBossEarlyHits") === "1";
+  const testLaneSpecificTarget = testMode ? new URLSearchParams(location.search).get("testLaneSpecificTarget") : null;
   const testShootableTarget = testMode && new URLSearchParams(location.search).get("testShootableTarget") === "1";
   const testProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testProjectileRoadBounds") === "1";
-  const testAimedProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testAimedProjectileRoadBounds") === "1";
+  const testStraightProjectileRoadBounds = testMode && new URLSearchParams(location.search).get("testStraightProjectileRoadBounds") === "1";
   const testCombatScaling = testMode ? new URLSearchParams(location.search).get("testCombatScaling") : null;
   const testLaneCombat = testMode ? new URLSearchParams(location.search).get("testLaneCombat") : null;
   const testEarlyEnemy = testMode && new URLSearchParams(location.search).get("testEarlyEnemy") === "1";
@@ -52,13 +54,13 @@
   const ENEMY_CONTACT_Y = PLAYER_Y - 43;
   const ENEMY_EXIT_Y = H + 40;
   const TANK_BARREL_HITS = 500, TANK_DURATION = 10, TANK_DAMAGE = 4;
-  const speed = testMode && !testEarlyEnemy && !testLaneTransition && !testDirectTarget && !testTankBarrel && !testFirstContactEnemy && !testEnemyFire && !testLaneCombat && !testFullRound && !testSquadFire && !testEnemyBreach && !testBarrelPass ? 520 : 110;
+  const speed = testMode && !testEarlyEnemy && !testLaneTransition && !testDirectTarget && !testTankBarrel && !testFirstContactEnemy && !testEnemyFire && !testLaneCombat && !testFullRound && !testSquadFire && !testEnemyBreach && !testBarrelPass && !testBossEarlyHits && !testLaneSpecificTarget ? 520 : 110;
   const C = { lime:"#ffd34d", cyan:"#1687f4", red:"#ed3947", purple:"#2d9cff" };
   const add = (n, label) => ({ kind:"add", amount:n, label });
   const pct = (n, label) => ({ kind:"pct", amount:n, label });
   const mult = (n, label) => ({ kind:"mult", amount:n, label });
   const gate = (left, right, index) => ({ type:"gate", left, right, index });
-  const shootTarget = (effect, index) => ({ type:"target", effect, index, label:"SHOOT TO BOOST" });
+  const shootTarget = (effect, index, lane=.5) => ({ type:"target", effect, index, lane, label:"SHOOT TO BOOST" });
 
   const ROUND = [
     gate(add(8,"+8"), pct(.5,"+50%"), 1),
@@ -72,7 +74,7 @@
     { type:"enemy", count:32, lane:1/2, label:"HEAVY UNIT" },
     gate(add(12,"+12"), pct(.4,"+40%"), 7),
     gate(mult(2,"×2"), add(18,"+18"), 8),
-    { type:"barrel", hitsRequired:TANK_BARREL_HITS, label:"TANK BARREL" },
+    { type:"barrel", lane:.5, hitsRequired:TANK_BARREL_HITS, label:"TANK BARREL" },
     { type:"boss", hp:76, label:"FINAL COMMANDER" }
   ];
 
@@ -206,10 +208,18 @@
     canvas.dataset.enemyCount=String(activeEnemy?activeEnemy.count:0);
     canvas.dataset.enemyHits=String(totalEnemyHits);
     canvas.dataset.bossHits=String(totalBossHits);
+    const activeBoss=events.filter(e=>e.type==="boss"&&e.hp>0).sort((a,b)=>b.y-a.y)[0]||null;
+    canvas.dataset.bossEngaged=String(!!activeBoss&&!!activeBoss.engaged);
+    canvas.dataset.bossCurrentY=activeBoss?activeBoss.y.toFixed(2):"";
+    canvas.dataset.bossHp=String(activeBoss?activeBoss.hp:0);
     canvas.dataset.shootTargetHits=String(totalTargetHits);
     canvas.dataset.shootTargetValue=String(activeTarget?activeTarget.effect.amount:lastTargetValue);
     canvas.dataset.roadChecks=String(roadChecks);
     canvas.dataset.roadViolations=String(roadViolations);
+    const activeShootTarget=events.filter(e=>e.type==="target"&&!e.resolved).sort((a,b)=>b.y-a.y)[0]||null;
+    if(activeShootTarget){const geometry=shootTargetGeometry(activeShootTarget);canvas.dataset.shootTargetLane=String(activeShootTarget.lane);canvas.dataset.shootTargetWidthRatio=(geometry.w/geometry.road.width).toFixed(3);}else{canvas.dataset.shootTargetLane="";canvas.dataset.shootTargetWidthRatio="";}
+    const playerProjectiles=bullets.filter(b=>b.team==="player");
+    canvas.dataset.playerBulletsLaneForward=String(playerProjectiles.every(b=>b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null));
   }
   function resetState() {
     mode="ready"; soldiers=12; resolved=0; nextIndex=0; events=[];
@@ -219,7 +229,7 @@
     lastCombatTargetId=null; lastCombatAlignment=null; resetFireMetrics();
     simulationSeconds=0; canvas.dataset.simulationSeconds="0";
     canvas.dataset.combatLaneAligned="none"; canvas.dataset.combatTargetLane="";
-    canvas.dataset.projectiles="0"; canvas.dataset.straightProjectiles="0"; canvas.dataset.playerBulletsStraight="true"; canvas.dataset.enemyProjectiles="0"; canvas.dataset.enemyProjectileHits="0"; canvas.dataset.enemyVisibleCount="0"; canvas.dataset.enemyBreachCount="0"; canvas.dataset.enemyBreachReason=""; canvas.dataset.enemyBreachApplications="0"; canvas.dataset.enemyBreachExits="0"; canvas.dataset.barrelPassed="false"; canvas.dataset.barrelPasses="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.enemyHitsBeforeEngagement="0"; canvas.dataset.earlyEnemyHitY=""; canvas.dataset.firstEnemyHitSeconds=""; canvas.dataset.enemySpawnSeconds="0"; canvas.dataset.enemyEngagedId=""; canvas.dataset.enemyEngagedCount=""; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.selectedTargetHits="0"; canvas.dataset.selectedTargetId=""; canvas.dataset.selectedTargetType=""; canvas.dataset.tankBarrelHits="0"; canvas.dataset.tankBarrelHitsRequired=String(TANK_BARREL_HITS); canvas.dataset.tankMode="false"; canvas.dataset.tankTimeRemaining="0"; canvas.dataset.tankDamage=String(TANK_DAMAGE); canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
+    canvas.dataset.projectiles="0"; canvas.dataset.straightProjectiles="0"; canvas.dataset.playerBulletsStraight="true";canvas.dataset.playerBulletsLaneForward="true"; canvas.dataset.enemyProjectiles="0"; canvas.dataset.enemyProjectileHits="0"; canvas.dataset.enemyVisibleCount="0"; canvas.dataset.enemyBreachCount="0"; canvas.dataset.enemyBreachReason=""; canvas.dataset.enemyBreachApplications="0"; canvas.dataset.enemyBreachExits="0"; canvas.dataset.barrelPassed="false"; canvas.dataset.barrelPasses="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.enemyHitsBeforeEngagement="0"; canvas.dataset.earlyEnemyHitY=""; canvas.dataset.firstEnemyHitSeconds=""; canvas.dataset.enemySpawnSeconds="0"; canvas.dataset.enemyEngagedId=""; canvas.dataset.enemyEngagedCount=""; canvas.dataset.bossHits="0"; canvas.dataset.bossHitsBeforeEngagement="0"; canvas.dataset.firstBossHitY=""; canvas.dataset.bossEngaged="false"; canvas.dataset.bossCurrentY=""; canvas.dataset.bossHp="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.selectedTargetHits="0"; canvas.dataset.selectedTargetId=""; canvas.dataset.selectedTargetType=""; canvas.dataset.tankBarrelHits="0"; canvas.dataset.tankBarrelHitsRequired=String(TANK_BARREL_HITS); canvas.dataset.tankMode="false"; canvas.dataset.tankTimeRemaining="0"; canvas.dataset.tankDamage=String(TANK_DAMAGE); canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
     syncSpeedControls();
     ui.start.hidden=false; ui.end.hidden=true;
     say("Choose your route. The squad is waiting."); syncHud();
@@ -234,13 +244,22 @@
       const source=ROUND.find(e=>e.type==="enemy");
       events=source?[{...source,lane:.76,count:18,initialCount:18,id:70,y:96,engaged:false,resolved:false}]:[];
       nextIndex=ROUND.length;
-    }else if(testProjectileRoadBounds||testAimedProjectileRoadBounds){
+    }else if(testProjectileRoadBounds||testStraightProjectileRoadBounds){
       soldiers=MAX_SOLDIERS; lane=.06; targetLane=.06;
-      if(testAimedProjectileRoadBounds){
-        events=[{...ROUND[ROUND.length-1],hp:1000,maxHp:1000,id:ROUND.length-1,y:PLAYER_Y-124,engaged:true,resolved:false}];
-      }else{
-        events=[{type:"fixture",id:-1,y:200,engaged:false,resolved:false}];
-      }
+      events=[{type:"fixture",id:-1,y:200,engaged:false,resolved:false}];
+      nextIndex=ROUND.length;
+    }else if(testBossEarlyHits){
+      soldiers=60;lane=targetLane=.5;
+      events=[{...ROUND[ROUND.length-1],hp:240,maxHp:240,id:ROUND.length-1,y:96,engaged:false,resolved:false}];
+      nextIndex=ROUND.length;
+    }else if(testLaneSpecificTarget==="target"){
+      soldiers=60;lane=targetLane=LANE_CENTERS[0];
+      const source=ROUND.find(e=>e.type==="target");
+      events=source?[{...source,effect:{...source.effect},lane:LANE_CENTERS[1],id:source.index,y:96,engaged:false,resolved:false}]:[];
+      nextIndex=ROUND.length;
+    }else if(testLaneSpecificTarget==="barrel"){
+      soldiers=60;lane=targetLane=LANE_CENTERS[0];
+      events=[{type:"barrel",hits:0,hitsRequired:5,lane:LANE_CENTERS[1],id:53,y:PLAYER_Y-150,engaged:true,resolved:false,label:"LANE TANK TEST"}];
       nextIndex=ROUND.length;
     }else if(testBossCounterattack){
       soldiers=2;
@@ -326,15 +345,15 @@
       events=[{...ROUND[0],id:0,y:96,engaged:false,resolved:false}];
     }
     fireClock=testEnemyBreach?0:(testMode?0.18:0.3); attackClock=0;
-    if(!testProjectileRoadBounds&&!testAimedProjectileRoadBounds&&!testLaneCombat&&!testEarlyEnemy&&!testLaneTransition&&!testDirectTarget&&!testEnemyBreach&&!testBarrelPass){lane=.5;targetLane=.5;}
+    if(!testProjectileRoadBounds&&!testStraightProjectileRoadBounds&&!testLaneCombat&&!testEarlyEnemy&&!testLaneTransition&&!testDirectTarget&&!testEnemyBreach&&!testBarrelPass&&!testLaneSpecificTarget){lane=.5;targetLane=.5;}
     bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalEnemyHitsBeforeEngagement=0; totalBossHits=0; totalTargetHits=0; totalSelectedTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0; tankTimeRemaining=0; selectedTargetId=null; lastTankBarrelHits=0; resetFireMetrics();
     lastCombatTargetId=null; lastCombatAlignment=null;
     simulationSeconds=0; canvas.dataset.simulationSeconds="0";
-    canvas.dataset.enemyProjectileHits="0";canvas.dataset.enemyProjectiles="0";canvas.dataset.straightProjectiles="0";canvas.dataset.playerBulletsStraight="true";
+    canvas.dataset.enemyProjectileHits="0";canvas.dataset.enemyProjectiles="0";canvas.dataset.straightProjectiles="0";canvas.dataset.playerBulletsStraight="true";canvas.dataset.playerBulletsLaneForward="true";
     canvas.dataset.combatLaneAligned="none"; canvas.dataset.combatTargetLane="";
-    canvas.dataset.projectiles="0"; canvas.dataset.straightProjectiles="0"; canvas.dataset.playerBulletsStraight="true"; canvas.dataset.enemyProjectiles="0"; canvas.dataset.enemyProjectileHits="0"; canvas.dataset.enemyVisibleCount="0"; canvas.dataset.enemyBreachCount="0"; canvas.dataset.enemyBreachReason=""; canvas.dataset.enemyBreachApplications="0"; canvas.dataset.enemyBreachExits="0"; canvas.dataset.barrelPassed="false"; canvas.dataset.barrelPasses="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0";
-    if((testFirstContactEnemy||testSquadFire)&&events[0]?.type==="enemy")canvas.dataset.enemyWaveInitialCount=String(events[0].initialCount||events[0].count); canvas.dataset.enemyHits="0"; canvas.dataset.enemyHitsBeforeEngagement="0"; canvas.dataset.earlyEnemyHitY=""; canvas.dataset.firstEnemyHitSeconds=""; canvas.dataset.enemySpawnSeconds="0"; canvas.dataset.enemyEngagedId=""; canvas.dataset.enemyEngagedCount=""; canvas.dataset.bossHits="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.selectedTargetHits="0"; canvas.dataset.selectedTargetId=""; canvas.dataset.selectedTargetType=""; canvas.dataset.tankBarrelHits="0"; canvas.dataset.tankBarrelHitsRequired=String(TANK_BARREL_HITS); canvas.dataset.tankMode="false"; canvas.dataset.tankTimeRemaining="0"; canvas.dataset.tankDamage=String(TANK_DAMAGE); canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
+    canvas.dataset.projectiles="0"; canvas.dataset.straightProjectiles="0"; canvas.dataset.playerBulletsStraight="true";canvas.dataset.playerBulletsLaneForward="true"; canvas.dataset.enemyProjectiles="0"; canvas.dataset.enemyProjectileHits="0"; canvas.dataset.enemyVisibleCount="0"; canvas.dataset.enemyBreachCount="0"; canvas.dataset.enemyBreachReason=""; canvas.dataset.enemyBreachApplications="0"; canvas.dataset.enemyBreachExits="0"; canvas.dataset.barrelPassed="false"; canvas.dataset.barrelPasses="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0";
+    if((testFirstContactEnemy||testSquadFire)&&events[0]?.type==="enemy")canvas.dataset.enemyWaveInitialCount=String(events[0].initialCount||events[0].count); canvas.dataset.enemyHits="0"; canvas.dataset.enemyHitsBeforeEngagement="0"; canvas.dataset.earlyEnemyHitY=""; canvas.dataset.firstEnemyHitSeconds=""; canvas.dataset.enemySpawnSeconds="0"; canvas.dataset.enemyEngagedId=""; canvas.dataset.enemyEngagedCount=""; canvas.dataset.bossHits="0"; canvas.dataset.bossHitsBeforeEngagement="0"; canvas.dataset.firstBossHitY=""; canvas.dataset.bossEngaged="false"; canvas.dataset.bossCurrentY=""; canvas.dataset.bossHp="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.selectedTargetHits="0"; canvas.dataset.selectedTargetId=""; canvas.dataset.selectedTargetType=""; canvas.dataset.tankBarrelHits="0"; canvas.dataset.tankBarrelHitsRequired=String(TANK_BARREL_HITS); canvas.dataset.tankMode="false"; canvas.dataset.tankTimeRemaining="0"; canvas.dataset.tankDamage=String(TANK_DAMAGE); canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
     syncSpeedControls();
     ui.start.hidden=true; ui.end.hidden=true;
     say(testShootableTarget?"Target test: hit the blue +1 panel to increase its value.":"Run started. Pick the stronger gate."); syncHud();
@@ -373,7 +392,15 @@
     }
     if(event.type==="barrel"){
       event.hits=0;event.hitsRequired=event.hitsRequired||TANK_BARREL_HITS;
+      event.lane=Number.isFinite(event.lane)?event.lane:.5;
       lastTankBarrelHits=0;canvas.dataset.tankBarrelHits="0";
+    }
+    if(event.type==="target")event.lane=Number.isFinite(event.lane)?event.lane:.5;
+    if(event.type==="boss"){
+      const scaledHp=Math.min(MAX_BOSS_HP,Math.round(soldiers*BOSS_HP_SQUAD_RATIO));
+      event.hp=Math.max(Number(event.hp)||0,scaledHp);
+      event.maxHp=event.hp;
+      canvas.dataset.bossMaxHp=String(event.maxHp);
     }
     events.push(event);
     nextIndex++;
@@ -439,7 +466,7 @@
     if(e.type==="enemy")return e.count>0&&!enemyTouchesSquadDepth(e);
     if(e.type==="target")return !e.resolved;
     if(e.type==="barrel")return !e.resolved&&(e.hits||0)<(e.hitsRequired||TANK_BARREL_HITS);
-    if(e.type==="boss")return !!e.engaged&&e.hp>0;
+    if(e.type==="boss")return e.hp>0;
     return false;
   }
   function activeSelectedTarget() {
@@ -452,7 +479,7 @@
     selectedTargetId=target?target.id:null;
     if(target){
       if(target.type==="enemy")targetLane=clamp(target.lane,LANE_CENTERS[0],LANE_CENTERS[LANE_COUNT-1]);
-      else if(target.type==="barrel"||target.type==="boss")targetLane=.5;
+      else if(target.type==="barrel"||target.type==="boss"||target.type==="target")targetLane=clamp(Number.isFinite(target.lane)?target.lane:.5,LANE_CENTERS[0],LANE_CENTERS[LANE_COUNT-1]);
       say("Target locked: "+(target.label||target.type)+". Steering into its line of fire.");
     }else say("Target lock cleared. Auto-fire resumed.");
   }
@@ -790,12 +817,15 @@
     ctx.fillStyle="rgba(4,12,20,.7)";ctx.fillRect(r.left+half-2,y-2,4,h+5);
   }
   function shootTargetGeometry(e) {
-    const road=roadAt(e.y),s=.42+road.t*.72,h=21+road.t*37,w=road.width*.72;
-    return {road,s,h,w,x:road.left+(road.width-w)/2,y:e.y-h};
+    const road=roadAt(e.y),s=.42+road.t*.72,h=21+road.t*37;
+    const lane=clamp(Number.isFinite(e.lane)?e.lane:.5,LANE_CENTERS[0],LANE_CENTERS[LANE_COUNT-1]);
+    const w=road.width/LANE_COUNT*.78;
+    return {road,s,h,w,lane,x:road.left+road.width*lane-w/2,y:e.y-h};
   }
   function barrelGeometry(e) {
-    const road=roadAt(e.y),s=.58+road.t*.62,w=82*s,h=78*s;
-    return {road,s,w,h,x:road.left+(road.width-w)/2,y:e.y-h/2};
+    const road=roadAt(e.y),s=.58+road.t*.62,lane=clamp(Number.isFinite(e.lane)?e.lane:.5,LANE_CENTERS[0],LANE_CENTERS[LANE_COUNT-1]);
+    const w=Math.min(110*s,road.width/LANE_COUNT*.76),h=78*s;
+    return {road,s,w,h,lane,x:road.left+road.width*lane-w/2,y:e.y-h/2};
   }
   function drawTargetReticle(x,y,w,h) {
     ctx.save();ctx.strokeStyle="#ffe36a";ctx.lineWidth=2.4;ctx.setLineDash([5,3]);
@@ -957,7 +987,10 @@
         say(e.label+" engaged. Keep steering to adjust the firing spread.");
         continue;
       }
-      if(e.type==="boss"&&e.y>=PLAYER_Y-124){e.hp=Math.max(e.hp,Math.min(MAX_BOSS_HP,Math.round(soldiers*BOSS_HP_SQUAD_RATIO)));e.engaged=true;e.y=PLAYER_Y-119;e.maxHp=e.hp;canvas.dataset.bossMaxHp=String(e.maxHp);attackClock=0;say("Final commander engaged. Auto-fire on target.");}
+      if(e.type==="boss"&&e.y>=PLAYER_Y-124){
+        if(!Number.isFinite(e.maxHp)||e.maxHp<=0){e.hp=Math.max(e.hp,Math.min(MAX_BOSS_HP,Math.round(soldiers*BOSS_HP_SQUAD_RATIO)));e.maxHp=e.hp;}
+        e.engaged=true;e.y=PLAYER_Y-119;canvas.dataset.bossMaxHp=String(e.maxHp||e.hp);attackClock=0;say("Final commander engaged. Keep fire in the center lane.");
+      }
     }
     if(mode!=="running")return;
     updatePlayerFire(dt);
@@ -1057,30 +1090,7 @@
     }
     if(e.hp<=0){resolved++;events=events.filter(item=>item!==e);finishRun("won");}
   }
-  function projectileTargetPoint(target,sourceX,sourceY,projectileVelocity=980) {
-    if(target.type==="barrel"){
-      const barrelSpeed=eventMovementSpeed(target);
-      const travelTime=Math.max(0,sourceY-target.y)/(projectileVelocity+barrelSpeed);
-      const future=barrelGeometry({...target,y:Math.min(target.y+barrelSpeed*travelTime,ENEMY_EXIT_Y)});
-      return {x:future.x+future.w/2,y:future.y+future.h/2};
-    }
-    if(target.type==="boss"){
-      const road=roadAt(target.y);
-      return {x:road.left+road.width/2,y:target.y-27};
-    }
-    if(target.type==="target"){
-      const initial=shootTargetGeometry(target);
-      const distance=Math.max(0,sourceY-(initial.y+initial.h/2));
-      const travelTime=distance/(projectileVelocity+speed);
-      const predictedEventY=Math.min(target.y+speed*travelTime,PLAYER_Y-24);
-      const future=shootTargetGeometry({...target,y:predictedEventY});
-      return {x:future.x+future.w/2,y:future.y+future.h/2};
-    }
-    const targetY=Math.min(target.y+speed*Math.max(0,sourceY-target.y)/(projectileVelocity+speed),ENEMY_EXIT_Y);
-    const road=roadAt(targetY);
-    return {x:road.left+road.width*target.lane,y:targetY};
-  }
-  function fireVolley(fixedTarget) {
+  function fireVolley() {
     const formation=squadFormation(),velocity=980;
     const shotCount=Math.min(32,3+Math.floor(soldiers/18),formation.count);
     for(let i=0;i<shotCount;i++){
@@ -1090,16 +1100,9 @@
       muzzleFlashes.push({x:x+1,y:y-1,life:.075,max:.075,team:"player"});
       const sourceLane=clamp((x-sourceRoad.left)/sourceRoad.width,.06,.94);
       firedShotsByLane[nearestLaneIndex(sourceLane)]++;
-      if(fixedTarget){
-        // Pick one direction at launch; the projectile never steers or teleports to a target.
-        const aim=projectileTargetPoint(fixedTarget,x,y,velocity);
-        const dx=aim.x-x,dy=aim.y-y,dist=Math.hypot(dx,dy)||1;
-        bullets.push({team:"player",x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,life:2.4,targetId:null,straight:true});
-      }else{
-        // Default fire runs forward along its lane, independent of target positions.
-        const roadLane=clamp(sourceLane,.06,.94);
-        bullets.push({team:"player",x,y,vx:0,vy:-velocity,roadLane,life:2.4,targetId:null,straight:true});
-      }
+      // Basic rounds move straight forward within their current road-relative lane.
+      // A target is damaged only when its one-lane hitbox intersects that trajectory.
+      bullets.push({team:"player",x,y,vx:0,vy:-velocity,roadLane:sourceLane,life:2.4,targetId:null,straight:true});
     }
     syncFireMetrics();
   }
@@ -1139,7 +1142,7 @@
           const impactY=clamp((Math.max(low,top)+Math.min(high,bottom))/2,low,high),x=projectileXAt(b,impactY,previousY,nextY,previousX,nextX);
           if(x>=g.x&&x<=g.x+g.w)return {target:e,x,y:impactY};
         }
-      }else if(e.type==="boss"&&e.engaged&&e.hp>0){
+      }else if(e.type==="boss"&&e.hp>0){
         const road=roadAt(e.y),cx=road.left+road.width/2,scale=1.08+road.t*.16,top=e.y-55*scale,bottom=e.y+43*scale;
         if(projectileCrossesY(previousY,nextY,top,bottom)){
           const impactY=clamp((Math.max(low,top)+Math.min(high,bottom))/2,low,high),x=projectileXAt(b,impactY,previousY,nextY,previousX,nextX);
@@ -1170,52 +1173,52 @@
   }
   function updatePlayerFire(dt) {
     if(mode!=="running"||testEnemyBreach)return;
-    const engagedBoss=events.filter(e=>e.type==="boss"&&e.engaged).sort((a,b)=>b.y-a.y)[0]||null;
-    const visibleEnemies=events
-      .filter(e=>e.type==="enemy"&&e.count>0&&e.y>66&&!enemyTouchesSquadDepth(e))
-      .sort((a,b)=>b.y-a.y);
+    const visibleBoss=events.filter(e=>e.type==="boss"&&e.hp>0&&e.y>66&&e.y<PLAYER_Y+80).sort((a,b)=>b.y-a.y)[0]||null;
+    const visibleEnemies=events.filter(e=>e.type==="enemy"&&e.count>0&&e.y>66&&!enemyTouchesSquadDepth(e)).sort((a,b)=>b.y-a.y);
+    const visibleShootTargets=events.filter(e=>(e.type==="target"||e.type==="barrel")&&!e.resolved&&e.y>66&&e.y<ENEMY_EXIT_Y).sort((a,b)=>b.y-a.y);
     const playerSelectedTarget=activeSelectedTarget();
-    const firstContactTarget=visibleEnemies.find(enemy=>!enemy.hasBeenHit)||null;
     const weights=laneFireWeights(lane);
-    let fixedTarget=playerSelectedTarget||engagedBoss||firstContactTarget;
-    if(!fixedTarget&&visibleEnemies.length===0){
-      fixedTarget=events.filter(e=>(e.type==="target"||e.type==="barrel")&&isTargetSelectable(e))
-        .sort((a,b)=>b.y-a.y)[0]||null;
-    }
     if(playerSelectedTarget){
+      const targetLanePosition=clamp(Number.isFinite(playerSelectedTarget.lane)?playerSelectedTarget.lane:.5,LANE_CENTERS[0],LANE_CENTERS[LANE_COUNT-1]);
+      const targetIndex=nearestLaneIndex(targetLanePosition);
       canvas.dataset.combatLaneAligned="locked";
-      canvas.dataset.combatTargetLane=String(playerSelectedTarget.type==="enemy"?playerSelectedTarget.lane:.5);
-      canvas.dataset.combatTargetLaneShare="1";
+      canvas.dataset.combatTargetLane=String(targetLanePosition);
+      canvas.dataset.combatLaneTargetType=playerSelectedTarget.type;
+      canvas.dataset.combatTargetLaneShare=weights[targetIndex].toFixed(3);
       lastCombatTargetId=playerSelectedTarget.id;lastCombatAlignment="locked";
-    }else if(engagedBoss){
-      canvas.dataset.combatLaneAligned="true";
-      canvas.dataset.combatTargetLane=String(lane);
-      lastCombatTargetId=engagedBoss.id;
-      lastCombatAlignment=true;
+    }else if(visibleBoss){
+      const targetShare=weights[1],aligned=targetShare>0.001;
+      canvas.dataset.combatLaneAligned=String(aligned);
+      canvas.dataset.combatTargetLane=String(.5);
+      canvas.dataset.combatLaneTargetType="boss";
+      canvas.dataset.combatTargetLaneShare=targetShare.toFixed(3);
+      if(visibleBoss.id!==lastCombatTargetId||aligned!==lastCombatAlignment)say(aligned?"Commander in the firing lane. Keep up straight fire.":"Commander ahead in the center lane — steer to align your fire.");
+      lastCombatTargetId=visibleBoss.id;lastCombatAlignment=aligned;
     }else if(visibleEnemies.length){
-      const targetEnemy=visibleEnemies[0];
-      const targetIndex=nearestLaneIndex(targetEnemy.lane);
-      const targetShare=weights[targetIndex];
-      const aligned=targetShare>0.001;
+      const targetEnemy=visibleEnemies[0],targetIndex=nearestLaneIndex(targetEnemy.lane);
+      const targetShare=weights[targetIndex],aligned=targetShare>0.001;
       canvas.dataset.combatLaneAligned=String(aligned);
       canvas.dataset.combatTargetLane=String(targetEnemy.lane);
+      canvas.dataset.combatLaneTargetType="enemy";
       canvas.dataset.combatTargetLaneShare=targetShare.toFixed(3);
-      if(targetEnemy.id!==lastCombatTargetId||aligned!==lastCombatAlignment){
-        if(aligned) say("Sweeping fire into lane "+(targetIndex+1)+" ("+Math.round(targetShare*100)+"% of the volley).");
-        else say("Enemy ahead in lane "+(targetIndex+1)+" — steer toward it to shift the firing spread.");
-      }
-      lastCombatTargetId=targetEnemy.id;
-      lastCombatAlignment=aligned;
+      if(targetEnemy.id!==lastCombatTargetId||aligned!==lastCombatAlignment)say(aligned?"Straight fire aligned with lane "+(targetIndex+1)+".":"Enemy ahead in lane "+(targetIndex+1)+" — steer into its lane; bullets do not curve.");
+      lastCombatTargetId=targetEnemy.id;lastCombatAlignment=aligned;
+    }else if(visibleShootTargets.length){
+      const target=visibleShootTargets[0],targetLanePosition=clamp(Number.isFinite(target.lane)?target.lane:.5,LANE_CENTERS[0],LANE_CENTERS[LANE_COUNT-1]);
+      const targetIndex=nearestLaneIndex(targetLanePosition),targetShare=weights[targetIndex],aligned=targetShare>0.001;
+      canvas.dataset.combatLaneAligned=String(aligned);
+      canvas.dataset.combatTargetLane=String(targetLanePosition);
+      canvas.dataset.combatLaneTargetType=target.type;
+      canvas.dataset.combatTargetLaneShare=targetShare.toFixed(3);
+      if(target.id!==lastCombatTargetId||aligned!==lastCombatAlignment)say(aligned?target.label+" in firing lane "+(targetIndex+1)+". Straight fire only.":target.label+" ahead in lane "+(targetIndex+1)+" — steer into that lane to hit it.");
+      lastCombatTargetId=target.id;lastCombatAlignment=aligned;
     }else{
-      canvas.dataset.combatLaneAligned="none";
-      canvas.dataset.combatTargetLane="";
-      canvas.dataset.combatTargetLaneShare="0";
-      lastCombatTargetId=null;
-      lastCombatAlignment=null;
+      canvas.dataset.combatLaneAligned="none";canvas.dataset.combatTargetLane="";canvas.dataset.combatLaneTargetType="";canvas.dataset.combatTargetLaneShare="0";
+      lastCombatTargetId=null;lastCombatAlignment=null;
     }
     fireClock+=dt;
     const interval=testMode?0.18:0.3;
-    while(fireClock>=interval){fireClock-=interval;fireVolley(fixedTarget);}
+    while(fireClock>=interval){fireClock-=interval;fireVolley();}
   }
   function applyProjectileHit(target) {
     if(selectedTargetId!==null&&target.id===selectedTargetId){
@@ -1235,7 +1238,11 @@
       totalEnemyHits++;
       canvas.dataset.enemyHits=String(totalEnemyHits);
     }else if(target.type==="boss"){
-      if(!target.engaged||target.hp<=0)return;
+      if(target.hp<=0)return;
+      if(!target.engaged){
+        canvas.dataset.bossHitsBeforeEngagement=String(Number(canvas.dataset.bossHitsBeforeEngagement||0)+1);
+        if(!canvas.dataset.firstBossHitY)canvas.dataset.firstBossHitY=target.y.toFixed(2);
+      }
       target.hp=Math.max(0,target.hp-(tankTimeRemaining>0?TANK_DAMAGE:1));
       target.hitFlash=.14;
       totalBossHits++;
@@ -1293,8 +1300,8 @@
   }
   function drawBullets() {
     canvas.dataset.projectiles=String(bullets.length);
-    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.straight===true&&b.targetId==null).length);
-    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.straight===true&&b.targetId==null));
+    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null).length);
+    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.straight===true&&b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null));canvas.dataset.playerBulletsLaneForward=String(bullets.filter(b=>b.team==="player").every(b=>b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null));
     ctx.save();
     bullets.forEach(b=>{
       const enemy=b.team==="enemy";
@@ -1334,8 +1341,8 @@
     canvas.dataset.tankDamage=String(TANK_DAMAGE);
     canvas.dataset.enemyProjectileHits=String(canvas.dataset.enemyProjectileHits||"0");
     canvas.dataset.enemyProjectiles=String(bullets.filter(b=>b.team==="enemy").length);
-    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.straight===true&&b.targetId==null).length);
-    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.straight===true&&b.targetId==null));
+    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null).length);
+    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.straight===true&&b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null));canvas.dataset.playerBulletsLaneForward=String(bullets.filter(b=>b.team==="player").every(b=>b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null));
   }
   function frame(now) {
     const frameDt=lastFrame?Math.min((now-lastFrame)/1000,.05):0;lastFrame=now;
@@ -1377,6 +1384,35 @@
       targetLane=LANE_CENTERS[Math.min(LANE_COUNT-1,current+1)];
     }
   });
+  let landscapeMode=false,landscapeFullscreenRequested=false;
+  function syncLandscapeButton(){
+    ui.orientation.setAttribute("aria-pressed",String(landscapeMode));
+    ui.orientation.setAttribute("aria-label",landscapeMode?"Disable landscape play mode":"Enable landscape play mode");
+    ui.orientation.querySelector("span").textContent=landscapeMode?"LANDSCAPE ON":"LANDSCAPE";
+    document.documentElement.classList.toggle("landscape-mode",landscapeMode);
+  }
+  async function toggleLandscapeMode(){
+    if(landscapeMode){
+      landscapeMode=false;
+      const shouldExitFullscreen=landscapeFullscreenRequested&&document.fullscreenElement===document.documentElement;
+      landscapeFullscreenRequested=false;
+      syncLandscapeButton();
+      try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock();}catch(_e){}
+      if(shouldExitFullscreen){try{await document.exitFullscreen();}catch(_e){}}
+      say("Landscape mode off. Rotate the device to choose your preferred orientation.");
+      return;
+    }
+    landscapeMode=true;syncLandscapeButton();
+    try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen();landscapeFullscreenRequested=true;}}catch(_e){}
+    try{
+      if(screen.orientation&&typeof screen.orientation.lock==="function")await screen.orientation.lock("landscape");
+      say("Landscape mode enabled. If the device stays upright, rotate it horizontally.");
+    }catch(_e){
+      say("Landscape mode enabled. Rotate your device horizontally if automatic rotation is unavailable.");
+    }
+  }
+  ui.orientation.addEventListener("click",toggleLandscapeMode);
+  syncLandscapeButton();
   ui.startButton.addEventListener("click",startRun);ui.replay.addEventListener("click",startRun);ui.reset.addEventListener("click",resetState);
   ui.speedButtons.forEach(button=>button.addEventListener("click",()=>setGameSpeed(button.dataset.speed)));
   ui.fullscreen.addEventListener("click",async()=>{try{if(!document.fullscreenElement)await ui.frame.requestFullscreen();else await document.exitFullscreen();}catch(_e){say("Fullscreen is not available in this browser.");}});
