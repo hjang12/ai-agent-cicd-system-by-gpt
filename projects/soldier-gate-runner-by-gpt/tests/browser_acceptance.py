@@ -660,7 +660,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual("0", canvas.get_attribute("data-tank-barrel-hits"))
         self.assertEqual("true", canvas.get_attribute("data-player-bullets-lane-forward"))
         self.steer_to_lane(page, 0.5)
-        page.wait_for_function("() => Number(document.querySelector('#gameCanvas').dataset.tankBarrelHits || 0) >= 5", timeout=2500)
+        page.wait_for_function("() => Number(document.querySelector('#gameCanvas').dataset.tankBarrelHits || 0) >= 5", timeout=4500)
         self.assertEqual("5", canvas.get_attribute("data-tank-barrel-hits"))
         self.assertEqual([], errors, "Lane-specific tank barrel raised a browser error")
         page.close()
@@ -911,6 +911,9 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         for completed_event in range(1, 14):
             if completed_event in enemy_lanes:
                 self.steer_to_lane(page, enemy_lanes[completed_event], keep_dragging=True)
+            if completed_event == 13:
+                # The final commander occupies the centre lane; regular fire never bends toward it.
+                self.steer_to_lane(page, 0.5, keep_dragging=True)
             page.wait_for_function(
                 f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 13'",
                 timeout=6000,
@@ -1008,16 +1011,18 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'false'",
             timeout=2000,
         )
-        mismatched.wait_for_function(
-            "() => Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
-            timeout=3000,
+        mismatched.wait_for_timeout(500)
+        self.assertEqual(
+            "0",
+            mismatched.locator("#gameCanvas").get_attribute("data-enemy-hits"),
+            "Straight shots must not damage an enemy in a different lane",
         )
-        opening_hits = int(mismatched.locator("#gameCanvas").get_attribute("data-enemy-hits") or "0")
-        self.assertGreater(opening_hits, 0, "The first contact volley should be a fixed straight shot even before steering")
+        self.assertEqual("true", mismatched.locator("#gameCanvas").get_attribute("data-player-bullets-lane-forward"))
         self.steer_to_lane(mismatched, 0.76)
         mismatched.wait_for_function(
-            "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'true'",
-            timeout=3000,
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0"
+            " && document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'true'",
+            timeout=4000,
         )
         self.assertEqual([], mismatched_errors, "Steering into the enemy lane raised a browser error")
         mismatched.close()

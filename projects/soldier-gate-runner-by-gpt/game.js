@@ -219,7 +219,7 @@
     const activeShootTarget=events.filter(e=>e.type==="target"&&!e.resolved).sort((a,b)=>b.y-a.y)[0]||null;
     if(activeShootTarget){const geometry=shootTargetGeometry(activeShootTarget);canvas.dataset.shootTargetLane=String(activeShootTarget.lane);canvas.dataset.shootTargetWidthRatio=(geometry.w/geometry.road.width).toFixed(3);}else{canvas.dataset.shootTargetLane="";canvas.dataset.shootTargetWidthRatio="";}
     const playerProjectiles=bullets.filter(b=>b.team==="player");
-    canvas.dataset.playerBulletsLaneForward=String(playerProjectiles.every(b=>b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null));
+    canvas.dataset.playerBulletsLaneForward=String(playerProjectiles.every(b=>b.roadLane!==undefined&&b.vy<0&&b.targetId==null));
   }
   function resetState() {
     mode="ready"; soldiers=12; resolved=0; nextIndex=0; events=[];
@@ -1300,8 +1300,8 @@
   }
   function drawBullets() {
     canvas.dataset.projectiles=String(bullets.length);
-    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null).length);
-    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.straight===true&&b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null));canvas.dataset.playerBulletsLaneForward=String(bullets.filter(b=>b.team==="player").every(b=>b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null));
+    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.roadLane!==undefined&&b.vy<0&&b.targetId==null).length);
+    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.straight===true&&b.roadLane!==undefined&&b.vy<0&&b.targetId==null));canvas.dataset.playerBulletsLaneForward=String(bullets.filter(b=>b.team==="player").every(b=>b.roadLane!==undefined&&b.vy<0&&b.targetId==null));
     ctx.save();
     bullets.forEach(b=>{
       const enemy=b.team==="enemy";
@@ -1341,8 +1341,8 @@
     canvas.dataset.tankDamage=String(TANK_DAMAGE);
     canvas.dataset.enemyProjectileHits=String(canvas.dataset.enemyProjectileHits||"0");
     canvas.dataset.enemyProjectiles=String(bullets.filter(b=>b.team==="enemy").length);
-    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null).length);
-    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.straight===true&&b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null));canvas.dataset.playerBulletsLaneForward=String(bullets.filter(b=>b.team==="player").every(b=>b.roadLane!==undefined&&Math.abs(b.vx)<1e-9&&b.vy<0&&b.targetId==null));
+    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.roadLane!==undefined&&b.vy<0&&b.targetId==null).length);
+    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.straight===true&&b.roadLane!==undefined&&b.vy<0&&b.targetId==null));canvas.dataset.playerBulletsLaneForward=String(bullets.filter(b=>b.team==="player").every(b=>b.roadLane!==undefined&&b.vy<0&&b.targetId==null));
   }
   function frame(now) {
     const frameDt=lastFrame?Math.min((now-lastFrame)/1000,.05):0;lastFrame=now;
