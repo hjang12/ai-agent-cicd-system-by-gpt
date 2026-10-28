@@ -602,7 +602,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             timeout=5000,
         )
         self.assertEqual("false", canvas.get_attribute("data-tank-mode"))
-        self.assertEqual("0", canvas.get_attribute("data-tank-time-remaining"))
+        self.assertEqual("0.00", canvas.get_attribute("data-tank-time-remaining"))
         self.assertLess(
             int(canvas.get_attribute("data-tank-barrel-hits") or "0"),
             int(canvas.get_attribute("data-tank-barrel-hits-required") or "0"),
