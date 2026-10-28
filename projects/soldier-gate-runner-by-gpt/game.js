@@ -231,8 +231,8 @@
     }else if(testDirectTarget){
       soldiers=60; lane=targetLane=.5;
       events=[
-        {type:"enemy",count:100,initialCount:100,lane:1/6,label:"LEFT TEST",id:31,y:160,engaged:false,resolved:false},
-        {type:"enemy",count:100,initialCount:100,lane:5/6,label:"RIGHT TEST",id:32,y:160,engaged:false,resolved:false}
+        {type:"enemy",count:1000,initialCount:1000,lane:1/6,label:"LEFT TEST",id:31,y:160,engaged:false,resolved:false},
+        {type:"enemy",count:1000,initialCount:1000,lane:5/6,label:"RIGHT TEST",id:32,y:160,engaged:false,resolved:false}
       ];
       nextIndex=ROUND.length;
     }else if(testFirstContactEnemy){
