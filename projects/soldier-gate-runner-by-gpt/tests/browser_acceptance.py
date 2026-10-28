@@ -333,7 +333,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.get_by_role("button", name="START RUN").click()
         canvas = page.locator("#gameCanvas")
         page.wait_for_function(
-            "() => document.querySelector('#enemyCount').textContent.trim() === '18 ENEMIES'",
+            "() => document.querySelector('#gameCanvas').dataset.enemyWaveInitialCount === '18'",
             timeout=7000,
         )
         page.wait_for_function(
@@ -600,7 +600,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             timeout=3000,
         )
         page.wait_for_function(
-            "() => document.querySelector('#enemyCount').textContent.trim() === '18 ENEMIES'",
+            "() => document.querySelector('#gameCanvas').dataset.enemyWaveInitialCount === '18'",
             timeout=7000,
         )
         # An immediate contact hit may reduce the HUD count before it ever displays 18.
