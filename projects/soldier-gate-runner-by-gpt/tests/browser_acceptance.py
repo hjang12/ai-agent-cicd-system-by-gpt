@@ -710,7 +710,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         toolbar = page.locator(".topbar-right").bounding_box()
         assert toolbar is not None
         self.assertLessEqual(toolbar["x"] + toolbar["width"], 320.5, "Toolbar must fit narrow phones")
-        self.assertEqual([], page.locator("#controlFeedback").evaluate("(node) => node.hidden") and [], "Feedback should begin hidden")
+        self.assertTrue(page.locator("#controlFeedback").evaluate("(node) => node.hidden"), "Feedback should begin hidden")
         page.close()
 
     def test_fullscreen_button_updates_state_and_label(self) -> None:
@@ -735,12 +735,10 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
         button = page.locator("#fullscreenButton")
         button.click()
-        self.assertEqual(
-            "true",
-            page.wait_for_function(
-                "() => document.fullscreenElement === document.querySelector('#gameFrame')"
-            ).evaluate("(value) => String(Boolean(value))"),
+        page.wait_for_function(
+            "() => document.fullscreenElement === document.querySelector('#gameFrame')"
         )
+        self.assertEqual("true", page.evaluate("() => String(document.fullscreenElement === document.querySelector('#gameFrame'))"))
         self.assertEqual("Exit fullscreen", button.get_attribute("aria-label"))
         self.assertEqual("EXIT FULLSCREEN", button.locator(".button-label-wide").inner_text().strip())
         button.click()
