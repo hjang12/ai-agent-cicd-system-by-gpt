@@ -139,6 +139,12 @@
     speedMultiplier=next;
     syncSpeedControls();
   }
+  function eventMovementSpeed(event) {
+    if(event.type!=="barrel")return speed;
+    if(testTankBarrel)return 60;
+    if(testBarrelPass)return 150;
+    return speed*.25;
+  }
 
   function roadAt(y) {
     const t=clamp((y-66)/(H-66),0,1), width=lerp(W*220/960,W*880/960,t);
@@ -940,8 +946,8 @@
         e.y+=speed*dt;
         continue;
       }
-      if(e.type==="barrel"&&e.engaged){e.y+=speed*dt;continue;}
-      e.y+=speed*dt;
+      if(e.type==="barrel"&&e.engaged){e.y+=eventMovementSpeed(e)*dt;continue;}
+      e.y+=eventMovementSpeed(e)*dt;
       if(e.type==="gate"&&e.y>=PLAYER_Y-24){resolveGate(e);events.splice(i,1);continue;}
       if(e.type==="target"&&e.y>=PLAYER_Y-24){resolveShootTarget(e);events.splice(i,1);continue;}
       if(e.type==="barrel"&&e.y>=PLAYER_Y-150){
@@ -1059,8 +1065,9 @@
   }
   function projectileTargetPoint(target,sourceX,sourceY,projectileVelocity=980) {
     if(target.type==="barrel"){
-      const travelTime=Math.max(0,sourceY-target.y)/(projectileVelocity+speed);
-      const future=barrelGeometry({...target,y:Math.min(target.y+speed*travelTime,ENEMY_EXIT_Y)});
+      const barrelSpeed=eventMovementSpeed(target);
+      const travelTime=Math.max(0,sourceY-target.y)/(projectileVelocity+barrelSpeed);
+      const future=barrelGeometry({...target,y:Math.min(target.y+barrelSpeed*travelTime,ENEMY_EXIT_Y)});
       return {x:future.x+future.w/2,y:future.y+future.h/2};
     }
     if(target.type==="boss"){
