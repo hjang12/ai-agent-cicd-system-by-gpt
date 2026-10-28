@@ -470,6 +470,10 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         screen_y = bounds["y"] + bounds["height"] * 160 / 560
         page.mouse.click(screen_x, screen_y)
         self.assertEqual("31", canvas.get_attribute("data-last-target-click"), "The click must resolve to the left enemy's hitbox")
+        page.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.selectedTargetId === '31'",
+            timeout=2000,
+        )
         self.assertEqual("31", canvas.get_attribute("data-selected-target-id"))
         self.assertEqual("enemy", canvas.get_attribute("data-selected-target-type"))
         self.assertEqual("locked", canvas.get_attribute("data-combat-lane-aligned"))
