@@ -503,6 +503,70 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Tank unlock raised a browser error")
         page.close()
 
+    def test_unresolved_enemy_reduces_squad_by_remaining_count_on_contact(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(
+            self.base_url + "?testMode=1&testEnemyBreach=contact",
+            wait_until="networkidle",
+        )
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.enemyBreachReason === 'contact'",
+            timeout=3000,
+        )
+        self.assertEqual("5", canvas.get_attribute("data-enemy-breach-count"))
+        self.assertEqual("7", page.locator("#soldierCount").inner_text().strip())
+        self.assertEqual([], errors, "Enemy contact raised a browser error")
+        page.close()
+
+    def test_unresolved_enemy_exiting_map_causes_mission_failure_at_zero_squad(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(
+            self.base_url + "?testMode=1&testEnemyBreach=exit",
+            wait_until="networkidle",
+        )
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.enemyBreachReason === 'exit'",
+            timeout=3000,
+        )
+        self.assertEqual("20", canvas.get_attribute("data-enemy-breach-count"))
+        self.assertEqual("0", page.locator("#soldierCount").inner_text().strip())
+        self.assertEqual("DEFEAT", page.locator("#statusPill").inner_text().strip())
+        self.assertTrue(page.locator("#endOverlay").is_visible())
+        self.assertEqual([], errors, "Enemy escape raised a browser error")
+        page.close()
+
+    def test_undestroyed_tank_barrel_moves_offscreen_without_blocking_run(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(
+            self.base_url + "?testMode=1&testBarrelPass=1",
+            wait_until="networkidle",
+        )
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.barrelPassed === 'true'",
+            timeout=5000,
+        )
+        self.assertEqual("false", canvas.get_attribute("data-tank-mode"))
+        self.assertEqual("0", canvas.get_attribute("data-tank-time-remaining"))
+        self.assertLess(
+            int(canvas.get_attribute("data-tank-barrel-hits") or "0"),
+            int(canvas.get_attribute("data-tank-barrel-hits-required") or "0"),
+        )
+        self.assertEqual("VICTORY", page.locator("#statusPill").inner_text().strip())
+        self.assertEqual([], errors, "Passing an undestroyed tank barrel raised a browser error")
+        page.close()
+
     def test_low_squad_boss_counterattack_does_not_throw(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
