@@ -211,7 +211,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                     laneLeft: roadLeft + laneWidth * laneIndex,
                     laneRight: roadLeft + laneWidth * (laneIndex + 1)
                 };
-            }""")
+            })();""")
             lane_left = metrics["laneLeft"]
             lane_right = metrics["laneRight"]
             self.assertGreaterEqual(
@@ -270,7 +270,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                 laneLeft: roadLeft + laneWidth * laneIndex,
                 laneRight: roadLeft + laneWidth * (laneIndex + 1)
             };
-        }""")
+        })();""")
         self.assertGreaterEqual(metrics["columns"], 2)
         self.assertLessEqual(metrics["columns"], 4)
         self.assertGreaterEqual(
@@ -717,7 +717,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page = self.browser.new_page(viewport={"width": 1280, "height": 720})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.add_init_script("""() => {
+        page.add_init_script("""(() => {
           const state = { element: null };
           Object.defineProperty(document, "fullscreenElement", {
             configurable: true, get: () => state.element
@@ -731,7 +731,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             state.element = null;
             document.dispatchEvent(new Event("fullscreenchange"));
           };
-        }""")
+        })();""")
         page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
         button = page.locator("#fullscreenButton")
         button.click()
@@ -752,10 +752,10 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page = self.browser.new_page(viewport={"width": 375, "height": 812})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.add_init_script("""() => {
+        page.add_init_script("""(() => {
           Object.defineProperty(document, "fullscreenEnabled", { configurable: true, value: false });
           Object.defineProperty(screen, "orientation", { configurable: true, value: {} });
-        }""")
+        })();""")
         page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
         page.locator("#orientationButton").click()
         feedback = page.locator("#controlFeedback")
@@ -770,9 +770,9 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page = self.browser.new_page(viewport={"width": 375, "height": 812})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
-        page.add_init_script("""() => {
+        page.add_init_script("""(() => {
           Object.defineProperty(document, "fullscreenEnabled", { configurable: true, value: false });
-        }""")
+        })();""")
         page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
         page.locator("#fullscreenButton").click()
         page.wait_for_function("() => !document.querySelector('#controlFeedback').hidden")
@@ -859,7 +859,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             const sideIndex = (300 * width + 30) * 4;
             const sideBackground = Array.from(data.slice(sideIndex, sideIndex + 3));
             return {blueSquad, redEnemy, allyFacePixels, paleUniformPixels, sideBackground};
-        }""")
+        })();""")
         self.assertGreater(pixels["blueSquad"], 250, "Blue squad helmet/gear palette was not visible")
         self.assertGreater(pixels["redEnemy"], 100, "Red enemy helmet/gear palette was not visible")
         self.assertLess(pixels["allyFacePixels"], 35, "Allied formation should show rear-facing helmets, not frontal faces")
