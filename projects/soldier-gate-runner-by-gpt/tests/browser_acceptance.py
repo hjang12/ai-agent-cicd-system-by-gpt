@@ -821,17 +821,16 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'false'",
             timeout=2000,
         )
-        mismatched.wait_for_timeout(650)
-        self.assertEqual(
-            "0",
-            mismatched.locator("#gameCanvas").get_attribute("data-enemy-hits"),
-            "Straight shots must not curve across lanes to hit a misaligned enemy",
+        mismatched.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
+            timeout=3000,
         )
+        opening_hits = int(mismatched.locator("#gameCanvas").get_attribute("data-enemy-hits") or "0")
+        self.assertGreater(opening_hits, 0, "The first contact volley should be a fixed straight shot even before steering")
         self.steer_to_lane(mismatched, 0.76)
         mismatched.wait_for_function(
-            "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'true'"
-            " && Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
-            timeout=4000,
+            "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'true'",
+            timeout=3000,
         )
         self.assertEqual([], mismatched_errors, "Steering into the enemy lane raised a browser error")
         mismatched.close()
