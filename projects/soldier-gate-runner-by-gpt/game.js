@@ -957,19 +957,46 @@
     }
     if(e.hp<=0){resolved++;events=events.filter(item=>item!==e);finishRun("won");}
   }
-  function fireVolley() {
+  function projectileTargetPoint(target,sourceX,sourceY,projectileVelocity=980) {
+    if(target.type==="barrel"){const g=barrelGeometry(target);return {x:g.x+g.w/2,y:g.y+g.h/2};}
+    if(target.type==="boss"){
+      const road=roadAt(target.y);
+      return {x:road.left+road.width/2,y:target.y-27};
+    }
+    if(target.type==="target"){
+      const initial=shootTargetGeometry(target);
+      const distance=Math.max(0,sourceY-(initial.y+initial.h/2));
+      const travelTime=distance/(projectileVelocity+speed);
+      const predictedEventY=Math.min(target.y+speed*travelTime,PLAYER_Y-24);
+      const future=shootTargetGeometry({...target,y:predictedEventY});
+      return {x:future.x+future.w/2,y:future.y+future.h/2};
+    }
+    const targetY=target.engaged
+      ?target.y
+      :Math.min(target.y+speed*Math.max(0,sourceY-target.y)/(projectileVelocity+speed),PLAYER_Y-180);
+    const road=roadAt(targetY);
+    return {x:road.left+road.width*target.lane,y:targetY};
+  }
+  function fireVolley(fixedTarget) {
     const formation=squadFormation(),velocity=980;
     const shotCount=Math.min(32,3+Math.floor(soldiers/18),formation.count);
     for(let i=0;i<shotCount;i++){
       const index=shotCount===1?Math.floor((formation.count-1)/2):Math.round(i*(formation.count-1)/(shotCount-1));
       const soldier=squadSoldierPosition(formation,index),y=soldier.y-22;
       const sourceRoad=roadAt(y),x=clamp(soldier.x+6,sourceRoad.left+10,sourceRoad.right-10);
-      const roadLane=clamp((x-sourceRoad.left)/sourceRoad.width,.06,.94);
-      const actualLane=nearestLaneIndex(roadLane);
-      firedShotsByLane[actualLane]++;
       muzzleFlashes.push({x:x+1,y:y-1,life:.075,max:.075,team:"player"});
-      // Straight road-relative shots stay in their firing lane; they never bend toward a target.
-      bullets.push({team:"player",x,y,vx:0,vy:-velocity,roadLane,life:2.4,targetId:null});
+      const sourceLane=clamp((x-sourceRoad.left)/sourceRoad.width,.06,.94);
+      firedShotsByLane[nearestLaneIndex(sourceLane)]++;
+      if(fixedTarget){
+        // Pick one direction at launch; the projectile never steers or teleports to a target.
+        const aim=projectileTargetPoint(fixedTarget,x,y,velocity);
+        const dx=aim.x-x,dy=aim.y-y,dist=Math.hypot(dx,dy)||1;
+        bullets.push({team:"player",x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,life:2.4,targetId:null});
+      }else{
+        // Default fire runs forward along its lane, independent of target positions.
+        const roadLane=clamp(sourceLane,.06,.94);
+        bullets.push({team:"player",x,y,vx:0,vy:-velocity,roadLane,life:2.4,targetId:null});
+      }
     }
     syncFireMetrics();
   }
@@ -977,8 +1004,13 @@
     const low=Math.min(previousY,nextY),high=Math.max(previousY,nextY);
     return high>=top&&low<=bottom;
   }
-  function projectileXAt(b,y) { return roadXAtLane(y,b.roadLane); }
-  function findPlayerProjectileHit(b,previousY,nextY) {
+  function projectileXAt(b,y,previousY,nextY,previousX,nextX) {
+    if(b.roadLane!==undefined)return roadXAtLane(y,b.roadLane);
+    const dy=nextY-previousY;
+    const t=Math.abs(dy)<1e-9?0:clamp((y-previousY)/dy,0,1);
+    return previousX+(nextX-previousX)*t;
+  }
+  function findPlayerProjectileHit(b,previousY,nextY,previousX,nextX) {
     const low=Math.min(previousY,nextY),high=Math.max(previousY,nextY);
     for(let j=events.length-1;j>=0;j--){
       const e=events[j];
@@ -990,36 +1022,36 @@
           const sy=e.y+row*12*scale,top=sy-21*scale,bottom=sy+7*scale;
           if(!projectileCrossesY(previousY,nextY,top,bottom))continue;
           const impactY=clamp((Math.max(low,top)+Math.min(high,bottom))/2,low,high);
-          if(Math.abs(projectileXAt(b,impactY)-sx)<=8*scale)return {target:e,x:sx,y:impactY};
+          if(Math.abs(projectileXAt(b,impactY,previousY,nextY,previousX,nextX)-sx)<=8*scale)return {target:e,x:sx,y:impactY};
         }
       }else if(e.type==="target"&&!e.resolved){
         const g=shootTargetGeometry(e),top=g.y,bottom=g.y+g.h;
         if(projectileCrossesY(previousY,nextY,top,bottom)){
-          const impactY=clamp((Math.max(low,top)+Math.min(high,bottom))/2,low,high),x=projectileXAt(b,impactY);
+          const impactY=clamp((Math.max(low,top)+Math.min(high,bottom))/2,low,high),x=projectileXAt(b,impactY,previousY,nextY,previousX,nextX);
           if(x>=g.x&&x<=g.x+g.w)return {target:e,x,y:impactY};
         }
       }else if(e.type==="barrel"&&!e.resolved){
         const g=barrelGeometry(e),top=g.y,bottom=g.y+g.h;
         if(projectileCrossesY(previousY,nextY,top,bottom)){
-          const impactY=clamp((Math.max(low,top)+Math.min(high,bottom))/2,low,high),x=projectileXAt(b,impactY);
+          const impactY=clamp((Math.max(low,top)+Math.min(high,bottom))/2,low,high),x=projectileXAt(b,impactY,previousY,nextY,previousX,nextX);
           if(x>=g.x&&x<=g.x+g.w)return {target:e,x,y:impactY};
         }
       }else if(e.type==="boss"&&e.engaged&&e.hp>0){
         const road=roadAt(e.y),cx=road.left+road.width/2,scale=1.08+road.t*.16,top=e.y-55*scale,bottom=e.y+43*scale;
         if(projectileCrossesY(previousY,nextY,top,bottom)){
-          const impactY=clamp((Math.max(low,top)+Math.min(high,bottom))/2,low,high),x=projectileXAt(b,impactY);
+          const impactY=clamp((Math.max(low,top)+Math.min(high,bottom))/2,low,high),x=projectileXAt(b,impactY,previousY,nextY,previousX,nextX);
           if(Math.abs(x-cx)<=46*scale)return {target:e,x,y:impactY};
         }
       }
     }
     return null;
   }
-  function findSquadProjectileHit(b,previousY,nextY) {
+  function findSquadProjectileHit(b,previousY,nextY,previousX,nextX) {
     const formation=squadFormation(),low=Math.min(previousY,nextY),high=Math.max(previousY,nextY),scale=formation.soldierScale;
     for(let i=0;i<formation.count;i++){
       const soldier=squadSoldierPosition(formation,i),top=soldier.y-21*scale,bottom=soldier.y+7*scale;
       if(!projectileCrossesY(previousY,nextY,top,bottom))continue;
-      const impactY=clamp((Math.max(low,top)+Math.min(high,bottom))/2,low,high),x=projectileXAt(b,impactY);
+      const impactY=clamp((Math.max(low,top)+Math.min(high,bottom))/2,low,high),x=projectileXAt(b,impactY,previousY,nextY,previousX,nextX);
       if(Math.abs(x-soldier.x)<=8*scale)return {x:soldier.x,y:impactY};
     }
     return null;
@@ -1040,7 +1072,9 @@
       .filter(e=>e.type==="enemy"&&e.count>0&&e.y>66&&e.y<PLAYER_Y+80)
       .sort((a,b)=>b.y-a.y);
     const playerSelectedTarget=activeSelectedTarget();
+    const firstContactTarget=visibleEnemies.find(enemy=>!enemy.hasBeenHit)||null;
     const weights=laneFireWeights(lane);
+    const fixedTarget=playerSelectedTarget||engagedBoss||firstContactTarget;
     if(playerSelectedTarget){
       canvas.dataset.combatLaneAligned="locked";
       canvas.dataset.combatTargetLane=String(playerSelectedTarget.type==="enemy"?playerSelectedTarget.lane:.5);
@@ -1074,7 +1108,7 @@
     }
     fireClock+=dt;
     const interval=testMode?0.18:0.3;
-    while(fireClock>=interval){fireClock-=interval;fireVolley();}
+    while(fireClock>=interval){fireClock-=interval;fireVolley(fixedTarget);}
   }
   function applyProjectileHit(target) {
     if(selectedTargetId!==null&&target.id===selectedTargetId){
@@ -1134,7 +1168,7 @@
         if(b.x<road.left+margin||b.x>road.right-margin){roadViolations++;bullets.splice(i,1);continue;}
       }
       if(b.team==="enemy"){
-        const hit=findSquadProjectileHit(b,previousY,b.y);
+        const hit=findSquadProjectileHit(b,previousY,b.y,previousX,b.x);
         if(hit){applyEnemyProjectileHit(hit);bullets.splice(i,1);continue;}
       }else{
         const hit=findPlayerProjectileHit(b,previousY,b.y);
