@@ -911,8 +911,8 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         for completed_event in range(1, 14):
             if completed_event in enemy_lanes:
                 self.steer_to_lane(page, enemy_lanes[completed_event], keep_dragging=True)
-            if completed_event == 13:
-                # The final commander occupies the centre lane; regular fire never bends toward it.
+            if completed_event in (12, 13):
+                # The tank barrel and final commander occupy the centre lane; regular fire never bends toward them.
                 self.steer_to_lane(page, 0.5, keep_dragging=True)
             page.wait_for_function(
                 f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 13'",
