@@ -640,7 +640,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         canvas = page.locator("#gameCanvas")
         page.wait_for_timeout(600)
         self.assertEqual("0", canvas.get_attribute("data-shoot-target-hits"))
-        self.assertEqual("0.500", canvas.get_attribute("data-shoot-target-lane"))
+        self.assertEqual("0.5", canvas.get_attribute("data-shoot-target-lane"))
         self.assertLessEqual(float(canvas.get_attribute("data-shoot-target-width-ratio") or "1"), 1 / 3)
         self.assertEqual("true", canvas.get_attribute("data-player-bullets-lane-forward"))
         self.steer_to_lane(page, 0.5)
