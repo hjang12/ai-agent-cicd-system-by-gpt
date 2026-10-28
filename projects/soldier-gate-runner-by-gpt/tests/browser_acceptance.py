@@ -342,6 +342,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         )
         spawn_time = float(canvas.get_attribute("data-enemy-spawn-seconds") or "0")
         first_hit_time = float(canvas.get_attribute("data-first-enemy-hit-seconds") or "99")
+        self.assertEqual("true", canvas.get_attribute("data-player-bullets-lane-forward"))
         self.assertGreater(first_hit_time, 0)
         self.assertLess(first_hit_time - spawn_time, 0.8, "The opening contact shot should reach the enemy within 0.8 simulation seconds")
         self.assertEqual([], errors, "First-contact firing raised a browser error")
@@ -611,6 +612,79 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Passing an undestroyed tank barrel raised a browser error")
         page.close()
 
+    def test_boss_is_hit_by_straight_fire_before_engagement(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testBossEarlyHits=1", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_function(
+            "() => Number(document.querySelector('#gameCanvas').dataset.bossHitsBeforeEngagement || 0) > 0"
+            " && document.querySelector('#gameCanvas').dataset.bossEngaged === 'true'",
+            timeout=5000,
+        )
+        self.assertGreater(int(canvas.get_attribute("data-boss-hits-before-engagement") or "0"), 0)
+        self.assertLess(float(canvas.get_attribute("data-first-boss-hit-y") or "999"), 300)
+        self.assertLess(int(canvas.get_attribute("data-boss-hp") or "999"), int(canvas.get_attribute("data-boss-max-hp") or "0"))
+        self.assertEqual("true", canvas.get_attribute("data-player-bullets-lane-forward"))
+        self.assertEqual([], errors, "Early boss hits raised a browser error")
+        page.close()
+
+    def test_shootable_reinforcement_target_only_takes_hits_in_its_lane(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testLaneSpecificTarget=target", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_timeout(600)
+        self.assertEqual("0", canvas.get_attribute("data-shoot-target-hits"))
+        self.assertEqual("0.5", canvas.get_attribute("data-shoot-target-lane"))
+        self.assertLessEqual(float(canvas.get_attribute("data-shoot-target-width-ratio") or "1"), 1 / 3)
+        self.assertEqual("true", canvas.get_attribute("data-player-bullets-lane-forward"))
+        self.steer_to_lane(page, 0.5)
+        page.wait_for_function("() => Number(document.querySelector('#gameCanvas').dataset.shootTargetHits || 0) > 0", timeout=2500)
+        self.assertGreater(int(canvas.get_attribute("data-shoot-target-hits") or "0"), 0)
+        self.assertEqual([], errors, "Lane-specific shootable target raised a browser error")
+        page.close()
+
+    def test_tank_barrel_only_takes_hits_in_its_lane(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testLaneSpecificTarget=barrel", wait_until="networkidle")
+        page.get_by_role("button", name="START RUN").click()
+        canvas = page.locator("#gameCanvas")
+        page.wait_for_timeout(500)
+        self.assertEqual("0", canvas.get_attribute("data-tank-barrel-hits"))
+        self.assertEqual("true", canvas.get_attribute("data-player-bullets-lane-forward"))
+        self.steer_to_lane(page, 0.5)
+        page.wait_for_function("() => Number(document.querySelector('#gameCanvas').dataset.tankBarrelHits || 0) >= 5", timeout=4500)
+        self.assertEqual("5", canvas.get_attribute("data-tank-barrel-hits"))
+        self.assertEqual([], errors, "Lane-specific tank barrel raised a browser error")
+        page.close()
+
+    def test_landscape_mode_control_can_be_enabled_and_disabled(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 720})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        button = page.get_by_role("button", name="Enable landscape play mode")
+        self.assertEqual("false", button.get_attribute("aria-pressed"))
+        button.click()
+        page.wait_for_function(
+            "() => document.documentElement.classList.contains('landscape-mode')"
+            " && document.querySelector('#orientationButton').getAttribute('aria-pressed') === 'true'",
+            timeout=2000,
+        )
+        self.assertEqual("LANDSCAPE ON", page.locator("#orientationButton").inner_text().strip())
+        page.get_by_role("button", name="Disable landscape play mode").click()
+        self.assertEqual("false", page.locator("#orientationButton").get_attribute("aria-pressed"))
+        self.assertFalse(page.locator("html").evaluate("(node) => node.classList.contains('landscape-mode')"))
+        self.assertEqual([], errors, "Landscape mode toggle raised a browser error")
+        page.close()
+
     def test_low_squad_boss_counterattack_does_not_throw(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
@@ -756,27 +830,27 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.close()
 
-    def test_aimed_projectiles_stay_inside_road_with_large_squad_at_edge(self) -> None:
+    def test_straight_projectiles_stay_inside_road_with_large_squad_at_edge(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(
-            self.base_url + "?testMode=1&testAimedProjectileRoadBounds=1",
+            self.base_url + "?testMode=1&testStraightProjectileRoadBounds=1",
             wait_until="networkidle",
         )
         page.get_by_role("button", name="START RUN").click()
         canvas = page.locator("#gameCanvas")
         page.wait_for_function(
-            "() => Number(document.querySelector('#gameCanvas').dataset.bossHits || 0) > 0"
+            "() => Number(document.querySelector('#gameCanvas').dataset.straightProjectiles || 0) > 0"
             " && Number(document.querySelector('#gameCanvas').dataset.roadChecks || 0) > 150",
             timeout=5000,
         )
         self.assertEqual(
             "0",
             canvas.get_attribute("data-road-violations"),
-            "Aimed projectile trajectories from a wide squad must remain inside the road",
+            "Straight lane-forward projectiles from a wide squad must remain inside the road",
         )
-        self.assertGreater(int(canvas.get_attribute("data-boss-hits") or "0"), 0)
+        self.assertEqual("true", canvas.get_attribute("data-player-bullets-lane-forward"))
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.close()
 
@@ -837,6 +911,9 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         for completed_event in range(1, 14):
             if completed_event in enemy_lanes:
                 self.steer_to_lane(page, enemy_lanes[completed_event], keep_dragging=True)
+            if completed_event in (12, 13):
+                # The tank barrel and final commander occupy the centre lane; regular fire never bends toward them.
+                self.steer_to_lane(page, 0.5, keep_dragging=True)
             page.wait_for_function(
                 f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 13'",
                 timeout=6000,
@@ -934,16 +1011,18 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'false'",
             timeout=2000,
         )
-        mismatched.wait_for_function(
-            "() => Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
-            timeout=3000,
+        mismatched.wait_for_timeout(500)
+        self.assertEqual(
+            "0",
+            mismatched.locator("#gameCanvas").get_attribute("data-enemy-hits"),
+            "Straight shots must not damage an enemy in a different lane",
         )
-        opening_hits = int(mismatched.locator("#gameCanvas").get_attribute("data-enemy-hits") or "0")
-        self.assertGreater(opening_hits, 0, "The first contact volley should be a fixed straight shot even before steering")
+        self.assertEqual("true", mismatched.locator("#gameCanvas").get_attribute("data-player-bullets-lane-forward"))
         self.steer_to_lane(mismatched, 0.76)
         mismatched.wait_for_function(
-            "() => document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'true'",
-            timeout=3000,
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0"
+            " && document.querySelector('#gameCanvas').dataset.combatLaneAligned === 'true'",
+            timeout=4000,
         )
         self.assertEqual([], mismatched_errors, "Steering into the enemy lane raised a browser error")
         mismatched.close()

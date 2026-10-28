@@ -694,3 +694,37 @@ html, body {
   }
   .topbar .top-reset-button span { display: none; }
 }
+
+
+/* Landscape play mode: fullscreen orientation locking is requested by the toolbar control. */
+.orientation-button[aria-pressed="true"] { color:#1768c5; border-color:rgba(23,104,197,.55); background:rgba(23,104,197,.08); }
+html.landscape-mode .app-shell { width:100vw; max-width:none; height:100vh; height:100dvh; padding:5px clamp(6px,1vw,16px); gap:4px; }
+html.landscape-mode .topbar { min-height:30px; padding-bottom:4px; }
+html.landscape-mode .game-layout { min-height:0; }
+html.landscape-mode .game-column { padding:5px; }
+html.landscape-mode .hud { min-height:39px; padding:0 4px 3px; }
+html.landscape-mode #gameCanvas { width:min(100%,calc((100dvh - 76px) * 12 / 7)); }
+html.landscape-mode .run-footer { flex-basis:24px; min-height:24px; }
+@media (orientation:landscape) and (max-height:560px) {
+  .app-shell { padding:4px 8px; gap:3px; }
+  .topbar { min-height:28px; padding-bottom:4px; }
+  .brand-mark { height:19px; } .brand-word { font-size:12px; }
+  .topbar-right { gap:5px; }
+  .quiet-button,.reset-button { padding:5px 6px; font-size:8px; }
+  .quiet-button svg,.reset-button svg { width:13px; height:13px; }
+  .speed-controls { gap:3px; } .speed-button { min-width:27px; padding:5px 6px; font-size:9px; }
+  .game-column { padding:4px; }
+  .hud { min-height:36px; padding:0 2px 3px; }
+  .hud-stat { padding:0 5px; gap:3px; } .hud-label { font-size:6px; }
+  .hud-value { font-size:9px; } .hud-value strong { font-size:17px; }
+  .status-pill { padding:4px 5px; font-size:7px; }
+  #gameCanvas { width:min(100%,calc((100dvh - 66px) * 12 / 7)); }
+  .run-footer { flex-basis:22px; min-height:22px; }
+  .game-overlay { padding:5px; }
+  .overlay-card { width:min(340px,100%); padding:10px 13px 8px; }
+  .overlay-card h2 { margin:8px 0; font-size:27px; }
+  .overlay-card p { font-size:9px; line-height:1.35; }
+  .primary-button { margin-top:9px; padding:8px 10px; }
+  .overlay-foot { margin-top:7px; }
+}
+@media (max-width:790px) { .orientation-button span { display:none; } .orientation-button { min-width:30px; } }
