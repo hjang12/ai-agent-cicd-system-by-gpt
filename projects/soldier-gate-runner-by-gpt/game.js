@@ -315,9 +315,11 @@
     }else if(testLaneTransition){
       soldiers=60;
       lane=targetLane=LANE_CENTERS[0];
+      // This test measures only lane-weight blending; enemy contact/breach rules
+      // must not terminate the run before the pointer-steering assertions finish.
       events=[
-        {type:"enemy",count:100,lane:LANE_CENTERS[0],label:"LANE ONE TEST",id:21,y:120,engaged:false,resolved:false},
-        {type:"enemy",count:100,lane:LANE_CENTERS[1],label:"LANE TWO TEST",id:22,y:120,engaged:false,resolved:false}
+        {type:"fixture",id:21,y:120,engaged:false,resolved:false},
+        {type:"fixture",id:22,y:120,engaged:false,resolved:false}
       ];
       nextIndex=ROUND.length;
     }else{
