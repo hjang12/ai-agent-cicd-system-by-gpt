@@ -1256,6 +1256,7 @@
     if(!pointerDown)return;
     if(!pointerMoved){
       const target=targetAtPoint(e);
+      canvas.dataset.lastTargetClick=target?String(target.id):"none";
       if(target)selectTarget(target);
     }
     pointerDown=false;pointerMoved=false;
