@@ -469,6 +469,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         screen_x = bounds["x"] + bounds["width"] * target_world_x / world_width
         screen_y = bounds["y"] + bounds["height"] * 160 / 560
         page.mouse.click(screen_x, screen_y)
+        self.assertEqual("31", canvas.get_attribute("data-last-target-click"), "The click must resolve to the left enemy's hitbox")
         self.assertEqual("31", canvas.get_attribute("data-selected-target-id"))
         self.assertEqual("enemy", canvas.get_attribute("data-selected-target-type"))
         self.assertEqual("locked", canvas.get_attribute("data-combat-lane-aligned"))
@@ -602,7 +603,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             "() => document.querySelector('#enemyCount').textContent.trim() === '18 ENEMIES'",
             timeout=7000,
         )
-        # Impacts must change the real enemy count, not just play an effect.
+        # An immediate contact hit may reduce the HUD count before it ever displays 18.
         page.wait_for_function(
             "() => Number(document.querySelector('#gameCanvas').dataset.enemyHits || 0) > 0",
             timeout=5000,
