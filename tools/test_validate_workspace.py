@@ -62,7 +62,7 @@ class GovernanceVersionValidationTests(unittest.TestCase):
 
 class GameCiPathFilterValidationTests(unittest.TestCase):
     def test_required_document_exclusions_pass(self) -> None:
-        workflow = "\\n".join(
+        workflow = "\n".join(
             f"      - '!{path}'"
             for _event in ("pull_request", "push")
             for path in GAME_CI_DOC_EXCLUSIONS
@@ -70,7 +70,7 @@ class GameCiPathFilterValidationTests(unittest.TestCase):
         self.assertEqual([], validate_game_ci_doc_exclusions(workflow))
 
     def test_missing_document_exclusion_fails(self) -> None:
-        workflow = "\\n".join(
+        workflow = "\n".join(
             f"      - '!{path}'"
             for path in (
                 "projects/soldier-gate-runner-by-gpt/AGENT_START.md",
