@@ -412,15 +412,6 @@
     const road=roadAt(e.y);burst(road.left+road.width*.5,e.y,C.lime,38);
     say("TANK UNLOCKED · "+TANK_DURATION+"s of powered fire!");
   }
-  function resolveEnemy(e) {
-    if(soldiers<Math.ceil(e.count*.6)) {
-      soldiers=Math.max(0,soldiers-Math.ceil(e.count*.5)); finishRun("lost"); return;
-    }
-    const losses=Math.max(2,Math.ceil(e.count*.16));
-    soldiers=Math.max(1,soldiers-losses); resolved++;
-    say(e.label+" cleared  ·  "+losses+" units lost");
-    const road=roadAt(e.y); burst(road.left+road.width*e.lane,e.y,C.red,17);
-  }
   function burst(x,y,color,count) {
     for(let i=0;i<count;i++) {
       const angle=Math.random()*Math.PI*2, v=rand(35,180);
@@ -995,7 +986,7 @@
     for(let i=events.length-1;i>=0;i--){
       const e=events[i];
       if(e.type!=="enemy"||e.count<=0)continue;
-      const touchesSquad=e.y>=ENEMY_CONTACT_Y&&Math.abs(lane-e.lane)<=COMBAT_LANE_TOLERANCE;
+      const touchesSquad=enemyTouchesSquadDepth(e)&&Math.abs(lane-e.lane)<=COMBAT_LANE_TOLERANCE;
       const leavesMap=e.y>=ENEMY_EXIT_Y;
       if(!e.breachApplied&&touchesSquad)applyEnemyBreach(e,"contact");
       if(mode!=="running")return;
