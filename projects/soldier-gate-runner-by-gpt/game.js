@@ -930,7 +930,7 @@
       const spread=count===1?0:(i-(count-1)/2)*.022;
       const roadLane=clamp(laneCenter+spread,.06,.94);
       const x=roadXAtLane(y,roadLane);
-      bullets.push({team:"enemy",x,y,vx:0,vy:commander?720:620,roadLane,life:2.4,targetId:null});
+      bullets.push({team:"enemy",x,y,vx:0,vy:commander?720:620,roadLane,life:2.4,targetId:null,straight:true});
       muzzleFlashes.push({x,y,life:.11,max:.11,team:"enemy"});
     }
     canvas.dataset.enemyProjectiles=String(bullets.filter(b=>b.team==="enemy").length);
@@ -938,10 +938,10 @@
   function updateEnemyWave(e,dt) {
     e.hitFlash=Math.max(0,(e.hitFlash||0)-dt);
     e.attackClock=(e.attackClock||0)+dt;
-    const interval=testMode?0.42:1.05;
+    const interval=1.05;
     if(e.attackClock<interval)return;
     e.attackClock-=interval;
-    const shots=Math.min(5,Math.max(1,Math.ceil(Math.min(soldiers,e.count)*0.03)));
+    const shots=Math.min(2,Math.max(1,Math.ceil(Math.min(soldiers,e.count)*0.03)));
     spawnEnemyVolley(e,shots);
     say(e.label+" fires "+shots+" rounds — move out of the firing line.");
   }
@@ -991,11 +991,11 @@
         // Pick one direction at launch; the projectile never steers or teleports to a target.
         const aim=projectileTargetPoint(fixedTarget,x,y,velocity);
         const dx=aim.x-x,dy=aim.y-y,dist=Math.hypot(dx,dy)||1;
-        bullets.push({team:"player",x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,life:2.4,targetId:null});
+        bullets.push({team:"player",x,y,vx:dx/dist*velocity,vy:dy/dist*velocity,life:2.4,targetId:null,straight:true});
       }else{
         // Default fire runs forward along its lane, independent of target positions.
         const roadLane=clamp(sourceLane,.06,.94);
-        bullets.push({team:"player",x,y,vx:0,vy:-velocity,roadLane,life:2.4,targetId:null});
+        bullets.push({team:"player",x,y,vx:0,vy:-velocity,roadLane,life:2.4,targetId:null,straight:true});
       }
     }
     syncFireMetrics();
@@ -1074,7 +1074,11 @@
     const playerSelectedTarget=activeSelectedTarget();
     const firstContactTarget=visibleEnemies.find(enemy=>!enemy.hasBeenHit)||null;
     const weights=laneFireWeights(lane);
-    const fixedTarget=playerSelectedTarget||engagedBoss||firstContactTarget;
+    let fixedTarget=playerSelectedTarget||engagedBoss||firstContactTarget;
+    if(!fixedTarget&&visibleEnemies.length===0){
+      fixedTarget=events.filter(e=>(e.type==="target"||e.type==="barrel")&&isTargetSelectable(e))
+        .sort((a,b)=>b.y-a.y)[0]||null;
+    }
     if(playerSelectedTarget){
       canvas.dataset.combatLaneAligned="locked";
       canvas.dataset.combatTargetLane=String(playerSelectedTarget.type==="enemy"?playerSelectedTarget.lane:.5);
@@ -1186,8 +1190,8 @@
   }
   function drawBullets() {
     canvas.dataset.projectiles=String(bullets.length);
-    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.roadLane!==undefined&&b.targetId==null).length);
-    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.roadLane!==undefined&&b.targetId==null));
+    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.straight===true&&b.targetId==null).length);
+    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.straight===true&&b.targetId==null));
     ctx.save();
     bullets.forEach(b=>{
       const enemy=b.team==="enemy";
@@ -1227,8 +1231,8 @@
     canvas.dataset.tankDamage=String(TANK_DAMAGE);
     canvas.dataset.enemyProjectileHits=String(canvas.dataset.enemyProjectileHits||"0");
     canvas.dataset.enemyProjectiles=String(bullets.filter(b=>b.team==="enemy").length);
-    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.roadLane!==undefined&&b.targetId==null).length);
-    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.roadLane!==undefined&&b.targetId==null));
+    canvas.dataset.straightProjectiles=String(bullets.filter(b=>b.team==="player"&&b.straight===true&&b.targetId==null).length);
+    canvas.dataset.playerBulletsStraight=String(bullets.filter(b=>b.team==="player").every(b=>b.straight===true&&b.targetId==null));
   }
   function frame(now) {
     const frameDt=lastFrame?Math.min((now-lastFrame)/1000,.05):0;lastFrame=now;
