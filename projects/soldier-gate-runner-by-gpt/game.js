@@ -1171,7 +1171,7 @@
         const hit=findSquadProjectileHit(b,previousY,b.y,previousX,b.x);
         if(hit){applyEnemyProjectileHit(hit);bullets.splice(i,1);continue;}
       }else{
-        const hit=findPlayerProjectileHit(b,previousY,b.y);
+        const hit=findPlayerProjectileHit(b,previousY,b.y,previousX,b.x);
         if(hit){
           applyProjectileHit(hit.target);
           burst(hit.x,hit.y,hit.target.type==="target"?C.lime:C.red,hit.target.type==="target"?7:5);
