@@ -24,17 +24,18 @@
           <button class="speed-button" type="button" data-speed="3" aria-label="Set game speed to ×3" aria-pressed="false">×3</button>
           <button class="speed-button" type="button" data-speed="4" aria-label="Set game speed to ×4" aria-pressed="false">×4</button>
         </div>
-        <button class="quiet-button orientation-button" id="orientationButton" type="button" aria-label="Enable landscape play mode" aria-pressed="false" title="Landscape play mode">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><rect x="7" y="8" width="10" height="8" rx="1"/></svg><span>LANDSCAPE</span>
+        <button class="quiet-button orientation-button" id="orientationButton" type="button" aria-label="Enable landscape play mode" aria-pressed="false" title="Enable landscape layout; automatic rotation depends on browser support">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="10" rx="1.5"/><path d="M8 4H4v4M4 8a8 8 0 0 1 13-3M16 20h4v-4M20 16a8 8 0 0 1-13 3"/></svg><span class="button-label-wide">LANDSCAPE</span><span class="button-label-compact">LAND</span>
         </button>
-        <button class="quiet-button" id="fullscreenButton" type="button" aria-label="Enter fullscreen">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M4 16v4h4M20 16v4h-4"/></svg><span>FULLSCREEN</span>
+        <button class="quiet-button" id="fullscreenButton" type="button" aria-label="Enter fullscreen" title="Show the game field in fullscreen">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M4 16v4h4M20 16v4h-4"/></svg><span class="button-label-wide">FULLSCREEN</span><span class="button-label-compact">FULL</span>
         </button>
         <button class="reset-button top-reset-button" id="resetButton" type="button" aria-label="RESET RUN" title="Reset run">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.6 14a7 7 0 1 0 .2-5.2L4 10"/></svg><span>RESET RUN</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.6 14a7 7 0 1 0 .2-5.2L4 10"/></svg><span class="button-label-wide">RESET RUN</span><span class="button-label-compact">RESET</span>
         </button>
       </div>
     </header>
+    <div class="control-feedback" id="controlFeedback" role="status" aria-live="polite" hidden></div>
 
     <section class="intro">
       <div>

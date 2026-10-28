@@ -728,3 +728,42 @@ html.landscape-mode .run-footer { flex-basis:24px; min-height:24px; }
   .overlay-foot { margin-top:7px; }
 }
 @media (max-width:790px) { .orientation-button span { display:none; } .orientation-button { min-width:30px; } }
+
+/* Clear labels for the three compact toolbar actions, especially on phones. */
+.button-label-compact { display:none; }
+.control-feedback {
+  position:fixed;
+  z-index:1000;
+  top:calc(env(safe-area-inset-top) + 58px);
+  left:50%;
+  transform:translateX(-50%);
+  width:max-content;
+  max-width:min(92vw,520px);
+  padding:8px 12px;
+  border:1px solid rgba(25,103,182,.25);
+  border-radius:8px;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 8px 22px rgba(13,44,78,.18);
+  color:#174b80;
+  font-size:11px;
+  font-weight:700;
+  line-height:1.4;
+  text-align:center;
+  pointer-events:none;
+}
+.control-feedback[hidden] { display:none !important; }
+@media (max-width:790px) {
+  .topbar-right { gap:4px; }
+  .quiet-button { gap:4px; padding:5px 6px; white-space:nowrap; }
+  .quiet-button .button-label-wide,
+  .topbar .top-reset-button .button-label-wide { display:none; }
+  .quiet-button .button-label-compact,
+  .topbar .top-reset-button .button-label-compact { display:inline; }
+  .topbar .top-reset-button { gap:4px; padding:5px 6px; }
+  .control-feedback { top:calc(env(safe-area-inset-top) + 76px); font-size:10px; }
+}
+@media (max-width:420px) {
+  .topbar { flex-wrap:wrap; gap:6px; }
+  .topbar-right { width:100%; justify-content:flex-end; flex-wrap:nowrap; }
+  .control-feedback { top:calc(env(safe-area-inset-top) + 82px); }
+}

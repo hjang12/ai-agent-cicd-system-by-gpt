@@ -11,7 +11,8 @@
     replay: $("playAgainButton"), reset: $("resetButton"), fullscreen: $("fullscreenButton"), orientation: $("orientationButton"),
     speedButtons: Array.from(document.querySelectorAll(".speed-button")),
     frame: $("gameFrame"), endKicker: $("endKicker"), endTitle: $("endTitle"),
-    endCopy: $("endCopy"), endCount: $("endSoldierCount")
+    endCopy: $("endCopy"), endCount: $("endSoldierCount"),
+    controlFeedback: $("controlFeedback")
   };
 
   const H = 560, PLAYER_Y = 424, MAX_SOLDIERS = 1_000_000_000;
@@ -1384,12 +1385,32 @@
       targetLane=LANE_CENTERS[Math.min(LANE_COUNT-1,current+1)];
     }
   });
-  let landscapeMode=false,landscapeFullscreenRequested=false;
+  let landscapeMode=false,landscapeFullscreenRequested=false,controlFeedbackTimer=0;
+  function showControlFeedback(text){
+    say(text);
+    ui.controlFeedback.textContent=text;
+    ui.controlFeedback.hidden=false;
+    window.clearTimeout(controlFeedbackTimer);
+    controlFeedbackTimer=window.setTimeout(()=>{ui.controlFeedback.hidden=true;},4500);
+  }
   function syncLandscapeButton(){
+    const wideLabel=ui.orientation.querySelector(".button-label-wide");
+    const compactLabel=ui.orientation.querySelector(".button-label-compact");
     ui.orientation.setAttribute("aria-pressed",String(landscapeMode));
     ui.orientation.setAttribute("aria-label",landscapeMode?"Disable landscape play mode":"Enable landscape play mode");
-    ui.orientation.querySelector("span").textContent=landscapeMode?"LANDSCAPE ON":"LANDSCAPE";
+    ui.orientation.title=landscapeMode
+      ?"Landscape layout is on. Automatic screen rotation depends on browser support."
+      :"Enable landscape layout. If automatic screen rotation is unsupported, rotate the device manually.";
+    wideLabel.textContent=landscapeMode?"LANDSCAPE ON":"LANDSCAPE";
+    compactLabel.textContent=landscapeMode?"LAND ON":"LAND";
     document.documentElement.classList.toggle("landscape-mode",landscapeMode);
+  }
+  function syncFullscreenButton(){
+    const active=Boolean(document.fullscreenElement);
+    ui.fullscreen.setAttribute("aria-label",active?"Exit fullscreen":"Enter fullscreen");
+    ui.fullscreen.title=active?"Exit fullscreen":"Show the game field in fullscreen";
+    ui.fullscreen.querySelector(".button-label-wide").textContent=active?"EXIT FULLSCREEN":"FULLSCREEN";
+    ui.fullscreen.querySelector(".button-label-compact").textContent=active?"EXIT":"FULL";
   }
   async function toggleLandscapeMode(){
     if(landscapeMode){
@@ -1399,24 +1420,60 @@
       syncLandscapeButton();
       try{if(screen.orientation&&typeof screen.orientation.unlock==="function")screen.orientation.unlock();}catch(_e){}
       if(shouldExitFullscreen){try{await document.exitFullscreen();}catch(_e){}}
-      say("Landscape mode off. Rotate the device to choose your preferred orientation.");
+      showControlFeedback("Landscape layout turned off.");
       return;
     }
-    landscapeMode=true;syncLandscapeButton();
-    try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen();landscapeFullscreenRequested=true;}}catch(_e){}
-    try{
-      if(screen.orientation&&typeof screen.orientation.lock==="function")await screen.orientation.lock("landscape");
-      say("Landscape mode enabled. If the device stays upright, rotate it horizontally.");
-    }catch(_e){
-      say("Landscape mode enabled. Rotate your device horizontally if automatic rotation is unavailable.");
+    if(document.fullscreenElement&&document.fullscreenElement!==document.documentElement){
+      showControlFeedback("Exit game-only fullscreen first, then enable landscape mode.");
+      return;
     }
+    landscapeMode=true;
+    syncLandscapeButton();
+    let fullscreenReady=Boolean(document.fullscreenElement);
+    let fullscreenFailed=false;
+    if(!fullscreenReady){
+      if(document.fullscreenEnabled!==false&&typeof document.documentElement.requestFullscreen==="function"){
+        try{
+          await document.documentElement.requestFullscreen();
+          landscapeFullscreenRequested=true;
+          fullscreenReady=Boolean(document.fullscreenElement);
+        }catch(_e){fullscreenFailed=true;}
+      }else{
+        fullscreenFailed=true;
+      }
+    }
+    let orientationLocked=false;
+    if(fullscreenReady&&screen.orientation&&typeof screen.orientation.lock==="function"){
+      try{await screen.orientation.lock("landscape");orientationLocked=true;}catch(_e){}
+    }
+    if(orientationLocked){
+      showControlFeedback("Landscape mode enabled and screen rotation locked.");
+    }else if(fullscreenFailed){
+      showControlFeedback("Landscape layout enabled, but this browser cannot enter fullscreen. Rotate the device horizontally if needed.");
+    }else{
+      showControlFeedback("Landscape layout enabled. Automatic rotation is not supported here; rotate the device horizontally if needed.");
+    }
+  }
+  async function toggleFullscreen(){
+    if(document.fullscreenElement){
+      try{await document.exitFullscreen();showControlFeedback("Fullscreen exited.");}
+      catch(_e){showControlFeedback("Could not exit fullscreen in this browser.");}
+      return;
+    }
+    if(document.fullscreenEnabled===false||typeof ui.frame.requestFullscreen!=="function"){
+      showControlFeedback("This browser does not support game fullscreen. Use the browser's fullscreen option if available.");
+      return;
+    }
+    try{await ui.frame.requestFullscreen();}
+    catch(_e){showControlFeedback("Fullscreen could not be enabled here. Try the browser's fullscreen option if available.");}
   }
   ui.orientation.addEventListener("click",toggleLandscapeMode);
   syncLandscapeButton();
+  syncFullscreenButton();
   ui.startButton.addEventListener("click",startRun);ui.replay.addEventListener("click",startRun);ui.reset.addEventListener("click",resetState);
   ui.speedButtons.forEach(button=>button.addEventListener("click",()=>setGameSpeed(button.dataset.speed)));
-  ui.fullscreen.addEventListener("click",async()=>{try{if(!document.fullscreenElement)await ui.frame.requestFullscreen();else await document.exitFullscreen();}catch(_e){say("Fullscreen is not available in this browser.");}});
-  document.addEventListener("fullscreenchange",()=>{ui.fullscreen.setAttribute("aria-label",document.fullscreenElement?"Exit fullscreen":"Enter fullscreen");ui.fullscreen.querySelector("span").textContent=document.fullscreenElement?"EXIT FULLSCREEN":"FULLSCREEN";});
+  ui.fullscreen.addEventListener("click",toggleFullscreen);
+  document.addEventListener("fullscreenchange",syncFullscreenButton);
   function resizeCanvasToViewport() {
     const nextWidth=Math.max(220,Math.round(H*window.innerWidth/Math.max(1,window.innerHeight)));
     if(nextWidth===W&&canvas.height===H)return;
