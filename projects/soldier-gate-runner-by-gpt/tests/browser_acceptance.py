@@ -740,6 +740,22 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Five-lane mode raised a browser error")
         page.close()
 
+        boss_page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        boss_errors: list[str] = []
+        boss_page.on("pageerror", lambda error: boss_errors.append(str(error)))
+        boss_page.goto(self.base_url + "?testMode=1&testBossEarlyHits=1", wait_until="networkidle")
+        boss_page.get_by_role("button", name="Use 5-lane mode").click()
+        boss_page.get_by_role("button", name="START RUN").click()
+        boss_canvas = boss_page.locator("#gameCanvas")
+        boss_page.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.combatLaneTargetType === 'boss'",
+            timeout=2000,
+        )
+        self.assertEqual("true", boss_canvas.get_attribute("data-combat-lane-aligned"))
+        self.assertEqual("1.000", boss_canvas.get_attribute("data-combat-target-lane-share"))
+        self.assertEqual([], boss_errors, "Five-lane center-lane fire raised a browser error")
+        boss_page.close()
+
     def test_topbar_and_game_hud_never_overlap(self) -> None:
         page = self.browser.new_page(viewport={"width": 1280, "height": 900})
         errors: list[str] = []
