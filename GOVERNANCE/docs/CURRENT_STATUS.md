@@ -6,7 +6,7 @@
 - Default branch: main
 - Common Governance: GOVERNANCE/GOVERNANCE.md
 - Canonical version: GOVERNANCE/VERSION
-- Governance 1.4.8 is active on main following user approval of the 2026-10-29 Governance review and release PR merge.
+- Governance 1.4.8 is active on `main` following user approval of the 2026-10-29 Governance review and release PR merge.
 - GitHub main branch protection is disabled. Render CI-before-deploy configuration and per-service settings must be treated according to direct evidence, not assumed from repository YAML.
 
 ## Current Tasks
