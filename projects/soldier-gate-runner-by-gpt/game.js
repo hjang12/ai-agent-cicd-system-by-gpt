@@ -114,7 +114,7 @@
 
   let mode="ready", soldiers=12, resolved=0, nextIndex=0, events=[];
   let fireClock=0, attackClock=0, lane=.5, targetLane=.5, offset=0, lastFrame=0;
-  let speedMultiplier=1, simulationSeconds=0, tankTimeRemaining=0, selectedTargetId=null;
+  let speedMultiplier=1, simulationSeconds=0, activeFrameSeconds=0, tankTimeRemaining=0, selectedTargetId=null;
   let message="Choose your route. The squad is waiting.", bullets=[], particles=[], muzzleFlashes=[];
   let totalEnemyHits=0, totalEnemyHitsBeforeEngagement=0, totalBossHits=0, totalTargetHits=0, totalSelectedTargetHits=0, lastTargetValue=0, lastTankBarrelHits=0;
   let roadChecks=0, roadViolations=0, volleySequence=0, firedShotsByLane=Array(LANE_COUNT).fill(0);
@@ -176,6 +176,7 @@
   function syncLaneModeControls() {
     canvas.dataset.laneCount=String(LANE_COUNT);
     canvas.dataset.laneMode=String(LANE_COUNT);
+    canvas.dataset.laneBoundaryCount=String(LANE_COUNT-1);
     ui.laneModeButtons.forEach(button=>{
       const active=Number(button.dataset.laneCount)===LANE_COUNT;
       button.setAttribute("aria-pressed",String(active));
@@ -303,7 +304,7 @@
     tankTimeRemaining=0; selectedTargetId=null; lastTankBarrelHits=0;
     totalEnemyHits=0; totalEnemyHitsBeforeEngagement=0; totalBossHits=0; totalTargetHits=0; totalSelectedTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
     lastCombatTargetId=null; lastCombatAlignment=null; resetFireMetrics();
-    simulationSeconds=0; canvas.dataset.simulationSeconds="0";
+    simulationSeconds=0; activeFrameSeconds=0; canvas.dataset.simulationSeconds="0"; canvas.dataset.activeFrameSeconds="0";
     canvas.dataset.combatLaneAligned="none"; canvas.dataset.combatTargetLane="";
     canvas.dataset.projectiles="0"; canvas.dataset.straightProjectiles="0"; canvas.dataset.playerBulletsStraight="true";canvas.dataset.playerBulletsLaneForward="true"; canvas.dataset.enemyProjectiles="0"; canvas.dataset.enemyProjectileHits="0"; canvas.dataset.enemyVisibleCount="0"; canvas.dataset.enemyBreachCount="0"; canvas.dataset.enemyBreachReason=""; canvas.dataset.enemyBreachApplications="0"; canvas.dataset.enemyBreachExits="0"; canvas.dataset.barrelPassed="false"; canvas.dataset.barrelPasses="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.enemyHitsBeforeEngagement="0"; canvas.dataset.earlyEnemyHitY=""; canvas.dataset.firstEnemyHitSeconds=""; canvas.dataset.enemySpawnSeconds="0"; canvas.dataset.enemyEngagedId=""; canvas.dataset.enemyEngagedCount=""; canvas.dataset.bossHits="0"; canvas.dataset.bossHitsBeforeEngagement="0"; canvas.dataset.firstBossHitY=""; canvas.dataset.bossEngaged="false"; canvas.dataset.bossCurrentY=""; canvas.dataset.bossHp="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.selectedTargetHits="0"; canvas.dataset.selectedTargetId=""; canvas.dataset.selectedTargetType=""; canvas.dataset.tankBarrelHits="0"; canvas.dataset.tankBarrelHitsRequired=String(TANK_BARREL_HITS); canvas.dataset.tankMode="false"; canvas.dataset.tankTimeRemaining="0"; canvas.dataset.tankDamage=String(TANK_DAMAGE); canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
     syncSpeedControls();
@@ -427,7 +428,7 @@
     bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalEnemyHitsBeforeEngagement=0; totalBossHits=0; totalTargetHits=0; totalSelectedTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0; tankTimeRemaining=0; selectedTargetId=null; lastTankBarrelHits=0; resetFireMetrics();
     lastCombatTargetId=null; lastCombatAlignment=null;
-    simulationSeconds=0; canvas.dataset.simulationSeconds="0";
+    simulationSeconds=0; activeFrameSeconds=0; canvas.dataset.simulationSeconds="0"; canvas.dataset.activeFrameSeconds="0";
     canvas.dataset.enemyProjectileHits="0";canvas.dataset.enemyProjectiles="0";canvas.dataset.straightProjectiles="0";canvas.dataset.playerBulletsStraight="true";canvas.dataset.playerBulletsLaneForward="true";
     canvas.dataset.combatLaneAligned="none"; canvas.dataset.combatTargetLane="";
     canvas.dataset.projectiles="0"; canvas.dataset.straightProjectiles="0"; canvas.dataset.playerBulletsStraight="true";canvas.dataset.playerBulletsLaneForward="true"; canvas.dataset.enemyProjectiles="0"; canvas.dataset.enemyProjectileHits="0"; canvas.dataset.enemyVisibleCount="0"; canvas.dataset.enemyBreachCount="0"; canvas.dataset.enemyBreachReason=""; canvas.dataset.enemyBreachApplications="0"; canvas.dataset.enemyBreachExits="0"; canvas.dataset.barrelPassed="false"; canvas.dataset.barrelPasses="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0";
@@ -1431,6 +1432,7 @@
   }
   function frame(now) {
     const frameDt=lastFrame?Math.min((now-lastFrame)/1000,.05):0;lastFrame=now;
+    if(mode==="running"){activeFrameSeconds+=frameDt;canvas.dataset.activeFrameSeconds=activeFrameSeconds.toFixed(3);}
     const dt=frameDt*speedMultiplier;
     update(dt);drawBackground(dt);drawRoad();drawEvents();drawSquad();drawBullets();drawMuzzleFlashes();drawParticles();syncHud();syncInteractionMetrics();
     requestAnimationFrame(frame);
