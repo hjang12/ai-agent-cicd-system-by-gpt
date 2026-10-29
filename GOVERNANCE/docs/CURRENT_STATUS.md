@@ -6,13 +6,13 @@
 - Default branch: main
 - Common Governance: GOVERNANCE/GOVERNANCE.md
 - Canonical version: GOVERNANCE/VERSION
-- Governance 1.4.8 is active on `main` following user approval of the 2026-10-29 Governance review and release PR merge.
+- Governance 1.4.9 is active on `main` following the 2026-10-29 closeout-verification review and release PR merge.
 - GitHub main branch protection is disabled. Render CI-before-deploy configuration and per-service settings must be treated according to direct evidence, not assumed from repository YAML.
 
 ## Current Tasks
 
 - Governance/system-health review: TASK-20261023-0002 — ACTIVE. The 2026-10-29 review applied Governance 1.4.8 clarifications and corrected stale Gatefront current-status text. See GOVERNANCE/docs/checkpoints/TASK-20261023-0002.md.
-- Gatefront follow-up: TASK-20261029-0001 — COMPLETED on 2026-10-29. PR #229 merged as `62380e28239ea5f13b8826f9389a4340282cd1f5`; PR/main Game CI and Workspace validation passed; Render deployment `dep-dbhguuvb9u1s739rir10` reached LIVE. Public-URL UI smoke remains UNVERIFIED from the agent environment.
+- Gatefront follow-up: TASK-20261029-0001 — BLOCKED on 2026-10-29 pending required public-URL browser smoke. PR #229 merged as `62380e28239ea5f13b8826f9389a4340282cd1f5`; PR/main Game CI and Workspace validation passed; Render deployment `dep-dbhguuvb9u1s739rir10` reached LIVE. Agent-environment URL access failed; this does not establish a production outage.
 - Gatefront one-round browser game: TASK-20261023-0003 — COMPLETED on 2026-10-29. PR #222 closed the original accepted scope. Its separate follow-up feature is tracked as TASK-20261029-0001; the completed task itself remains closed.
 - Fresh-chat Context Recovery validation: TASK-20261023-0001 — COMPLETED; evidence in GOVERNANCE/docs/checkpoints/TASK-20261023-0001.md.
 - Personal AI Janggi Trainer v1.0: COMPLETED. No active Janggi feature task is registered.
