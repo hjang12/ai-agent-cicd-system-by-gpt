@@ -682,7 +682,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Lane-specific tank barrel raised a browser error")
         page.close()
 
-    def test_toolbar_has_only_speed_and_reset_controls(self) -> None:
+    def test_toolbar_has_speed_lane_mode_and_reset_controls(self) -> None:
         page = self.browser.new_page(viewport={"width": 375, "height": 812})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -693,7 +693,8 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertFalse(page.locator("#controlFeedback").count(), "Orientation/fullscreen feedback surface must be removed")
         self.assertTrue(page.locator("#resetButton").is_visible(), "Reset must remain available")
         self.assertEqual(4, page.locator(".speed-button").count(), "All four game-speed controls must remain")
-        self.assertEqual(5, page.locator(".topbar button").count(), "Toolbar should contain four speed choices and Reset only")
+        self.assertEqual(2, page.locator(".lane-mode-button").count(), "Three- and five-lane modes must be selectable")
+        self.assertEqual(7, page.locator(".topbar button").count(), "Toolbar should contain speed choices, lane modes, and Reset")
 
         labels = " ".join(page.locator(".topbar button").all_text_contents()).upper()
         self.assertNotIn("LAND", labels)
@@ -708,7 +709,61 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         toolbar = page.locator(".topbar-right").bounding_box()
         assert toolbar is not None
         self.assertLessEqual(toolbar["x"] + toolbar["width"], 320.5, "Toolbar must fit narrow phones")
+        topbar_overflow = page.locator(".topbar").evaluate("(el) => el.scrollWidth - el.clientWidth")
+        self.assertLessEqual(topbar_overflow, 1, "All topbar controls must fit without horizontal overflow")
         self.assertEqual([], errors, "Simplified toolbar should not raise a browser error")
+        page.close()
+
+    def test_five_lane_mode_updates_road_and_fire_distribution(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testEarlyEnemy=1", wait_until="networkidle")
+        canvas = page.locator("#gameCanvas")
+
+        self.assertEqual("3", canvas.get_attribute("data-lane-count"))
+        page.get_by_role("button", name="Use 5-lane mode").click()
+        page.wait_for_function("() => document.querySelector('#gameCanvas').dataset.laneCount === '5'")
+        self.assertEqual("true", page.locator('[data-lane-count="5"].lane-mode-button').get_attribute("aria-pressed"))
+        self.assertEqual("4", canvas.get_attribute("data-lane-boundary-count"))
+        self.assertEqual(5, len(canvas.get_attribute("data-fire-lane-weights").split(",")))
+        for lane_index in range(1, 6):
+            self.assertIsNotNone(canvas.get_attribute(f"data-fired-shots-lane{lane_index}"))
+
+        page.get_by_role("button", name="START RUN").click()
+        page.wait_for_function("() => document.querySelector('#gameCanvas').dataset.laneCount === '5'")
+        self.assertEqual("5", canvas.get_attribute("data-lane-count"))
+        five_lane_button = page.locator('[data-lane-count="5"].lane-mode-button')
+        self.assertEqual("true", five_lane_button.get_attribute("aria-pressed"))
+        self.assertTrue(five_lane_button.is_disabled(), "Lane mode must stay stable during a run")
+        self.assertEqual([], errors, "Five-lane mode raised a browser error")
+        page.close()
+
+    def test_topbar_and_game_hud_never_overlap(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url, wait_until="networkidle")
+
+        for viewport in (
+            {"width": 1280, "height": 900},
+            {"width": 390, "height": 844},
+            {"width": 320, "height": 720},
+        ):
+            page.set_viewport_size(viewport)
+            page.wait_for_timeout(75)
+            topbar = page.locator(".topbar").bounding_box()
+            hud = page.locator(".hud").bounding_box()
+            assert topbar is not None and hud is not None
+            self.assertGreaterEqual(
+                hud["y"],
+                topbar["y"] + topbar["height"] + 3,
+                f"Game HUD must start below the topbar at {viewport['width']}px",
+            )
+            self.assertLessEqual(topbar["x"] + topbar["width"], viewport["width"] + 0.5)
+            overflow = page.locator(".topbar").evaluate("(el) => el.scrollWidth - el.clientWidth")
+            self.assertLessEqual(overflow, 1, "Topbar must not overflow horizontally")
+        self.assertEqual([], errors, "Responsive topbar/HUD layout raised a browser error")
         page.close()
 
     def test_low_squad_boss_counterattack_does_not_throw(self) -> None:
