@@ -1,6 +1,6 @@
 # AI Coding Agent 프로젝트 개발 및 운영 지침
 
-**Governance Version: 1.4.8**
+**Governance Version: 1.4.9**
 
 이 문서는 AI Coding Agent를 이용한 소프트웨어 프로젝트의 개발·검증·배포·운영 방식을 정의하는 공통 운영 규칙이다. 특정 제품의 요구사항이나 Architecture가 아니라, 여러 프로젝트에 적용할 수 있는 개발 시스템의 원칙과 절차를 정의한다.
 
@@ -150,7 +150,7 @@ Regression 이상 없음
 필요한 경우 Post-deployment 정상
 ```
 
-검증이 부족한 경우 **완료가 아니라 미검증 상태**로 구분한다.
+필수 검증이 미완료 또는 `UNVERIFIED`이면 Task를 `COMPLETED`로 처리하지 않는다. 다음 검증을 수행할 수 있으면 `ACTIVE`, Tool·권한·외부 조건 때문에 진행할 수 없으면 `BLOCKED`로 유지하고 해소 조건을 기록한다. 필수 수용 기준이 아닌 항목은 범위 밖인 이유를 기록할 수 있지만, 검증을 통과한 것으로 표현하지 않는다.
 
 사용자에게 보이는 Runtime 동작을 배포하는 작업의 Post-deployment Verification과 Evidence 기록은 §18을 따른다. CI 통과와 배포 상태가 LIVE라는 사실만으로 배포된 기능을 검증했다고 판단하지 않는다.
 

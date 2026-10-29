@@ -2,7 +2,43 @@ from __future__ import annotations
 
 import unittest
 
-from validate_workspace import GAME_CI_DOC_EXCLUSIONS, validate_game_ci_doc_exclusions, validate_governance_version_values
+from validate_workspace import (
+    GAME_CI_DOC_EXCLUSIONS,
+    validate_completed_task_verification,
+    validate_game_ci_doc_exclusions,
+    validate_governance_version_values,
+)
+
+
+
+class TaskClosureVerificationTests(unittest.TestCase):
+    def test_completed_task_with_unverified_check_fails(self) -> None:
+        registry = """| Task ID | Scope | Project / Area | Goal | Status | Context | Current Checkpoint | Active PR / Issue | State Summary | Last Updated |
+| TASK-20261029-0001 | Project | game | Add mode | COMPLETED | status.md | checkpoint.md | PR #1 | Required public URL smoke remains UNVERIFIED. | 2026-10-29 |
+"""
+        errors = validate_completed_task_verification(registry)
+        self.assertEqual(
+            ["TASK-20261029-0001 is COMPLETED but its State Summary records UNVERIFIED verification"],
+            errors,
+        )
+
+    def test_blocked_task_with_unverified_check_passes(self) -> None:
+        registry = """| Task ID | Scope | Project / Area | Goal | Status | Context | Current Checkpoint | Active PR / Issue | State Summary | Last Updated |
+| TASK-20261029-0001 | Project | game | Add mode | BLOCKED | status.md | checkpoint.md | PR #1 | Required public URL smoke remains UNVERIFIED. | 2026-10-29 |
+"""
+        self.assertEqual([], validate_completed_task_verification(registry))
+
+    def test_completed_task_with_optional_unverified_check_passes(self) -> None:
+        registry = """| Task ID | Scope | Project / Area | Goal | Status | Context | Current Checkpoint | Active PR / Issue | State Summary | Last Updated |
+| TASK-20261029-0001 | Project | game | Add mode | COMPLETED | status.md | checkpoint.md | PR #1 | Optional exploratory smoke remains UNVERIFIED; it is not an acceptance criterion. | 2026-10-29 |
+"""
+        self.assertEqual([], validate_completed_task_verification(registry))
+
+    def test_completed_task_without_unverified_check_passes(self) -> None:
+        registry = """| Task ID | Scope | Project / Area | Goal | Status | Context | Current Checkpoint | Active PR / Issue | State Summary | Last Updated |
+| TASK-20261029-0001 | Project | game | Add mode | COMPLETED | status.md | checkpoint.md | PR #1 | Required checks passed; deployment verified. | 2026-10-29 |
+"""
+        self.assertEqual([], validate_completed_task_verification(registry))
 
 
 class GovernanceVersionValidationTests(unittest.TestCase):

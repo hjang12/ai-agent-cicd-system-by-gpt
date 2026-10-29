@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.4.9] - 2026-10-29
+
+### Clarified
+
+- §4 now makes the Task-status consequence explicit: an unmet required verification cannot coexist with `COMPLETED`; use `ACTIVE` while the check can proceed or `BLOCKED` when a tool, permission, or external constraint prevents it.
+- Kept the existing verification and evidence rules in §§4, 11, and 18 as the single policy basis; no duplicate post-deployment rule or new status type was added.
+
+### Added
+
+- Workspace validation rejects a `COMPLETED` Task Registry row whose State Summary explicitly labels a required check `UNVERIFIED`, while allowing optional non-acceptance observations to remain unverified.
+
+### Review Trigger
+
+- Gatefront Task `TASK-20261029-0001` was recorded as `COMPLETED` while its Registry summary and Checkpoint said the required public-URL browser smoke remained `UNVERIFIED`. The access failure itself did not prove a production outage.
+
+### Decision
+
+- Corrected the Task to `BLOCKED` pending a direct browser smoke test, and added the smallest reusable consistency check rather than adding production-smoke automation, a new registry, or another state layer.
+- Governance 1.4.9 applies the existing version policy's patch-level clarification. PR-head and post-merge validation must be reported separately.
+
 ## [1.4.8] - 2026-10-29
 
 ### Clarified

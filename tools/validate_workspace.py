@@ -190,6 +190,35 @@ def validate_governance_version_values(
     return errors
 
 
+
+def validate_completed_task_verification(registry_text: str) -> list[str]:
+    """Reject completed Task rows that label a required check UNVERIFIED."""
+    errors = []
+    header = None
+    for line in registry_text.splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if "Task ID" in cells and "Status" in cells and "State Summary" in cells:
+            header = {name: index for index, name in enumerate(cells)}
+            continue
+        if header is None or len(cells) <= max(header.values()):
+            continue
+        task_id = cells[header["Task ID"]]
+        status = cells[header["Status"]]
+        summary = cells[header["State Summary"]]
+        if status == "COMPLETED" and re.search(
+            r"\b(?:required|mandatory)\b[^.;|]{0,120}\bUNVERIFIED\b"
+            r"|\bUNVERIFIED\b[^.;|]{0,120}\b(?:required|mandatory)\b",
+            summary,
+            re.IGNORECASE,
+        ):
+            errors.append(
+                f"{task_id} is COMPLETED but its State Summary records UNVERIFIED verification"
+            )
+    return errors
+
+
 def validate_governance_version() -> list[str]:
     return validate_governance_version_values(
         read_text(ROOT / "GOVERNANCE/VERSION"),
@@ -238,6 +267,7 @@ def main() -> int:
     errors = validate_paths()
     errors.extend(validate_render_blueprint())
     errors.extend(validate_governance_version())
+    errors.extend(validate_completed_task_verification(read_text(ROOT / "GOVERNANCE/docs/DEVELOPMENT_TASKS.md")))
     errors.extend(validate_ci_gate_workflows())
     errors.extend(validate_game_ci_doc_exclusions(read_text(ROOT / '.github/workflows/soldier-gate-game-ci.yml')))
     errors.extend(validate_project_boundaries())
