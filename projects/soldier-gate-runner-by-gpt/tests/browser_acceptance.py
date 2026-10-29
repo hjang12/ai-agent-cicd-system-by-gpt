@@ -1046,12 +1046,6 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             )
             if completed_event in lane_after_event:
                 self.steer_to_lane(page, lane_after_event[completed_event], keep_dragging=True)
-            if completed_event == 6:
-                self.assertGreater(
-                    int(page.locator("#shootTargetHits").get_attribute("data-value") or "0") if page.locator("#shootTargetHits").count() else 0,
-                    -1,
-                )
-
         page.mouse.up()
         page.wait_for_function(
             "() => document.querySelector('#statusPill').textContent.trim() === 'VICTORY'",
