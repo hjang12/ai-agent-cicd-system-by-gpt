@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.8] - 2026-10-29
+
+### Clarified
+
+- §14 now explicitly separates questions/reviews from instructions to change state. Finding an issue or proposing an improvement does not itself authorize repository or platform changes.
+- §§4 and 18 make production smoke-test evidence and closure reporting explicit for user-visible runtime changes, and distinguish a deployed LIVE status from direct verification of the deployed behavior.
+- Workspace and Gatefront current-status documents were reconciled with the completed Gatefront Task and its final Checkpoint; detailed release history remains in the Checkpoint / Development History.
+
+### Review Trigger
+
+- The completed Gatefront task still had current-facing documents describing a normal-browser gameplay review as the next action. The operational review also exposed that the existing autonomy rules did not explicitly distinguish a user asking for an opinion/review from a user authorizing changes.
+
+### Decision
+
+- No new live-smoke automation, parser, validator, or workflow was introduced. Treat automated production smoke as a future candidate only after confirming an existing test can be reused simply and the benefit justifies the maintenance cost.
+- ISSUE-003 remains BLOCKED: the connected Render read path still does not expose the effective build filter, and no authorized service-setting update path is available through the current connection. This Governance change does not claim to resolve that platform configuration issue.
+
 ## [1.4.7] - 2026-10-22
 
 ### Maintenance and Documentation
