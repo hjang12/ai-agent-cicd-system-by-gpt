@@ -1460,11 +1460,12 @@
       catch(_e){showControlFeedback("Could not exit fullscreen in this browser.");}
       return;
     }
-    if(document.fullscreenEnabled===false||typeof ui.frame.requestFullscreen!=="function"){
-      showControlFeedback("This browser does not support game fullscreen. Use the browser's fullscreen option if available.");
+    if(document.fullscreenEnabled===false||typeof document.documentElement.requestFullscreen!=="function"){
+      showControlFeedback("This browser does not support page fullscreen. Use the browser's fullscreen option if available.");
       return;
     }
-    try{await ui.frame.requestFullscreen();}
+    // Fullscreen the document instead of only the canvas so speed, landscape, and reset controls stay available.
+    try{await document.documentElement.requestFullscreen();}
     catch(_e){showControlFeedback("Fullscreen could not be enabled here. Try the browser's fullscreen option if available.");}
   }
   ui.orientation.addEventListener("click",toggleLandscapeMode);
