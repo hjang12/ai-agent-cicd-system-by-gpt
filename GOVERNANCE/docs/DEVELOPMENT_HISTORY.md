@@ -11,7 +11,7 @@
 - The Workspace validator and unit tests now reject a `COMPLETED` Registry row whose State Summary explicitly labels a required check `UNVERIFIED`, while allowing out-of-scope optional observations to remain unverified. No production-smoke automation or new status layer was added.
 
 ### Verification / release
-- PR-head and post-merge Workspace validation results are to be recorded separately after the change passes CI.
+- PR #231 merged as `f736d64a96ed2c81c09fd6bfe152d0fb02c2bce8`. PR-head Workspace validation [40853972677](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40853972677) and main Workspace validation [40854053410](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40854053410) both passed, including the new regression tests.
 - This is a governance closure-status correction; it does not claim the production page is unavailable or directly tested.
 
 ---
