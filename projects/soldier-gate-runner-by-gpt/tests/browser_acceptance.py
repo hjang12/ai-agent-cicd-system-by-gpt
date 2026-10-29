@@ -736,9 +736,11 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         button = page.locator("#fullscreenButton")
         button.click()
         page.wait_for_function(
-            "() => document.fullscreenElement === document.querySelector('#gameFrame')"
+            "() => document.fullscreenElement === document.documentElement"
         )
-        self.assertEqual("true", page.evaluate("() => String(document.fullscreenElement === document.querySelector('#gameFrame'))"))
+        self.assertEqual("true", page.evaluate("() => String(document.fullscreenElement === document.documentElement)"))
+        self.assertTrue(page.locator(".topbar").is_visible(), "Toolbar must remain present in page fullscreen")
+        self.assertTrue(page.locator("#resetButton").is_visible(), "Reset must remain available in page fullscreen")
         self.assertEqual("Exit fullscreen", button.get_attribute("aria-label"))
         self.assertEqual("EXIT FULLSCREEN", button.locator(".button-label-wide").inner_text().strip())
         button.click()
@@ -776,7 +778,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
         page.locator("#fullscreenButton").click()
         page.wait_for_function("() => !document.querySelector('#controlFeedback').hidden")
-        self.assertIn("does not support game fullscreen", page.locator("#controlFeedback").inner_text())
+        self.assertIn("does not support page fullscreen", page.locator("#controlFeedback").inner_text())
         self.assertEqual("Enter fullscreen", page.locator("#fullscreenButton").get_attribute("aria-label"))
         self.assertEqual([], errors, "Fullscreen fallback should not raise a browser error")
         page.close()
