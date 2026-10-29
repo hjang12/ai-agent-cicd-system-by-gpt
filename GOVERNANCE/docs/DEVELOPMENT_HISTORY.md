@@ -1,3 +1,21 @@
+## 2026-10-29 — Task closure verification consistency guard
+
+### Review trigger
+- Gatefront Task `TASK-20261029-0001` was recorded as `COMPLETED` even though its own Registry summary and Checkpoint reported the required production browser smoke as `UNVERIFIED`.
+- The direct URL could not be opened by the web tool, and the agent-side HTTP attempt failed during DNS resolution. These are verification-environment failures, not evidence of a production outage.
+
+### Decision and changes
+- Review of Governance §§4, 11, 14, 18, 25-A-4, 27, and 28 found that evidence rules already existed, but the consequence for Task status needed a clearer connection.
+- Governance 1.4.9 clarifies that an unmet required check prevents `COMPLETED`: keep the Task `ACTIVE` if further verification can proceed, or `BLOCKED` when tools/permissions/external conditions prevent it.
+- The Gatefront follow-up Task is now `BLOCKED` pending direct browser smoke of page load, 3L/5L mode selection, and topbar/HUD spacing. No feature implementation remains pending.
+- The Workspace validator and unit tests now reject a `COMPLETED` Registry row whose State Summary explicitly says `UNVERIFIED`. No production-smoke automation or new status layer was added.
+
+### Verification / release
+- PR-head and post-merge Workspace validation results are to be recorded separately after the change passes CI.
+- This is a governance closure-status correction; it does not claim the production page is unavailable or directly tested.
+
+---
+
 ## 2026-10-29 — Gatefront 5-lane mode, HUD overlap fix, and Render positive-path verification
 
 ### Request and implementation
