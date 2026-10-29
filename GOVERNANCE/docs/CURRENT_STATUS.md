@@ -24,7 +24,7 @@ These files have distinct responsibilities. Do not copy the same current status 
 
 ## Current Task State
 
-- Gatefront one-round browser game: `TASK-20261023-0003` — **ACTIVE**. Scope, acceptance criteria, and next action are in `projects/soldier-gate-runner-by-gpt/docs/checkpoints/TASK-20261023-0003.md`.
+- Gatefront one-round browser game: `TASK-20261023-0003` — **COMPLETED** on 2026-10-29. Final scope and release evidence are in `projects/soldier-gate-runner-by-gpt/docs/checkpoints/TASK-20261023-0003.md`; its Next Action is none.
 - Broader Governance improvement: `TASK-20261023-0002` — **ACTIVE** as of 2026-10-28 after the user redirected focus to ongoing development-system health review; the checkpoint records the current evidence and Next Action.
 - Fresh-chat Context Recovery validation: `TASK-20261023-0001` — **COMPLETED** on 2026-10-23; all five acceptance criteria passed. Evidence: `GOVERNANCE/docs/checkpoints/TASK-20261023-0001.md`.
 - Janggi interface visual refinement: `TASK-20261022-0003` — **COMPLETED** through PR #166, merged as `2feb15a00abd88e9170c731c6d868201d97a7310`; final evidence: `projects/personal-ai-janggi-trainer-by-gpt/docs/checkpoints/TASK-20261022-0003.md`.
@@ -42,7 +42,7 @@ The Task Registry Status is authoritative for whether a Next Action may run. Com
 
 ### Gatefront — one-round soldier gate-runner
 - Canonical path: `projects/soldier-gate-runner-by-gpt/`; public URL: https://soldier-gate-runner-by-gpt.onrender.com.
-- Active task: `TASK-20261023-0003`; its project Checkpoint is authoritative for the next action.
+- Completed task: `TASK-20261023-0003` (PR #222). The project Checkpoint records final verification; no Gatefront feature task is currently active.
 - PR #179 connected continuous forward fire to hit-driven enemy casualties, counterattacks, and boss damage.
 - PR #181 merged as `f76bea69103b68a13046547677bd648f75c638b9`: rear-facing blue allies, front-facing red enemies, expanded formations and firing with squad size, and logical squad growth beyond the former 120-unit cap.
 - PR #183 merged as `0dd6f3c3ef229c74610fe4f8e335a3323c033917`: one ordinary split-choice gate became a shootable blue `+1` target; each projectile hit raises its displayed value and the squad receives the final displayed value on crossing.
