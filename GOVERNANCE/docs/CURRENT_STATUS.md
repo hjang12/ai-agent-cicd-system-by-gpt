@@ -12,7 +12,7 @@
 ## Current Tasks
 
 - Governance/system-health review: TASK-20261023-0002 — ACTIVE. The 2026-10-29 review applied Governance 1.4.8 clarifications and corrected stale Gatefront current-status text. See GOVERNANCE/docs/checkpoints/TASK-20261023-0002.md.
-- Gatefront follow-up: TASK-20261029-0001 — ACTIVE. Add selectable 5-lane mode and correct the overlapping topbar/HUD; evidence is tracked in the project CURRENT_STATUS and task checkpoint.
+- Gatefront follow-up: TASK-20261029-0001 — COMPLETED on 2026-10-29. PR #229 merged as `62380e28239ea5f13b8826f9389a4340282cd1f5`; PR/main Game CI and Workspace validation passed; Render deployment `dep-dbhguuvb9u1s739rir10` reached LIVE. Public-URL UI smoke remains UNVERIFIED from the agent environment.
 - Gatefront one-round browser game: TASK-20261023-0003 — COMPLETED on 2026-10-29. PR #222 closed the original accepted scope. Its separate follow-up feature is tracked as TASK-20261029-0001; the completed task itself remains closed.
 - Fresh-chat Context Recovery validation: TASK-20261023-0001 — COMPLETED; evidence in GOVERNANCE/docs/checkpoints/TASK-20261023-0001.md.
 - Personal AI Janggi Trainer v1.0: COMPLETED. No active Janggi feature task is registered.
@@ -21,9 +21,9 @@
 
 ## Active Issues and Verification
 
-- ISSUE-003 is IN PROGRESS: Render directly reports Build Filter paths `projects/soldier-gate-runner-by-gpt/**` and `render.yaml` (observed 2026-10-29T07:45:13Z). Governance-only main commit `f04f29db3575d81d9e653393d1693ebf328c8f92` has no corresponding Render deployment record after its Workspace check passed; the connected event query returned no explicit skip event. Verify the positive path on the next legitimate Gatefront runtime-file change.
+- ISSUE-003 is RESOLVED for the pending positive path: matching Gatefront merge commit `62380e28239ea5f13b8826f9389a4340282cd1f5` passed main Game CI 40848311436 and Workspace validation 40848311435; Render then auto-started deployment `dep-dbhguuvb9u1s739rir10` and it reached LIVE. The service directly reports Build Filter paths `projects/soldier-gate-runner-by-gpt/**` and `render.yaml`, with `autoDeployTrigger=checksPass`. No production UI smoke is claimed.
 - ISSUE-002 is DEFERRED Janggi health-check configuration hygiene and is not a current release blocker.
-- Gatefront PR #222 merge commit e1237a49f8a10f52672c109a723df824a7030fef passed main Game CI run 40823758797 with 33 browser acceptance tests and Workspace validation 40823758798. Render deployment dep-dbhdl1lckfvc73f95em0 reached LIVE at 2026-10-29 05:33:05 UTC; this dated observation does not establish its present state.
+- Gatefront follow-up PR #229 merge commit `62380e28239ea5f13b8826f9389a4340282cd1f5` passed main Game CI run 40848311436 (35 browser acceptance tests) and Workspace validation 40848311435. Render deployment `dep-dbhguuvb9u1s739rir10` for that exact commit reached LIVE at 2026-10-29 09:19:03 UTC. The deployed public URL's visual smoke result remains UNVERIFIED from this agent environment.
 - Current production state must be queried directly when relevant. Do not infer service health or current deployment solely from these dated records.
 
 ## Canonical Navigation
