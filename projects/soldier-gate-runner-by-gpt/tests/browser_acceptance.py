@@ -113,28 +113,28 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         canvas = page.locator("#gameCanvas")
         page.get_by_role("button", name="START RUN").click()
         self.assertEqual("1", canvas.get_attribute("data-game-speed"))
-        page.wait_for_timeout(350)
+        page.wait_for_timeout(500)
         before_x1 = float(canvas.get_attribute("data-simulation-seconds") or "0")
-        page.wait_for_timeout(350)
+        page.wait_for_timeout(500)
         delta_x1 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x1
         page.get_by_role("button", name="Set game speed to ×2").click()
         self.assertEqual("2", canvas.get_attribute("data-game-speed"))
         self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×2").get_attribute("aria-pressed"))
         before_x2 = float(canvas.get_attribute("data-simulation-seconds") or "0")
-        page.wait_for_timeout(350)
+        page.wait_for_timeout(500)
         delta_x2 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x2
 
         page.get_by_role("button", name="Set game speed to ×3").click()
         self.assertEqual("3", canvas.get_attribute("data-game-speed"))
         self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×3").get_attribute("aria-pressed"))
         before_x3 = float(canvas.get_attribute("data-simulation-seconds") or "0")
-        page.wait_for_timeout(350)
+        page.wait_for_timeout(500)
         delta_x3 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x3
         page.get_by_role("button", name="Set game speed to ×4").click()
         self.assertEqual("4", canvas.get_attribute("data-game-speed"))
         self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×4").get_attribute("aria-pressed"))
         before_x4 = float(canvas.get_attribute("data-simulation-seconds") or "0")
-        page.wait_for_timeout(350)
+        page.wait_for_timeout(500)
         delta_x4 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x4
         self.assertGreater(delta_x1, 0.1, "The world clock should advance at ×1")
         self.assertGreater(delta_x2, delta_x1 * 1.5, "The world clock should advance faster at ×2")
@@ -211,7 +211,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                     laneLeft: roadLeft + laneWidth * laneIndex,
                     laneRight: roadLeft + laneWidth * (laneIndex + 1)
                 };
-            })();""")
+            }""")
             lane_left = metrics["laneLeft"]
             lane_right = metrics["laneRight"]
             self.assertGreaterEqual(
@@ -270,7 +270,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                 laneLeft: roadLeft + laneWidth * laneIndex,
                 laneRight: roadLeft + laneWidth * (laneIndex + 1)
             };
-        })();""")
+        }""")
         self.assertGreaterEqual(metrics["columns"], 2)
         self.assertLessEqual(metrics["columns"], 4)
         self.assertGreaterEqual(
@@ -859,7 +859,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             const sideIndex = (300 * width + 30) * 4;
             const sideBackground = Array.from(data.slice(sideIndex, sideIndex + 3));
             return {blueSquad, redEnemy, allyFacePixels, paleUniformPixels, sideBackground};
-        })();""")
+        }""")
         self.assertGreater(pixels["blueSquad"], 250, "Blue squad helmet/gear palette was not visible")
         self.assertGreater(pixels["redEnemy"], 100, "Red enemy helmet/gear palette was not visible")
         self.assertLess(pixels["allyFacePixels"], 35, "Allied formation should show rear-facing helmets, not frontal faces")
