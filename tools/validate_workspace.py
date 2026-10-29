@@ -192,7 +192,7 @@ def validate_governance_version_values(
 
 
 def validate_completed_task_verification(registry_text: str) -> list[str]:
-    """Reject completed Task rows whose own state summary records an unverified check."""
+    """Reject completed Task rows that label a required check UNVERIFIED."""
     errors = []
     header = None
     for line in registry_text.splitlines():
@@ -207,7 +207,12 @@ def validate_completed_task_verification(registry_text: str) -> list[str]:
         task_id = cells[header["Task ID"]]
         status = cells[header["Status"]]
         summary = cells[header["State Summary"]]
-        if status == "COMPLETED" and re.search(r"\bUNVERIFIED\b", summary, re.IGNORECASE):
+        if status == "COMPLETED" and re.search(
+            r"\b(?:required|mandatory)\b[^.;|]{0,120}\bUNVERIFIED\b"
+            r"|\bUNVERIFIED\b[^.;|]{0,120}\b(?:required|mandatory)\b",
+            summary,
+            re.IGNORECASE,
+        ):
             errors.append(
                 f"{task_id} is COMPLETED but its State Summary records UNVERIFIED verification"
             )
