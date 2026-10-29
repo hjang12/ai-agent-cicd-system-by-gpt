@@ -682,122 +682,33 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Lane-specific tank barrel raised a browser error")
         page.close()
 
-    def test_landscape_mode_control_can_be_enabled_and_disabled(self) -> None:
-        page = self.browser.new_page(viewport={"width": 1280, "height": 720})
+    def test_toolbar_has_only_speed_and_reset_controls(self) -> None:
+        page = self.browser.new_page(viewport={"width": 375, "height": 812})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
-        button = page.get_by_role("button", name="Enable landscape play mode")
-        self.assertEqual("false", button.get_attribute("aria-pressed"))
-        button.click()
-        page.wait_for_function(
-            "() => document.documentElement.classList.contains('landscape-mode')"
-            " && document.querySelector('#orientationButton').getAttribute('aria-pressed') === 'true'",
-            timeout=2000,
-        )
-        self.assertEqual("LANDSCAPE ON", page.locator("#orientationButton").inner_text().strip())
-        page.get_by_role("button", name="Disable landscape play mode").click()
-        self.assertEqual("false", page.locator("#orientationButton").get_attribute("aria-pressed"))
-        self.assertFalse(page.locator("html").evaluate("(node) => node.classList.contains('landscape-mode')"))
-        self.assertEqual([], errors, "Landscape mode toggle raised a browser error")
-        page.close()
 
-    def test_toolbar_controls_have_visible_compact_labels_on_mobile(self) -> None:
-        page = self.browser.new_page(viewport={"width": 375, "height": 812})
-        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
-        expected = {
-            "#orientationButton": "LAND",
-            "#fullscreenButton": "FULL",
-            "#resetButton": "RESET",
-        }
-        for selector, label in expected.items():
-            button = page.locator(selector)
-            self.assertTrue(button.is_visible(), f"{selector} should be visible on mobile")
-            self.assertTrue(
-                button.locator(".button-label-compact").is_visible(),
-                f"{selector} should expose its compact text label on mobile",
-            )
-            self.assertEqual(label, button.locator(".button-label-compact").inner_text().strip())
-        self.assertFalse(page.locator(".topbar .button-label-wide").first.is_visible())
+        self.assertFalse(page.locator("#orientationButton").count(), "Landscape mode control must be removed")
+        self.assertFalse(page.locator("#fullscreenButton").count(), "Fullscreen control must be removed")
+        self.assertFalse(page.locator("#controlFeedback").count(), "Orientation/fullscreen feedback surface must be removed")
+        self.assertTrue(page.locator("#resetButton").is_visible(), "Reset must remain available")
+        self.assertEqual(4, page.locator(".speed-button").count(), "All four game-speed controls must remain")
+        self.assertEqual(5, page.locator(".topbar button").count(), "Toolbar should contain four speed choices and Reset only")
+
+        labels = " ".join(page.locator(".topbar button").all_text_contents()).upper()
+        self.assertNotIn("LAND", labels)
+        self.assertNotIn("FULLSCREEN", labels)
+        self.assertNotIn(" FULL ", f" {labels} ")
         toolbar = page.locator(".topbar-right").bounding_box()
         assert toolbar is not None
         self.assertLessEqual(toolbar["x"] + toolbar["width"], 375.5, "Toolbar must stay inside the viewport")
+
         page.set_viewport_size({"width": 320, "height": 720})
         page.wait_for_timeout(100)
         toolbar = page.locator(".topbar-right").bounding_box()
         assert toolbar is not None
         self.assertLessEqual(toolbar["x"] + toolbar["width"], 320.5, "Toolbar must fit narrow phones")
-        self.assertTrue(page.locator("#controlFeedback").evaluate("(node) => node.hidden"), "Feedback should begin hidden")
-        page.close()
-
-    def test_fullscreen_button_updates_state_and_label(self) -> None:
-        page = self.browser.new_page(viewport={"width": 1280, "height": 720})
-        errors: list[str] = []
-        page.on("pageerror", lambda error: errors.append(str(error)))
-        page.add_init_script("""(() => {
-          const state = { element: null };
-          Object.defineProperty(document, "fullscreenElement", {
-            configurable: true, get: () => state.element
-          });
-          Object.defineProperty(document, "fullscreenEnabled", { configurable: true, value: true });
-          Element.prototype.requestFullscreen = async function () {
-            state.element = this;
-            document.dispatchEvent(new Event("fullscreenchange"));
-          };
-          document.exitFullscreen = async function () {
-            state.element = null;
-            document.dispatchEvent(new Event("fullscreenchange"));
-          };
-        })();""")
-        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
-        button = page.locator("#fullscreenButton")
-        button.click()
-        page.wait_for_function(
-            "() => document.fullscreenElement === document.documentElement"
-        )
-        self.assertEqual("true", page.evaluate("() => String(document.fullscreenElement === document.documentElement)"))
-        self.assertTrue(page.locator(".topbar").is_visible(), "Toolbar must remain present in page fullscreen")
-        self.assertTrue(page.locator("#resetButton").is_visible(), "Reset must remain available in page fullscreen")
-        self.assertEqual("Exit fullscreen", button.get_attribute("aria-label"))
-        self.assertEqual("EXIT FULLSCREEN", button.locator(".button-label-wide").inner_text().strip())
-        button.click()
-        page.wait_for_function("() => document.fullscreenElement === null")
-        self.assertEqual("Enter fullscreen", button.get_attribute("aria-label"))
-        self.assertEqual("FULLSCREEN", button.locator(".button-label-wide").inner_text().strip())
-        self.assertEqual([], errors, "Fullscreen button raised a browser error")
-        page.close()
-
-    def test_landscape_fallback_is_visible_when_browser_cannot_lock_orientation(self) -> None:
-        page = self.browser.new_page(viewport={"width": 375, "height": 812})
-        errors: list[str] = []
-        page.on("pageerror", lambda error: errors.append(str(error)))
-        page.add_init_script("""(() => {
-          Object.defineProperty(document, "fullscreenEnabled", { configurable: true, value: false });
-          Object.defineProperty(screen, "orientation", { configurable: true, value: {} });
-        })();""")
-        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
-        page.locator("#orientationButton").click()
-        feedback = page.locator("#controlFeedback")
-        page.wait_for_function("() => !document.querySelector('#controlFeedback').hidden")
-        self.assertIn("Rotate the device horizontally", feedback.inner_text())
-        self.assertEqual("true", page.locator("#orientationButton").get_attribute("aria-pressed"))
-        self.assertEqual("LAND ON", page.locator("#orientationButton .button-label-compact").inner_text().strip())
-        self.assertEqual([], errors, "Landscape fallback should not raise a browser error")
-        page.close()
-
-    def test_fullscreen_fallback_is_visible_when_browser_disallows_fullscreen(self) -> None:
-        page = self.browser.new_page(viewport={"width": 375, "height": 812})
-        errors: list[str] = []
-        page.on("pageerror", lambda error: errors.append(str(error)))
-        page.add_init_script("""(() => {
-          Object.defineProperty(document, "fullscreenEnabled", { configurable: true, value: false });
-        })();""")
-        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
-        page.locator("#fullscreenButton").click()
-        page.wait_for_function("() => !document.querySelector('#controlFeedback').hidden")
-        self.assertIn("does not support page fullscreen", page.locator("#controlFeedback").inner_text())
-        self.assertEqual("Enter fullscreen", page.locator("#fullscreenButton").get_attribute("aria-label"))
-        self.assertEqual([], errors, "Fullscreen fallback should not raise a browser error")
+        self.assertEqual([], errors, "Simplified toolbar should not raise a browser error")
         page.close()
 
     def test_low_squad_boss_counterattack_does_not_throw(self) -> None:
