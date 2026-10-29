@@ -94,7 +94,7 @@ Deliver one complete, browser-playable round of an original squad gate-runner in
 ## Remaining / Deferred
 - User direction on 2026-10-29: the core gameplay is acceptable and new feature development should stop after removing the dedicated landscape/orientation-lock and fullscreen controls, their browser API calls, styling, feedback surface, and feature-specific tests.
 - Keep the existing single mission with 25 events across three sectors. Additional levels/campaigns, persistent progression, detailed soldier modeling, and fine difficulty tuning remain deferred; make follow-up changes for concrete bugs or regressions rather than speculative polish.
-- PR #222 is merged, PR-head and main-push Game CI each passed all 33 browser acceptance tests, PR/main Workspace validation passed, and Render deployment `dep-dbhdl1lckfvc73f95em0` reached LIVE. The Checkpoint and Registry are being synchronized to this verified release.
+- PR #222 is merged, PR-head and main-push Game CI each passed all 33 browser acceptance tests, PR/main Workspace validation passed, and Render deployment `dep-dbhdl1lckfvc73f95em0` reached LIVE. The Checkpoint and Registry have been synchronized to this verified release.
 
 ## Explicitly Out of Scope
 - App Store / Play Store publication.
