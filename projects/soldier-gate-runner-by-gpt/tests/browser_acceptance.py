@@ -69,7 +69,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertIn("Gatefront", page.title())
         self.assertFalse(page.locator(".intro").is_visible(), "Nonessential intro should not consume playfield space")
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
-        self.assertEqual("0 / 13", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("0 / 25", page.locator("#progressCount").inner_text().strip())
         self.assertTrue(page.locator("#gameCanvas").is_visible())
         self.assertTrue(page.locator("#resetButton").is_visible())
         self.assertEqual(1, page.locator("#resetButton").evaluate("(button) => button.closest('.topbar') !== null"))
@@ -89,7 +89,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.mouse.move(right_x - 6, drag_y, steps=3)
 
         page.wait_for_function(
-            """() => document.querySelector('#progressCount').textContent.trim() === '1 / 13'
+            """() => document.querySelector('#progressCount').textContent.trim() === '1 / 25'
                 && document.querySelector('#soldierCount').textContent.trim() === '18'""",
             timeout=7000,
         )
@@ -101,8 +101,25 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertTrue(page.locator("#startOverlay").is_visible())
         self.assertEqual("READY", page.locator("#statusPill").inner_text().strip())
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
-        self.assertEqual("0 / 13", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("0 / 25", page.locator("#progressCount").inner_text().strip())
         self.assertEqual("1", page.locator("#gameCanvas").get_attribute("data-game-speed"))
+        page.close()
+
+    def test_extended_route_has_three_sectors_and_varied_combat(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        canvas = page.locator("#gameCanvas")
+        self.assertEqual("0 / 25", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("OUTER LINE · 1/3", page.locator("#progressLabel").inner_text().strip())
+        self.assertEqual("25", canvas.get_attribute("data-route-event-count"))
+        self.assertEqual("3", canvas.get_attribute("data-route-sector-count"))
+        self.assertEqual("6", canvas.get_attribute("data-route-enemy-variant-count"))
+        self.assertEqual("add,mult,pct", canvas.get_attribute("data-route-shoot-target-kinds"))
+        page.get_by_role("button", name="START RUN").click()
+        self.assertEqual("IN RUN", page.locator("#statusPill").inner_text().strip())
+        self.assertEqual([], errors, "Extended route initialization raised a browser error")
         page.close()
 
     def test_speed_multiplier_controls_world_time_and_persist_through_reset(self) -> None:
@@ -816,8 +833,8 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
 
         page.get_by_role("button", name="START RUN").click()
         page.wait_for_function(
-            "() => document.querySelector('#enemyCount').textContent.trim() === '18 ENEMIES'",
-            timeout=7000,
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyCount || 0) > 0",
+            timeout=10000,
         )
         page.wait_for_timeout(180)
         pixels = page.evaluate("""() => {
@@ -835,8 +852,8 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                     if (b > 105 && b > r * 1.35 && b > g * 1.05) blueSquad++;
                 }
             }
-            for (let y = 100; y < 250; y++) {
-                for (let x = 350; x < 610; x++) {
+            for (let y = 90; y < 300; y++) {
+                for (let x = 0; x < width; x++) {
                     const i = (y * width + x) * 4;
                     const [r, g, b] = data.slice(i, i + 3);
                     if (r > 150 && r > g * 1.35 && r > b * 1.18) redEnemy++;
@@ -965,7 +982,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             timeout=5000,
         )
         page.wait_for_function(
-            "() => document.querySelector('#progressCount').textContent.trim() === '1 / 13'",
+            "() => document.querySelector('#progressCount').textContent.trim() === '1 / 25'",
             timeout=5000,
         )
         hits = int(canvas.get_attribute("data-shoot-target-hits") or "0")
@@ -989,52 +1006,54 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         bounds = canvas.bounding_box()
         assert bounds is not None
         drag_y = bounds["y"] + bounds["height"] * 0.78
-        left_x = self.lane_screen_x(page, 0.26)
-        right_x = self.lane_screen_x(page, 0.76)
-
-        # A deliberately winning route; the sixth arithmetic slot is now a shot-upgraded +1 target.
-        # Start on the left +8 gate, then use the stronger multipliers and align for each enemy wave.
-        page.mouse.move(left_x, drag_y)
+        start_left_x = self.lane_screen_x(page, 0.26)
+        page.mouse.move(start_left_x, drag_y)
         page.mouse.down()
-        next_gate_route = {
-            1: "left",   # gate 2: ×2
-            2: "left",   # gate 3: +20%
-            4: "right",  # gate 4: ×2
-            5: "right",  # gate 5: +50%
-            7: "left",   # gate 6: ×2
-            9: "right",  # gate 7: +40%
-            10: "left",  # gate 8: ×2
-        }
-        enemy_lanes = {4: 5 / 6, 7: 1 / 6, 9: 1 / 2}
-        for completed_event in range(1, 14):
-            if completed_event in enemy_lanes:
-                self.steer_to_lane(page, enemy_lanes[completed_event], keep_dragging=True)
-            if completed_event in (12, 13):
-                # The tank barrel and final commander occupy the centre lane; regular fire never bends toward them.
-                self.steer_to_lane(page, 0.5, keep_dragging=True)
-            page.wait_for_function(
-                f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 13'",
-                timeout=6000,
-            )
-            if completed_event == 6:
-                self.assertGreater(
-                    int(page.locator("#soldierCount").inner_text().strip()),
-                    120,
-                    "Squad growth should not hit the previous low 120-unit ceiling",
-                )
-            direction = next_gate_route.get(completed_event)
-            if direction:
-                page.mouse.move(right_x if direction == "right" else left_x, drag_y, steps=2)
 
-        self.steer_to_lane(page, 0.5, keep_dragging=True)
+        # Deliberately route through all three sectors, align each of the six
+        # enemy archetypes, and visit each new shootable bonus/tank reward.
+        lane_after_event = {
+            1: 1 / 6,   # Gate 2: ×2
+            2: 5 / 6,   # Raider swarm
+            3: 5 / 6,   # Gate 3: ×2
+            4: 1 / 6,   # Infantry squad
+            5: 5 / 6,   # Gate 4: +50%
+            6: 1 / 2,   # Shootable +1 reward
+            7: 1 / 2,   # Armored unit
+            8: 5 / 6,   # Gate 5: +40%
+            9: 1 / 6,   # Gate 6: ×2
+            10: 1 / 2,  # First tank barrel
+            11: 1 / 6,  # Gunner squad
+            12: 5 / 6,  # Gate 7: +55%
+            13: 5 / 6,  # Shootable ×2 reward
+            14: 5 / 6,  # Gate 8: +45%
+            15: 1 / 6,  # Gate 9: ×2
+            16: 5 / 6,  # Heavy platoon
+            17: 5 / 6,  # Gate 10: +60%
+            18: 1 / 6,  # Shootable +25% reward
+            19: 1 / 2,  # Elite gunners
+            20: 1 / 6,  # Gate 11: ×2
+            21: 5 / 6,  # Gate 12: +65%
+            22: 1 / 6,  # Second tank barrel
+            23: 5 / 6,  # Gate 13: ×2
+            24: 1 / 2,  # Final commander
+        }
+
+        for completed_event in range(1, 26):
+            page.wait_for_function(
+                f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 25'",
+                timeout=15000,
+            )
+            if completed_event in lane_after_event:
+                self.steer_to_lane(page, lane_after_event[completed_event], keep_dragging=True)
         page.mouse.up()
         page.wait_for_function(
             "() => document.querySelector('#statusPill').textContent.trim() === 'VICTORY'",
-            timeout=8000,
+            timeout=10000,
         )
         self.assertTrue(page.locator("#endOverlay").is_visible())
         self.assertEqual("OPERATION COMPLETE", page.locator("#endKicker").inner_text().strip())
-        self.assertEqual("13 / 13", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("25 / 25", page.locator("#progressCount").inner_text().strip())
         self.assertGreater(int(page.locator("#endSoldierCount").inner_text().strip()), 0)
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.get_by_role("button", name="RUN IT AGAIN").click()

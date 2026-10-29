@@ -6,7 +6,7 @@
   const $ = (id) => document.getElementById(id);
   const ui = {
     soldiers: $("soldierCount"), enemy: $("enemyCount"), progress: $("progressCount"),
-    fill: $("progressFill"), status: $("statusPill"), message: $("gameMessage"),
+    fill: $("progressFill"), progressLabel: $("progressLabel"), status: $("statusPill"), message: $("gameMessage"),
     start: $("startOverlay"), end: $("endOverlay"), startButton: $("startButton"),
     replay: $("playAgainButton"), reset: $("resetButton"), fullscreen: $("fullscreenButton"), orientation: $("orientationButton"),
     speedButtons: Array.from(document.querySelectorAll(".speed-button")),
@@ -57,6 +57,14 @@
   const TANK_BARREL_HITS = 500, TANK_DURATION = 10, TANK_DAMAGE = 4;
   const speed = testMode && !testEarlyEnemy && !testLaneTransition && !testDirectTarget && !testTankBarrel && !testFirstContactEnemy && !testEnemyFire && !testLaneCombat && !testFullRound && !testSquadFire && !testEnemyBreach && !testBarrelPass && !testBossEarlyHits && !testLaneSpecificTarget ? 520 : 110;
   const C = { lime:"#ffd34d", cyan:"#1687f4", red:"#ed3947", purple:"#2d9cff" };
+  const ENEMY_STYLE = {
+    raider:{fill:"#fff1dc",stroke:"#dc8722",text:"#8c4d0b"},
+    infantry:{fill:"rgba(255,255,255,.95)",stroke:"#dc3745",text:"#bd2634"},
+    armored:{fill:"#f9e4e6",stroke:"#8d1c2a",text:"#8d1c2a"},
+    gunner:{fill:"#e2f0ff",stroke:"#2375bb",text:"#1f5d93"},
+    heavy:{fill:"#eee6ff",stroke:"#6744aa",text:"#55328d"},
+    elite:{fill:"#202c3c",stroke:"#e7a639",text:"#ffffff"}
+  };
   const add = (n, label) => ({ kind:"add", amount:n, label });
   const pct = (n, label) => ({ kind:"pct", amount:n, label });
   const mult = (n, label) => ({ kind:"mult", amount:n, label });
@@ -66,18 +74,42 @@
   const ROUND = [
     gate(add(8,"+8"), pct(.5,"+50%"), 1),
     gate(mult(2,"×2"), add(12,"+12"), 2),
-    gate(pct(.2,"+20%"), add(-4,"−4"), 3),
-    { type:"enemy", count:18, lane:5/6, label:"SCOUT SQUAD" },
-    gate(add(10,"+10"), mult(2,"×2"), 4),
-    gate(add(15,"+15"), pct(.5,"+50%"), 5),
-    { type:"enemy", count:26, lane:1/6, label:"ENEMY UNIT" },
-    shootTarget(add(1,"+1"), 6),
-    { type:"enemy", count:32, lane:1/2, label:"HEAVY UNIT" },
-    gate(add(12,"+12"), pct(.4,"+40%"), 7),
-    gate(mult(2,"×2"), add(18,"+18"), 8),
-    { type:"barrel", lane:.5, hitsRequired:TANK_BARREL_HITS, label:"TANK BARREL" },
-    { type:"boss", hp:76, label:"FINAL COMMANDER" }
+    { type:"enemy", variant:"raider", count:16, lane:5/6, speedScale:1.22, fireInterval:1.3, volleySize:1, label:"RAIDER SWARM" },
+    gate(add(10,"+10"), mult(2,"×2"), 3),
+    { type:"enemy", variant:"infantry", count:26, lane:1/6, label:"INFANTRY SQUAD" },
+    gate(add(15,"+15"), pct(.5,"+50%"), 4),
+    shootTarget(add(1,"+1"), 1, 1/2),
+    { type:"enemy", variant:"armored", count:32, lane:1/2, speedScale:.82, fireInterval:1.35, volleySize:2, label:"ARMORED UNIT" },
+
+    gate(add(12,"+12"), pct(.4,"+40%"), 5),
+    gate(mult(2,"×2"), add(18,"+18"), 6),
+    { type:"barrel", lane:1/2, hitsRequired:TANK_BARREL_HITS, label:"TANK BARREL" },
+    { type:"enemy", variant:"gunner", count:28, lane:1/6, speedScale:.94, fireInterval:.72, volleySize:3, label:"GUNNER SQUAD" },
+    gate(add(20,"+20"), pct(.55,"+55%"), 7),
+    shootTarget(mult(2,"×2"), 2, 5/6),
+    gate(add(22,"+22"), pct(.45,"+45%"), 8),
+    gate(mult(2,"×2"), add(24,"+24"), 9),
+
+    { type:"enemy", variant:"heavy", count:42, lane:5/6, speedScale:.82, fireInterval:1.1, volleySize:3, label:"HEAVY PLATOON" },
+    gate(add(28,"+28"), pct(.6,"+60%"), 10),
+    shootTarget(pct(.25,"+25%"), 3, 1/6),
+    { type:"enemy", variant:"elite", count:36, lane:1/2, speedScale:1.04, fireInterval:.68, volleySize:4, label:"ELITE GUNNERS" },
+    gate(mult(2,"×2"), add(35,"+35"), 11),
+    gate(add(30,"+30"), pct(.65,"+65%"), 12),
+    { type:"barrel", lane:1/6, hitsRequired:TANK_BARREL_HITS, label:"TANK BARREL" },
+    gate(add(40,"+40"), mult(2,"×2"), 13),
+    { type:"boss", hp:180, label:"FINAL COMMANDER" }
   ];
+
+  const SECTORS = [
+    { start:0, end:8, label:"OUTER LINE" },
+    { start:8, end:16, label:"KILL ZONE" },
+    { start:16, end:ROUND.length, label:"COMMANDER KEEP" }
+  ];
+  canvas.dataset.routeEventCount=String(ROUND.length);
+  canvas.dataset.routeSectorCount=String(SECTORS.length);
+  canvas.dataset.routeEnemyVariantCount=String(new Set(ROUND.filter(e=>e.type==="enemy").map(e=>e.variant||"infantry")).size);
+  canvas.dataset.routeShootTargetKinds=[...new Set(ROUND.filter(e=>e.type==="target").map(e=>e.effect.kind))].sort().join(",");
 
   let mode="ready", soldiers=12, resolved=0, nextIndex=0, events=[];
   let fireClock=0, attackClock=0, lane=.5, targetLane=.5, offset=0, lastFrame=0;
@@ -143,10 +175,12 @@
     syncSpeedControls();
   }
   function eventMovementSpeed(event) {
-    if(event.type!=="barrel")return speed;
-    if(testTankBarrel)return 60;
-    if(testBarrelPass)return 150;
-    return speed*.25;
+    if(event.type==="barrel"){
+      if(testTankBarrel)return 60;
+      if(testBarrelPass)return 150;
+      return speed*.25;
+    }
+    return speed*(Number.isFinite(event.speedScale)?event.speedScale:1);
   }
 
   function roadAt(y) {
@@ -191,6 +225,12 @@
   function syncHud() {
     ui.soldiers.textContent=String(soldiers);
     ui.progress.textContent=resolved+" / "+ROUND.length;
+    const foundSector=SECTORS.findIndex(sector=>resolved<sector.end);
+    const sectorIndex=resolved>=ROUND.length?SECTORS.length-1:Math.max(0,foundSector);
+    const sector=SECTORS[sectorIndex];
+    ui.progressLabel.textContent=sector.label+" · "+(sectorIndex+1)+"/"+SECTORS.length;
+    canvas.dataset.currentSector=String(sectorIndex+1);
+    canvas.dataset.currentSectorName=sector.label;
     ui.fill.style.width=(resolved/ROUND.length*100)+"%";
     ui.status.textContent=mode==="ready"?"READY":mode==="running"?"IN RUN":mode==="won"?"VICTORY":"DEFEAT";
     ui.status.classList.toggle("status-live",mode==="running");
@@ -357,7 +397,7 @@
     if((testFirstContactEnemy||testSquadFire)&&events[0]?.type==="enemy")canvas.dataset.enemyWaveInitialCount=String(events[0].initialCount||events[0].count); canvas.dataset.enemyHits="0"; canvas.dataset.enemyHitsBeforeEngagement="0"; canvas.dataset.earlyEnemyHitY=""; canvas.dataset.firstEnemyHitSeconds=""; canvas.dataset.enemySpawnSeconds="0"; canvas.dataset.enemyEngagedId=""; canvas.dataset.enemyEngagedCount=""; canvas.dataset.bossHits="0"; canvas.dataset.bossHitsBeforeEngagement="0"; canvas.dataset.firstBossHitY=""; canvas.dataset.bossEngaged="false"; canvas.dataset.bossCurrentY=""; canvas.dataset.bossHp="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.selectedTargetHits="0"; canvas.dataset.selectedTargetId=""; canvas.dataset.selectedTargetType=""; canvas.dataset.tankBarrelHits="0"; canvas.dataset.tankBarrelHitsRequired=String(TANK_BARREL_HITS); canvas.dataset.tankMode="false"; canvas.dataset.tankTimeRemaining="0"; canvas.dataset.tankDamage=String(TANK_DAMAGE); canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
     syncSpeedControls();
     ui.start.hidden=true; ui.end.hidden=true;
-    say(testShootableTarget?"Target test: hit the blue +1 panel to increase its value.":"Run started. Pick the stronger gate."); syncHud();
+    say(testShootableTarget?"Target test: hit the blue +1 panel to increase its value.":"Run started. Choose gates, target reward panels, and steer through all three sectors."); syncHud();
   }
   function finishRun(result) {
     if(mode!=="running") return;
@@ -365,7 +405,7 @@
     if(result==="won") {
       ui.endKicker.textContent="OPERATION COMPLETE";
       ui.endTitle.innerHTML="LINE<br><em>BROKEN.</em>";
-      ui.endCopy.textContent="Commander down. Your squad broke through the final line.";
+      ui.endCopy.textContent="Commander down. Your squad cleared all three sectors.";
       say("Commander defeated. Field operation complete.");
       burst(W/2,PLAYER_Y-100,C.lime,40);
     } else {
@@ -877,12 +917,13 @@
       const sy=e.y+row*12*s;
       drawTrooper(sx,sy,s*.9,true);
     }
-    const label="ENEMY "+e.count;
+    const label=(e.label||"ENEMY")+" · "+e.count;
     ctx.font="900 "+Math.max(8,Math.round(10*s))+"px ui-sans-serif,system-ui";ctx.textAlign="center";
     const labelY=e.y-25*s,w=ctx.measureText(label).width+16,h=Math.max(14,14*s);
     const flashing=(e.hitFlash||0)>0;
-    roundRect(x-w/2,labelY-h/2,w,h,5*s,flashing?"#fff1a6":"rgba(255,255,255,.95)",flashing?"#ffb000":"#dc3745");
-    ctx.fillStyle=flashing?"#8a3a00":"#bd2634";ctx.textBaseline="middle";ctx.fillText(label,x,labelY);ctx.textBaseline="alphabetic";
+    const style=ENEMY_STYLE[e.variant]||ENEMY_STYLE.infantry;
+    roundRect(x-w/2,labelY-h/2,w,h,5*s,flashing?"#fff1a6":style.fill,flashing?"#ffb000":style.stroke);
+    ctx.fillStyle=flashing?"#8a3a00":style.text;ctx.textBaseline="middle";ctx.fillText(label,x,labelY);ctx.textBaseline="alphabetic";
     if(isSelectedTarget(e))drawTargetReticle(x-77*s,e.y-43*s,154*s,93*s);
   }
 
@@ -967,7 +1008,7 @@
         updateEnemyWave(e,dt);
         if(mode!=="running")return;
         if(e.count<=0){resolveEnemy(e);events.splice(i,1);continue;}
-        e.y+=speed*dt;
+        e.y+=eventMovementSpeed(e)*dt;
         continue;
       }
       if(e.type==="barrel"&&e.engaged){e.y+=eventMovementSpeed(e)*dt;continue;}
@@ -1072,10 +1113,11 @@
     e.hitFlash=Math.max(0,(e.hitFlash||0)-dt);
     if(e.breachApplied)return;
     e.attackClock=(e.attackClock||0)+dt;
-    const interval=1.05;
+    const interval=Number.isFinite(e.fireInterval)?e.fireInterval:1.05;
     if(e.attackClock<interval)return;
     e.attackClock-=interval;
-    const shots=Math.min(2,Math.max(1,Math.ceil(Math.min(soldiers,e.count)*0.03)));
+    const volleySize=Number.isFinite(e.volleySize)?e.volleySize:2;
+    const shots=Math.min(volleySize,Math.max(1,Math.ceil(Math.min(soldiers,e.count)*0.03)));
     spawnEnemyVolley(e,shots);
     say(e.label+" fires "+shots+" rounds — move out of the firing line.");
   }
