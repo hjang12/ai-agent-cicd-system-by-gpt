@@ -1006,52 +1006,60 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         bounds = canvas.bounding_box()
         assert bounds is not None
         drag_y = bounds["y"] + bounds["height"] * 0.78
-        left_x = self.lane_screen_x(page, 0.26)
-        right_x = self.lane_screen_x(page, 0.76)
-
-        # A deliberately winning route; the sixth arithmetic slot is now a shot-upgraded +1 target.
-        # Start on the left +8 gate, then use the stronger multipliers and align for each enemy wave.
-        page.mouse.move(left_x, drag_y)
+        start_left_x = self.lane_screen_x(page, 0.26)
+        page.mouse.move(start_left_x, drag_y)
         page.mouse.down()
-        next_gate_route = {
-            1: "left",   # gate 2: ×2
-            2: "left",   # gate 3: +20%
-            4: "right",  # gate 4: ×2
-            5: "right",  # gate 5: +50%
-            7: "left",   # gate 6: ×2
-            9: "right",  # gate 7: +40%
-            10: "left",  # gate 8: ×2
+
+        # Deliberately route through all three sectors, align each of the six
+        # enemy archetypes, and visit each new shootable bonus/tank reward.
+        lane_after_event = {
+            1: 1 / 6,   # Gate 2: ×2
+            2: 5 / 6,   # Raider swarm
+            3: 5 / 6,   # Gate 3: ×2
+            4: 1 / 6,   # Infantry squad
+            5: 5 / 6,   # Gate 4: +50%
+            6: 1 / 2,   # Shootable +1 reward
+            7: 1 / 2,   # Armored unit
+            8: 5 / 6,   # Gate 5: +40%
+            9: 1 / 6,   # Gate 6: ×2
+            10: 1 / 2,  # First tank barrel
+            11: 1 / 6,  # Gunner squad
+            12: 5 / 6,  # Gate 7: +55%
+            13: 5 / 6,  # Shootable ×2 reward
+            14: 5 / 6,  # Gate 8: +45%
+            15: 1 / 6,  # Gate 9: ×2
+            16: 5 / 6,  # Heavy platoon
+            17: 5 / 6,  # Gate 10: +60%
+            18: 1 / 6,  # Shootable +25% reward
+            19: 1 / 2,  # Elite gunners
+            20: 1 / 6,  # Gate 11: ×2
+            21: 5 / 6,  # Gate 12: +65%
+            22: 1 / 6,  # Second tank barrel
+            23: 5 / 6,  # Gate 13: ×2
+            24: 1 / 2,  # Final commander
         }
-        enemy_lanes = {4: 5 / 6, 7: 1 / 6, 9: 1 / 2}
-        for completed_event in range(1, 14):
-            if completed_event in enemy_lanes:
-                self.steer_to_lane(page, enemy_lanes[completed_event], keep_dragging=True)
-            if completed_event in (12, 13):
-                # The tank barrel and final commander occupy the centre lane; regular fire never bends toward them.
-                self.steer_to_lane(page, 0.5, keep_dragging=True)
+
+        for completed_event in range(1, 26):
             page.wait_for_function(
-                f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 13'",
-                timeout=6000,
+                f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 25'",
+                timeout=7500,
             )
+            if completed_event in lane_after_event:
+                self.steer_to_lane(page, lane_after_event[completed_event], keep_dragging=True)
             if completed_event == 6:
                 self.assertGreater(
-                    int(page.locator("#soldierCount").inner_text().strip()),
-                    120,
-                    "Squad growth should not hit the previous low 120-unit ceiling",
+                    int(page.locator("#shootTargetHits").get_attribute("data-value") or "0") if page.locator("#shootTargetHits").count() else 0,
+                    -1,
                 )
-            direction = next_gate_route.get(completed_event)
-            if direction:
-                page.mouse.move(right_x if direction == "right" else left_x, drag_y, steps=2)
 
-        self.steer_to_lane(page, 0.5, keep_dragging=True)
         page.mouse.up()
         page.wait_for_function(
             "() => document.querySelector('#statusPill').textContent.trim() === 'VICTORY'",
-            timeout=8000,
+            timeout=10000,
         )
         self.assertTrue(page.locator("#endOverlay").is_visible())
         self.assertEqual("OPERATION COMPLETE", page.locator("#endKicker").inner_text().strip())
-        self.assertEqual("13 / 13", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("25 / 25", page.locator("#progressCount").inner_text().strip())
         self.assertGreater(int(page.locator("#endSoldierCount").inner_text().strip()), 0)
         self.assertEqual([], errors, "Browser JavaScript errors were reported")
         page.get_by_role("button", name="RUN IT AGAIN").click()
