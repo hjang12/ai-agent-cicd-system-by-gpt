@@ -69,7 +69,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertIn("Gatefront", page.title())
         self.assertFalse(page.locator(".intro").is_visible(), "Nonessential intro should not consume playfield space")
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
-        self.assertEqual("0 / 13", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("0 / 25", page.locator("#progressCount").inner_text().strip())
         self.assertTrue(page.locator("#gameCanvas").is_visible())
         self.assertTrue(page.locator("#resetButton").is_visible())
         self.assertEqual(1, page.locator("#resetButton").evaluate("(button) => button.closest('.topbar') !== null"))
@@ -89,7 +89,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.mouse.move(right_x - 6, drag_y, steps=3)
 
         page.wait_for_function(
-            """() => document.querySelector('#progressCount').textContent.trim() === '1 / 13'
+            """() => document.querySelector('#progressCount').textContent.trim() === '1 / 25'
                 && document.querySelector('#soldierCount').textContent.trim() === '18'""",
             timeout=7000,
         )
@@ -101,8 +101,25 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertTrue(page.locator("#startOverlay").is_visible())
         self.assertEqual("READY", page.locator("#statusPill").inner_text().strip())
         self.assertEqual("12", page.locator("#soldierCount").inner_text().strip())
-        self.assertEqual("0 / 13", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("0 / 25", page.locator("#progressCount").inner_text().strip())
         self.assertEqual("1", page.locator("#gameCanvas").get_attribute("data-game-speed"))
+        page.close()
+
+    def test_extended_route_has_three_sectors_and_varied_combat(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1", wait_until="networkidle")
+        canvas = page.locator("#gameCanvas")
+        self.assertEqual("0 / 25", page.locator("#progressCount").inner_text().strip())
+        self.assertEqual("OUTER LINE · 1/3", page.locator("#progressLabel").inner_text().strip())
+        self.assertEqual("25", canvas.get_attribute("data-route-event-count"))
+        self.assertEqual("3", canvas.get_attribute("data-route-sector-count"))
+        self.assertEqual("6", canvas.get_attribute("data-route-enemy-variant-count"))
+        self.assertEqual("add,mult,pct", canvas.get_attribute("data-route-shoot-target-kinds"))
+        page.get_by_role("button", name="START RUN").click()
+        self.assertEqual("IN RUN", page.locator("#statusPill").inner_text().strip())
+        self.assertEqual([], errors, "Extended route initialization raised a browser error")
         page.close()
 
     def test_speed_multiplier_controls_world_time_and_persist_through_reset(self) -> None:
@@ -965,7 +982,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
             timeout=5000,
         )
         page.wait_for_function(
-            "() => document.querySelector('#progressCount').textContent.trim() === '1 / 13'",
+            "() => document.querySelector('#progressCount').textContent.trim() === '1 / 25'",
             timeout=5000,
         )
         hits = int(canvas.get_attribute("data-shoot-target-hits") or "0")
