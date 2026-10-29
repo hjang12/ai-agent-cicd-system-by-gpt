@@ -20,7 +20,7 @@
 
 ## Active Issues and Verification
 
-- ISSUE-003 remains BLOCKED: Render deployed a Governance-only commit despite the repository-declared Gatefront build filter. The connected Render read response does not expose the effective filter and the current connection has no service-setting update action. Verify or synchronize the effective setting through an authorized Dashboard/Blueprint path before claiming this is resolved.
+- ISSUE-003 is IN PROGRESS: after the user configured Render Dashboard Build Filters, direct service read at 2026-10-29T07:45:13Z observed `paths=[projects/soldier-gate-runner-by-gpt/**, render.yaml]` and `ignoredPaths=[]`. The setting is saved, but behavior remains unverified. Next confirm a Governance-only main commit is ignored; a matching runtime change should be verified on the next legitimate change.
 - ISSUE-002 is DEFERRED Janggi health-check configuration hygiene and is not a current release blocker.
 - Gatefront PR #222 merge commit e1237a49f8a10f52672c109a723df824a7030fef passed main Game CI run 40823758797 with 33 browser acceptance tests and Workspace validation 40823758798. Render deployment dep-dbhdl1lckfvc73f95em0 reached LIVE at 2026-10-29 05:33:05 UTC; this dated observation does not establish its present state.
 - Current production state must be queried directly when relevant. Do not infer service health or current deployment solely from these dated records.
