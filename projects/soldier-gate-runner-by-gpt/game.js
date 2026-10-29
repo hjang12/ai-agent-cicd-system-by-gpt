@@ -10,13 +10,15 @@
     start: $("startOverlay"), end: $("endOverlay"), startButton: $("startButton"),
     replay: $("playAgainButton"), reset: $("resetButton"),
     speedButtons: Array.from(document.querySelectorAll(".speed-button")),
+    laneModeButtons: Array.from(document.querySelectorAll(".lane-mode-button")),
     frame: $("gameFrame"), endKicker: $("endKicker"), endTitle: $("endTitle"),
     endCopy: $("endCopy"), endCount: $("endSoldierCount"),
   };
 
   const H = 560, PLAYER_Y = 424, MAX_SOLDIERS = 1_000_000_000;
-  const LANE_CENTERS = [1/6, 1/2, 5/6];
-  const LANE_COUNT = LANE_CENTERS.length;
+  function makeLaneCenters(count) { return Array.from({length:count},(_,i)=>(i+.5)/count); }
+  let LANE_COUNT = 3;
+  let LANE_CENTERS = makeLaneCenters(LANE_COUNT);
   let W = Math.max(220, Math.round(H * window.innerWidth / Math.max(1, window.innerHeight)));
   canvas.width = W;
   canvas.height = H;
@@ -112,10 +114,10 @@
 
   let mode="ready", soldiers=12, resolved=0, nextIndex=0, events=[];
   let fireClock=0, attackClock=0, lane=.5, targetLane=.5, offset=0, lastFrame=0;
-  let speedMultiplier=1, simulationSeconds=0, tankTimeRemaining=0, selectedTargetId=null;
+  let speedMultiplier=1, simulationSeconds=0, activeFrameSeconds=0, tankTimeRemaining=0, selectedTargetId=null;
   let message="Choose your route. The squad is waiting.", bullets=[], particles=[], muzzleFlashes=[];
   let totalEnemyHits=0, totalEnemyHitsBeforeEngagement=0, totalBossHits=0, totalTargetHits=0, totalSelectedTargetHits=0, lastTargetValue=0, lastTankBarrelHits=0;
-  let roadChecks=0, roadViolations=0, volleySequence=0, firedShotsByLane=[0,0,0];
+  let roadChecks=0, roadViolations=0, volleySequence=0, firedShotsByLane=Array(LANE_COUNT).fill(0);
   let lastCombatTargetId=null, lastCombatAlignment=null;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const lerp=(a,b,t)=>a+(b-a)*t;
@@ -130,34 +132,69 @@
   }
   function laneFireWeights(position) {
     const p=clamp(position,LANE_CENTERS[0],LANE_CENTERS[LANE_COUNT-1]);
-    if(p<=LANE_CENTERS[1]){
-      const t=clamp((p-LANE_CENTERS[0])/(LANE_CENTERS[1]-LANE_CENTERS[0]),0,1);
-      return [1-t,t,0];
+    const weights=Array(LANE_COUNT).fill(0);
+    for(let i=0;i<LANE_COUNT-1;i++){
+      if(p<=LANE_CENTERS[i+1]){
+        const t=clamp((p-LANE_CENTERS[i])/(LANE_CENTERS[i+1]-LANE_CENTERS[i]),0,1);
+        weights[i]=1-t;weights[i+1]=t;
+        return weights;
+      }
     }
-    const t=clamp((p-LANE_CENTERS[1])/(LANE_CENTERS[2]-LANE_CENTERS[1]),0,1);
-    return [0,1-t,t];
+    weights[LANE_COUNT-1]=1;
+    return weights;
   }
   function sampleLaneIndex(weights,shotIndex,shotCount,sequence) {
     // Rotating, evenly spaced samples keep each volley close to the requested ratios.
     const phase=(sequence*0.38196601125)%1;
     const sample=((shotIndex+0.5)/shotCount+phase)%1;
-    if(sample<weights[0])return 0;
-    if(sample<weights[0]+weights[1])return 1;
-    return 2;
+    let cumulative=0;
+    for(let i=0;i<weights.length;i++){cumulative+=weights[i];if(sample<cumulative)return i;}
+    return weights.length-1;
   }
   function syncFireMetrics() {
     const weights=laneFireWeights(lane);
     canvas.dataset.laneCount=String(LANE_COUNT);
+    canvas.dataset.laneMode=String(LANE_COUNT);
     canvas.dataset.playerLanePosition=lane.toFixed(4);
     canvas.dataset.fireLaneWeights=weights.map(value=>value.toFixed(3)).join(",");
-    canvas.dataset.firedShotsLane1=String(firedShotsByLane[0]);
-    canvas.dataset.firedShotsLane2=String(firedShotsByLane[1]);
-    canvas.dataset.firedShotsLane3=String(firedShotsByLane[2]);
+    for(let i=0;i<5;i++)canvas.dataset["firedShotsLane"+(i+1)]=String(firedShotsByLane[i]||0);
   }
   function resetFireMetrics() {
     volleySequence=0;
-    firedShotsByLane=[0,0,0];
+    firedShotsByLane=Array(LANE_COUNT).fill(0);
     syncFireMetrics();
+  }
+  function laneSensitiveEvent(event) { return !!event&&["enemy","target","barrel"].includes(event.type); }
+  function laneForRoundEvent(event,roundIndex) {
+    if(!Number.isFinite(event?.lane))return event?.lane;
+    if(LANE_COUNT===5&&laneSensitiveEvent(event)&&Number.isInteger(roundIndex)){
+      const ordinal=ROUND.slice(0,Math.max(0,roundIndex)).filter(laneSensitiveEvent).length;
+      return LANE_CENTERS[(ordinal*2)%LANE_COUNT];
+    }
+    return LANE_CENTERS[nearestLaneIndex(event.lane)];
+  }
+  function syncLaneModeControls() {
+    canvas.dataset.laneCount=String(LANE_COUNT);
+    canvas.dataset.laneMode=String(LANE_COUNT);
+    canvas.dataset.laneBoundaryCount=String(LANE_COUNT-1);
+    ui.laneModeButtons.forEach(button=>{
+      const active=Number(button.dataset.laneCount)===LANE_COUNT;
+      button.setAttribute("aria-pressed",String(active));
+      button.disabled=mode==="running";
+    });
+  }
+  function setLaneMode(value) {
+    const next=Number(value);
+    if(mode==="running"||![3,5].includes(next))return;
+    if(next!==LANE_COUNT){
+      LANE_COUNT=next;LANE_CENTERS=makeLaneCenters(next);
+      lane=LANE_CENTERS[nearestLaneIndex(lane)];
+      targetLane=LANE_CENTERS[nearestLaneIndex(targetLane)];
+      events.forEach(event=>{if(Number.isFinite(event.lane))event.lane=laneForRoundEvent(event,event.roundIndex);});
+      resetFireMetrics();
+      say(next+"-lane mode selected. Reset or start a run to play.");
+    }
+    syncLaneModeControls();
   }
   function syncSpeedControls() {
     canvas.dataset.gameSpeed=String(speedMultiplier);
@@ -267,15 +304,17 @@
     tankTimeRemaining=0; selectedTargetId=null; lastTankBarrelHits=0;
     totalEnemyHits=0; totalEnemyHitsBeforeEngagement=0; totalBossHits=0; totalTargetHits=0; totalSelectedTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0;
     lastCombatTargetId=null; lastCombatAlignment=null; resetFireMetrics();
-    simulationSeconds=0; canvas.dataset.simulationSeconds="0";
+    simulationSeconds=0; activeFrameSeconds=0; canvas.dataset.simulationSeconds="0"; canvas.dataset.activeFrameSeconds="0";
     canvas.dataset.combatLaneAligned="none"; canvas.dataset.combatTargetLane="";
     canvas.dataset.projectiles="0"; canvas.dataset.straightProjectiles="0"; canvas.dataset.playerBulletsStraight="true";canvas.dataset.playerBulletsLaneForward="true"; canvas.dataset.enemyProjectiles="0"; canvas.dataset.enemyProjectileHits="0"; canvas.dataset.enemyVisibleCount="0"; canvas.dataset.enemyBreachCount="0"; canvas.dataset.enemyBreachReason=""; canvas.dataset.enemyBreachApplications="0"; canvas.dataset.enemyBreachExits="0"; canvas.dataset.barrelPassed="false"; canvas.dataset.barrelPasses="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0"; canvas.dataset.enemyHits="0"; canvas.dataset.enemyHitsBeforeEngagement="0"; canvas.dataset.earlyEnemyHitY=""; canvas.dataset.firstEnemyHitSeconds=""; canvas.dataset.enemySpawnSeconds="0"; canvas.dataset.enemyEngagedId=""; canvas.dataset.enemyEngagedCount=""; canvas.dataset.bossHits="0"; canvas.dataset.bossHitsBeforeEngagement="0"; canvas.dataset.firstBossHitY=""; canvas.dataset.bossEngaged="false"; canvas.dataset.bossCurrentY=""; canvas.dataset.bossHp="0"; canvas.dataset.bossMaxHp="0"; canvas.dataset.shootTargetHits="0"; canvas.dataset.shootTargetValue="0"; canvas.dataset.selectedTargetHits="0"; canvas.dataset.selectedTargetId=""; canvas.dataset.selectedTargetType=""; canvas.dataset.tankBarrelHits="0"; canvas.dataset.tankBarrelHitsRequired=String(TANK_BARREL_HITS); canvas.dataset.tankMode="false"; canvas.dataset.tankTimeRemaining="0"; canvas.dataset.tankDamage=String(TANK_DAMAGE); canvas.dataset.roadChecks="0"; canvas.dataset.roadViolations="0";
     syncSpeedControls();
+    syncLaneModeControls();
     ui.start.hidden=false; ui.end.hidden=true;
     say("Choose your route. The squad is waiting."); syncHud();
   }
   function startRun() {
     mode="running"; soldiers=12; resolved=0; nextIndex=1;
+    syncLaneModeControls();
     if(testSpeedControls){
       events=[{type:"fixture",id:-2,y:200,engaged:false,resolved:false}];
       nextIndex=ROUND.length;
@@ -382,14 +421,14 @@
       ];
       nextIndex=ROUND.length;
     }else{
-      events=[{...ROUND[0],id:0,y:96,engaged:false,resolved:false}];
+      events=[{...ROUND[0],id:0,roundIndex:0,y:96,engaged:false,resolved:false}];
     }
     fireClock=testEnemyBreach?0:(testMode?0.18:0.3); attackClock=0;
     if(!testProjectileRoadBounds&&!testStraightProjectileRoadBounds&&!testLaneCombat&&!testEarlyEnemy&&!testLaneTransition&&!testDirectTarget&&!testEnemyBreach&&!testBarrelPass&&!testLaneSpecificTarget){lane=.5;targetLane=.5;}
     bullets=[]; particles=[]; muzzleFlashes=[];
     totalEnemyHits=0; totalEnemyHitsBeforeEngagement=0; totalBossHits=0; totalTargetHits=0; totalSelectedTargetHits=0; lastTargetValue=0; roadChecks=0; roadViolations=0; tankTimeRemaining=0; selectedTargetId=null; lastTankBarrelHits=0; resetFireMetrics();
     lastCombatTargetId=null; lastCombatAlignment=null;
-    simulationSeconds=0; canvas.dataset.simulationSeconds="0";
+    simulationSeconds=0; activeFrameSeconds=0; canvas.dataset.simulationSeconds="0"; canvas.dataset.activeFrameSeconds="0";
     canvas.dataset.enemyProjectileHits="0";canvas.dataset.enemyProjectiles="0";canvas.dataset.straightProjectiles="0";canvas.dataset.playerBulletsStraight="true";canvas.dataset.playerBulletsLaneForward="true";
     canvas.dataset.combatLaneAligned="none"; canvas.dataset.combatTargetLane="";
     canvas.dataset.projectiles="0"; canvas.dataset.straightProjectiles="0"; canvas.dataset.playerBulletsStraight="true";canvas.dataset.playerBulletsLaneForward="true"; canvas.dataset.enemyProjectiles="0"; canvas.dataset.enemyProjectileHits="0"; canvas.dataset.enemyVisibleCount="0"; canvas.dataset.enemyBreachCount="0"; canvas.dataset.enemyBreachReason=""; canvas.dataset.enemyBreachApplications="0"; canvas.dataset.enemyBreachExits="0"; canvas.dataset.barrelPassed="false"; canvas.dataset.barrelPasses="0"; canvas.dataset.enemyCount="0"; canvas.dataset.enemyWaveInitialCount="0";
@@ -401,6 +440,7 @@
   function finishRun(result) {
     if(mode!=="running") return;
     mode=result; ui.end.hidden=false;
+    syncLaneModeControls();
     if(result==="won") {
       ui.endKicker.textContent="OPERATION COMPLETE";
       ui.endTitle.innerHTML="LINE<br><em>BROKEN.</em>";
@@ -419,7 +459,8 @@
   function spawnNext() {
     if(nextIndex>=ROUND.length||mode!=="running") return;
     const source=ROUND[nextIndex];
-    const event={...source,...(source.effect?{effect:{...source.effect}}:{}),id:nextIndex,y:96,engaged:false,resolved:false};
+    const event={...source,...(source.effect?{effect:{...source.effect}}:{}),id:nextIndex,roundIndex:nextIndex,y:96,engaged:false,resolved:false};
+    if(Number.isFinite(event.lane))event.lane=laneForRoundEvent(event,nextIndex);
     if(event.type==="enemy"){
       // Set the wave's starting size once at appearance; long-range hits must never be healed back at engagement.
       event.count=Math.max(event.count,Math.min(MAX_ENEMY_WAVE_SIZE,Math.ceil(soldiers*ENEMY_WAVE_SQUAD_RATIO)));
@@ -570,6 +611,7 @@
 
   function drawRoad() {
     const top=roadAt(66),bottom=roadAt(H);
+    canvas.dataset.laneBoundaryCount=String(LANE_COUNT-1);
     const grad=ctx.createLinearGradient(0,66,0,H);
     grad.addColorStop(0,"#dce0e3");
     grad.addColorStop(.48,"#d1d6da");
@@ -613,15 +655,17 @@
     ctx.beginPath();ctx.moveTo(top.right,67);ctx.lineTo(bottom.right,H);ctx.stroke();
     ctx.lineCap="butt";
 
-    // Two perspective dividers make three continuous lanes readable at every screen size.
+    // Perspective dividers follow the selected lane mode at every screen size.
     const laneTop=roadAt(66),laneBottom=roadAt(H);
     ctx.strokeStyle="rgba(255,255,255,.82)";ctx.lineWidth=2.5;ctx.setLineDash([16,17]);ctx.lineDashOffset=-offset*1.8;
-    for(const boundary of [1/3,2/3]){
+    for(let boundary=1;boundary<LANE_COUNT;boundary++){
+      const ratio=boundary/LANE_COUNT;
       ctx.beginPath();
-      ctx.moveTo(laneTop.left+laneTop.width*boundary,66);
-      ctx.lineTo(laneBottom.left+laneBottom.width*boundary,H);
+      ctx.moveTo(laneTop.left+laneTop.width*ratio,66);
+      ctx.lineTo(laneBottom.left+laneBottom.width*ratio,H);
       ctx.stroke();
     }
+    canvas.dataset.laneBoundaryCount=String(LANE_COUNT-1);
     ctx.setLineDash([]);
 
     // Small broken edge marks make the road perspective legible without adding rail hardware.
@@ -1229,7 +1273,7 @@
       canvas.dataset.combatTargetLaneShare=weights[targetIndex].toFixed(3);
       lastCombatTargetId=playerSelectedTarget.id;lastCombatAlignment="locked";
     }else if(visibleBoss){
-      const targetShare=weights[1],aligned=targetShare>0.001;
+      const targetShare=weights[nearestLaneIndex(.5)],aligned=targetShare>0.001;
       canvas.dataset.combatLaneAligned=String(aligned);
       canvas.dataset.combatTargetLane=String(.5);
       canvas.dataset.combatLaneTargetType="boss";
@@ -1388,6 +1432,7 @@
   }
   function frame(now) {
     const frameDt=lastFrame?Math.min((now-lastFrame)/1000,.05):0;lastFrame=now;
+    if(mode==="running"){activeFrameSeconds+=frameDt;canvas.dataset.activeFrameSeconds=activeFrameSeconds.toFixed(3);}
     const dt=frameDt*speedMultiplier;
     update(dt);drawBackground(dt);drawRoad();drawEvents();drawSquad();drawBullets();drawMuzzleFlashes();drawParticles();syncHud();syncInteractionMetrics();
     requestAnimationFrame(frame);
@@ -1430,6 +1475,19 @@
   ui.replay.addEventListener("click",startRun);
   ui.reset.addEventListener("click",resetState);
   ui.speedButtons.forEach(button=>button.addEventListener("click",()=>setGameSpeed(button.dataset.speed)));
+  ui.laneModeButtons.forEach(button=>button.addEventListener("click",()=>setLaneMode(button.dataset.laneCount)));
+  const topbarElement=document.querySelector(".topbar");
+  function syncHudBelowTopbar() {
+    if(!topbarElement)return;
+    const bottom=topbarElement.getBoundingClientRect().bottom;
+    document.documentElement.style.setProperty("--hud-top",Math.ceil(bottom+5)+"px");
+  }
+  if(typeof ResizeObserver!=="undefined"&&topbarElement){
+    const topbarObserver=new ResizeObserver(syncHudBelowTopbar);
+    topbarObserver.observe(topbarElement);
+  }
+  window.addEventListener("resize",syncHudBelowTopbar,{passive:true});
+  syncHudBelowTopbar();
   function resizeCanvasToViewport() {
     const nextWidth=Math.max(220,Math.round(H*window.innerWidth/Math.max(1,window.innerHeight)));
     if(nextWidth===W&&canvas.height===H)return;

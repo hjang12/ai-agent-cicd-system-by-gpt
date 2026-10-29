@@ -129,34 +129,35 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         page.goto(self.base_url + "?testMode=1&testSpeedControls=1", wait_until="networkidle")
         canvas = page.locator("#gameCanvas")
         page.get_by_role("button", name="START RUN").click()
-        self.assertEqual("1", canvas.get_attribute("data-game-speed"))
-        page.wait_for_timeout(500)
-        before_x1 = float(canvas.get_attribute("data-simulation-seconds") or "0")
-        page.wait_for_timeout(500)
-        delta_x1 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x1
-        page.get_by_role("button", name="Set game speed to ×2").click()
-        self.assertEqual("2", canvas.get_attribute("data-game-speed"))
-        self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×2").get_attribute("aria-pressed"))
-        before_x2 = float(canvas.get_attribute("data-simulation-seconds") or "0")
-        page.wait_for_timeout(500)
-        delta_x2 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x2
 
-        page.get_by_role("button", name="Set game speed to ×3").click()
-        self.assertEqual("3", canvas.get_attribute("data-game-speed"))
-        self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×3").get_attribute("aria-pressed"))
-        before_x3 = float(canvas.get_attribute("data-simulation-seconds") or "0")
-        page.wait_for_timeout(500)
-        delta_x3 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x3
-        page.get_by_role("button", name="Set game speed to ×4").click()
-        self.assertEqual("4", canvas.get_attribute("data-game-speed"))
-        self.assertEqual("true", page.get_by_role("button", name="Set game speed to ×4").get_attribute("aria-pressed"))
-        before_x4 = float(canvas.get_attribute("data-simulation-seconds") or "0")
-        page.wait_for_timeout(500)
-        delta_x4 = float(canvas.get_attribute("data-simulation-seconds") or "0") - before_x4
-        self.assertGreater(delta_x1, 0.1, "The world clock should advance at ×1")
-        self.assertGreater(delta_x2, delta_x1 * 1.5, "The world clock should advance faster at ×2")
-        self.assertGreater(delta_x3, delta_x2 * 1.25, "The world clock should advance faster again at ×3")
-        self.assertGreater(delta_x4, delta_x3 * 1.2, "The world clock should advance faster again at ×4")
+        def measured_speed_rate(speed: int) -> float:
+            button = page.get_by_role("button", name=f"Set game speed to ×{speed}")
+            button.click()
+            self.assertEqual(str(speed), canvas.get_attribute("data-game-speed"))
+            self.assertEqual("true", button.get_attribute("aria-pressed"))
+            before_simulation = float(canvas.get_attribute("data-simulation-seconds") or "0")
+            before_frame_time = float(canvas.get_attribute("data-active-frame-seconds") or "0")
+            page.wait_for_function(
+                """(before) => Number(document.querySelector('#gameCanvas').dataset.activeFrameSeconds || 0)
+                    - before >= 0.25""",
+                arg=before_frame_time,
+                timeout=4000,
+            )
+            after_simulation = float(canvas.get_attribute("data-simulation-seconds") or "0")
+            after_frame_time = float(canvas.get_attribute("data-active-frame-seconds") or "0")
+            elapsed_frames = after_frame_time - before_frame_time
+            self.assertGreater(elapsed_frames, 0.2, "The browser must advance active frame time")
+            return (after_simulation - before_simulation) / elapsed_frames
+
+        rate_x1 = measured_speed_rate(1)
+        rate_x2 = measured_speed_rate(2)
+        rate_x3 = measured_speed_rate(3)
+        rate_x4 = measured_speed_rate(4)
+        self.assertAlmostEqual(1.0, rate_x1, delta=0.08, msg="×1 should advance one simulation second per active frame second")
+        self.assertGreater(rate_x2, rate_x1 * 1.5, "The world clock should advance faster at ×2")
+        self.assertGreater(rate_x3, rate_x2 * 1.25, "The world clock should advance faster again at ×3")
+        self.assertGreater(rate_x4, rate_x3 * 1.2, "The world clock should advance faster again at ×4")
+
         page.get_by_role("button", name="RESET RUN").click()
         self.assertTrue(page.locator("#startOverlay").is_visible())
         self.assertEqual("4", canvas.get_attribute("data-game-speed"), "Speed selection should persist across reset")
@@ -682,7 +683,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertEqual([], errors, "Lane-specific tank barrel raised a browser error")
         page.close()
 
-    def test_toolbar_has_only_speed_and_reset_controls(self) -> None:
+    def test_toolbar_has_speed_lane_mode_and_reset_controls(self) -> None:
         page = self.browser.new_page(viewport={"width": 375, "height": 812})
         errors: list[str] = []
         page.on("pageerror", lambda error: errors.append(str(error)))
@@ -693,7 +694,8 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         self.assertFalse(page.locator("#controlFeedback").count(), "Orientation/fullscreen feedback surface must be removed")
         self.assertTrue(page.locator("#resetButton").is_visible(), "Reset must remain available")
         self.assertEqual(4, page.locator(".speed-button").count(), "All four game-speed controls must remain")
-        self.assertEqual(5, page.locator(".topbar button").count(), "Toolbar should contain four speed choices and Reset only")
+        self.assertEqual(2, page.locator(".lane-mode-button").count(), "Three- and five-lane modes must be selectable")
+        self.assertEqual(7, page.locator(".topbar button").count(), "Toolbar should contain speed choices, lane modes, and Reset")
 
         labels = " ".join(page.locator(".topbar button").all_text_contents()).upper()
         self.assertNotIn("LAND", labels)
@@ -708,7 +710,77 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         toolbar = page.locator(".topbar-right").bounding_box()
         assert toolbar is not None
         self.assertLessEqual(toolbar["x"] + toolbar["width"], 320.5, "Toolbar must fit narrow phones")
+        topbar_overflow = page.locator(".topbar").evaluate("(el) => el.scrollWidth - el.clientWidth")
+        self.assertLessEqual(topbar_overflow, 1, "All topbar controls must fit without horizontal overflow")
         self.assertEqual([], errors, "Simplified toolbar should not raise a browser error")
+        page.close()
+
+    def test_five_lane_mode_updates_road_and_fire_distribution(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url + "?testMode=1&testEarlyEnemy=1", wait_until="networkidle")
+        canvas = page.locator("#gameCanvas")
+
+        self.assertEqual("3", canvas.get_attribute("data-lane-count"))
+        page.get_by_role("button", name="Use 5-lane mode").click()
+        page.wait_for_function("() => document.querySelector('#gameCanvas').dataset.laneCount === '5'")
+        self.assertEqual("true", page.locator('[data-lane-count="5"].lane-mode-button').get_attribute("aria-pressed"))
+        self.assertEqual("4", canvas.get_attribute("data-lane-boundary-count"))
+        self.assertEqual(5, len(canvas.get_attribute("data-fire-lane-weights").split(",")))
+        for lane_index in range(1, 6):
+            self.assertIsNotNone(canvas.get_attribute(f"data-fired-shots-lane{lane_index}"))
+
+        page.get_by_role("button", name="START RUN").click()
+        page.wait_for_function("() => document.querySelector('#gameCanvas').dataset.laneCount === '5'")
+        self.assertEqual("5", canvas.get_attribute("data-lane-count"))
+        five_lane_button = page.locator('[data-lane-count="5"].lane-mode-button')
+        self.assertEqual("true", five_lane_button.get_attribute("aria-pressed"))
+        self.assertTrue(five_lane_button.is_disabled(), "Lane mode must stay stable during a run")
+        self.assertEqual([], errors, "Five-lane mode raised a browser error")
+        page.close()
+
+        boss_page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        boss_errors: list[str] = []
+        boss_page.on("pageerror", lambda error: boss_errors.append(str(error)))
+        boss_page.goto(self.base_url + "?testMode=1&testBossEarlyHits=1", wait_until="networkidle")
+        boss_page.get_by_role("button", name="Use 5-lane mode").click()
+        boss_page.get_by_role("button", name="START RUN").click()
+        boss_canvas = boss_page.locator("#gameCanvas")
+        boss_page.wait_for_function(
+            "() => document.querySelector('#gameCanvas').dataset.combatLaneTargetType === 'boss'",
+            timeout=2000,
+        )
+        self.assertEqual("true", boss_canvas.get_attribute("data-combat-lane-aligned"))
+        self.assertEqual("1.000", boss_canvas.get_attribute("data-combat-target-lane-share"))
+        self.assertEqual([], boss_errors, "Five-lane center-lane fire raised a browser error")
+        boss_page.close()
+
+    def test_topbar_and_game_hud_never_overlap(self) -> None:
+        page = self.browser.new_page(viewport={"width": 1280, "height": 900})
+        errors: list[str] = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
+        page.goto(self.base_url, wait_until="networkidle")
+
+        for viewport in (
+            {"width": 1280, "height": 900},
+            {"width": 390, "height": 844},
+            {"width": 320, "height": 720},
+        ):
+            page.set_viewport_size(viewport)
+            page.wait_for_timeout(75)
+            topbar = page.locator(".topbar").bounding_box()
+            hud = page.locator(".hud").bounding_box()
+            assert topbar is not None and hud is not None
+            self.assertGreaterEqual(
+                hud["y"],
+                topbar["y"] + topbar["height"] + 3,
+                f"Game HUD must start below the topbar at {viewport['width']}px",
+            )
+            self.assertLessEqual(topbar["x"] + topbar["width"], viewport["width"] + 0.5)
+            overflow = page.locator(".topbar").evaluate("(el) => el.scrollWidth - el.clientWidth")
+            self.assertLessEqual(overflow, 1, "Topbar must not overflow horizontally")
+        self.assertEqual([], errors, "Responsive topbar/HUD layout raised a browser error")
         page.close()
 
     def test_low_squad_boss_counterattack_does_not_throw(self) -> None:

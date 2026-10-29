@@ -672,3 +672,63 @@ html, body {
   .topbar { flex-wrap:wrap; gap:6px; }
   .topbar-right { width:100%; justify-content:flex-end; flex-wrap:nowrap; }
 }
+
+/* The road layout can expose either three or five fully interactive lanes. */
+.lane-mode-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+  padding: 3px;
+  border: 1px solid rgba(255,255,255,.32);
+  border-radius: 8px;
+  background: rgba(13,66,130,.18);
+}
+.lane-mode-button {
+  min-width: 28px;
+  min-height: 27px;
+  padding: 5px 6px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+}
+.lane-mode-button[aria-pressed="true"] {
+  border-color: rgba(255,255,255,.9);
+  background: #fff;
+  color: #1768c5;
+}
+.lane-mode-button:disabled {
+  cursor: not-allowed;
+  opacity: .78;
+}
+
+/* Position the fixed HUD from the measured topbar height to prevent overlap. */
+.hud { top: var(--hud-top, 49px); }
+
+@media (max-width: 790px) {
+  .topbar { gap: 4px; padding-left: 6px; padding-right: 6px; }
+  .topbar-right { gap: 3px; }
+  .brand { flex: 0 1 auto; min-width: 0; gap: 4px; }
+  .brand-mark { flex: 0 0 auto; height: 18px; padding: 2px 3px; }
+  .brand-word { font-size: 10px; letter-spacing: .07em; }
+  .lane-mode-controls { gap: 0; padding: 1px; }
+  .lane-mode-button { min-width: 22px; min-height: 25px; padding: 4px 3px; font-size: 8px; }
+  .speed-controls { gap: 0; padding: 1px; }
+  .speed-button { min-width: 25px; min-height: 25px; padding: 4px 3px; font-size: 9px; }
+  .topbar .top-reset-button { min-height: 27px; padding: 4px 5px; gap: 3px; }
+}
+@media (max-width: 350px) {
+  .topbar { padding-left: 4px; padding-right: 4px; }
+  .topbar-right { gap: 2px; }
+  .brand-word { font-size: 9px; letter-spacing: .04em; }
+  .lane-mode-button { min-width: 19px; padding: 3px 2px; }
+  .speed-button { min-width: 22px; padding: 3px 2px; }
+  .topbar .top-reset-button { padding: 3px; }
+}
+

@@ -12,7 +12,8 @@
 ## Current Tasks
 
 - Governance/system-health review: TASK-20261023-0002 — ACTIVE. The 2026-10-29 review applied Governance 1.4.8 clarifications and corrected stale Gatefront current-status text. See GOVERNANCE/docs/checkpoints/TASK-20261023-0002.md.
-- Gatefront one-round browser game: TASK-20261023-0003 — COMPLETED on 2026-10-29. PR #222 closed the accepted scope; no active feature task or pending user review remains. See the project CURRENT_STATUS and Task Checkpoint.
+- Gatefront follow-up: TASK-20261029-0001 — ACTIVE. Add selectable 5-lane mode and correct the overlapping topbar/HUD; evidence is tracked in the project CURRENT_STATUS and task checkpoint.
+- Gatefront one-round browser game: TASK-20261023-0003 — COMPLETED on 2026-10-29. PR #222 closed the original accepted scope. Its separate follow-up feature is tracked as TASK-20261029-0001; the completed task itself remains closed.
 - Fresh-chat Context Recovery validation: TASK-20261023-0001 — COMPLETED; evidence in GOVERNANCE/docs/checkpoints/TASK-20261023-0001.md.
 - Personal AI Janggi Trainer v1.0: COMPLETED. No active Janggi feature task is registered.
 - Janggi AI-level calibration: TASK-20260930-0002 — PAUSED. Do not resume calibration without explicit direction.
