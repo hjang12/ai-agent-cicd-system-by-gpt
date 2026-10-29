@@ -18,7 +18,7 @@
 ### Decision
 
 - Corrected the Task to `BLOCKED` pending a direct browser smoke test, and added the smallest reusable consistency check rather than adding production-smoke automation, a new registry, or another state layer.
-- Governance 1.4.9 applies the existing version policy's patch-level clarification. PR-head and post-merge validation must be reported separately.
+- Governance 1.4.9 applies the existing version policy's patch-level clarification. PR-head Workspace validation [40853972677](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40853972677) and main Workspace validation [40854053410](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40854053410) both passed.
 
 ## [1.4.8] - 2026-10-29
 
