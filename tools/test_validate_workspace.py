@@ -28,6 +28,12 @@ class TaskClosureVerificationTests(unittest.TestCase):
 """
         self.assertEqual([], validate_completed_task_verification(registry))
 
+    def test_completed_task_with_optional_unverified_check_passes(self) -> None:
+        registry = """| Task ID | Scope | Project / Area | Goal | Status | Context | Current Checkpoint | Active PR / Issue | State Summary | Last Updated |
+| TASK-20261029-0001 | Project | game | Add mode | COMPLETED | status.md | checkpoint.md | PR #1 | Optional exploratory smoke remains UNVERIFIED; it is not an acceptance criterion. | 2026-10-29 |
+"""
+        self.assertEqual([], validate_completed_task_verification(registry))
+
     def test_completed_task_without_unverified_check_passes(self) -> None:
         registry = """| Task ID | Scope | Project / Area | Goal | Status | Context | Current Checkpoint | Active PR / Issue | State Summary | Last Updated |
 | TASK-20261029-0001 | Project | game | Add mode | COMPLETED | status.md | checkpoint.md | PR #1 | Required checks passed; deployment verified. | 2026-10-29 |
