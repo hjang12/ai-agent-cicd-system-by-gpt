@@ -20,7 +20,7 @@
 
 ## Active Issues and Verification
 
-- ISSUE-003 is IN PROGRESS: after the user configured Render Dashboard Build Filters, direct service read at 2026-10-29T07:45:13Z observed `paths=[projects/soldier-gate-runner-by-gpt/**, render.yaml]` and `ignoredPaths=[]`. The setting is saved, but behavior remains unverified. Next confirm a Governance-only main commit is ignored; a matching runtime change should be verified on the next legitimate change.
+- ISSUE-003 is IN PROGRESS: Render directly reports Build Filter paths `projects/soldier-gate-runner-by-gpt/**` and `render.yaml` (observed 2026-10-29T07:45:13Z). Governance-only main commit `f04f29db3575d81d9e653393d1693ebf328c8f92` has no corresponding Render deployment record after its Workspace check passed; the connected event query returned no explicit skip event. Verify the positive path on the next legitimate Gatefront runtime-file change.
 - ISSUE-002 is DEFERRED Janggi health-check configuration hygiene and is not a current release blocker.
 - Gatefront PR #222 merge commit e1237a49f8a10f52672c109a723df824a7030fef passed main Game CI run 40823758797 with 33 browser acceptance tests and Workspace validation 40823758798. Render deployment dep-dbhdl1lckfvc73f95em0 reached LIVE at 2026-10-29 05:33:05 UTC; this dated observation does not establish its present state.
 - Current production state must be queried directly when relevant. Do not infer service health or current deployment solely from these dated records.
