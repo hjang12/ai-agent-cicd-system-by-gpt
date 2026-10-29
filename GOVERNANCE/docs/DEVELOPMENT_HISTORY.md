@@ -8,7 +8,7 @@
 - Review of Governance §§4, 11, 14, 18, 25-A-4, 27, and 28 found that evidence rules already existed, but the consequence for Task status needed a clearer connection.
 - Governance 1.4.9 clarifies that an unmet required check prevents `COMPLETED`: keep the Task `ACTIVE` if further verification can proceed, or `BLOCKED` when tools/permissions/external conditions prevent it.
 - The Gatefront follow-up Task is now `BLOCKED` pending direct browser smoke of page load, 3L/5L mode selection, and topbar/HUD spacing. No feature implementation remains pending.
-- The Workspace validator and unit tests now reject a `COMPLETED` Registry row whose State Summary explicitly says `UNVERIFIED`. No production-smoke automation or new status layer was added.
+- The Workspace validator and unit tests now reject a `COMPLETED` Registry row whose State Summary explicitly labels a required check `UNVERIFIED`, while allowing out-of-scope optional observations to remain unverified. No production-smoke automation or new status layer was added.
 
 ### Verification / release
 - PR-head and post-merge Workspace validation results are to be recorded separately after the change passes CI.
