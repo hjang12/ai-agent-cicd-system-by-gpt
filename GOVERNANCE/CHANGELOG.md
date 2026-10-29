@@ -9,7 +9,7 @@
 
 ### Added
 
-- Workspace validation rejects a `COMPLETED` Task Registry row whose State Summary explicitly records `UNVERIFIED`, with regression tests for both blocked and completed cases.
+- Workspace validation rejects a `COMPLETED` Task Registry row whose State Summary explicitly labels a required check `UNVERIFIED`, while allowing optional non-acceptance observations to remain unverified.
 
 ### Review Trigger
 
