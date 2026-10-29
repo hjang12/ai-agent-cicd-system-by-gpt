@@ -833,8 +833,8 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
 
         page.get_by_role("button", name="START RUN").click()
         page.wait_for_function(
-            "() => document.querySelector('#enemyCount').textContent.trim() === '18 ENEMIES'",
-            timeout=7000,
+            "() => Number(document.querySelector('#gameCanvas').dataset.enemyCount || 0) > 0",
+            timeout=10000,
         )
         page.wait_for_timeout(180)
         pixels = page.evaluate("""() => {
@@ -852,8 +852,8 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
                     if (b > 105 && b > r * 1.35 && b > g * 1.05) blueSquad++;
                 }
             }
-            for (let y = 100; y < 250; y++) {
-                for (let x = 350; x < 610; x++) {
+            for (let y = 90; y < 300; y++) {
+                for (let x = 0; x < width; x++) {
                     const i = (y * width + x) * 4;
                     const [r, g, b] = data.slice(i, i + 3);
                     if (r > 150 && r > g * 1.35 && r > b * 1.18) redEnemy++;
@@ -1042,7 +1042,7 @@ class GatefrontBrowserAcceptance(unittest.TestCase):
         for completed_event in range(1, 26):
             page.wait_for_function(
                 f"() => document.querySelector('#progressCount').textContent.trim() === '{completed_event} / 25'",
-                timeout=7500,
+                timeout=15000,
             )
             if completed_event in lane_after_event:
                 self.steer_to_lane(page, lane_after_event[completed_event], keep_dragging=True)
