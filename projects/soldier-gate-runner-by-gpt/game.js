@@ -1273,7 +1273,7 @@
       canvas.dataset.combatTargetLaneShare=weights[targetIndex].toFixed(3);
       lastCombatTargetId=playerSelectedTarget.id;lastCombatAlignment="locked";
     }else if(visibleBoss){
-      const targetShare=weights[1],aligned=targetShare>0.001;
+      const targetShare=weights[nearestLaneIndex(.5)],aligned=targetShare>0.001;
       canvas.dataset.combatLaneAligned=String(aligned);
       canvas.dataset.combatTargetLane=String(.5);
       canvas.dataset.combatLaneTargetType="boss";
