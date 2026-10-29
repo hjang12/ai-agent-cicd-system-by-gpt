@@ -1,3 +1,19 @@
+## 2026-10-29 — Gatefront 5-lane mode, HUD overlap fix, and Render positive-path verification
+
+### Request and implementation
+- Added selectable 3-lane / 5-lane gameplay mode to Gatefront while preserving 3 lanes as the default. Lane centers, road dividers, steering, fire metrics, center-lane boss alignment, and lane-sensitive event placement adapt to the selected mode.
+- Fixed the fixed-position topbar/HUD overlap by measuring the rendered topbar bottom and setting the HUD offset from it, including responsive resize handling.
+- PR #229 merged as `62380e28239ea5f13b8826f9389a4340282cd1f5`.
+
+### Verification
+- PR-head Game CI [40847927556](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40847927556) and main Game CI [40848311436](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40848311436) passed all 35 browser acceptance tests. Workspace validation [40847927665](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40847927665) and [40848311435](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/40848311435) passed.
+- Render directly reports Build Filter paths `projects/soldier-gate-runner-by-gpt/**` and `render.yaml`, and `autoDeployTrigger=checksPass`. After the main Game CI and Workspace checks passed, Render automatically started a deployment for the exact merge commit. Deployment `dep-dbhguuvb9u1s739rir10` reached `LIVE` at 2026-10-29 09:19:03 UTC.
+- This supplies the previously missing positive-path evidence for ISSUE-003; that issue is resolved in the active issue register.
+- Direct public-URL browser smoke remains UNVERIFIED: the web tool could not open the service host and agent-side HTTP access failed DNS resolution. These access limitations do not prove a service failure; no live-UI result is claimed.
+- No production-smoke automation or new Governance policy was added. Further automation remains deferred pending a demonstrated benefit.
+
+---
+
 ## 2026-10-26 — Context Recovery audit after chat-length interruption
 
 ### Trigger
