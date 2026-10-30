@@ -19,7 +19,7 @@
 ## Scope and Current Action
 - The user's accepted scope is one playable mission, not a multi-level campaign. Persistent progression, accounts, monetization, multiplayer, AI model work, and detailed visual polish are not part of the closed Task.
 - Next Action: none for this follow-up. The public URL smoke and required acceptance checks passed; retain the original accepted one-mission scope.
-- PR #200 remains open but is superseded by accepted main behavior; do not merge it.
+- PR #200 was closed on 2026-10-30 as superseded by the accepted and deployed Gatefront implementation; its proposed changes were not merged.
 
 ## Source of Truth
 - Project root: projects/soldier-gate-runner-by-gpt/
