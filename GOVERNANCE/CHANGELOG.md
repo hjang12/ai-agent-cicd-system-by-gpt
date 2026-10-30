@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.4.10] - 2026-10-30
+
+### Clarified
+
+- §§4/9 distinguish completion-critical verification from risk-proportionate supporting checks, and require agents to diagnose the failure layer and try equivalent, authorized alternatives before treating a required check as blocked.
+- §14 makes self-directed technical recovery the default within delegated authority and defines outcome-first user reporting: completion is reported with essential evidence; incomplete work is reported with the unmet condition, cause, impact, recovery options, governance implications, and any exact user action required.
+- §18 clarifies that failure of one Agent-side URL/tool path is not evidence of a production outage, and that post-deployment verification scope must be proportionate to user impact and risk.
+
+### Review Trigger
+
+- During the Gatefront release-verification discussion, a single Agent-environment DNS failure was repeatedly elevated as a user-facing blocker despite existing successful CI and deployment evidence. The existing rules covered autonomy, verification and escalation separately, but did not clearly require alternative execution paths or distinguish the failed test route from the product acceptance criterion.
+- The user clarified the intended delegation model: the Agent owns technical execution and safe workarounds; the user receives a clear completion result or, when incomplete, the reason, impact, available resolution, governance implications, and only the user actions that are genuinely necessary.
+
+### Decision
+
+- Integrated the missing behavior into existing §§4, 9, 14 and 18. No new status type, registry, validator, permanent workflow, or separate reporting system was added.
+- Kept explicit user-approved acceptance criteria, permissions, security controls, CI gates, and high-risk approval boundaries intact. Alternative paths must provide equivalent evidence and must not weaken or bypass those controls.
+- Governance 1.4.10 is a patch-level clarification of the existing operating model.
+
 ## [1.4.9] - 2026-10-29
 
 ### Clarified
