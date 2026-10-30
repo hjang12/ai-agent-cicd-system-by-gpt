@@ -1408,3 +1408,11 @@ During the Gatefront release-verification discussion, an Agent-side DNS failure 
 ### Verification
 
 - PR #233 merged as `f1a2f0191a8cbd15caecfbf084a27a7a6d44bf1a`. PR-head Workspace validation [41005679529](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/41005679529) and post-merge main validation [41005777220](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/41005777220) both passed. The version-consistency test and Workspace structure / Render Blueprint validation steps succeeded.
+
+
+## 2026-10-30 — Gatefront production browser smoke and follow-up closure
+
+- The previous agent-side URL attempt failed at DNS resolution, which only established that this execution environment could not reach the host. Under the newly clarified Governance 1.4.10 fallback policy, a one-time GitHub-hosted runner was used instead of repeating the same failing path.
+- Temporary workflow PR #235 was merged as `3c69c0d70d3bcc9252b9828c021e17d9d1f143f6`. Live browser smoke run [41009104229](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/41009104229) passed against `https://soldier-gate-runner-by-gpt.onrender.com` on 2026-10-30. Desktop 1440×900 and mobile 390×844 both returned HTTP 200, rendered the game canvas and controls, switched 3L→5L→3L correctly, maintained 5px topbar/HUD separation, had no page-level overflow, and raised no uncaught browser errors.
+- The main Workspace validation [41009104422](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/41009104422) also passed. Render service direct inspection before the smoke reported not suspended, with Build Filter paths limited to `projects/soldier-gate-runner-by-gpt/**` and `render.yaml`; no Render event occurred for the workflow-only smoke commit.
+- `TASK-20261029-0001` is therefore COMPLETED. Its project Current Status, Checkpoint, and Workspace Task Registry are synchronized. The temporary live-smoke workflow is removed after its successful one-time use; no recurring production-smoke workflow was introduced.
