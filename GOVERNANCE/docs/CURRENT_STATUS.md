@@ -12,7 +12,7 @@
 ## Current Tasks
 
 - Governance/system-health review: TASK-20261023-0002 — ACTIVE. PR #233 merged as `f1a2f0191a8cbd15caecfbf084a27a7a6d44bf1a`; PR-head Workspace validation 41005679529 and main validation 41005777220 passed. Governance 1.4.10 clarifies risk-based verification, agent-led technical recovery, and outcome-first reporting; no new status, validator, or permanent workflow was added. See GOVERNANCE/docs/checkpoints/TASK-20261023-0002.md.
-- Gatefront follow-up: TASK-20261029-0001 — BLOCKED on 2026-10-29 pending required public-URL browser smoke. PR #229 merged as `62380e28239ea5f13b8826f9389a4340282cd1f5`; PR/main Game CI and Workspace validation passed; Render deployment `dep-dbhguuvb9u1s739rir10` reached LIVE. Agent-environment URL access failed; this does not establish a production outage.
+- Gatefront follow-up: TASK-20261029-0001 — COMPLETED on 2026-10-30. PR #229, Game CI, Workspace validation, and Render deployment passed; GitHub-hosted live browser smoke [41009104229](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/41009104229) verified desktop/mobile page load, 3L/5L controls, and topbar/HUD spacing.
 - Gatefront one-round browser game: TASK-20261023-0003 — COMPLETED on 2026-10-29. PR #222 closed the original accepted scope. Its separate follow-up feature is tracked as TASK-20261029-0001; the completed task itself remains closed.
 - Fresh-chat Context Recovery validation: TASK-20261023-0001 — COMPLETED; evidence in GOVERNANCE/docs/checkpoints/TASK-20261023-0001.md.
 - Personal AI Janggi Trainer v1.0: COMPLETED. No active Janggi feature task is registered.
@@ -23,7 +23,7 @@
 
 - ISSUE-003 is RESOLVED for the pending positive path: matching Gatefront merge commit `62380e28239ea5f13b8826f9389a4340282cd1f5` passed main Game CI 40848311436 and Workspace validation 40848311435; Render then auto-started deployment `dep-dbhguuvb9u1s739rir10` and it reached LIVE. The service directly reports Build Filter paths `projects/soldier-gate-runner-by-gpt/**` and `render.yaml`, with `autoDeployTrigger=checksPass`. No production UI smoke is claimed.
 - ISSUE-002 is DEFERRED Janggi health-check configuration hygiene and is not a current release blocker.
-- Gatefront follow-up PR #229 merge commit `62380e28239ea5f13b8826f9389a4340282cd1f5` passed main Game CI run 40848311436 (35 browser acceptance tests) and Workspace validation 40848311435. Render deployment `dep-dbhguuvb9u1s739rir10` for that exact commit reached LIVE at 2026-10-29 09:19:03 UTC. The deployed public URL's visual smoke result remains UNVERIFIED from this agent environment.
+- Gatefront follow-up PR #229 merge commit `62380e28239ea5f13b8826f9389a4340282cd1f5` passed main Game CI run 40848311436 (35 browser acceptance tests) and Workspace validation 40848311435. Render deployment `dep-dbhguuvb9u1s739rir10` for that exact commit reached LIVE at 2026-10-29 09:19:03 UTC. Direct deployed-URL browser smoke [41009104229](https://github.com/hjang12/ai-agent-cicd-system-by-gpt/actions/runs/41009104229) passed on desktop and mobile on 2026-10-30; detailed evidence is in the Gatefront follow-up Checkpoint.
 - Current production state must be queried directly when relevant. Do not infer service health or current deployment solely from these dated records.
 
 ## Canonical Navigation
