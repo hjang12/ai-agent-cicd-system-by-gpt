@@ -1384,3 +1384,27 @@ Set the existing Render service health-check path to `/api/health` through an au
 - The temporary guidance did not demonstrate an independent, measurable benefit over existing Governance §§25-A-8, 27 and 28. The repeated blocker was caused by stale task/status classification and context synchronization, not by a demonstrated gap in the rule text.
 - Stop applying the temporary instruction package as a separate set of instructions. Keep Governance rule text and version `1.4.3` unchanged. Reconsider only if repeated future evidence shows a genuine gap.
 - This trial closure does not change the v1.0 product scope: v1.0 is complete as defined; six AI levels are not statistically calibrated, numeric player Elo remains excluded, and cloud sync/multi-user features remain out of scope.
+
+
+## 2026-10-30 — Governance 1.4.10: delegated technical recovery and outcome-first reporting
+
+### Review Trigger
+
+During the Gatefront release-verification discussion, an Agent-side DNS failure was repeatedly surfaced as a major user-facing blocker even though the failure only established that the current execution path could not reach the URL. The user clarified that the Agent is responsible for technical execution and safe workarounds; user involvement is for actual decisions, authorization, access, settings, cost, or unresolved product direction.
+
+### Findings
+
+- Existing §§4, 9, 14 and 18 already covered completion, iterative correction, autonomous execution, escalation, and post-deployment verification, but did not fully connect them into a clear recovery sequence.
+- Required acceptance checks were not sufficiently distinguished from additional risk-based observations; the rules could encourage treating every unperformed check as a release blocker.
+- A failed tool/network/test route could be over-reported as a product/service problem without first trying an equivalent allowed route.
+- Reporting guidance emphasized documenting unresolved problems but did not clearly prioritize the requested outcome and keep resolved internal tool issues out of the user's way.
+
+### Decision and Implementation
+
+- Governance 1.4.10 clarifies §§4, 9, 14 and 18: classify required and supporting checks; diagnose failure layers; try equivalent authorized alternatives while preserving acceptance criteria and controls; skip low-value optional checks with rationale; request user input only when a real approval, access, configuration, cost, or product decision is needed; report success or incomplete outcomes first.
+- No new task status, registry, validator, workflow, or permanent automation was added. Existing Governance approval and security boundaries remain unchanged.
+- Governance Version: 1.4.10 (patch-level clarification).
+
+### Verification
+
+- Pending PR-head Workspace validation and post-merge main validation; exact run IDs and merge commit will be recorded after execution.
